@@ -1,0 +1,1892 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://mpcarr.github.io/vpx-gle-framework/light-controller/">
+      
+      
+        <link rel="prev" href="../player-state/">
+      
+      
+        <link rel="next" href="../about/">
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.25">
+    
+    
+      
+        <title>Light Controller - VPX Game Logic Framework</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.6543a935.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="glf-light" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#vpx-light-controller" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="VPX Game Logic Framework" class="md-header__button md-logo" aria-label="VPX Game Logic Framework" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            VPX Game Logic Framework
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Light Controller
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="glf-light" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="" data-md-color-scheme="glf-dark" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12c0-2.42-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12 20 8.69Z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      <label class="md-header__button md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+      </label>
+      <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.516 6.516 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5Z"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11h12Z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41Z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../getting-started/" class="md-tabs__link">
+        
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../features/" class="md-tabs__link">
+        
+  
+    
+  
+  Features
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+    
+      
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../ball-device/" class="md-tabs__link">
+          
+  
+  Game Logic
+
+        </a>
+      </li>
+    
+  
+
+    
+  
+
+      
+        
+  
+  
+    
+  
+  
+    <li class="md-tabs__item md-tabs__item--active">
+      <a href="./" class="md-tabs__link">
+        
+  
+    
+  
+  Light Controller
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../dmd-lcd.md" class="md-tabs__link">
+        
+  
+    
+  
+  DMD / LCD
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../about/" class="md-tabs__link">
+        
+  
+    
+  
+  About
+
+      </a>
+    </li>
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="VPX Game Logic Framework" class="md-nav__button md-logo" aria-label="VPX Game Logic Framework" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    VPX Game Logic Framework
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Getting Started
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../features/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Features
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Game Logic
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Game Logic
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Virtual Devices
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
+            <span class="md-nav__icon md-icon"></span>
+            Virtual Devices
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ball-device/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Device
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../diverter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Diverter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../drop-target/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Drop Target
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Game Logic Commands
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
+            <span class="md-nav__icon md-icon"></span>
+            Game Logic Commands
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ball-save/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Save
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../counter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Counter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../event-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../light-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Light Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mode/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Mode
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../multiball-locks/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multiball Locks
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../multiball/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multiball
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../show-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Show Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../timer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Timer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../events/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Events System
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../player-state/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Player State
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Light Controller
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Light Controller
+  </span>
+  
+
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#installing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installing
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#registering-lights" class="md-nav__link">
+    <span class="md-ellipsis">
+      Registering Lights
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Registering Lights">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vpmmaplights-what-is-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      vpmMapLights - what is it?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#light-controller-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Light Controller Features
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#managing-lights" class="md-nav__link">
+    <span class="md-ellipsis">
+      Managing Lights
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#light-onoffblink" class="md-nav__link">
+    <span class="md-ellipsis">
+      Light On/Off/Blink
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#light-color" class="md-nav__link">
+    <span class="md-ellipsis">
+      Light Color
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#light-level" class="md-nav__link">
+    <span class="md-ellipsis">
+      Light Level
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#light-utilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      Light Utilities
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Light Utilities">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#light-on-with-color" class="md-nav__link">
+    <span class="md-ellipsis">
+      Light On With Color
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fade-light-to-color" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fade Light To Color
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Fade Light To Color">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#light-on-with-flicker" class="md-nav__link">
+    <span class="md-ellipsis">
+      Light On With Flicker
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#light-pulse" class="md-nav__link">
+    <span class="md-ellipsis">
+      Light Pulse
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#light-pulse-with-profile" class="md-nav__link">
+    <span class="md-ellipsis">
+      Light Pulse With Profile
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#light-pulse-with-color" class="md-nav__link">
+    <span class="md-ellipsis">
+      Light Pulse With Color
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#managing-shots" class="md-nav__link">
+    <span class="md-ellipsis">
+      Managing Shots
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Managing Shots">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#add-shot" class="md-nav__link">
+    <span class="md-ellipsis">
+      Add Shot
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#remove-shot" class="md-nav__link">
+    <span class="md-ellipsis">
+      Remove Shot
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#remove-all-shots" class="md-nav__link">
+    <span class="md-ellipsis">
+      Remove All Shots
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#is-shot-lit" class="md-nav__link">
+    <span class="md-ellipsis">
+      Is Shot Lit
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#light-sequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      Light Sequences
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Light Sequences">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vpx-sequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      VPX Sequences
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-sequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Sequences
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#color-palettes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Color Palettes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Color Palettes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-palette-are-applied-to-sequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      How palette are applied to sequences
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#show-creator" class="md-nav__link">
+    <span class="md-ellipsis">
+      Show Creator
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Show Creator">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#exporting-lights" class="md-nav__link">
+    <span class="md-ellipsis">
+      Exporting Lights
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#importing-light-shows" class="md-nav__link">
+    <span class="md-ellipsis">
+      Importing Light Shows
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dmd-lcd.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DMD / LCD
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../about/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    About
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#installing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Installing
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#registering-lights" class="md-nav__link">
+    <span class="md-ellipsis">
+      Registering Lights
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Registering Lights">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vpmmaplights-what-is-it" class="md-nav__link">
+    <span class="md-ellipsis">
+      vpmMapLights - what is it?
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#light-controller-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      Light Controller Features
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#managing-lights" class="md-nav__link">
+    <span class="md-ellipsis">
+      Managing Lights
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#light-onoffblink" class="md-nav__link">
+    <span class="md-ellipsis">
+      Light On/Off/Blink
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#light-color" class="md-nav__link">
+    <span class="md-ellipsis">
+      Light Color
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#light-level" class="md-nav__link">
+    <span class="md-ellipsis">
+      Light Level
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#light-utilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      Light Utilities
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Light Utilities">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#light-on-with-color" class="md-nav__link">
+    <span class="md-ellipsis">
+      Light On With Color
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#fade-light-to-color" class="md-nav__link">
+    <span class="md-ellipsis">
+      Fade Light To Color
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Fade Light To Color">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#light-on-with-flicker" class="md-nav__link">
+    <span class="md-ellipsis">
+      Light On With Flicker
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#light-pulse" class="md-nav__link">
+    <span class="md-ellipsis">
+      Light Pulse
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#light-pulse-with-profile" class="md-nav__link">
+    <span class="md-ellipsis">
+      Light Pulse With Profile
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#light-pulse-with-color" class="md-nav__link">
+    <span class="md-ellipsis">
+      Light Pulse With Color
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#managing-shots" class="md-nav__link">
+    <span class="md-ellipsis">
+      Managing Shots
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Managing Shots">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#add-shot" class="md-nav__link">
+    <span class="md-ellipsis">
+      Add Shot
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#remove-shot" class="md-nav__link">
+    <span class="md-ellipsis">
+      Remove Shot
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#remove-all-shots" class="md-nav__link">
+    <span class="md-ellipsis">
+      Remove All Shots
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#is-shot-lit" class="md-nav__link">
+    <span class="md-ellipsis">
+      Is Shot Lit
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#light-sequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      Light Sequences
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Light Sequences">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#vpx-sequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      VPX Sequences
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#custom-sequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom Sequences
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#color-palettes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Color Palettes
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Color Palettes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-palette-are-applied-to-sequences" class="md-nav__link">
+    <span class="md-ellipsis">
+      How palette are applied to sequences
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#show-creator" class="md-nav__link">
+    <span class="md-ellipsis">
+      Show Creator
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Show Creator">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#exporting-lights" class="md-nav__link">
+    <span class="md-ellipsis">
+      Exporting Lights
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#importing-light-shows" class="md-nav__link">
+    <span class="md-ellipsis">
+      Importing Light Shows
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="vpx-light-controller">VPX Light Controller</h1>
+<p>A class to help vpx original table authors manage light states and custom sequences. Supports managing multiple light states per light, RGB lights, Syncing with VPX light sequences, custom key frame light sequences, import / export of light sequences to show creator and several utility functions for interacting with lights.</p>
+<h2 id="installing">Installing</h2>
+<ul>
+<li>Download the latest release from github releases and copy the vbs code from <strong>lightController.vbs</strong> into your vpx table script.</li>
+</ul>
+<h2 id="registering-lights">Registering Lights <a id="registerLights1"></a></h2>
+<h4 id="vpmmaplights-what-is-it">vpmMapLights - what is it?</h4>
+<p>-vpmMapLights is a function which is available from the core.vbs script that comes with VPX. It allows you to setup your lights by specifying a light index in the lights timer interval property. This means you could have multiple light objects assigned to the same index to generate a greater light influence, or you might want to tie multiple lights together so they flash at the same time. This technique is used in vpx rom based tables to map the lights to the rom index. We use the same setup here for consistency.</p>
+<ul>
+<li>The first thing you need to do is assign a number to each light or
+   light groups and put that in the light objects timer interval</li>
+</ul>
+<p><img alt="light interval" src="./images/light-interval.png" /></p>
+<ul>
+<li>Next you need to add all of your lights into a vpx collection called <strong><em>aLights</em></strong></li>
+</ul>
+<p><img alt="light interval" src="./images/lights-alights.png" /></p>
+<ul>
+<li>At the top of your table script, make sure these variables are defined:</li>
+</ul>
+<pre><code>Const cGameName = &quot;REPLACE WITH TABLE NAME&quot;
+Dim tablewidth: tablewidth = Table1.width
+Dim tableheight: tableheight = Table1.height
+</code></pre>
+<ul>
+<li>In your table init sub, you can call the light controller's register lights function</li>
+</ul>
+<pre><code>lightCtrl.RegisterLights
+</code></pre>
+<p>This will do a few things. First, it will call vpmMapLights to setup your light indexes. Next it will build a grid containing all of your light positions, this is used if you want to export your lights and also for some custom color fading routines. Second, it will try to find any lightmaps that might be assoiciated with your lights. (these are primitives you can setup that need to track the opacity and color of your lights). Finally it will create a <strong><em>Sequence Runner</em></strong> for each light, this allows for each light to have multiple states, e.g. a mode shot and a multiball jackpot shot. More on Sequence Runners below.</p>
+<ul>
+<li>Finally you need to call <code>lightCtrl.Update()</code> inside a timer. You can reuse an existing timer or setup a new one. A 16ms timer works well</li>
+</ul>
+<h2 id="light-controller-features">Light Controller Features</h2>
+<ul>
+<li>Managing Lights<ul>
+<li>Light On/Off</li>
+<li>Light Blink</li>
+<li>Light Color</li>
+<li>Light Level</li>
+<li>Light Utilities<ul>
+<li>Light On With Color</li>
+<li>Light On With Flicker</li>
+<li>Light Pulse</li>
+<li>Light Pulse With Profile</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>Managing Shots<ul>
+<li>Add Shot</li>
+<li>Remove Shot</li>
+<li>Remove All Shots</li>
+<li>Is Shot Lit</li>
+</ul>
+</li>
+<li>Syncing With VPX Lights</li>
+<li>Light Sequences<ul>
+<li>VPX Sequences</li>
+<li>Custom Sequences</li>
+<li>MPF Show Creator</li>
+<li>Exporting Lights</li>
+<li>Importing Light Shows</li>
+</ul>
+</li>
+</ul>
+<h2 id="managing-lights">Managing Lights <a id="managingLights"></a></h2>
+<p>To control your lights you can call the following functions on the light controller object. All these require you to pass the vpx light as a parameter. E.g. The below examples assume you have a light in vpx called L01</p>
+<h2 id="light-onoffblink">Light On/Off/Blink <a id="lightOn"></a></h2>
+<p>To turn a light on you use: <strong>LightOn</strong> and <strong>LightOff</strong>. To  set a light on a repeating Blink, you can use <strong>Blink</strong></p>
+<pre><code>lightCtrl.LightOn L01
+lightCtrl.LightOff L01
+lightCtrl.Blink L01
+</code></pre>
+<p><img alt="Alt Text" src="https://github.com/mpcarr/vpx-light-controller/blob/main/images/lighton.gif?raw=true" /></p>
+<p><img alt="Alt Text" src="https://github.com/mpcarr/vpx-light-controller/blob/main/images/lightblink.gif?raw=true" /></p>
+<h2 id="light-color">Light Color <a id="lightColor"></a></h2>
+<p>VPX lights have color and fullColor properties. To change the light color use: <strong>LightColor</strong></p>
+<pre><code>lightCtrl.LightColor L01, RGB(255,0,0) 'Sets the color property to Red
+
+lightCtrl.LightColor L01, Array(RGB(255,0,0), Null) 'Sets the color to Red
+
+lightCtrl.LightColor L01, Array(RGB(255,0,0), RGB(0,255,0)) 'Sets the color and fullColor propteries to Red &amp; Green
+
+lightCtrl.LightColor L01, Array(Null, RGB(0,0,255)) 'Sets the fullColor to Blue
+</code></pre>
+<p><img alt="Alt Text" src="https://github.com/mpcarr/vpx-light-controller/blob/main/images/lightcolor.gif?raw=true" /></p>
+<h2 id="light-level">Light Level <a id="lightLevel"></a></h2>
+<p>All of the lights registerd with the controller will be set to modulate brightness between 0-100. To change the level use: <strong>LightLevel</strong></p>
+<pre><code>lightCtrl.LightLevel L01, 50 'Set the lights maximum brightness to 50%
+
+lightCtrl.LightLevel L01, 100 'Set the lights maximum brightness to 100%
+</code></pre>
+<p><img alt="Alt Text" src="https://github.com/mpcarr/vpx-light-controller/blob/main/images/lightlevel.gif?raw=true" /></p>
+<h2 id="light-utilities">Light Utilities <a id="lightUtilities"></a></h2>
+<p>To help control common light events there are some utility functions available:</p>
+<h3 id="light-on-with-color">Light On With Color <a id="lightOnWithColor"></a></h3>
+<p>Turns a light whilst also setting the color</p>
+<pre><code>lightCtrl.OnWithColor L01, RGB(255,0,0)
+</code></pre>
+<h2 id="fade-light-to-color">Fade Light To Color</h2>
+<p>Changes the color of a light to a new color, with a fading effect over a specified duration. </p>
+<p><code>lightCtrl.FadeLightToColor L01, RGB(255,0,0), 180</code></p>
+<h3 id="light-on-with-flicker">Light On With Flicker <a id="lightFlicker"></a></h3>
+<p>Turns a light on with a short flickering sequence</p>
+<pre><code>lightCtrl.OnWithFlicker L01
+</code></pre>
+<p><img alt="Alt Text" src="https://github.com/mpcarr/vpx-light-controller/blob/main/images/lightflicker.gif?raw=true" /></p>
+<h3 id="light-pulse">Light Pulse <a id="pulse"></a></h3>
+<p>Pulses a light with the default pulse sequence. The state of the light does not change. E.g. after the pulse has finished, if the light was previously on, it will be on again.</p>
+<p>The second parameter is the number of times to repeat the pulse.</p>
+<pre><code>lightCtrl.Pulse L01, 0 'Pulse the light once, no repeat (total 1 pulse)
+
+lightCtrl.Pulse L01, 1 'Pulse the light, repeat the pulse once (total 2 pulses)
+</code></pre>
+<p><img alt="Alt Text" src="https://github.com/mpcarr/vpx-light-controller/blob/main/images/flashpulse.gif?raw=true" /></p>
+<h3 id="light-pulse-with-profile">Light Pulse With Profile <a id="pulseWithProfile"></a></h3>
+<p>Pulses a light with a custom pulse sequence. The state of the light does not change. E.g. after the pulse has finished, if the light was previously on, it will be on again.</p>
+<p>The second parameter is the pulse sequence to use. Each element in the array is the brightness of the light for that frame. Each frame is 20ms so the 5 element seq below would last 100ms.</p>
+<pre><code>lightCtrl.PulseWithProfile L01, Array(10,50,100,50,0), 0
+</code></pre>
+<h3 id="light-pulse-with-color">Light Pulse With Color<a id="pulseWithColor"></a></h3>
+<p>Pulses a light with a color. The state of the light does not change. E.g. after the pulse has finished, if the light was previously on, it will be on again and the color will reset.</p>
+<pre><code>lightCtrl.PulseWithColor L01, RGB(255,0,0), 0
+</code></pre>
+<h2 id="managing-shots">Managing Shots <a id="managingShots"></a></h2>
+<p>Aside from turning lights on and making them blink, you can add dfferent sequences to lights which run one after the other. You can manually manage this by creating sequence runners and adding / removing sequences. For convience the most common senarnio is to have one light lit for lots of differnt reasons. You may have a light lit for a mode shot but also for a jackpot or combo. The light controller lets you add multiple "Shots" to a light.</p>
+<h3 id="add-shot">Add Shot <a id="addShot"></a></h3>
+<p>To add a new shot to a light use: <strong>AddShot</strong></p>
+<pre><code>lightCtrl.AddShot &quot;Name&quot;, L01, RGB(255,0,0)
+</code></pre>
+<p>The first parameter is a name for the shot so we can reference it later.
+The second parameter is the vpx light object
+The third parameter is the color you want this shot to be.</p>
+<p><img alt="Alt Text" src="https://github.com/mpcarr/vpx-light-controller/blob/main/images/addshot.gif?raw=true" /></p>
+<h3 id="remove-shot">Remove Shot <a id="removeShot"></a></h3>
+<p>To remove a shot from a light use: <strong>RemoveShot</strong></p>
+<pre><code>lightCtrl.RemoveShot &quot;Name&quot;
+</code></pre>
+<p>Call remove shot with the name of the shot you want to remove</p>
+<h3 id="remove-all-shots">Remove All Shots <a id="removeAllShots"></a></h3>
+<p>To remove all shots from a light use: <strong>RemoveAllShots</strong></p>
+<pre><code>lightCtrl.RemoveAllShots L01
+</code></pre>
+<p>Call remove all shots with the vpx light object</p>
+<h3 id="is-shot-lit">Is Shot Lit <a id="isShotLit"></a></h3>
+<p>To check if a shot is current active on the light use: <strong>IsShotLit</strong></p>
+<pre><code>lightCtrl.IsShotLit &quot;Name&quot;, L01
+</code></pre>
+<p>The first parameter is the name of the shot
+The second parameter is the vpx light object</p>
+<h2 id="light-sequences">Light Sequences <a id="lightSequences"></a></h2>
+<h3 id="vpx-sequences">VPX Sequences <a id="vpxSequences"></a></h3>
+<p>The light controller can sync your lights to VPX light sequences</p>
+<p>In the example below you start the vpx sequence <strong>SeqCircleOutOn</strong>. Then call the light controller <strong>SyncWithVpxLights</strong> function with the collection the vpx light sequence uses. This will start syncing your lights.</p>
+<pre><code>SomeVPXLightSeq.Play SeqCircleOutOn,50,100
+lightCtrl.SyncWithVpxLights SomeVPXLightSeq
+
+'Stop syncing with vpx lights once the sequence is complete
+Sub SomeVPXLightSeq_PlayDone()
+    lightCtrl.StopSyncWithVpxLights()
+End Sub
+</code></pre>
+<p>By default this will use the current color of the light. If you want to override the color of all the lights during the sequence you can use <strong>SetVpxSyncLightColor</strong></p>
+<pre><code>SomeVPXLightSeq.Play SeqCircleOutOn,50,100
+lightCtrl.SyncWithVpxLights VpxCollection
+lightCtrl.SetVpxSyncLightColor RGB(255,0,0)
+</code></pre>
+<h3 id="custom-sequences">Custom Sequences <a id="customSequences"></a></h3>
+<p>The controller supports writing your own custom sequences using a <strong>SequenceRunner</strong> and <strong>LightSequence</strong> items. Each Sequence Runner added to the controller is ran concurrently with other sequence runners. Each Light Sequence added to a runner is ran one after the other (following).</p>
+<p>Lets say you have a set of 3 lights and you want to light one after the other on repeat.</p>
+<p><img alt="Alt Text" src="https://github.com/mpcarr/vpx-light-controller/blob/main/images/customseq.gif?raw=true" /></p>
+<p>The sequence might this:</p>
+<ul>
+<li>First frame: </li>
+<li>Light 1 On</li>
+<li>Second frame:</li>
+<li>Light 1 Off</li>
+<li>Light 2 On</li>
+<li>Third Frame:</li>
+<li>Light 2 Off</li>
+<li>Light 3 Off</li>
+<li>Fourth Frame: </li>
+<li>Light 3 Off</li>
+</ul>
+<p>Using the controller you can create a sequence runner for this using <strong>CreateSeqRunner</strong></p>
+<pre><code>lightCtrl.CreateSeqRunner &quot;_RunnerName_&quot; 'Runner name can be anything you want
+</code></pre>
+<p>Then you need to create the actual sequence using the <strong>LCSeq</strong> class.</p>
+<pre><code>Dim lSeqTest: Set lSeqTest = new LCSeq
+lSeqTest.Name = &quot;lSeqTest&quot;
+
+lSeqTest.Sequence = Array( _
+                    Array(&quot;L01|100&quot;), _
+                    Array(&quot;L01|0&quot;, &quot;L02|100&quot;), _
+                    Array(&quot;L02|0&quot;, &quot;L03|100&quot;), _
+                    Array(&quot;L03|0&quot;))
+
+lSeqTest.UpdateInterval = 180
+lSeqTest.Color = Null
+lSeqTest.Repeat = True
+
+</code></pre>
+<p>Finally, when you want to run the sequence, you need to add it to the runner you created using <strong>AddLightSeq</strong>.</p>
+<pre><code>lightCtrl.AddLightSeq &quot;_RunnerName_&quot;, lSeqTest
+</code></pre>
+<p>As the above example is set to repeat, you can stop it by using <strong>RemoveLightSeq</strong></p>
+<pre><code>lightCtrl.RemoveLightSeq &quot;_RunnerName_&quot;, lSeqTest
+</code></pre>
+<h3 id="color-palettes">Color Palettes</h3>
+<p>When runnning light sequences it's nice to be able to change the color of the sequence. In addition to the color and sync color properties, the Light Controller supports palettes of color (gradients). </p>
+<p>To create a palette there are two options. You can create a palette between a start and end color, this will be a gradient from start to finish. Or you can create a palette with multiple color stops. </p>
+<p>To create a simple start and end palette you use:</p>
+<pre><code>Dim palette
+palette = lightCtrl.CreateColorPalette(&quot;FF0000&quot;, &quot;0000FF&quot;)
+</code></pre>
+<p><img alt="light interval" src="./images/pal-redblue.png" /></p>
+<p>The colors are defined with a hex value (above, red -&gt; blue).</p>
+<p>To create a palette with stops you can use:</p>
+<p><code>lightCtrl.CreateColorPaletteWithStops("FF0000", "0000FF", Array(127), Array("00FF00"))</code></p>
+<p><img alt="light interval" src="./images/pal-redgreenblue.png" /></p>
+<p>Here we need to pass in the start and end colors with an array of stop posistions and an array of stop colors for those positions. Note the palette is 255 colors, so the above creates a green stop at position 127 (50%).</p>
+<h4 id="how-palette-are-applied-to-sequences">How palette are applied to sequences</h4>
+<p>You can use palettes with either any custom sequence or when syncing lights with vpx sequences.</p>
+<ul>
+<li>
+<p>Palette with VPX Seq</p>
+<ul>
+<li>
+<p><code>lightCtrl.SetVpxSyncLightsPalette paletteWithStops, "LeftToRight", 0</code></p>
+<ul>
+<li>param1: the palette</li>
+<li>param2: direction</li>
+<li>param3: speed<ul>
+<li>The direction param determines how the palette is applied to the lights. The options available are:</li>
+</ul>
+</li>
+<li>TopToBottom</li>
+<li>BottomToTop</li>
+<li>LeftToRight</li>
+<li>RightToLeft</li>
+<li>RadialOut</li>
+<li>RadialIn</li>
+<li>Clockwise</li>
+<li>AntiClockwise</li>
+</ul>
+</li>
+<li>
+<p>The speed param allows you to shift the colors in the palette over time. </p>
+<ul>
+<li>A value of 0 or Null wont shift the colors at all during the sequence</li>
+<li>Any other value e.g. 120 will shift the colors by 1 every 120ms.</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Palette with Sequence Runner</p>
+<ul>
+<li><code>lSeqTest.Palette = Array(paletteWithStops, "LeftToRight", 0)</code><ul>
+<li>Same params as above however this time they are assigned as an array
+   to the palette property of the sequence runner</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<h2 id="show-creator">Show Creator <a id="showCreator"></a></h2>
+<p>For more complex light sequences the controller supports exporting your table lights so that they can be imported a tool called <strong>showcreator</strong></p>
+<p>https://github.com/missionpinball/showcreator</p>
+<p><img alt="Alt Text" src="https://github.com/mpcarr/vpx-light-controller/blob/main/images/showcreator.gif?raw=true" /></p>
+<p><img alt="Alt Text" src="https://github.com/mpcarr/vpx-light-controller/blob/main/images/vpxshow.gif?raw=true" /></p>
+<p>Show Creator is a tool for creating lightshows in MPF (Mission Pinball Framework). It takes a YAML file which describes your light locations and exports a YAML file with key frame data of the light show you created.</p>
+<p>We can use some functions on the light controller to help us integrate with MPF Show Creator</p>
+<h3 id="exporting-lights">Exporting Lights <a id="exportingLights"></a></h3>
+<p>You can export the position of your lights by using <strong>CompileLights</strong>. You need to pass in a vpx collection of the lights you want to export (this lets you have more fine grain control over which lights to animate in show creator).</p>
+<p>To export lights you need to have the variable <strong>cGameName</strong> set in your table. This is used to export the file to your computer in a subfolder called <strong>cGameName_LightShows</strong></p>
+<pre><code>lightCtrl.CompileLights _VPXCollection_, &quot;filename&quot;
+</code></pre>
+<p>This will export a file you can use in MPF Show Creator.</p>
+<h3 id="importing-light-shows">Importing Light Shows <a id="importingLightShows"></a></h3>
+<p>You can import the created lights into your table with the <strong>LoadLightShows</strong> command. This will read light show files saved from Show Creator and compile them to light sequences the controller can run. <strong>LoadLightShows</strong> will also output a file called <strong>lights-out.txt</strong> which contains the compiled vbs code for the light sequence. For development is easier to call <strong>LoadLightShows</strong>, however you should copy the compiled lightshows into your tablescript before sharing it.</p>
+<pre><code>lightCtrl.LoadLightShows
+</code></pre>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "navigation.instant", "navigation.tabs"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.081f42fc.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,45 @@
+site_name: VPX Game Logic Framework
+site_url: https://mpcarr.github.io/vpx-gle-framework/
+nav:
+  - 'Getting Started': getting-started.md
+  - 'Features': features.md
+  - 'Game Logic':
+    - Virtual Devices:
+          - 'Ball Device': ball-device.md
+          - 'Diverter': diverter.md
+          - 'Drop Target': drop-target.md
+    - 'Game Logic Commands':
+          - 'Ball Save': ball-save.md
+          - 'Counter': counter.md
+          - 'Event Player': event-player.md
+          - 'Light Player': light-player.md
+          - 'Mode': mode.md
+          - 'Multiball Locks': multiball-locks.md
+          - 'Multiball': multiball.md
+          - 'Show Player': show-player.md
+          - 'Timer': timer.md
+    - 'Events System': events.md
+    - 'Player State': player-state.md
+  - 'Light Controller': light-controller.md
+  - 'DMD / LCD': dmd-lcd.md
+  - About: about.md
+extra_css:
+  - stylesheets/extra.css
+theme:
+  name: material
+  features:
+    - content.code.copy
+    - navigation.instant
+    - navigation.tabs
+  palette: 
+      - scheme: glf-light
+        toggle:
+          icon: material/brightness-7 
+          name: Switch to dark mode 
+      - scheme: glf-dark
+        toggle:
+          icon: material/brightness-4
+          name: Switch to light mode
+markdown_extensions:
+  - toc:                    # https://squidfunk.github.io/mkdocs-material/setup/extensions/python-markdown/#table-of-contents
+      title: On this page
