@@ -1,7 +1,8 @@
 site_name: VPX Game Logic Framework
 site_url: https://mpcarr.github.io/vpx-gle-framework/
 nav:
-  - 'Getting Started': getting-started.md
+  - 'Getting Started':
+    - 'Installation': installing.md
   - 'Features': features.md
   - 'Game Logic':
     - Virtual Devices:
