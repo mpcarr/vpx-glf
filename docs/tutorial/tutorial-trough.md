@@ -2,6 +2,8 @@
 
 The trough is special device that collects balls from the playfield when they drain and releases balls into the plunger lane. GLF supports upto an 8 ball "physical" trough. By physical we mean that the balls are never destroyed during a game. This leads to better ball tracking and physics simulation.
 
+![trough1](../images/trough.gif)
+
 ### Download the VPX file
 [Tutorial 1 - Trough VPX File](https://github.com/mpcarr/vpx-glf/raw/main/tutorial/glf_tutorial1_trough.vpx)
 
