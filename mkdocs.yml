@@ -3,6 +3,8 @@ site_url: https://mpcarr.github.io/vpx-gle-framework/
 nav:
   - 'Getting Started':
     - 'Installation': installing.md
+    - 'Tutorial':
+      - 'Trough': 'tutorial/tutorial-trough.md'
   - 'Features': features.md
   - 'Game Logic':
     - Virtual Devices:
@@ -32,15 +34,16 @@ theme:
     - content.code.copy
     - navigation.instant
     - navigation.tabs
-  palette: 
-      - scheme: glf-light
-        toggle:
-          icon: material/brightness-7 
-          name: Switch to dark mode 
-      - scheme: glf-dark
-        toggle:
-          icon: material/brightness-4
-          name: Switch to light mode
+  palette:
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
 markdown_extensions:
   - toc:                    # https://squidfunk.github.io/mkdocs-material/setup/extensions/python-markdown/#table-of-contents
       title: On this page
+  - attr_list

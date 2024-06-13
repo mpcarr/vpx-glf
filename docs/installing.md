@@ -2,7 +2,7 @@
 
 To install and use the Game Logic Framework in your VPX table, you will need to download the lastest vpx-glf.vbs script and include it in your table script
 
-[vpx-glf.vbs]( )
+[vpx-glf.vbs](https://github.com/mpcarr/vpx-glf/raw/main/scripts/vpx-glf.vbs){:target="_blank"}
 
 ## Global Script Required Settings
 

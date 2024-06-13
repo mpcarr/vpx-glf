@@ -1,9 +1,12 @@
-[data-md-color-scheme="glf-light"] {
-    --md-primary-fg-color:        #4A90E2;
-    --md-primary-fg-color--dark:  #4A90E2;
+:root > * {
+  --md-primary-fg-color:        #4A90E2;
+  --md-accent-fg-color:         #4A90E2; /* button color on hover */
+  --md-default-fg-color--light: hsla(0, 0%, 0%, 0.87); /* text in light mode */
 }
 
-[data-md-color-scheme="glf-dark"] {
-  --md-primary-fg-color:        #1C1C1C;
-  --md-primary-fg-color--dark:  #1C1C1C;
+/* dark mode colors */
+[data-md-color-scheme="slate"] {
+  --md-default-fg-color--light: hsla(0, 0%, 100%, 0.87); /* text */
+  --md-default-bg-color: #202020; /* background */
+  --md-typeset-a-color: #4A90E2; /* link color */
 }
