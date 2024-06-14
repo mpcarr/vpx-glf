@@ -56,3 +56,5 @@ With ball_device_plunger
 End With
 ```
 
+Above we have also changed the **EjectTimeout** for **EjectTargets**. As we have a gate at the end of our plunger lane, we can use this to determine if our ball made it out of the plunger lane successfully rather than a timeout.
+
