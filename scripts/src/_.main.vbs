@@ -3,7 +3,8 @@
 '
 Dim canAddPlayers : canAddPlayers = True
 Dim currentPlayer : currentPlayer = Null
-Dim PlungerDevice
+Dim glf_PI : glf_PI = 4 * Atn(1)
+Dim glf_plunger
 Dim gameStarted : gameStarted = False
 Dim pinEvents : Set pinEvents = CreateObject("Scripting.Dictionary")
 Dim pinEventsOrder : Set pinEventsOrder = CreateObject("Scripting.Dictionary")
@@ -39,7 +40,13 @@ Public Sub Glf_Init()
 	If useBCP = True Then
 		ConnectToBCPMediaController
 	End If
-
+	Dim switch, switchHitSubs
+	switchHitSubs = ""
+	For Each switch in Glf_Switches
+		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_Hit() : DispatchPinEvent """ & switch.Name & "_active"", ActiveBall : End Sub" & vbCrLf
+		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_UnHit() : DispatchPinEvent """ & switch.Name & "_inactive"", ActiveBall : End Sub" & vbCrLf
+	Next
+	ExecuteGlobal switchHitSubs
 End Sub
 
 Sub Glf_Options(ByVal eventId)
@@ -112,7 +119,6 @@ End Sub
 Public Sub Glf_EventTimer_Timer()
 	DelayTick
 End Sub
-
 
 '******************************************************
 '*****   GLF Pin Events                             ****

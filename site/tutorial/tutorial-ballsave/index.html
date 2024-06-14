@@ -8,28 +8,28 @@
       
       
       
-        <link rel="canonical" href="https://mpcarr.github.io/vpx-gle-framework/player-state/">
+        <link rel="canonical" href="https://mpcarr.github.io/vpx-gle-framework/tutorial/tutorial-ballsave/">
       
       
-        <link rel="prev" href="../events/">
+        <link rel="prev" href="../tutorial-plunger/">
       
       
-        <link rel="next" href="../light-controller/">
+        <link rel="next" href="../../features/">
       
       
-      <link rel="icon" href="../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.25">
     
     
       
-        <title>Player State - VPX Game Logic Framework</title>
+        <title>Ball Save - VPX Game Logic Framework</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.6543a935.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.6543a935.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -48,9 +48,9 @@
       
     
     
-      <link rel="stylesheet" href="../stylesheets/extra.css">
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#player-state" class="md-skip">
+        <a href="#tutorial-ball-save" class="md-skip">
           Skip to content
         </a>
       
@@ -90,7 +90,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="VPX Game Logic Framework" class="md-header__button md-logo" aria-label="VPX Game Logic Framework" data-md-component="logo">
+    <a href="../.." title="VPX Game Logic Framework" class="md-header__button md-logo" aria-label="VPX Game Logic Framework" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -110,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Player State
+              Ball Save
             
           </span>
         </div>
@@ -203,11 +203,13 @@
         
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../installing/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../installing/" class="md-tabs__link">
           
   
   Getting Started
@@ -223,7 +225,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../features/" class="md-tabs__link">
+      <a href="../../features/" class="md-tabs__link">
         
   
     
@@ -238,21 +240,17 @@
         
   
   
-    
-  
   
     
     
       
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../ball-device/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../ball-device/" class="md-tabs__link">
           
   
   Game Logic
@@ -271,7 +269,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../light-controller/" class="md-tabs__link">
+      <a href="../../light-controller/" class="md-tabs__link">
         
   
     
@@ -288,7 +286,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../dmd-lcd.md" class="md-tabs__link">
+      <a href="../../dmd-lcd.md" class="md-tabs__link">
         
   
     
@@ -305,7 +303,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../about/" class="md-tabs__link">
+      <a href="../../about/" class="md-tabs__link">
         
   
     
@@ -339,7 +337,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="VPX Game Logic Framework" class="md-nav__button md-logo" aria-label="VPX Game Logic Framework" data-md-component="logo">
+    <a href="../.." title="VPX Game Logic Framework" class="md-nav__button md-logo" aria-label="VPX Game Logic Framework" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -349,201 +347,6 @@
   </label>
   
   <ul class="md-nav__list" data-md-scrollfix>
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-      
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
-        
-          
-          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
-            
-  
-  <span class="md-ellipsis">
-    Getting Started
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_1">
-            <span class="md-nav__icon md-icon"></span>
-            Getting Started
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../installing/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Installation
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    
-    
-    
-      
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" >
-        
-          
-          <label class="md-nav__link" for="__nav_1_2" id="__nav_1_2_label" tabindex="0">
-            
-  
-  <span class="md-ellipsis">
-    Tutorial
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_1_2">
-            <span class="md-nav__icon md-icon"></span>
-            Tutorial
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial/tutorial-trough/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Trough
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial/tutorial-plunger/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Plunger
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial/tutorial-ballsave/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Ball Save
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-    
-      
-      
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../features/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Features
-  </span>
-  
-
-      </a>
-    </li>
-  
-
     
       
       
@@ -567,10 +370,300 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Getting Started
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Installation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_1_2" id="__nav_1_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Tutorial
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorial
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-trough/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Trough
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-plunger/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Plunger
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Ball Save
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Ball Save
+  </span>
+  
+
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#download-the-vpx-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Download the VPX file
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#mode-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mode Config
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ball-save-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ball Save Config
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update-plunger-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      Update Plunger config
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../features/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Features
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -581,7 +674,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             Game Logic
@@ -633,7 +726,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ball-device/" class="md-nav__link">
+      <a href="../../ball-device/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -654,7 +747,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../diverter/" class="md-nav__link">
+      <a href="../../diverter/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -675,7 +768,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../drop-target/" class="md-nav__link">
+      <a href="../../drop-target/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -742,7 +835,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ball-save/" class="md-nav__link">
+      <a href="../../ball-save/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -763,7 +856,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../counter/" class="md-nav__link">
+      <a href="../../counter/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -784,7 +877,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../event-player/" class="md-nav__link">
+      <a href="../../event-player/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -805,7 +898,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../light-player/" class="md-nav__link">
+      <a href="../../light-player/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -826,7 +919,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../mode/" class="md-nav__link">
+      <a href="../../mode/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -847,7 +940,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../multiball-locks/" class="md-nav__link">
+      <a href="../../multiball-locks/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -868,7 +961,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../multiball/" class="md-nav__link">
+      <a href="../../multiball/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -889,7 +982,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../show-player/" class="md-nav__link">
+      <a href="../../show-player/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -910,7 +1003,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../timer/" class="md-nav__link">
+      <a href="../../timer/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -939,7 +1032,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../events/" class="md-nav__link">
+      <a href="../../events/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -957,30 +1050,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Player State
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../player-state/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -989,79 +1062,6 @@
   
 
       </a>
-      
-        
-
-  
-
-<nav class="md-nav md-nav--secondary" aria-label="On this page">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      On this page
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#set-player-state" class="md-nav__link">
-    <span class="md-ellipsis">
-      Set Player State
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#get-player-state" class="md-nav__link">
-    <span class="md-ellipsis">
-      Get Player State
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#player-events" class="md-nav__link">
-    <span class="md-ellipsis">
-      Player Events
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Player Events">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#add-player-state-event-listener" class="md-nav__link">
-    <span class="md-ellipsis">
-      Add Player State Event Listener
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#remove-player-state-event-listener" class="md-nav__link">
-    <span class="md-ellipsis">
-      Remove Player State Event Listener
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1081,7 +1081,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../light-controller/" class="md-nav__link">
+      <a href="../../light-controller/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1101,7 +1101,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../dmd-lcd.md" class="md-nav__link">
+      <a href="../../dmd-lcd.md" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1121,7 +1121,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../about/" class="md-nav__link">
+      <a href="../../about/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1163,46 +1163,46 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#set-player-state" class="md-nav__link">
+  <a href="#download-the-vpx-file" class="md-nav__link">
     <span class="md-ellipsis">
-      Set Player State
+      Download the VPX file
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#get-player-state" class="md-nav__link">
+  <a href="#configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      Get Player State
+      Configuration
     </span>
   </a>
   
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#player-events" class="md-nav__link">
-    <span class="md-ellipsis">
-      Player Events
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Player Events">
+    <nav class="md-nav" aria-label="Configuration">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#add-player-state-event-listener" class="md-nav__link">
+  <a href="#mode-config" class="md-nav__link">
     <span class="md-ellipsis">
-      Add Player State Event Listener
+      Mode Config
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#remove-player-state-event-listener" class="md-nav__link">
+  <a href="#ball-save-config" class="md-nav__link">
     <span class="md-ellipsis">
-      Remove Player State Event Listener
+      Ball Save Config
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#update-plunger-config" class="md-nav__link">
+    <span class="md-ellipsis">
+      Update Plunger config
     </span>
   </a>
   
@@ -1228,33 +1228,46 @@
                   
 
 
-<h1 id="player-state">Player State</h1>
-<p>The player state stores variables per player. </p>
-<h2 id="set-player-state">Set Player State</h2>
-<p><code>SetPlayerState</code> is used to put data into the player state. You need a key and value.</p>
-<pre><code>SetPlayerState &quot;current_ball&quot;, 1
+<h1 id="tutorial-ball-save">Tutorial - Ball Save</h1>
+<p>Lets add a ball save to our table. A ball save is a logic block that monitors if the balls drains while it is active. If it does, the ball will not end and a new ball will be released from the trough.</p>
+<h3 id="download-the-vpx-file">Download the VPX file</h3>
+<p><a href="https://github.com/mpcarr/vpx-glf/raw/main/tutorial/glf_tutorial_ballsave.vpx">Tutorial - Ball Save VPX File</a></p>
+<h3 id="configuration">Configuration</h3>
+<p>To configure your ball save we need a mode for it live under. Create the following config to create a mode and a ball save logic block</p>
+<h4 id="mode-config">Mode Config</h4>
+<pre><code>Dim mode_ballsave
+Set mode_ballsave = (new Mode)(&quot;ballsave&quot;, 1000)
+
+With mode_ballsave
+    .StartEvents = Array(&quot;ball_started&quot;)
+    .StopEvents = Array(&quot;ball_ended&quot;)
+End With
 </code></pre>
-<h2 id="get-player-state">Get Player State</h2>
-<p><code>GetPlayerState</code> is used to get data out of the player state.</p>
-<pre><code>GetPlayerState &quot;current_ball&quot;
+<p>The mode above will start every time a new ball is started and it will end when a ball ends.</p>
+<h4 id="ball-save-config">Ball Save Config</h4>
+<pre><code>Dim ball_save
+Set ball_save = (new BallSave)(&quot;base&quot;, mode_ballsave)
+
+With ball_save
+    .EnableEvents = Array(&quot;mode_ballsave_started&quot;)
+    .TimerStartEvents = Array(&quot;balldevice_plunger_ball_eject_success&quot;)
+    .ActiveTime = 15
+    .HurryUpTime = 5
+    .GracePeriod = 3
+    .BallsToSave = -1
+    .AutoLaunch = True
+End With
 </code></pre>
-<h2 id="player-events">Player Events</h2>
-<p>When a player state value changes it will post an event so you can respond to that change. e.g. light changes, dmd updates.</p>
-<h3 id="add-player-state-event-listener">Add Player State Event Listener</h3>
-<p>To start monitoring a player event.</p>
-<p>The parameters are: </p>
-<ul>
-<li>Player State Key: e.g. "score", this is the value you want to monitor</li>
-<li>Key: A unqiue key for this listnener. You can have multiple subs monitoring the same value doing different things. This key is used to separate those.</li>
-<li>Callback: The Sub or Function to call when the value changes</li>
-<li>Priority: callbacks will be called in priority order, the higher priorities will be called first.</li>
-<li>Args: Any arguments you want to pass along to the callback.</li>
-</ul>
-<pre><code>AddPlayerStateEventListener &quot;score&quot;, &quot;player_score_changed&quot;, &quot;UpdateDMD&quot;, 1000, Null
-</code></pre>
-<h3 id="remove-player-state-event-listener">Remove Player State Event Listener</h3>
-<p>To stop monitoring a player event.</p>
-<pre><code>RemovePlayerStateEventListener &quot;score&quot;, &quot;player_score_change&quot;
+<p>As you can see from the settings above the ball save will be active for 15 seconds once the ball has successfully been ejected from the plunger lane, it has a grace period of 3 seconds meaning that it will actually be active for 18 seconds in total and it will save an unlimited about of balls as long as it is active.</p>
+<h4 id="update-plunger-config">Update Plunger config</h4>
+<p>We have configured our ball save to auto launch the new ball. In the previous tutorial we only set out plunger as a manual plunger. We need to update the config to support auto launching a ball.</p>
+<pre><code>With ball_device_plunger
+    .BallSwitches = Array(&quot;sw01&quot;)
+    .EjectTargets = Array(&quot;sw02&quot;)
+    .EjectStrength = 100
+    .MechcanicalEject = True
+    .DefaultDevice = True
+End With
 </code></pre>
 
 
@@ -1302,10 +1315,10 @@
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "navigation.instant", "navigation.tabs"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "navigation.instant", "navigation.tabs"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.081f42fc.min.js"></script>
+      <script src="../../assets/javascripts/bundle.081f42fc.min.js"></script>
       
     
   </body>

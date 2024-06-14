@@ -4,13 +4,13 @@ Dim glf_lastPinEvent : glf_lastPinEvent = Null
 
 Sub DispatchPinEvent(e, kwargs)
     If Not pinEvents.Exists(e) Then
-        'debugLog.WriteToLog "DispatchPinEvent", e & " has no listeners"
+        debugLog.WriteToLog "DispatchPinEvent", e & " has no listeners"
         Exit Sub
     End If
     glf_lastPinEvent = e
     Dim k
     Dim handlers : Set handlers = pinEvents(e)
-    'debugLog.WriteToLog "DispatchPinEvent", e
+    debugLog.WriteToLog "DispatchPinEvent", e
     For Each k In pinEventsOrder(e)
         'debugLog.WriteToLog "DispatchPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
         GetRef(handlers(k(1))(0))(Array(handlers(k(1))(2), kwargs))

@@ -3,7 +3,8 @@
 '
 Dim canAddPlayers : canAddPlayers = True
 Dim currentPlayer : currentPlayer = Null
-Dim PlungerDevice
+Dim glf_PI : glf_PI = 4 * Atn(1)
+Dim glf_plunger
 Dim gameStarted : gameStarted = False
 Dim pinEvents : Set pinEvents = CreateObject("Scripting.Dictionary")
 Dim pinEventsOrder : Set pinEventsOrder = CreateObject("Scripting.Dictionary")
@@ -39,7 +40,13 @@ Public Sub Glf_Init()
 	If useBCP = True Then
 		ConnectToBCPMediaController
 	End If
-
+	Dim switch, switchHitSubs
+	switchHitSubs = ""
+	For Each switch in Glf_Switches
+		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_Hit() : DispatchPinEvent """ & switch.Name & "_active"", ActiveBall : End Sub" & vbCrLf
+		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_UnHit() : DispatchPinEvent """ & switch.Name & "_inactive"", ActiveBall : End Sub" & vbCrLf
+	Next
+	ExecuteGlobal switchHitSubs
 End Sub
 
 Sub Glf_Options(ByVal eventId)
@@ -112,7 +119,6 @@ End Sub
 Public Sub Glf_EventTimer_Timer()
 	DelayTick
 End Sub
-
 
 '******************************************************
 '*****   GLF Pin Events                             ****
@@ -281,9 +287,9 @@ Class BallSave
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get AutoLaunch(): AutoLaunch = m_auto_launch: End Property
-    Public Property Let ActiveTime(value) : m_active_time = value : End Property
-    Public Property Let GracePeriod(value) : m_grace_period = value : End Property
-    Public Property Let HurryUpTime(value) : m_hurry_up_time = value : End Property
+    Public Property Let ActiveTime(value) : m_active_time = value*1000 : End Property
+    Public Property Let GracePeriod(value) : m_grace_period = value*1000 : End Property
+    Public Property Let HurryUpTime(value) : m_hurry_up_time = value*1000 : End Property
     Public Property Let EnableEvents(value) : m_enable_events = value : End Property
     Public Property Let TimerStartEvents(value) : m_timer_start_events = value : End Property
     Public Property Let AutoLaunch(value) : m_auto_launch = value : End Property
@@ -313,7 +319,7 @@ Class BallSave
         For Each evt in m_enable_events
             AddPinEventListener evt, m_name & "_enable", "BallSaveEventHandler", 1000, Array("enable", Me)
         Next
-        For Each evt in m_enable_events
+        For Each evt in m_timer_start_events
             AddPinEventListener evt, m_name & "_timer_start", "BallSaveEventHandler", 1000, Array("timer_start", Me)
         Next
     End Sub
@@ -323,7 +329,7 @@ Class BallSave
         For Each evt in m_enable_events
             RemovePinEventListener evt, m_name & "_enable"
         Next
-        For Each evt in m_enable_events
+        For Each evt in m_timer_start_events
             RemovePinEventListener evt, m_name & "_timer_start"
         Next
     End Sub
@@ -338,6 +344,7 @@ Class BallSave
         AddPinEventListener "ball_drain", m_name & "_ball_drain", "BallSaveEventHandler", 1000, Array("drain", Me)
         DispatchPinEvent m_name&"_enabled", Null
         If UBound(m_timer_start_events) = -1 Then
+            Log "Timer Starting as no timer start events are set"
             TimerStart()
         End If
     End Sub
@@ -429,8 +436,8 @@ Function BallSaveEventHandler(args)
         Case "timer_start"
             ballSave.TimerStart
         Case "queue_release"
-            If PlungerDevice.HasBall = False And ballInReleasePostion = True Then
-                ReleaseBall(Null)
+            If glf_plunger.HasBall = False And ballInReleasePostion = True Then
+                Glf_ReleaseBall(Null)
                 If ballSave.AutoLaunch = True Then
                     SetDelay ballSave.Name&"_auto_launch", "BallSaveEventHandler" , Array(Array("auto_launch", ballSave),Null), 500
                 End If
@@ -438,8 +445,8 @@ Function BallSaveEventHandler(args)
                 SetDelay ballSave.Name&"_queued_release", "BallSaveEventHandler" , Array(Array("queue_release", ballSave), Null), 1000
             End If
         Case "auto_launch"
-            If PlungerDevice.HasBall = True Then
-                PlungerDevice.Eject
+            If glf_plunger.HasBall = True Then
+                glf_plunger.Eject
             Else
                 SetDelay ballSave.Name&"_auto_launch", "BallSaveEventHandler" , Array(Array("auto_launch", ballSave), Null), 500
             End If
@@ -899,15 +906,15 @@ Function MultiballLocksHandler(args)
         Case "reset"
             multiball.Reset
         Case "queue_release"
-            If PlungerDevice.HasBall = False And ballInReleasePostion = True Then
+            If glf_plunger.HasBall = False And ballInReleasePostion = True Then
                 ReleaseBall(Null)
                 SetDelay multiball.Name&"_auto_launch", "MultiballLocksHandler" , Array(Array("auto_launch", multiball),Null), 500
             Else
                 SetDelay multiball.Name&"_queued_release", "MultiballLocksHandler" , Array(Array("queue_release", multiball), Null), 1000
             End If
         Case "auto_launch"
-            If PlungerDevice.HasBall = True Then
-                PlungerDevice.Eject
+            If glf_plunger.HasBall = True Then
+                glf_plunger.Eject
             Else
                 SetDelay multiball.Name&"_auto_launch", "MultiballLocksHandler" , Array(Array("auto_launch", multiball), Null), 500
             End If
@@ -1385,31 +1392,45 @@ Class BallDevice
     Private m_balls
     Private m_balls_in_device
     Private m_eject_angle
+    Private m_eject_pitch
     Private m_eject_strength
-    Private m_eject_direction
     Private m_default_device
     Private m_eject_callback
     Private m_eject_all_events
     Private m_balls_to_eject
     Private m_ejecting_all
+    Private m_ejecting
     Private m_mechcanical_eject
+    Private m_eject_targets
     Private m_debug
 
     Public Property Get Name(): Name = m_name : End Property
     Public Property Let DefaultDevice(value)
         m_default_device = value
         If m_default_device = True Then
-            Set PlungerDevice = Me
+            Set glf_plunger = Me
         End If
     End Property
-	Public Property Get HasBall(): HasBall = Not IsNull(m_balls(0)): End Property
+	Public Property Get HasBall(): HasBall = (Not IsNull(m_balls(0)) And m_ejecting = False): End Property
     Public Property Let EjectCallback(value) : m_eject_callback = value : End Property
+    
+    Public Property Let EjectAngle(value) : m_eject_angle = glf_PI * (0 - 90) / 180 : End Property
+    Public Property Let EjectPitch(value) : m_eject_pitch = glf_PI * (0 - 90) / 180 : End Property
+    Public Property Let EjectStrength(value) : m_eject_strength = value : End Property
+    
     Public Property Let EjectTimeout(value) : m_eject_timeout = value * 1000 : End Property
     Public Property Let EjectAllEvents(value)
         m_eject_all_events = value
         Dim evt
         For Each evt in m_eject_all_events
             AddPinEventListener evt, m_name & "_eject_all", "BallDeviceEventHandler", 1000, Array("ball_eject_all", Me)
+        Next
+    End Property
+    Public Property Let EjectTargets(value)
+        m_eject_targets = value
+        Dim evt
+        For Each evt in m_eject_targets
+            AddPinEventListener evt & "_active", m_name & "_eject_target", "BallDeviceEventHandler", 1000, Array("eject_timeout", Me)
         Next
     End Property
     Public Property Let PlayerControlledEjectEvents(value)
@@ -1435,9 +1456,14 @@ Class BallDevice
         m_name = "balldevice_" & name
         m_ball_switches = Array()
         m_eject_all_events = Array()
+        m_eject_targets = Array()
         m_balls = Array()
         m_debug = False
         m_default_device = False
+        m_eject_pitch = 0
+        m_eject_angle = 0
+        m_eject_strength = 0
+        m_ejecting = False
         m_eject_callback = Null
         m_ejecting_all = False
         m_balls_to_eject = 0
@@ -1448,14 +1474,14 @@ Class BallDevice
 
     Public Sub BallEnter(ball, switch)
         RemoveDelay m_name & "_eject_timeout"
-        SoundSaucerLockAtBall ball
+        'SoundSaucerLockAtBall ball
         Set m_balls(switch) = ball
         m_balls_in_device = m_balls_in_device + 1
         Log "Ball Entered" 
         Dim unclaimed_balls
         unclaimed_balls = DispatchRelayPinEvent(m_name & "_ball_entered", 1)
         Log "Unclaimed Balls: " & unclaimed_balls
-        If m_default_device = False And unclaimed_balls > 0 And Not IsNull(m_balls(0)) Then
+        If (m_default_device = False Or m_ejecting = True) And unclaimed_balls > 0 And Not IsNull(m_balls(0)) Then
             SetDelay m_name & "_eject_attempt", "BallDeviceEventHandler", Array(Array("ball_eject", Me), ball), 500
         End If
     End Sub
@@ -1471,6 +1497,8 @@ Class BallDevice
     End Sub
 
     Public Sub BallExitSuccess(ball)
+        m_ejecting = False
+        RemoveDelay m_name & "_eject_timeout"
         DispatchPinEvent m_name & "_ball_eject_success", Null
         Log "Ball successfully exited"
         If m_ejecting_all = True Then
@@ -1482,7 +1510,6 @@ Class BallDevice
                 m_balls_to_eject = m_balls_to_eject - 1
                 Eject()
             Else
-
                 SetDelay m_name & "_eject_attempt", "BallDeviceEventHandler", Array(Array("ball_eject", Me), ball), 600
             End If
         End If
@@ -1491,6 +1518,14 @@ Class BallDevice
     Public Sub Eject
         Log "Ejecting."
         SetDelay m_name & "_eject_timeout", "BallDeviceEventHandler", Array(Array("eject_timeout", Me), m_balls(0)), m_eject_timeout
+        m_ejecting = True
+        If m_eject_strength > 0 Then
+            m_balls(0).VelX = m_eject_strength * Cos(m_eject_pitch) * Sin(m_eject_angle)
+            m_balls(0).VelY = m_eject_strength * Cos(m_eject_pitch) * Cos(m_eject_angle)
+            m_balls(0).VelZ = m_eject_strength * Sin(m_eject_pitch)
+            Log "VelX: " &  m_balls(0).VelX & ", VelY: " &  m_balls(0).VelY & ", VelZ: " &  m_balls(0).VelZ
+        End If
+
         If Not IsNull(m_eject_callback) Then
             GetRef(m_eject_callback)(m_balls(0))
         End If
@@ -4067,13 +4102,13 @@ Dim glf_lastPinEvent : glf_lastPinEvent = Null
 
 Sub DispatchPinEvent(e, kwargs)
     If Not pinEvents.Exists(e) Then
-        'debugLog.WriteToLog "DispatchPinEvent", e & " has no listeners"
+        debugLog.WriteToLog "DispatchPinEvent", e & " has no listeners"
         Exit Sub
     End If
     glf_lastPinEvent = e
     Dim k
     Dim handlers : Set handlers = pinEvents(e)
-    'debugLog.WriteToLog "DispatchPinEvent", e
+    debugLog.WriteToLog "DispatchPinEvent", e
     For Each k In pinEventsOrder(e)
         'debugLog.WriteToLog "DispatchPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
         GetRef(handlers(k(1))(0))(Array(handlers(k(1))(2), kwargs))

@@ -115,15 +115,15 @@ Function MultiballLocksHandler(args)
         Case "reset"
             multiball.Reset
         Case "queue_release"
-            If PlungerDevice.HasBall = False And ballInReleasePostion = True Then
+            If glf_plunger.HasBall = False And ballInReleasePostion = True Then
                 ReleaseBall(Null)
                 SetDelay multiball.Name&"_auto_launch", "MultiballLocksHandler" , Array(Array("auto_launch", multiball),Null), 500
             Else
                 SetDelay multiball.Name&"_queued_release", "MultiballLocksHandler" , Array(Array("queue_release", multiball), Null), 1000
             End If
         Case "auto_launch"
-            If PlungerDevice.HasBall = True Then
-                PlungerDevice.Eject
+            If glf_plunger.HasBall = True Then
+                glf_plunger.Eject
             Else
                 SetDelay multiball.Name&"_auto_launch", "MultiballLocksHandler" , Array(Array("auto_launch", multiball), Null), 500
             End If

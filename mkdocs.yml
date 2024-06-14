@@ -5,6 +5,8 @@ nav:
     - 'Installation': installing.md
     - 'Tutorial':
       - 'Trough': 'tutorial/tutorial-trough.md'
+      - 'Plunger': 'tutorial/tutorial-plunger.md'
+      - 'Ball Save': 'tutorial/tutorial-ballsave.md'
   - 'Features': features.md
   - 'Game Logic':
     - Virtual Devices:

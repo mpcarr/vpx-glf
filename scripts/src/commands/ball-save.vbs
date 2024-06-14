@@ -19,9 +19,9 @@ Class BallSave
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get AutoLaunch(): AutoLaunch = m_auto_launch: End Property
-    Public Property Let ActiveTime(value) : m_active_time = value : End Property
-    Public Property Let GracePeriod(value) : m_grace_period = value : End Property
-    Public Property Let HurryUpTime(value) : m_hurry_up_time = value : End Property
+    Public Property Let ActiveTime(value) : m_active_time = value*1000 : End Property
+    Public Property Let GracePeriod(value) : m_grace_period = value*1000 : End Property
+    Public Property Let HurryUpTime(value) : m_hurry_up_time = value*1000 : End Property
     Public Property Let EnableEvents(value) : m_enable_events = value : End Property
     Public Property Let TimerStartEvents(value) : m_timer_start_events = value : End Property
     Public Property Let AutoLaunch(value) : m_auto_launch = value : End Property
@@ -51,7 +51,7 @@ Class BallSave
         For Each evt in m_enable_events
             AddPinEventListener evt, m_name & "_enable", "BallSaveEventHandler", 1000, Array("enable", Me)
         Next
-        For Each evt in m_enable_events
+        For Each evt in m_timer_start_events
             AddPinEventListener evt, m_name & "_timer_start", "BallSaveEventHandler", 1000, Array("timer_start", Me)
         Next
     End Sub
@@ -61,7 +61,7 @@ Class BallSave
         For Each evt in m_enable_events
             RemovePinEventListener evt, m_name & "_enable"
         Next
-        For Each evt in m_enable_events
+        For Each evt in m_timer_start_events
             RemovePinEventListener evt, m_name & "_timer_start"
         Next
     End Sub
@@ -76,6 +76,7 @@ Class BallSave
         AddPinEventListener "ball_drain", m_name & "_ball_drain", "BallSaveEventHandler", 1000, Array("drain", Me)
         DispatchPinEvent m_name&"_enabled", Null
         If UBound(m_timer_start_events) = -1 Then
+            Log "Timer Starting as no timer start events are set"
             TimerStart()
         End If
     End Sub
@@ -167,8 +168,8 @@ Function BallSaveEventHandler(args)
         Case "timer_start"
             ballSave.TimerStart
         Case "queue_release"
-            If PlungerDevice.HasBall = False And ballInReleasePostion = True Then
-                ReleaseBall(Null)
+            If glf_plunger.HasBall = False And ballInReleasePostion = True Then
+                Glf_ReleaseBall(Null)
                 If ballSave.AutoLaunch = True Then
                     SetDelay ballSave.Name&"_auto_launch", "BallSaveEventHandler" , Array(Array("auto_launch", ballSave),Null), 500
                 End If
@@ -176,8 +177,8 @@ Function BallSaveEventHandler(args)
                 SetDelay ballSave.Name&"_queued_release", "BallSaveEventHandler" , Array(Array("queue_release", ballSave), Null), 1000
             End If
         Case "auto_launch"
-            If PlungerDevice.HasBall = True Then
-                PlungerDevice.Eject
+            If glf_plunger.HasBall = True Then
+                glf_plunger.Eject
             Else
                 SetDelay ballSave.Name&"_auto_launch", "BallSaveEventHandler" , Array(Array("auto_launch", ballSave), Null), 500
             End If

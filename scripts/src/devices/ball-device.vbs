@@ -7,31 +7,45 @@ Class BallDevice
     Private m_balls
     Private m_balls_in_device
     Private m_eject_angle
+    Private m_eject_pitch
     Private m_eject_strength
-    Private m_eject_direction
     Private m_default_device
     Private m_eject_callback
     Private m_eject_all_events
     Private m_balls_to_eject
     Private m_ejecting_all
+    Private m_ejecting
     Private m_mechcanical_eject
+    Private m_eject_targets
     Private m_debug
 
     Public Property Get Name(): Name = m_name : End Property
     Public Property Let DefaultDevice(value)
         m_default_device = value
         If m_default_device = True Then
-            Set PlungerDevice = Me
+            Set glf_plunger = Me
         End If
     End Property
-	Public Property Get HasBall(): HasBall = Not IsNull(m_balls(0)): End Property
+	Public Property Get HasBall(): HasBall = (Not IsNull(m_balls(0)) And m_ejecting = False): End Property
     Public Property Let EjectCallback(value) : m_eject_callback = value : End Property
+    
+    Public Property Let EjectAngle(value) : m_eject_angle = glf_PI * (0 - 90) / 180 : End Property
+    Public Property Let EjectPitch(value) : m_eject_pitch = glf_PI * (0 - 90) / 180 : End Property
+    Public Property Let EjectStrength(value) : m_eject_strength = value : End Property
+    
     Public Property Let EjectTimeout(value) : m_eject_timeout = value * 1000 : End Property
     Public Property Let EjectAllEvents(value)
         m_eject_all_events = value
         Dim evt
         For Each evt in m_eject_all_events
             AddPinEventListener evt, m_name & "_eject_all", "BallDeviceEventHandler", 1000, Array("ball_eject_all", Me)
+        Next
+    End Property
+    Public Property Let EjectTargets(value)
+        m_eject_targets = value
+        Dim evt
+        For Each evt in m_eject_targets
+            AddPinEventListener evt & "_active", m_name & "_eject_target", "BallDeviceEventHandler", 1000, Array("eject_timeout", Me)
         Next
     End Property
     Public Property Let PlayerControlledEjectEvents(value)
@@ -57,9 +71,14 @@ Class BallDevice
         m_name = "balldevice_" & name
         m_ball_switches = Array()
         m_eject_all_events = Array()
+        m_eject_targets = Array()
         m_balls = Array()
         m_debug = False
         m_default_device = False
+        m_eject_pitch = 0
+        m_eject_angle = 0
+        m_eject_strength = 0
+        m_ejecting = False
         m_eject_callback = Null
         m_ejecting_all = False
         m_balls_to_eject = 0
@@ -70,14 +89,14 @@ Class BallDevice
 
     Public Sub BallEnter(ball, switch)
         RemoveDelay m_name & "_eject_timeout"
-        SoundSaucerLockAtBall ball
+        'SoundSaucerLockAtBall ball
         Set m_balls(switch) = ball
         m_balls_in_device = m_balls_in_device + 1
         Log "Ball Entered" 
         Dim unclaimed_balls
         unclaimed_balls = DispatchRelayPinEvent(m_name & "_ball_entered", 1)
         Log "Unclaimed Balls: " & unclaimed_balls
-        If m_default_device = False And unclaimed_balls > 0 And Not IsNull(m_balls(0)) Then
+        If (m_default_device = False Or m_ejecting = True) And unclaimed_balls > 0 And Not IsNull(m_balls(0)) Then
             SetDelay m_name & "_eject_attempt", "BallDeviceEventHandler", Array(Array("ball_eject", Me), ball), 500
         End If
     End Sub
@@ -93,6 +112,8 @@ Class BallDevice
     End Sub
 
     Public Sub BallExitSuccess(ball)
+        m_ejecting = False
+        RemoveDelay m_name & "_eject_timeout"
         DispatchPinEvent m_name & "_ball_eject_success", Null
         Log "Ball successfully exited"
         If m_ejecting_all = True Then
@@ -104,7 +125,6 @@ Class BallDevice
                 m_balls_to_eject = m_balls_to_eject - 1
                 Eject()
             Else
-
                 SetDelay m_name & "_eject_attempt", "BallDeviceEventHandler", Array(Array("ball_eject", Me), ball), 600
             End If
         End If
@@ -113,6 +133,14 @@ Class BallDevice
     Public Sub Eject
         Log "Ejecting."
         SetDelay m_name & "_eject_timeout", "BallDeviceEventHandler", Array(Array("eject_timeout", Me), m_balls(0)), m_eject_timeout
+        m_ejecting = True
+        If m_eject_strength > 0 Then
+            m_balls(0).VelX = m_eject_strength * Cos(m_eject_pitch) * Sin(m_eject_angle)
+            m_balls(0).VelY = m_eject_strength * Cos(m_eject_pitch) * Cos(m_eject_angle)
+            m_balls(0).VelZ = m_eject_strength * Sin(m_eject_pitch)
+            Log "VelX: " &  m_balls(0).VelX & ", VelY: " &  m_balls(0).VelY & ", VelZ: " &  m_balls(0).VelZ
+        End If
+
         If Not IsNull(m_eject_callback) Then
             GetRef(m_eject_callback)(m_balls(0))
         End If
