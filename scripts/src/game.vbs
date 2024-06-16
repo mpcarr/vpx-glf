@@ -146,7 +146,11 @@ Function Glf_Drain(args)
         currentPlayer = Null
         playerState.RemoveAll()
     Else
-        DispatchPinEvent GLF_NEXT_PLAYER, Null
+        SetDelay "end_of_ball_delay", "EndOfBallNextPlayer", Null, 1000 
     End If
     
+End Function
+
+Public Function EndOfBallNextPlayer(args)
+    DispatchPinEvent GLF_NEXT_PLAYER, Null
 End Function

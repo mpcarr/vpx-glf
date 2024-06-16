@@ -15,12 +15,14 @@ Dim bcpController : bcpController = Null
 Dim useBCP : useBCP = False
 Dim bcpPort : bcpPort = 5050
 Dim bcpExeName : bcpExeName = ""
+Dim Lights(260)	
 Dim lightCtrl : Set lightCtrl = new LStateController
 Dim tablewidth
 tablewidth = Table1.width
 Dim tableheight
 tableheight = Table1.height
 Dim glf_BIP : glf_BIP = 0
+Dim glf_FuncCount : glf_FuncCount = 0
 
 Dim glf_ballsPerGame : glf_ballsPerGame = 3
 Dim glf_troughSize : glf_troughSize = 8
@@ -28,12 +30,13 @@ Dim glf_troughSize : glf_troughSize = 8
 Dim debugLog : Set debugLog = (new DebugLogFile)()
 Dim debugEnabled : debugEnabled = True
 
+
+lightCtrl.RegisterLights Glf_Lights
+lightCtrl.Debug = False
 Dim glf_ball1, glf_ball2, glf_ball3, glf_ball4, glf_ball5, glf_ball6, glf_ball7, glf_ball8	
 
 Public Sub Glf_ConnectToBCPMediaController
     Set bcpController = (new GlfVpxBcpController)(bcpPort	, bcpExeName)
-	vpmMapLights alights
-	lightCtrl.RegisterLights "VPX"
 End Sub
 
 Public Sub Glf_Init()
@@ -118,6 +121,65 @@ End Sub
 
 Public Sub Glf_EventTimer_Timer()
 	DelayTick
+End Sub
+
+Public Function Glf_ParseInput(value)
+	Dim templateCode : templateCode = ""
+    Select Case VarType(value)
+        Case 8 ' vbString
+			value = Glf_ReplaceCurrentPlayerAttributes(value)
+			If InStr(value, " if ") Then
+				templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
+				templateCode = templateCode & vbTab & Glf_ConvertIf(value, "Glf_" & glf_FuncCount) & vbCrLf
+				templateCode = templateCode & "End Function"
+			Else
+				templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
+				templateCode = templateCode & vbTab & "Glf_" & glf_FuncCount & " = " & value & vbCrLf
+				templateCode = templateCode & "End Function"
+			End IF
+        Case Else
+			templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
+			templateCode = templateCode & vbTab & "Glf_" & glf_FuncCount & " = " & value * 1000 & vbCrLf
+			templateCode = templateCode & "End Function"
+    End Select
+	'msgbox templateCode
+	ExecuteGlobal templateCode
+	Glf_ParseInput = "Glf_" & glf_FuncCount
+	glf_FuncCount = glf_FuncCount + 1
+End Function
+
+Function Glf_ReplaceCurrentPlayerAttributes(inputString)
+    Dim pattern, replacement, regex, outputString
+    pattern = "current_player\.([a-zA-Z0-9_]+)"
+    Set regex = New RegExp
+    regex.Pattern = pattern
+    regex.IgnoreCase = True
+    regex.Global = True
+    replacement = "GetPlayerState(""$1"")"
+    outputString = regex.Replace(inputString, replacement)
+    Set regex = Nothing
+    Glf_ReplaceCurrentPlayerAttributes = outputString
+End Function
+
+Function Glf_ConvertIf(value, retName)
+    Dim parts, condition, truePart, falsePart
+    parts = Split(value, " if ")
+    truePart = Trim(parts(0))
+    Dim conditionAndFalsePart
+    conditionAndFalsePart = Split(parts(1), " else ")
+    condition = Trim(conditionAndFalsePart(0))
+    falsePart = Trim(conditionAndFalsePart(1))
+    Dim vbscriptIfStatement
+    vbscriptIfStatement = "If " & condition & " Then" & vbCrLf & _
+                          "    "&retName&" = " & truePart & vbCrLf & _
+                          "Else" & vbCrLf & _
+                          "    "&retName&" = " & falsePart & vbCrLf & _
+                          "End If"
+	Glf_ConvertIf = vbscriptIfStatement
+End Function
+
+Public Sub Glf_GameTimer_Timer()
+	lightCtrl.Update()
 End Sub
 
 '******************************************************

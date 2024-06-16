@@ -19,9 +19,9 @@ Class BallSave
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get AutoLaunch(): AutoLaunch = m_auto_launch: End Property
-    Public Property Let ActiveTime(value) : m_active_time = value*1000 : End Property
-    Public Property Let GracePeriod(value) : m_grace_period = value*1000 : End Property
-    Public Property Let HurryUpTime(value) : m_hurry_up_time = value*1000 : End Property
+    Public Property Let ActiveTime(value) : m_active_time = Glf_ParseInput(value) : End Property
+    Public Property Let GracePeriod(value) : m_grace_period = Glf_ParseInput(value) : End Property
+    Public Property Let HurryUpTime(value) : m_hurry_up_time = Glf_ParseInput(value) : End Property
     Public Property Let EnableEvents(value) : m_enable_events = value : End Property
     Public Property Let TimerStartEvents(value) : m_timer_start_events = value : End Property
     Public Property Let AutoLaunch(value) : m_auto_launch = value : End Property
@@ -31,9 +31,9 @@ Class BallSave
 	Public default Function init(name, mode)
         m_name = "ball_saves_" & name
         m_mode = mode.Name
-        m_active_time = 0
-	    m_grace_period = 0
-        m_hurry_up_time = 0
+        m_active_time = Null
+	    m_grace_period = Null
+        m_hurry_up_time = Null
         m_enable_events = Array()
         m_timer_start_events = Array()
 	    m_auto_launch = False
@@ -72,7 +72,7 @@ Class BallSave
         End If
         m_enabled = True
         m_saving_balls = m_balls_to_save
-        Log "Enabling. Auto launch: "&m_auto_launch&", Balls to save: "&m_balls_to_save&", Active time: "& m_active_time&"ms"
+        Log "Enabling. Auto launch: "&m_auto_launch&", Balls to save: "&m_balls_to_save
         AddPinEventListener "ball_drain", m_name & "_ball_drain", "BallSaveEventHandler", 1000, Array("drain", Me)
         DispatchPinEvent m_name&"_enabled", Null
         If UBound(m_timer_start_events) = -1 Then
@@ -119,12 +119,24 @@ Class BallSave
         End If
         m_timer_started=True
         DispatchPinEvent m_name&"_timer_start", Null
-        If m_active_time > 0 Then
-            Log "Starting ball save timer: " & m_active_time
-            Log "gametime: "& gametime & ". disabled at: " & gametime+m_active_time+m_grace_period
-            SetDelay m_name&"_disable", "BallSaveEventHandler" , Array(Array("disable", Me),Null), m_active_time+m_grace_period
-            SetDelay m_name&"_grace_period", "BallSaveEventHandler", Array(Array("grace_period", Me),Null), m_active_time
-            SetDelay m_name&"_hurry_up_time", "BallSaveEventHandler", Array(Array("hurry_up_time", Me), Null), m_active_time-m_hurry_up_time
+        If Not IsNull(m_active_time) Then
+            Dim active_time : active_time = GetRef(m_active_time)()
+            Dim grace_period, hurry_up_time
+            If Not IsNull(m_grace_period) Then
+                grace_period = GetRef(m_grace_period)()
+            Else
+                grace_period = 0
+            End If
+            If Not IsNull(m_hurry_up_time) Then
+                hurry_up_time = GetRef(m_hurry_up_time)()
+            Else
+                hurry_up_time = 0
+            End If
+            Log "Starting ball save timer: " & active_time
+            Log "gametime: "& gametime & ". disabled at: " & gametime+active_time+grace_period
+            SetDelay m_name&"_disable", "BallSaveEventHandler" , Array(Array("disable", Me),Null), active_time+grace_period
+            SetDelay m_name&"_grace_period", "BallSaveEventHandler", Array(Array("grace_period", Me),Null), active_time
+            SetDelay m_name&"_hurry_up_time", "BallSaveEventHandler", Array(Array("hurry_up_time", Me), Null), active_time-hurry_up_time
         End If
     End Sub
 

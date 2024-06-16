@@ -26,7 +26,9 @@ Class BallDevice
             Set glf_plunger = Me
         End If
     End Property
-	Public Property Get HasBall(): HasBall = (Not IsNull(m_balls(0)) And m_ejecting = False): End Property
+	Public Property Get HasBall()
+        HasBall = (Not IsNull(m_balls(0)) And m_ejecting = False)
+    End Property
     Public Property Let EjectCallback(value) : m_eject_callback = value : End Property
     
     Public Property Let EjectAngle(value) : m_eject_angle = glf_PI * (0 - 90) / 180 : End Property
@@ -60,6 +62,7 @@ Class BallDevice
         m_balls = Array(Ubound(m_ball_switches))
         Dim x
         For x=0 to UBound(m_ball_switches)
+            m_balls(x) = Null
             AddPinEventListener m_ball_switches(x)&"_active", m_name & "_ball_enter", "BallDeviceEventHandler", 1000, Array("ball_entering", Me, x)
             AddPinEventListener m_ball_switches(x)&"_inactive", m_name & "_ball_exiting", "BallDeviceEventHandler", 1000, Array("ball_exiting", Me, x)
         Next
@@ -105,7 +108,7 @@ Class BallDevice
         m_balls(switch) = Null
         m_balls_in_device = m_balls_in_device - 1
         DispatchPinEvent m_name & "_ball_exiting", Null
-        If m_mechcanical_eject = True Then
+        If m_mechcanical_eject = True And m_eject_timeout > 0 Then
             SetDelay m_name & "_eject_timeout", "BallDeviceEventHandler", Array(Array("eject_timeout", Me), ball), m_eject_timeout
         End If
         Log "Ball Exiting"
