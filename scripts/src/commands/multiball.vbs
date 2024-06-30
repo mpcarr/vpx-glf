@@ -1,5 +1,5 @@
 
-Class Multiball
+Class GlfMultiball
 
     Private m_name
     Private m_priority
@@ -67,7 +67,7 @@ Class Multiball
 
     Private Sub Log(message)
         If m_debug = True Then
-            debugLog.WriteToLog m_name, message
+            glf_debugLog.WriteToLog m_name, message
         End If
     End Sub
 End Class

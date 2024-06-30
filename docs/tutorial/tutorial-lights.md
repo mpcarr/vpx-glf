@@ -1,6 +1,8 @@
 # Tutorial - Lights
 
-Now that we have a basic game life cycle, we can introduce some lights management to our table. We are going to setup a light player for the GI so that it turns on when the ball starts and off when the ball ends. And we will setup a show player to light a ball save insert.
+Now that we have a basic game life cycle, we can introduce some lights management to our table. We are going to setup a light player for the GI so that it turns on when the ball starts and off when the ball ends.
+
+The light player is used to turn lights on and off when events happen. It inherits the priority of the mode its assigned to. For more information check out the [Light Player](/vpx-gle-framework/light-player) command reference
 
 ![lights](../images/tutorial-lights.gif)
 
@@ -12,99 +14,31 @@ Now that we have a basic game life cycle, we can introduce some lights managemen
 For the GI add the configuration for a light player.
 
 ```
-lightCtrl.AddLightTags l100, "gi"
-lightCtrl.AddLightTags l101, "gi"
-lightCtrl.AddLightTags l102, "gi"
-lightCtrl.AddLightTags l103, "gi"
-
-Dim light_player_base
-Set light_player_base = (new LightPlayer)("base", mode_base)
-
-light_player_base.Add "mode_base_started", Array("gi|FF0000")
+mode_base.LightPlayer.Add "mode_base_started", _
+Array( _
+	"l00|FF0000", _
+	"l01|FF0000", _
+	"l02|FF0000", _
+	"l03|FF0000" _
+	)
 ```
 
-The light player runs under our base mode and listens for the mode started event. When the mode starts, the lights tagged as **gi** will be set to Red. When the mode ends, the lights will go out.
+This light player will now listen for the event **mode_base_started** and then turn on lights l100, l101, l102, l103. It will also change the color to red.
 
 
-#### Show Player Config
+### Light Tags
 
-Next we would like our ball save to flash an insert whilst it's running. Add the configuration for the show player
-
-```
-Dim FlashColor
-FlashColor = Array( _
-    Array("(lights)|100|(color)"), _
-    Array("(lights)|0|(color)") _
-)
-```
-
-First we define a show called FlashColor. The show contains two steps, lets breakdown whats happening.
-
-- (lights)|100|(color)
-    - (lights) - A placeholder token for our lights which we will define later
-    - 100 - The brightness of the light
-    - (color) - A placeholder token for the color of the lights
-
-#### Show Player
-
-We can now define our ShowPlayer and ShowPlayerItems. This is where we define the properties of the show
+The goal of our light player here is to turn on the GI. We can make this easier by giving our lights tags and then using the tag in the light player.
 
 ```
-Dim show_player_base
-Set show_player_base = (new ShowPlayer)("base", mode_base)
+lightCtrl.AddLightTags l100, "gi, leftsling"
+lightCtrl.AddLightTags l101, "gi, leftsling"
+lightCtrl.AddLightTags l102, "gi, rightsling"
+lightCtrl.AddLightTags l103, "gi, rightsling"
 ```
 
-#### Show Player Items
+Now we can use the tag **gi** in our light player like so.
 
 ```
-Dim show_ball_save_active
-Set show_ball_save_active = (new ShowPlayerItem)()
-With show_ball_save_active
-	.Key = "ball_save"
-	.Show = FlashColor
-	.Loops = -1
-	.Speed = 1
-End With
-show_ball_save_active.AddToken "lights", "l01"
-show_ball_save_active.AddToken "color", "00ff00"
+mode_base.LightPlayer.Add "mode_base_started", Array("gi|FF0000")
 ```
-
-We create a show item with the key of **ball_save**, it should run the show **FlashColor**, loop until we tell it to stop and run at the default speed.
-You can see we also added two tokens, one for **lights** and one for **color**. These are the tokens needed for the FlashColor show. 
-
-```
-show_player_base.Add "ball_saves_base_timer_start", show_ball_save_active
-```
-
-Above we add the show player item to the show player. It will start to play when the event **ball_saves_base_timer_start** is emitted.
-
-We now would like our light to blink faster when the ball save is in it's hurry up state. Lets define another show player item for that
-
-```
-Dim show_ball_save_hurry
-Set show_ball_save_hurry = (new ShowPlayerItem)()
-With show_ball_save_hurry
-	.Key = "ball_save"
-	.Show = FlashColor
-	.Loops = -1
-	.Speed = 2
-End With
-show_ball_save_hurry.AddToken "lights", "l01"
-show_ball_save_hurry.AddToken "color", "00ff00"
-```
-
-Similar to the last item, however this one runs at twice the default speed. We could here also change the color of the light if we wanted by adjusting the color token.
-
-```
-show_player_base.Add "ball_saves_base_hurry_up_time", show_ball_save_hurry
-```
-
-We add this item to the show player for the ball saves hurry up event.
-
-Finally, we want to turn the light off when the ball save enters it's grace period.
-
-```
-show_player_base.Add "ball_saves_base_grace_period", "ball_save.stop"
-```
-
-We can just add a new item entry directly to the show player in the format **key.action**

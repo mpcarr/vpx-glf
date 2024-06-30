@@ -19,11 +19,23 @@ Class BallSave
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get AutoLaunch(): AutoLaunch = m_auto_launch: End Property
-    Public Property Let ActiveTime(value) : m_active_time = Glf_ParseInput(value) : End Property
-    Public Property Let GracePeriod(value) : m_grace_period = Glf_ParseInput(value) : End Property
-    Public Property Let HurryUpTime(value) : m_hurry_up_time = Glf_ParseInput(value) : End Property
-    Public Property Let EnableEvents(value) : m_enable_events = value : End Property
-    Public Property Let TimerStartEvents(value) : m_timer_start_events = value : End Property
+    Public Property Let ActiveTime(value) : m_active_time = Glf_ParseInput(value, True) : End Property
+    Public Property Let GracePeriod(value) : m_grace_period = Glf_ParseInput(value, True) : End Property
+    Public Property Let HurryUpTime(value) : m_hurry_up_time = Glf_ParseInput(value, True) : End Property
+    Public Property Let EnableEvents(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_enable_events.Add newEvent.Name, newEvent
+        Next
+    End Property
+    Public Property Let TimerStartEvents(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_timer_start_events.Add newEvent.Name, newEvent
+        Next
+    End Property
     Public Property Let AutoLaunch(value) : m_auto_launch = value : End Property
     Public Property Let BallsToSave(value) : m_balls_to_save = value : End Property
     Public Property Let Debug(value) : m_debug = value : End Property
@@ -34,8 +46,8 @@ Class BallSave
         m_active_time = Null
 	    m_grace_period = Null
         m_hurry_up_time = Null
-        m_enable_events = Array()
-        m_timer_start_events = Array()
+        Set m_enable_events = CreateObject("Scripting.Dictionary")
+        Set m_timer_start_events = CreateObject("Scripting.Dictionary")
 	    m_auto_launch = False
 	    m_balls_to_save = 1
         m_enabled = False
@@ -48,34 +60,39 @@ Class BallSave
 
     Public Sub Activate()
         Dim evt
-        For Each evt in m_enable_events
-            AddPinEventListener evt, m_name & "_enable", "BallSaveEventHandler", 1000, Array("enable", Me)
+        For Each evt in m_enable_events.Keys
+            AddPinEventListener m_enable_events(evt).EventName, m_name & "_enable", "BallSaveEventHandler", 1000, Array("enable", Me, evt)
         Next
-        For Each evt in m_timer_start_events
-            AddPinEventListener evt, m_name & "_timer_start", "BallSaveEventHandler", 1000, Array("timer_start", Me)
+        For Each evt in m_timer_start_events.Keys
+            AddPinEventListener m_timer_start_events(evt).EventName, m_name & "_timer_start", "BallSaveEventHandler", 1000, Array("timer_start", Me, evt)
         Next
     End Sub
 
     Public Sub Deactivate()
         Dim evt
-        For Each evt in m_enable_events
-            RemovePinEventListener evt, m_name & "_enable"
+        For Each evt in m_enable_events.Keys
+            RemovePinEventListener m_enable_events(evt).EventName, m_name & "_enable"
         Next
-        For Each evt in m_timer_start_events
-            RemovePinEventListener evt, m_name & "_timer_start"
+        For Each evt in m_timer_start_events.Keys
+            RemovePinEventListener m_timer_start_events(evt).EventName, m_name & "_timer_start"
         Next
     End Sub
 
-    Public Sub Enable
+    Public Sub Enable(evt)
         If m_enabled = True Then
             Exit Sub
+        End If
+        If Not IsNull(m_enable_events(evt).Condition) Then
+            If GetRef(m_enable_events(evt).Condition)() = False Then
+                Exit Sub
+            End If
         End If
         m_enabled = True
         m_saving_balls = m_balls_to_save
         Log "Enabling. Auto launch: "&m_auto_launch&", Balls to save: "&m_balls_to_save
         AddPinEventListener "ball_drain", m_name & "_ball_drain", "BallSaveEventHandler", 1000, Array("drain", Me)
         DispatchPinEvent m_name&"_enabled", Null
-        If UBound(m_timer_start_events) = -1 Then
+        If UBound(m_timer_start_events.Keys) = -1 Then
             Log "Timer Starting as no timer start events are set"
             TimerStart()
         End If
@@ -120,15 +137,15 @@ Class BallSave
         m_timer_started=True
         DispatchPinEvent m_name&"_timer_start", Null
         If Not IsNull(m_active_time) Then
-            Dim active_time : active_time = GetRef(m_active_time)()
+            Dim active_time : active_time = GetRef(m_active_time(0))()
             Dim grace_period, hurry_up_time
             If Not IsNull(m_grace_period) Then
-                grace_period = GetRef(m_grace_period)()
+                grace_period = GetRef(m_grace_period(0))()
             Else
                 grace_period = 0
             End If
             If Not IsNull(m_hurry_up_time) Then
-                hurry_up_time = GetRef(m_hurry_up_time)()
+                hurry_up_time = GetRef(m_hurry_up_time(0))()
             Else
                 hurry_up_time = 0
             End If
@@ -150,9 +167,41 @@ Class BallSave
 
     Private Sub Log(message)
         If m_debug = True Then
-            debugLog.WriteToLog m_name, message
+            glf_debugLog.WriteToLog m_name, message
         End If
     End Sub
+
+    Public Function ToYaml
+        Dim yaml
+        yaml = Replace(m_name, "ball_saves_", "") & ":" & vbCrLf
+        yaml = yaml & "    active_time: " & m_active_time(1) & "s" & vbCrLf
+        yaml = yaml & "    grace_period: " & m_grace_period(1) & "s" & vbCrLf
+        yaml = yaml & "    hurry_up_time: " & m_hurry_up_time(1) & "s" & vbCrLf
+        yaml = yaml & "    enable_events: "
+        Dim evt,x : x = 0
+        For Each evt in m_enable_events.Keys
+            yaml = yaml & m_enable_events(evt).Raw
+            If x <> UBound(m_enable_events.Keys) Then
+                yaml = yaml & ", "
+            End If
+            x = x +1
+        Next
+        yaml = yaml & vbCrLf
+        yaml = yaml & "    timer_start_events: "
+        x=0
+        For Each evt in m_timer_start_events.Keys
+            yaml = yaml & m_timer_start_events(evt).Raw
+            If x <> UBound(m_timer_start_events.Keys) Then
+                yaml = yaml & ", "
+            End If
+            x = x +1
+        Next
+        yaml = yaml & vbCrLf
+        yaml = yaml & "    auto_launch: " & m_auto_launch & vbCrLf
+        yaml = yaml & "    balls_to_save: " & m_balls_to_save & vbCrLf
+        yaml = yaml & vbCrLf
+        ToYaml = yaml
+    End Function
 End Class
 
 Function BallSaveEventHandler(args)
@@ -165,7 +214,7 @@ Function BallSaveEventHandler(args)
         Case "deactivate"
             ballSave.Deactivate
         Case "enable"
-            ballSave.Enable
+            ballSave.Enable ownProps(2)
         Case "disable"
             ballSave.Disable
         Case "grace_period"

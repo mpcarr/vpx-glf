@@ -1,10 +1,10 @@
 Function GetPlayerState(key)
-    If IsNull(currentPlayer) Then
+    If IsNull(glf_currentPlayer) Then
         Exit Function
     End If
 
-    If playerState(currentPlayer).Exists(key)  Then
-        GetPlayerState = playerState(currentPlayer)(key)
+    If playerState(glf_currentPlayer).Exists(key)  Then
+        GetPlayerState = playerState(glf_currentPlayer)(key)
     Else
         GetPlayerState = Null
     End If
@@ -30,21 +30,21 @@ Function GetPlayerScore(player)
     End If
 End Function
 
-Function GetCurrentPlayerNumber()
-    Select Case currentPlayer
+Function Getglf_currentPlayerNumber()
+    Select Case glf_currentPlayer
         Case "PLAYER 1":
-            GetCurrentPlayerNumber = 1
+            Getglf_currentPlayerNumber = 1
         Case "PLAYER 2":
-            GetCurrentPlayerNumber = 2
+            Getglf_currentPlayerNumber = 2
         Case "PLAYER 3":
-            GetCurrentPlayerNumber = 3
+            Getglf_currentPlayerNumber = 3
         Case "PLAYER 4":
-            GetCurrentPlayerNumber = 4
+            Getglf_currentPlayerNumber = 4
     End Select
 End Function
 
 Function SetPlayerState(key, value)
-    If IsNull(currentPlayer) Then
+    If IsNull(glf_currentPlayer) Then
         Exit Function
     End If
 
@@ -58,13 +58,13 @@ Function SetPlayerState(key, value)
         End If
     End If   
     Dim prevValue
-    If playerState(currentPlayer).Exists(key) Then
-        prevValue = playerState(currentPlayer)(key)
-        playerState(currentPlayer).Remove key
+    If playerState(glf_currentPlayer).Exists(key) Then
+        prevValue = playerState(glf_currentPlayer)(key)
+        playerState(glf_currentPlayer).Remove key
     End If
-    playerState(currentPlayer).Add key, value
+    playerState(glf_currentPlayer).Add key, value
     
-    If playerEvents.Exists(key) Then
+    If glf_playerEvents.Exists(key) Then
         FirePlayerEventHandlers key, value, prevValue
     End If
     
@@ -72,46 +72,46 @@ Function SetPlayerState(key, value)
 End Function
 
 Sub FirePlayerEventHandlers(evt, value, prevValue)
-    If Not playerEvents.Exists(evt) Then
+    If Not glf_playerEvents.Exists(evt) Then
         Exit Sub
     End If    
     Dim k
-    Dim handlers : Set handlers = playerEvents(evt)
-    For Each k In playerEventsOrder(evt)
+    Dim handlers : Set handlers = glf_playerEvents(evt)
+    For Each k In glf_playerEventsOrder(evt)
         GetRef(handlers(k(1))(0))(Array(handlers(k(1))(2), Array(evt,value,prevValue)))
     Next
 End Sub
 
 Sub AddPlayerStateEventListener(evt, key, callbackName, priority, args)
-    If Not playerEvents.Exists(evt) Then
-        playerEvents.Add evt, CreateObject("Scripting.Dictionary")
+    If Not glf_playerEvents.Exists(evt) Then
+        glf_playerEvents.Add evt, CreateObject("Scripting.Dictionary")
     End If
-    If Not playerEvents(evt).Exists(key) Then
-        playerEvents(evt).Add key, Array(callbackName, priority, args)
-        SortPlayerEventsByPriority evt, priority, key, True
+    If Not glf_playerEvents(evt).Exists(key) Then
+        glf_playerEvents(evt).Add key, Array(callbackName, priority, args)
+        Sortglf_playerEventsByPriority evt, priority, key, True
     End If
 End Sub
 
 Sub RemovePlayerStateEventListener(evt, key)
-    If playerEvents.Exists(evt) Then
-        If playerEvents(evt).Exists(key) Then
-            playerEvents(evt).Remove key
-            SortPlayerEventsByPriority evt, Null, key, False
+    If glf_playerEvents.Exists(evt) Then
+        If glf_playerEvents(evt).Exists(key) Then
+            glf_playerEvents(evt).Remove key
+            Sortglf_playerEventsByPriority evt, Null, key, False
         End If
     End If
 End Sub
 
-Sub SortPlayerEventsByPriority(evt, priority, key, isAdding)
+Sub Sortglf_playerEventsByPriority(evt, priority, key, isAdding)
     Dim tempArray, i, inserted, foundIndex
     
-    ' Initialize or update the playerEventsOrder to maintain order based on priority
-    If Not playerEventsOrder.Exists(evt) Then
-        ' If the event does not exist in playerEventsOrder, just add it directly if we're adding
+    ' Initialize or update the glf_playerEventsOrder to maintain order based on priority
+    If Not glf_playerEventsOrder.Exists(evt) Then
+        ' If the event does not exist in glf_playerEventsOrder, just add it directly if we're adding
         If isAdding Then
-            playerEventsOrder.Add evt, Array(Array(priority, key))
+            glf_playerEventsOrder.Add evt, Array(Array(priority, key))
         End If
     Else
-        tempArray = playerEventsOrder(evt)
+        tempArray = glf_playerEventsOrder(evt)
         If isAdding Then
             ' Prepare to add one more element if adding
             ReDim Preserve tempArray(UBound(tempArray) + 1)
@@ -158,14 +158,14 @@ Sub SortPlayerEventsByPriority(evt, priority, key, isAdding)
             End If
         End If
         
-        ' Update the playerEventsOrder with the newly ordered or modified list
-        playerEventsOrder(evt) = tempArray
+        ' Update the glf_playerEventsOrder with the newly ordered or modified list
+        glf_playerEventsOrder(evt) = tempArray
     End If
 End Sub
 
-Sub EmitAllPlayerEvents()
+Sub EmitAllglf_playerEvents()
     Dim key
-    For Each key in playerState(currentPlayer).Keys()
+    For Each key in playerState(glf_currentPlayer).Keys()
         FirePlayerEventHandlers key, GetPlayerState(key), GetPlayerState(key)
     Next
 End Sub

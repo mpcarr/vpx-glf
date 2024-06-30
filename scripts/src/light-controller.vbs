@@ -14,6 +14,8 @@ Class LStateController
 
     Private m_currentFrameState, m_on, m_off, m_seqRunners, m_lights, m_seqs, m_vpxLightSyncRunning, m_vpxLightSyncClear, m_vpxLightSyncCollection, m_tableSeqColor, m_tableSeqOffset, m_tableSeqSpeed, m_tableSeqDirection, m_tableSeqFadeUp, m_tableSeqFadeDown, m_frametime, m_initFrameTime, m_pulse, m_pulseInterval, m_lightmaps, m_seqOverrideRunners, m_pauseMainLights, m_pausedLights, m_minX, m_minY, m_maxX, m_maxY, m_width, m_height, m_centerX, m_centerY, m_coordsX, m_coordsY, m_angles, m_radii, m_tags, m_debug
 
+    Private Lights(260)
+
     Private Sub Class_Initialize()
         Set m_lights = CreateObject("Scripting.Dictionary")
         Set m_on = CreateObject("Scripting.Dictionary")
@@ -999,9 +1001,9 @@ Class LStateController
         m_seqOverrideRunners.Add name, seqRunner
     End Sub
 
-    Public Sub AddLightSeq(runner, key, sequence, loops, speed, tokens)
+    Public Sub AddLightSeq(runner, key, sequence, loops, speed, tokens, priority)
         If Not m_seqRunners.Exists(runner) Then
-            CreateSeqRunner runner, 1000
+            CreateSeqRunner runner, priority
         End If
 
         If m_seqRunners(runner).Items().Exists(key) Then
@@ -1774,7 +1776,7 @@ Class LStateController
 
     Private Sub Log(message)
         If m_debug = True Then
-            debugLog.WriteToLog "Light Controller", message
+            glf_debugLog.WriteToLog "Light Controller", message
         End If
     End Sub
 End Class

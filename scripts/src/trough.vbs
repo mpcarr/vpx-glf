@@ -59,7 +59,7 @@ Sub swTrough7_UnHit
 End Sub
 Sub swTrough8_Hit
 	UpdateTrough
-    If gameStarted = True Then
+    If glf_gameStarted = True Then
         glf_BIP = glf_BIP - 1
         DispatchRelayPinEvent GLF_BALL_DRAIN, 1
     End If

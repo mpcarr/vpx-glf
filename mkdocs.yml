@@ -8,6 +8,7 @@ nav:
       - 'Plunger': 'tutorial/tutorial-plunger.md'
       - 'Ball Save': 'tutorial/tutorial-ballsave.md'
       - 'Lights': 'tutorial/tutorial-lights.md'
+      - 'Shows': 'tutorial/tutorial-shows.md'
   - 'Features': features.md
   - 'Game Logic':
     - Virtual Devices:

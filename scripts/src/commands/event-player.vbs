@@ -1,6 +1,6 @@
 
 
-Class EventPlayer
+Class GlfEventPlayer
 
     Private m_priority
     Private m_mode
@@ -15,6 +15,8 @@ Class EventPlayer
 	Public default Function init(mode)
         m_mode = mode.Name
         m_priority = mode.Priority
+
+        Set m_events = CreateObject("Scripting.Dictionary")
         
         AddPinEventListener m_mode & "_starting", "event_player_activate", "EventPlayerEventHandler", m_priority, Array("activate", Me)
         AddPinEventListener m_mode & "_stopping", "event_player_deactivate", "EventPlayerEventHandler", m_priority, Array("deactivate", Me)
@@ -37,7 +39,7 @@ Class EventPlayer
 
     Private Sub Log(message)
         If m_debug = True Then
-            debugLog.WriteToLog m_mode & "_event_player_play", message
+            glf_debugLog.WriteToLog m_mode & "_event_player_play", message
         End If
     End Sub
 End Class

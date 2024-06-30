@@ -16,7 +16,7 @@ Add a timer object to your vpx table called Glf_EventTimer. Set it to Enabled wi
 
  - Your table name must be ```Table1```
  - ```cGameName``` must be set to your table name
- - ```BallSize``` and ```BallMass``` must be set
+ - ```BallSize```, ```BallMass```, ```tnob```, ```lob``` and ```gBot``` must be set
 
 **Example** 
 
@@ -24,6 +24,9 @@ Add a timer object to your vpx table called Glf_EventTimer. Set it to Enabled wi
 Const cGameName = "MyAwesomeGame"
 Const BallSize = 50			'Ball diameter in VPX units; must be 50
 Const BallMass = 1			'Ball mass must be 1
+Const tnob = 6              'Total playable balls (Balls in Trough)
+Const lob = 2               'Total non playable balls (Captive Balls)
+Dim gBot                    'Collection used for ball tracking
 ```
 
 ## Adding Hooks into GLF

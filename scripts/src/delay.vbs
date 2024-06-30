@@ -46,7 +46,7 @@ Sub SetDelay(name, callbackFunc, args, delayInMs)
         delayQueue.Add executionTime, CreateObject("Scripting.Dictionary")
     End If
 
-    debugLog.WriteToLog "Delay", "Adding delay for " & name & ", callback: " & callbackFunc
+    glf_debugLog.WriteToLog "Delay", "Adding delay for " & name & ", callback: " & callbackFunc
     delayQueue(executionTime).Add name, (new DelayObject)(name, callbackFunc, executionTime, args)
     delayQueueMap.Add name, executionTime
     
@@ -59,10 +59,12 @@ End Function
 Function RemoveDelay(name)
     If delayQueueMap.Exists(name) Then
         If delayQueue.Exists(delayQueueMap(name)) Then
-            delayQueue(delayQueueMap(name)).Remove name
+            If delayQueue(delayQueueMap(name)).Exists(name) Then
+                delayQueue(delayQueueMap(name)).Remove name
+            End If
             delayQueueMap.Remove name
             RemoveDelay = True
-            debugLog.WriteToLog "Delay", "Removing delay for " & name
+            glf_debugLog.WriteToLog "Delay", "Removing delay for " & name
             Exit Function
         End If
     End If
@@ -77,7 +79,7 @@ Sub DelayTick()
     If delayQueue.Exists(executionTime) Then
         For Each key In delayQueue(executionTime).Keys()
             Set delayObject = delayQueue(executionTime)(key)
-            debugLog.WriteToLog "Delay", "Executing delay: " & key & ", callback: " & delayObject.Callback
+            glf_debugLog.WriteToLog "Delay", "Executing delay: " & key & ", callback: " & delayObject.Callback
             GetRef(delayObject.Callback)(delayObject.Args)
         Next
         delayQueue.Remove executionTime

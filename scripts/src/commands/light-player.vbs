@@ -1,5 +1,5 @@
 
-Class LightPlayer
+Class GlfLightPlayer
 
     Private m_priority
     Private m_mode
@@ -17,7 +17,7 @@ Class LightPlayer
     End Property
     Public Property Let Debug(value) : m_debug = value : End Property
 
-	Public default Function init(name, mode)
+	Public default Function init(mode)
         m_name = "light_player_" & mode.name
         m_mode = mode.Name
         m_priority = mode.Priority
@@ -115,7 +115,7 @@ Class LightPlayer
 
     Public Sub Play(evt, lights)
         Dim light, lightParts
-        lightCtrl.AddLightSeq m_name & "_" & evt, evt, lights(1), -1, 180, Null
+        lightCtrl.AddLightSeq m_name & "_" & evt, evt, lights(1), -1, 180, Null, m_priority
         For Each light in lights(0)
             lightParts = Split(light, "|")
             If IsArray(lightParts) Then
@@ -145,7 +145,7 @@ Class LightPlayer
 
     Private Sub Log(message)
         If m_debug = True Then
-            debugLog.WriteToLog m_mode & "_light_player", message
+            glf_debugLog.WriteToLog m_mode & "_light_player", message
         End If
     End Sub
 End Class

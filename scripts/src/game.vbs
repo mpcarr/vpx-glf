@@ -9,7 +9,7 @@ Sub Glf_AddPlayer()
         Case -1:
             playerState.Add "PLAYER 1", Glf_InitNewPlayer()
             Glf_BcpAddPlayer 1
-            currentPlayer = "PLAYER 1"
+            glf_currentPlayer = "PLAYER 1"
         Case 0:     
             If GetPlayerState(GLF_CURRENT_BALL) = 1 Then
                 playerState.Add "PLAYER 2", Glf_InitNewPlayer()
@@ -25,7 +25,7 @@ Sub Glf_AddPlayer()
                 playerState.Add "PLAYER 4", Glf_InitNewPlayer()
                 Glf_BcpAddPlayer 4
             End If  
-            canAddPlayers = False
+            glf_canAddPlayers = False
     End Select
 End Sub
 
@@ -46,7 +46,7 @@ End Function
 '
 '*****************************
 Function Glf_SetupPlayer(args)
-    EmitAllPlayerEvents()
+    EmitAllglf_playerEvents()
 End Function
 
 '****************************
@@ -54,11 +54,11 @@ End Function
 '
 '*****************************
 Sub Glf_StartGame()
-    gameStarted = True
+    glf_gameStarted = True
     If useBcp Then
         bcpController.Send "player_turn_start?player_num=int:1"
         bcpController.Send "ball_start?player_num=int:1&ball=int:1"
-        bcpController.PlaySlide "attract", "base", 1000
+        bcpController.PlaySlide "base", "base", 1000
         bcpController.SendPlayerVariable "number", 1, 0
     End If
     DispatchPinEvent GLF_GAME_STARTED, Null
@@ -86,9 +86,9 @@ Function Glf_ReleaseBall(args)
             End If
         End If
     End If
-    debugLog.WriteToLog "Release Ball", "swTrough1: " & swTrough1.BallCntOver
+    glf_debugLog.WriteToLog "Release Ball", "swTrough1: " & swTrough1.BallCntOver
     swTrough1.kick 90, 10
-    debugLog.WriteToLog "Release Ball", "Just Kicked"
+    glf_debugLog.WriteToLog "Release Ball", "Just Kicked"
     glf_BIP = glf_BIP + 1
 End Function
 
@@ -102,8 +102,8 @@ End Function
 Function Glf_Drain(args)
     
     Dim ballsToSave : ballsToSave = args(1) 
-    debugLog.WriteToLog "end_of_ball, unclaimed balls", CStr(ballsToSave)
-    debugLog.WriteToLog "end_of_ball, balls in play", CStr(glf_BIP)
+    glf_debugLog.WriteToLog "end_of_ball, unclaimed balls", CStr(ballsToSave)
+    glf_debugLog.WriteToLog "end_of_ball, balls in play", CStr(glf_BIP)
     If ballsToSave <= 0 Then
         Exit Function
     End If
@@ -115,35 +115,35 @@ Function Glf_Drain(args)
     DispatchPinEvent GLF_BALL_ENDED, Null
     SetPlayerState GLF_CURRENT_BALL, GetPlayerState(GLF_CURRENT_BALL) + 1
 
-    Dim previousPlayerNumber : previousPlayerNumber = GetCurrentPlayerNumber()
-    Select Case currentPlayer
+    Dim previousPlayerNumber : previousPlayerNumber = Getglf_currentPlayerNumber()
+    Select Case glf_currentPlayer
         Case "PLAYER 1":
             If UBound(playerState.Keys()) > 0 Then
-                currentPlayer = "PLAYER 2"
+                glf_currentPlayer = "PLAYER 2"
             End If
         Case "PLAYER 2":
             If UBound(playerState.Keys()) > 1 Then
-                currentPlayer = "PLAYER 3"
+                glf_currentPlayer = "PLAYER 3"
             Else
-                currentPlayer = "PLAYER 1"
+                glf_currentPlayer = "PLAYER 1"
             End If
         Case "PLAYER 3":
             If UBound(playerState.Keys()) > 2 Then
-                currentPlayer = "PLAYER 4"
+                glf_currentPlayer = "PLAYER 4"
             Else
-                currentPlayer = "PLAYER 1"
+                glf_currentPlayer = "PLAYER 1"
             End If
         Case "PLAYER 4":
-            currentPlayer = "PLAYER 1"
+            glf_currentPlayer = "PLAYER 1"
     End Select
     
     If useBcp Then
-        bcpController.SendPlayerVariable "number", GetCurrentPlayerNumber(), previousPlayerNumber
+        bcpController.SendPlayerVariable "number", Getglf_currentPlayerNumber(), previousPlayerNumber
     End If
     If GetPlayerState(GLF_CURRENT_BALL) > glf_ballsPerGame Then
         DispatchPinEvent GLF_GAME_OVER, Null
-        gameStarted = False
-        currentPlayer = Null
+        glf_gameStarted = False
+        glf_currentPlayer = Null
         playerState.RemoveAll()
     Else
         SetDelay "end_of_ball_delay", "EndOfBallNextPlayer", Null, 1000 

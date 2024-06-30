@@ -13,7 +13,7 @@ Class GlfVpxBcpController
         Set m_bcpController = CreateObject("vpx_bcp_server.VpxBcpController")
         m_bcpController.Connect port, backboxCommand
         m_connected = True
-        bcpUpdate.Enabled = True
+        Glf_BCPUpdateTimer.Enabled = True
         If Err Then Debug.print("Can not start VPX BCP Controller") : m_connected = False
         Set Init = Me
 	End Function
@@ -44,7 +44,7 @@ Class GlfVpxBcpController
 
     Public Sub SendPlayerVariable(name, value, prevValue)
 		If m_connected Then
-            m_bcpController.Send "player_variable?name=" & name & "&value=" & EncodeVariable(value) & "&prev_value=" & EncodeVariable(prevValue) & "&change=" & EncodeVariable(VariableVariance(value, prevValue)) & "&player_num=int:" & GetCurrentPlayerNumber
+            m_bcpController.Send "player_variable?name=" & name & "&value=" & EncodeVariable(value) & "&prev_value=" & EncodeVariable(prevValue) & "&change=" & EncodeVariable(VariableVariance(value, prevValue)) & "&player_num=int:" & Getglf_currentPlayerNumber
             '06:34:34.644 : VERBOSE : BCP : Received BCP command: ball_start?player_num=int:1&ball=int:1
         End If
 	End Sub
@@ -81,7 +81,7 @@ Class GlfVpxBcpController
         If m_connected Then
             m_bcpController.Disconnect()
             m_connected = False
-            bcpUpdate.Enabled = False
+            Glf_BCPUpdateTimer.Enabled = False
         End If
     End Sub
 End Class
@@ -100,8 +100,14 @@ Sub Glf_BcpAddPlayer(playerNum)
     End If
 End Sub
 
-Sub Glf_BcpUpdate_Timer()
+Sub Glf_BcpUpdate()
+    If IsNull(bcpController) Then
+        Exit Sub
+    End If
     Dim messages : messages = bcpController.GetMessages()
+    If IsEmpty(messages) Then
+        Exit Sub
+    End If
     If IsArray(messages) and UBound(messages)>-1 Then
         Dim message, parameters, parameter
         For Each message in messages

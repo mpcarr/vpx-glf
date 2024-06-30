@@ -6,7 +6,7 @@
 '   WriteToLog "Label 1", "Message 1 "
 '   WriteToLog "Label 2", "Message 2 "
 
-Class DebugLogFile
+Class GlfDebugLogFile
 	Private Filename
 	Private TxtFileStream
 
@@ -30,18 +30,18 @@ Class DebugLogFile
 		LZ(Year(CurrTime),   4) & "-" _
 		 & LZ(Month(CurrTime),  2) & "-" _
 		 & LZ(Day(CurrTime),	2) & "_" _
-		 & LZ(Hour(CurrTime),   2) & "" _
-		 & LZ(Minute(CurrTime), 2) & "" _
-		 & LZ(Second(CurrTime), 2) & "" _
+		 & LZ(Hour(CurrTime),   2) & "_" _
+		 & LZ(Minute(CurrTime), 2) & "_" _
+		 & LZ(Second(CurrTime), 2) & "_" _
 		 & LZ(MilliSecs, 4)
 	End Function
 	
 	' *** Debug.Print the time with milliseconds, and a message of your choice
 	Public Sub WriteToLog(label, message)
-		If debugEnabled = True Then
+		If glf_debugEnabled = True Then
 			Dim FormattedMsg, Timestamp
 			
-			Set TxtFileStream = CreateObject("Scripting.FileSystemObject").OpenTextFile(Filename, 8, True)
+			Set TxtFileStream = CreateObject("Scripting.FileSystemObject").OpenTextFile("logs\"&Filename, 8, True)
 			Timestamp = GetTimeStamp
 			FormattedMsg = GetTimeStamp + ": " + label + ": " + message
 			TxtFileStream.WriteLine FormattedMsg

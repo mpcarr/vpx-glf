@@ -1,28 +1,32 @@
 
-Class ShowPlayer
+Class GlfShowPlayer
 
     Private m_priority
     Private m_mode
     Private m_events
+    Private m_show_cache
     Private m_debug
     Private m_name
     Private m_value
 
-    Public Property Let Events(value)
-        Set m_events = value
-        Dim evt
-        For Each evt in m_events
-            lightCtrl.CreateSeqRunner m_name & "_" & evt, m_priority
-        Next
+    Public Property Get Events(name)
+        If m_events.Exists(name) Then
+            Set Events = m_events(name)
+        Else
+            Dim new_event : Set new_event = (new GlfShowPlayerItem)()
+            m_events.Add name, new_event
+            Set Events = new_event
+        End If
     End Property
     Public Property Let Debug(value) : m_debug = value : End Property
 
-	Public default Function init(name, mode)
+	Public default Function init(mode)
         m_name = "show_player_" & mode.name
         m_mode = mode.Name
         m_priority = mode.Priority
-        m_debug = False
+        m_debug = True
         Set m_events = CreateObject("Scripting.Dictionary")
+        Set m_show_cache = CreateObject("Scripting.Dictionary")
         
         AddPinEventListener m_mode & "_starting", "show_player_activate", "ShowPlayerEventHandler", m_priority, Array("activate", Me)
         AddPinEventListener m_mode & "_stopping", "show_player_deactivate", "ShowPlayerEventHandler", m_priority, Array("deactivate", Me)
@@ -32,117 +36,52 @@ Class ShowPlayer
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener evt, m_mode & "_show_player_play", "ShowPlayerEventHandler", -m_priority, Array("play", Me, m_events(evt), evt)
+            If IsObject(m_events(evt)) Then
+                AddPinEventListener Replace(evt, "_" & m_events(evt).Key, "") , m_mode & "_" & m_events(evt).Key & "_show_player_play", "ShowPlayerEventHandler", -m_priority, Array("play", Me, m_events(evt), evt)
+            Else
+                AddPinEventListener Replace(evt, "_" & m_events(evt), "") , m_mode & "_" & m_events(evt) & "_show_player_play", "ShowPlayerEventHandler", -m_priority, Array("play", Me, m_events(evt), evt)
+            End If
         Next
     End Sub
 
     Public Sub Deactivate()
         Dim evt
         For Each evt In m_events.Keys()
-            RemovePinEventListener evt, m_mode & "_show_player_play"
-            If varType(m_events(evt)) = 8 Then
-                Dim showControl : showControl = Split(m_events(evt), ".")
-                If showControl(1) = "stop" Then
-                    PlayOff evt, showControl(0)
-                End If
+            If IsObject(m_events(evt)) Then
+                RemovePinEventListener Replace(evt, "_" & m_events(evt).Key, ""), m_mode & "_" & m_events(evt).Key & "_show_player_play"
             Else
-                PlayOff evt, m_events(evt).Key
+                RemovePinEventListener Replace(evt, "_" & m_events(evt), ""), m_mode & "_" & m_events(evt) & "_show_player_play"
             End If
+            PlayOff m_events(evt).Key
         Next
     End Sub
 
-    Public Sub Add(evt, show)
-        
-        If vartype(show) = 8 Then
-            m_events.Add evt, show
-        Else
-            Dim showStep, light, lightsCount, x,tagLight, tagLights, lightParts
-            lightsCount = 0
-            For Each showStep in show.Show
-                For Each light in showStep
-                    lightParts = Split(light, "|")
-                    If IsArray(lightParts) Then
-                        If IsNull(IsToken(lightParts(0))) And IsNull(lightCtrl.GetLightIdx(lightParts(0))) Then
-                            tagLights = lightCtrl.GetLightsForTag(lightParts(0))
-                            For Each tagLight in tagLights
-                                lightsCount = lightsCount + 1
-                            Next
-                        Else
-                            lightsCount = lightsCount + 1
-                        End If
-                    End If
-                Next
-            
-                Log "Adding " & lightsCount & " lights for event: " & evt
-                
-                Dim seqArray
-                ReDim seqArray(lightsCount-1)
-                x=0
-                For Each light in showStep
-                    lightParts = Split(light, "|")
-                    If IsArray(lightParts) Then
-                        If IsNull(IsToken(lightParts(0))) And IsNull(lightCtrl.GetLightIdx(lightParts(0))) Then
-                            tagLights = lightCtrl.GetLightsForTag(lightParts(0))
-                            For Each tagLight in tagLights
-                                If UBound(lightParts) >=1 Then
-                                    seqArray(x) = tagLight & "|100|"&lightParts(2)
-                                Else
-                                    seqArray(x) = tagLight & "|100"
-                                End If
-                                x=x+1
-                            Next
-                        Else
-                            If UBound(lightParts) >= 1 Then
-                                seqArray(x) = lightParts(0) & "|100|"&lightParts(2)
-                            Else
-                                seqArray(x) = lightParts(0) & "|100"
-                            End If
-                            x=x+1
-                        End If
-                    End If
-                Next
-                showStep = seqArray
-                Log "Light List: " & Join(seqArray)
-            Next
-            m_events.Add evt, show
-        End If
-    End Sub
-
     Public Sub Play(evt, show)
-        If varType(show) = 8 Then
-            Dim showControl : showControl = Split(show, ".")
-            If showControl(1) = "stop" Then
-                For Each evt In m_events.Keys()
-                    If IsObject(m_events(evt)) Then
-                        PlayOff evt, m_events(evt).Key
-                    End If
-                Next
+        
+        If show.Action = "stop" Then
+            PlayOff show.Key
+        Else
+            If m_show_cache.Exists(show.Key) Then
+                lightCtrl.AddLightSeq m_name & "_" & show.Key, show.Key, m_show_cache(show.Key), show.Loops, 180/show.Speed, Null, m_priority
+            Else
+                Dim cachedShow : cachedShow = Glf_ConvertShow(show.Show, show.Tokens)
+                m_show_cache.Add show.Key, cachedShow
+                lightCtrl.AddLightSeq m_name & "_" & show.Key, show.Key, cachedShow, show.Loops, 180/show.Speed, Null, m_priority
             End If
-        Else
-            lightCtrl.AddLightSeq m_name & "_" & evt, show.Key, show.Show, show.Loops, 180/show.Speed, show.Tokens
         End If
     End Sub
 
-    Public Sub PlayOff(evt, key)
-        lightCtrl.RemoveLightSeq m_name & "_" & evt, key
-    End Sub
+    'Public Sub StopShow(evt, key)
+    '    m_events.Add evt & "_" & key & ".stop", key & ".stop"
+    'End Sub
 
-    Private Function IsToken(mainString)
-        ' Check if the string contains an opening parenthesis and ends with a closing parenthesis
-        If InStr(mainString, "(") > 0 And Right(mainString, 1) = ")" Then
-            ' Extract the substring within the parentheses
-            Dim startPos, subString
-            startPos = InStr(mainString, "(")
-            subString = Mid(mainString, startPos + 1, Len(mainString) - startPos - 1)
-            IsToken = subString
-        Else
-            IsToken = Null
-        End If
-    End Function
+    Public Sub PlayOff(key)
+        lightCtrl.RemoveLightSeq m_name & "_" & key, key
+    End Sub
 
     Private Sub Log(message)
         If m_debug = True Then
-            debugLog.WriteToLog m_mode & "_show_player", message
+            glf_debugLog.WriteToLog m_mode & "_show_player", message
         End If
     End Sub
 End Class
@@ -162,11 +101,14 @@ Function ShowPlayerEventHandler(args)
     ShowPlayerEventHandler = Null
 End Function
 
-Class ShowPlayerItem
-	Private m_key, m_show, m_loops, m_speed, m_tokens
+Class GlfShowPlayerItem
+	Private m_key, m_show, m_loops, m_speed, m_tokens, m_action
   
-	Public Property Get Key(): Key = m_key: End Property
-    Public Property Let Key(input): m_key = input: End Property
+	Public Property Get Action(): Action = m_action: End Property
+    Public Property Let Action(input): m_action = input: End Property
+
+    Public Property Get Key(): Key = m_key End Property
+    Public Property Let Key(input): m_key = input End Property
 
     Public Property Get Show(): Show = m_show: End Property
 	Public Property Let Show(input): m_show = input: End Property
@@ -179,16 +121,15 @@ Class ShowPlayerItem
 
     Public Property Get Tokens()
         Set Tokens = m_tokens
-    End Property
+    End Property        
   
 	Public default Function init()
-        If IsEmpty(m_tokens) Then
-            Set m_tokens = CreateObject("Scripting.Dictionary")
-        End If
+        m_action = "play"
+        m_key = ""
+        m_loops = -1
+        m_speed = 1
+        Set m_tokens = CreateObject("Scripting.Dictionary")
 	    Set Init = Me
 	End Function
 
-    Public Sub AddToken(token, value)
-        m_tokens.Add token, value
-    End Sub
 End Class

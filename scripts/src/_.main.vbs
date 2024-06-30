@@ -1,35 +1,33 @@
 'VPX Game Logic Framework (https://mpcarr.github.io/vpx-gle-framework/)
 
 '
-Dim canAddPlayers : canAddPlayers = True
-Dim currentPlayer : currentPlayer = Null
+Dim glf_currentPlayer : glf_currentPlayer = Null
+Dim glf_canAddPlayers : glf_canAddPlayers = True
 Dim glf_PI : glf_PI = 4 * Atn(1)
 Dim glf_plunger
-Dim gameStarted : gameStarted = False
-Dim pinEvents : Set pinEvents = CreateObject("Scripting.Dictionary")
-Dim pinEventsOrder : Set pinEventsOrder = CreateObject("Scripting.Dictionary")
-Dim playerEvents : Set playerEvents = CreateObject("Scripting.Dictionary")
-Dim playerEventsOrder : Set playerEventsOrder = CreateObject("Scripting.Dictionary")
+Dim glf_gameStarted : glf_gameStarted = False
+Dim glf_pinEvents : Set glf_pinEvents = CreateObject("Scripting.Dictionary")
+Dim glf_pinEventsOrder : Set glf_pinEventsOrder = CreateObject("Scripting.Dictionary")
+Dim glf_playerEvents : Set glf_playerEvents = CreateObject("Scripting.Dictionary")
+Dim Glf_EventBlocks : Set Glf_EventBlocks = CreateObject("Scripting.Dictionary")
+Dim Glf_ShotProfiles : Set Glf_ShotProfiles = CreateObject("Scripting.Dictionary")
+Dim glf_playerEventsOrder : Set glf_playerEventsOrder = CreateObject("Scripting.Dictionary")
 Dim playerState : Set playerState = CreateObject("Scripting.Dictionary")
 Dim bcpController : bcpController = Null
 Dim useBCP : useBCP = False
 Dim bcpPort : bcpPort = 5050
 Dim bcpExeName : bcpExeName = ""
-Dim Lights(260)	
 Dim lightCtrl : Set lightCtrl = new LStateController
-Dim tablewidth
-tablewidth = Table1.width
-Dim tableheight
-tableheight = Table1.height
 Dim glf_BIP : glf_BIP = 0
 Dim glf_FuncCount : glf_FuncCount = 0
 
 Dim glf_ballsPerGame : glf_ballsPerGame = 3
-Dim glf_troughSize : glf_troughSize = 8
+Dim glf_troughSize : glf_troughSize = tnob
 
-Dim debugLog : Set debugLog = (new DebugLogFile)()
-Dim debugEnabled : debugEnabled = True
+Dim glf_debugLog : Set glf_debugLog = (new GlfDebugLogFile)()
+Dim glf_debugEnabled : glf_debugEnabled = True
 
+Dim Glf_FlashColor : Glf_FlashColor = Array(Array("(lights)|100|(color)"), Array("(lights)|0|(color)"))
 
 lightCtrl.RegisterLights Glf_Lights
 lightCtrl.Debug = False
@@ -41,8 +39,26 @@ End Sub
 
 Public Sub Glf_Init()
 	If useBCP = True Then
-		ConnectToBCPMediaController
+		Glf_ConnectToBCPMediaController
 	End If
+
+	swTrough1.DestroyBall
+	swTrough2.DestroyBall
+	swTrough3.DestroyBall
+	swTrough4.DestroyBall
+	swTrough5.DestroyBall
+	swTrough6.DestroyBall
+	swTrough7.DestroyBall
+	swTrough8.DestroyBall
+	If glf_troughSize > 0 Then : Set glf_ball1 = swTrough1.CreateSizedballWithMass(Ballsize / 2,Ballmass) : gBot = Array(glf_ball1) : End If
+	If glf_troughSize > 1 Then : Set glf_ball2 = swTrough2.CreateSizedballWithMass(Ballsize / 2,Ballmass) : gBot = Array(glf_ball1, glf_ball2) : End If
+	If glf_troughSize > 2 Then : Set glf_ball3 = swTrough3.CreateSizedballWithMass(Ballsize / 2,Ballmass) : gBot = Array(glf_ball1, glf_ball2, glf_ball3) : End If
+	If glf_troughSize > 3 Then : Set glf_ball4 = swTrough4.CreateSizedballWithMass(Ballsize / 2,Ballmass) : gBot = Array(glf_ball1, glf_ball2, glf_ball3, glf_ball4) : End If
+	If glf_troughSize > 4 Then : Set glf_ball5 = swTrough5.CreateSizedballWithMass(Ballsize / 2,Ballmass) : gBot = Array(glf_ball1, glf_ball2, glf_ball3, glf_ball4, glf_ball5) : End If
+	If glf_troughSize > 5 Then : Set glf_ball6 = swTrough6.CreateSizedballWithMass(Ballsize / 2,Ballmass) : gBot = Array(glf_ball1, glf_ball2, glf_ball3, glf_ball4, glf_ball5, glf_ball6) : End If
+	If glf_troughSize > 6 Then : Set glf_ball7 = swTrough7.CreateSizedballWithMass(Ballsize / 2,Ballmass) : gBot = Array(glf_ball1, glf_ball2, glf_ball3, glf_ball4, glf_ball5, glf_ball6, glf_ball7) : End If
+	If glf_troughSize > 7 Then : Set glf_ball8 = swTrough8.CreateSizedballWithMass(Ballsize / 2,Ballmass) : gBot = Array(glf_ball1, glf_ball2, glf_ball3, glf_ball4, glf_ball5, glf_ball6, glf_ball7, glf_ball8) : End If
+	
 	Dim switch, switchHitSubs
 	switchHitSubs = ""
 	For Each switch in Glf_Switches
@@ -53,26 +69,6 @@ Public Sub Glf_Init()
 End Sub
 
 Sub Glf_Options(ByVal eventId)
-
-	glf_troughSize = Table1.Option("Trough Capacity", 1, 8, 1, 6, 0)
-	If gameStarted = False Then
-		swTrough1.DestroyBall
-		swTrough2.DestroyBall
-		swTrough3.DestroyBall
-		swTrough4.DestroyBall
-		swTrough5.DestroyBall
-		swTrough6.DestroyBall
-		swTrough7.DestroyBall
-		swTrough8.DestroyBall
-		If glf_troughSize > 0 Then : Set glf_ball1 = swTrough1.CreateSizedballWithMass(Ballsize / 2,Ballmass) : End If
-		If glf_troughSize > 1 Then : Set glf_ball2 = swTrough2.CreateSizedballWithMass(Ballsize / 2,Ballmass) : End If
-		If glf_troughSize > 2 Then : Set glf_ball3 = swTrough3.CreateSizedballWithMass(Ballsize / 2,Ballmass) : End If
-		If glf_troughSize > 3 Then : Set glf_ball4 = swTrough4.CreateSizedballWithMass(Ballsize / 2,Ballmass) : End If
-		If glf_troughSize > 4 Then : Set glf_ball5 = swTrough5.CreateSizedballWithMass(Ballsize / 2,Ballmass) : End If
-		If glf_troughSize > 5 Then : Set glf_ball6 = swTrough6.CreateSizedballWithMass(Ballsize / 2,Ballmass) : End If
-		If glf_troughSize > 6 Then : Set glf_ball7 = swTrough7.CreateSizedballWithMass(Ballsize / 2,Ballmass) : End If
-		If glf_troughSize > 7 Then : Set glf_ball8 = swTrough8.CreateSizedballWithMass(Ballsize / 2,Ballmass) : End If
-	End If
 	Dim ballsPerGame : ballsPerGame = Table1.Option("Balls Per Game", 1, 2, 1, 1, 0, Array("3 Balls", "5 Balls"))
 	If ballsPerGame = 1 Then
 		glf_ballsPerGame = 3
@@ -89,7 +85,7 @@ Public Sub Glf_Exit()
 End Sub
 
 Public Sub Glf_KeyDown(ByVal keycode)
-    If gameStarted = True Then
+    If glf_gameStarted = True Then
 		If keycode = LeftFlipperKey Then
 			'DispatchPinEvent GLF_SWITCH_LEFT_FLIPPER_DOWN, Null
 		End If
@@ -99,7 +95,7 @@ Public Sub Glf_KeyDown(ByVal keycode)
 		End If
 		
 		If keycode = StartGameKey Then
-			If canAddPlayers = True Then
+			If glf_canAddPlayers = True Then
 				Glf_AddPlayer()
 			End If
 		End If
@@ -112,7 +108,7 @@ Public Sub Glf_KeyDown(ByVal keycode)
 End Sub
 
 Public Sub Glf_KeyUp(ByVal keycode)
-	If gameStarted = True Then
+	If glf_gameStarted = True Then
 		If KeyCode = PlungerKey Then
 			Plunger.Fire
 		End If
@@ -123,29 +119,57 @@ Public Sub Glf_EventTimer_Timer()
 	DelayTick
 End Sub
 
-Public Function Glf_ParseInput(value)
+Public Sub Glf_BCPUpdateTimer_Timer()
+	Glf_BcpUpdate
+End Sub
+
+Public Function Glf_ParseInput(value, isTime)
 	Dim templateCode : templateCode = ""
+	Dim tmp: tmp = value
     Select Case VarType(value)
         Case 8 ' vbString
-			value = Glf_ReplaceCurrentPlayerAttributes(value)
-			If InStr(value, " if ") Then
+			tmp = Glf_ReplaceCurrentPlayerAttributes(tmp)
+			If InStr(tmp, " if ") Then
 				templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
-				templateCode = templateCode & vbTab & Glf_ConvertIf(value, "Glf_" & glf_FuncCount) & vbCrLf
+				templateCode = templateCode & vbTab & Glf_ConvertIf(tmp, "Glf_" & glf_FuncCount) & vbCrLf
 				templateCode = templateCode & "End Function"
 			Else
 				templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
-				templateCode = templateCode & vbTab & "Glf_" & glf_FuncCount & " = " & value & vbCrLf
+				templateCode = templateCode & vbTab & "Glf_" & glf_FuncCount & " = " & tmp & vbCrLf
 				templateCode = templateCode & "End Function"
 			End IF
         Case Else
 			templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
-			templateCode = templateCode & vbTab & "Glf_" & glf_FuncCount & " = " & value * 1000 & vbCrLf
+			If isTime Then
+				templateCode = templateCode & vbTab & "Glf_" & glf_FuncCount & " = " & tmp * 1000 & vbCrLf
+			Else
+				templateCode = templateCode & vbTab & "Glf_" & glf_FuncCount & " = " & tmp & vbCrLf
+			End If
 			templateCode = templateCode & "End Function"
     End Select
-	'msgbox templateCode
+	msgbox templateCode
 	ExecuteGlobal templateCode
-	Glf_ParseInput = "Glf_" & glf_FuncCount
+	Dim funcRef : funcRef = "Glf_" & glf_FuncCount
 	glf_FuncCount = glf_FuncCount + 1
+	Glf_ParseInput = Array(funcRef, value)
+End Function
+
+Public Function Glf_ParseEventInput(value)
+	Dim templateCode : templateCode = ""
+	Dim condition : condition = Glf_IsCondition(value)
+	If IsNull(condition) Then
+		Glf_ParseEventInput = Array(value, value, Null)
+	Else
+		dim conditionReplaced : conditionReplaced = Glf_ReplaceCurrentPlayerAttributes(condition)
+		templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
+		templateCode = templateCode & vbTab & Glf_ConvertCondition(conditionReplaced, "Glf_" & glf_FuncCount) & vbCrLf
+		templateCode = templateCode & "End Function"
+		'msgbox templateCode
+		ExecuteGlobal templateCode
+		Dim funcRef : funcRef = "Glf_" & glf_FuncCount
+		glf_FuncCount = glf_FuncCount + 1
+		Glf_ParseEventInput = Array(Replace(value, "{"&condition&"}", funcRef) ,Replace(value, "{"&condition&"}", ""), funcRef)
+	End If
 End Function
 
 Function Glf_ReplaceCurrentPlayerAttributes(inputString)
@@ -178,9 +202,148 @@ Function Glf_ConvertIf(value, retName)
 	Glf_ConvertIf = vbscriptIfStatement
 End Function
 
+Function Glf_ConvertCondition(value, retName)
+	value = Replace(value, "==", "=")
+	value = Replace(value, "!=", "<>")
+	Glf_ConvertCondition = "    "&retName&" = " & value
+End Function
+
 Public Sub Glf_GameTimer_Timer()
 	lightCtrl.Update()
 End Sub
+
+Function GlfShotProfiles(name)
+	If Glf_ShotProfiles.Exists(name) Then
+		Set GlfShotProfiles = Glf_ShotProfiles(name)
+	Else
+		Dim new_shotprofile : Set new_shotprofile = (new GlfShotProfile)(name)
+		Glf_ShotProfiles.Add name, new_shotprofile
+		Set GlfShotProfiles = new_shotprofile
+	End If
+End Function
+
+Function Glf_ConvertShow(show, tokens)
+
+	Dim showStep, light, lightsCount, x,tagLight, tagLights, lightParts, token, stepIdx
+	Dim newShow
+	ReDim newShow(UBound(show))
+	stepIdx = 0
+	For Each showStep in show
+		lightsCount = 0 
+		For Each light in showStep
+			lightParts = Split(light, "|")
+			If IsArray(lightParts) Then
+				token = Glf_IsToken(lightParts(0))
+				If IsNull(token) And IsNull(lightCtrl.GetLightIdx(lightParts(0))) Then
+					tagLights = lightCtrl.GetLightsForTag(lightParts(0))
+					lightsCount = UBound(tagLights)+1
+				Else
+					If IsNull(token) Then
+						lightsCount = lightsCount + 1
+					Else
+						'resolve token lights
+						If IsNull(lightCtrl.GetLightIdx(tokens(token))) Then
+							'token is a tag
+							tagLights = lightCtrl.GetLightsForTag(tokens(token))
+							lightsCount = UBound(tagLights)+1
+						Else
+							lightsCount = lightsCount + 1
+						End If
+					End If
+				End If
+			End If
+		Next
+	
+		Dim seqArray
+		ReDim seqArray(lightsCount-1)
+		x=0
+		For Each light in showStep
+			lightParts = Split(light, "|")
+			Dim lightColor
+			If Ubound(lightParts) = 2 Then 
+				If IsNull(Glf_IsToken(lightParts(2))) Then
+					lightColor = lightParts(2)
+				Else
+					lightColor = tokens(Glf_IsToken(lightParts(2)))
+				End If
+			End If
+
+			If IsArray(lightParts) Then
+				token = Glf_IsToken(lightParts(0))
+				If IsNull(token) And IsNull(lightCtrl.GetLightIdx(lightParts(0))) Then
+					tagLights = lightCtrl.GetLightsForTag(lightParts(0))
+					For Each tagLight in tagLights
+						If UBound(lightParts) >=1 Then
+							seqArray(x) = tagLight & "|"&lightParts(1)&"|"&lightColor
+						Else
+							seqArray(x) = tagLight & "|"&lightParts(1)
+						End If
+						x=x+1
+					Next
+				Else
+					If IsNull(token) Then
+						If UBound(lightParts) >= 1 Then
+							seqArray(x) = lightParts(0) & "|"&lightParts(1)&"|"&lightColor
+						Else
+							seqArray(x) = lightParts(0) & "|"&lightParts(1)
+						End If
+						x=x+1
+					Else
+						'resolve token lights
+						If IsNull(lightCtrl.GetLightIdx(tokens(token))) Then
+							'token is a tag
+							tagLights = lightCtrl.GetLightsForTag(tokens(token))
+							For Each tagLight in tagLights
+								If UBound(lightParts) >=1 Then
+									seqArray(x) = tagLight & "|"&lightParts(1)&"|"&lightColor
+								Else
+									seqArray(x) = tagLight & "|"&lightParts(1)
+								End If
+								x=x+1
+							Next
+						Else
+							If UBound(lightParts) >= 1 Then
+								seqArray(x) = tokens(token) & "|"&lightParts(1)&"|"&lightColor
+							Else
+								seqArray(x) = tokens(token) & "|"&lightParts(1)
+							End If
+							x=x+1
+						End If
+					End If
+				End If
+			End If
+		Next
+		glf_debugLog.WriteToLog "Convert Show", Join(seqArray)
+		newShow(stepIdx) = seqArray
+		stepIdx = stepIdx + 1
+	Next
+	Glf_ConvertShow = newShow
+End Function
+
+Private Function Glf_IsToken(mainString)
+	' Check if the string contains an opening parenthesis and ends with a closing parenthesis
+	If InStr(mainString, "(") > 0 And Right(mainString, 1) = ")" Then
+		' Extract the substring within the parentheses
+		Dim startPos, subString
+		startPos = InStr(mainString, "(")
+		subString = Mid(mainString, startPos + 1, Len(mainString) - startPos - 1)
+		Glf_IsToken = subString
+	Else
+		Glf_IsToken = Null
+	End If
+End Function
+
+Private Function Glf_IsCondition(mainString)
+	' Check if the string contains an opening { and ends with a closing }
+	If InStr(mainString, "{") > 0 And Right(mainString, 1) = "}" Then
+		Dim startPos, subString
+		startPos = InStr(mainString, "{")
+		subString = Mid(mainString, startPos + 1, Len(mainString) - startPos - 1)
+		Glf_IsCondition = subString
+	Else
+		Glf_IsCondition = Null
+	End If
+End Function
 
 '******************************************************
 '*****   GLF Pin Events                             ****

@@ -86,6 +86,7 @@ Class BallDevice
         m_ejecting_all = False
         m_balls_to_eject = 0
         m_balls_in_device = 0
+        m_mechcanical_eject = False
         m_eject_timeout = 0
 	    Set Init = Me
 	End Function
@@ -138,10 +139,12 @@ Class BallDevice
         SetDelay m_name & "_eject_timeout", "BallDeviceEventHandler", Array(Array("eject_timeout", Me), m_balls(0)), m_eject_timeout
         m_ejecting = True
         If m_eject_strength > 0 Then
-            m_balls(0).VelX = m_eject_strength * Cos(m_eject_pitch) * Sin(m_eject_angle)
-            m_balls(0).VelY = m_eject_strength * Cos(m_eject_pitch) * Cos(m_eject_angle)
-            m_balls(0).VelZ = m_eject_strength * Sin(m_eject_pitch)
-            Log "VelX: " &  m_balls(0).VelX & ", VelY: " &  m_balls(0).VelY & ", VelZ: " &  m_balls(0).VelZ
+            If Not IsNull(m_balls(0)) Then
+                m_balls(0).VelX = m_eject_strength * Cos(m_eject_pitch) * Sin(m_eject_angle)
+                m_balls(0).VelY = m_eject_strength * Cos(m_eject_pitch) * Cos(m_eject_angle)
+                m_balls(0).VelZ = m_eject_strength * Sin(m_eject_pitch)
+                Log "VelX: " &  m_balls(0).VelX & ", VelY: " &  m_balls(0).VelY & ", VelZ: " &  m_balls(0).VelZ
+            End If
         End If
 
         If Not IsNull(m_eject_callback) Then
@@ -158,7 +161,7 @@ Class BallDevice
 
     Private Sub Log(message)
         If m_debug = True Then
-            debugLog.WriteToLog m_name, message
+            glf_debugLog.WriteToLog m_name, message
         End If
     End Sub
 End Class

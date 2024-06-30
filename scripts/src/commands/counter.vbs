@@ -1,5 +1,5 @@
 
-Class Counter
+Class GlfCounter
 
     Private m_name
     Private m_priority
@@ -15,8 +15,20 @@ Class Counter
 
     Private m_count
 
-    Public Property Let EnableEvents(value) : m_enable_events = value : End Property
-    Public Property Let CountEvents(value) : m_count_events = value : End Property
+    Public Property Let EnableEvents(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_enable_events.Add newEvent.Name, newEvent
+        Next
+    End Property
+    Public Property Let CountEvents(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_count_events.Add newEvent.Name, newEvent
+        Next
+    End Property
     Public Property Let CountCompleteValue(value) : m_count_complete_value = value : End Property
     Public Property Let DisableOnComplete(value) : m_disable_on_complete = value : End Property
     Public Property Let ResetOnComplete(value) : m_reset_on_complete = value : End Property
@@ -29,6 +41,8 @@ Class Counter
         m_mode = mode.Name
         m_priority = mode.Priority
         m_count = -1
+        Set m_enable_events = CreateObject("Scripting.Dictionary")
+        Set m_count_events = CreateObject("Scripting.Dictionary")
 
         AddPinEventListener m_mode & "_starting", m_name & "_activate", "CounterEventHandler", m_priority, Array("activate", Me)
         AddPinEventListener m_mode & "_stopping", m_name & "_deactivate", "CounterEventHandler", m_priority, Array("deactivate", Me)
@@ -56,8 +70,8 @@ Class Counter
             SetValue 0
         End If
         Dim evt
-        For Each evt in m_enable_events
-            AddPinEventListener evt, m_name & "_enable", "CounterEventHandler", m_priority, Array("enable", Me)
+        For Each evt in m_enable_events.Keys
+            AddPinEventListener m_enable_events(evt).EventName, m_name & "_enable", "CounterEventHandler", m_priority, Array("enable", Me, evt)
         Next
     End Sub
 
@@ -67,24 +81,24 @@ Class Counter
             SetValue -1
         End If
         Dim evt
-        For Each evt in m_enable_events
-            RemovePinEventListener evt, m_name & "_enable"
+        For Each evt in m_enable_events.Keys
+            RemovePinEventListener m_enable_events(evt).EventName, m_name & "_enable"
         Next
     End Sub
 
     Public Sub Enable()
         Log "Enabling"
         Dim evt
-        For Each evt in m_count_events
-            AddPinEventListener evt, m_name & "_count", "CounterEventHandler", m_priority, Array("count", Me)
+        For Each evt in m_count_events.Keys
+            AddPinEventListener m_count_events(evt).EventName, m_name & "_count", "CounterEventHandler", m_priority, Array("count", Me)
         Next
     End Sub
 
     Public Sub Disable()
         Log "Disabling"
         Dim evt
-        For Each evt in m_count_events
-            RemovePinEventListener evt, m_name & "_count"
+        For Each evt in m_count_events.Keys
+            RemovePinEventListener m_count_events(evt).EventName, m_name & "_count"
         Next
     End Sub
 
@@ -107,7 +121,7 @@ Class Counter
 
     Private Sub Log(message)
         If m_debug = True Then
-            debugLog.WriteToLog m_name, message
+            glf_debugLog.WriteToLog m_name, message
         End If
     End Sub
 End Class

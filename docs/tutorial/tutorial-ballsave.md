@@ -12,12 +12,12 @@ To configure your ball save we need a mode for it live under. Create the followi
 #### Mode Config
 
 ```
-Dim mode_ballsave
-Set mode_ballsave = (new Mode)("ballsave", 1000)
+Dim mode_base
+Set mode_base = (new Mode)("base", 1000)
 
-With mode_ballsave
+With mode_base
     .StartEvents = Array("ball_started")
-    .StopEvents = Array("ball_ended")
+    .StopEvents = Array("ball_ended") 
 End With
 ```
 
@@ -26,11 +26,8 @@ The mode above will start every time a new ball is started and it will end when 
 #### Ball Save Config
 
 ```
-Dim ball_save
-Set ball_save = (new BallSave)("base", mode_ballsave)
-
-With ball_save
-    .EnableEvents = Array("mode_ballsave_started")
+With mode_base.BallSaves("base")
+    .EnableEvents = Array("mode_base_started")
     .TimerStartEvents = Array("balldevice_plunger_ball_eject_success")
     .ActiveTime = 15
     .HurryUpTime = 5
@@ -38,6 +35,7 @@ With ball_save
     .BallsToSave = -1
     .AutoLaunch = True
 End With
+
 ```
 
 As you can see from the settings above the ball save will be active for 15 seconds once the ball has successfully been ejected from the plunger lane, it has a grace period of 3 seconds meaning that it will actually be active for 18 seconds in total and it will save an unlimited about of balls as long as it is active.
