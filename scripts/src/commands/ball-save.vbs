@@ -69,6 +69,7 @@ Class BallSave
     End Sub
 
     Public Sub Deactivate()
+        Disable()
         Dim evt
         For Each evt in m_enable_events.Keys
             RemovePinEventListener m_enable_events(evt).EventName, m_name & "_enable"

@@ -115,7 +115,7 @@ Class GlfLightPlayer
 
     Public Sub Play(evt, lights)
         Dim light, lightParts
-        lightCtrl.AddLightSeq m_name & "_" & evt, evt, lights(1), -1, 180, Null, m_priority
+        lightCtrl.AddLightSeq m_name & "_" & evt, evt, lights(1), -1, 1, Null, m_priority, 0
         For Each light in lights(0)
             lightParts = Split(light, "|")
             If IsArray(lightParts) Then

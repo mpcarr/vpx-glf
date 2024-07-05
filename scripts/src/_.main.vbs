@@ -11,6 +11,7 @@ Dim glf_pinEventsOrder : Set glf_pinEventsOrder = CreateObject("Scripting.Dictio
 Dim glf_playerEvents : Set glf_playerEvents = CreateObject("Scripting.Dictionary")
 Dim Glf_EventBlocks : Set Glf_EventBlocks = CreateObject("Scripting.Dictionary")
 Dim Glf_ShotProfiles : Set Glf_ShotProfiles = CreateObject("Scripting.Dictionary")
+Dim Glf_ShowStartQueue : Set Glf_ShowStartQueue = CreateObject("Scripting.Dictionary")
 Dim glf_playerEventsOrder : Set glf_playerEventsOrder = CreateObject("Scripting.Dictionary")
 Dim playerState : Set playerState = CreateObject("Scripting.Dictionary")
 Dim bcpController : bcpController = Null
@@ -26,8 +27,6 @@ Dim glf_troughSize : glf_troughSize = tnob
 
 Dim glf_debugLog : Set glf_debugLog = (new GlfDebugLogFile)()
 Dim glf_debugEnabled : glf_debugEnabled = True
-
-Dim Glf_FlashColor : Glf_FlashColor = Array(Array("(lights)|100|(color)"), Array("(lights)|0|(color)"))
 
 lightCtrl.RegisterLights Glf_Lights
 lightCtrl.Debug = False
@@ -115,12 +114,20 @@ Public Sub Glf_KeyUp(ByVal keycode)
 	End If
 End Sub
 
+Public Sub Glf_GameTimer_Timer()
+	
+End Sub
+
 Public Sub Glf_EventTimer_Timer()
 	DelayTick
 End Sub
 
 Public Sub Glf_BCPUpdateTimer_Timer()
 	Glf_BcpUpdate
+End Sub
+
+Public Sub Glf_LampTimer_Timer()
+	lightCtrl.Update
 End Sub
 
 Public Function Glf_ParseInput(value, isTime)
@@ -147,7 +154,7 @@ Public Function Glf_ParseInput(value, isTime)
 			End If
 			templateCode = templateCode & "End Function"
     End Select
-	msgbox templateCode
+	'msgbox templateCode
 	ExecuteGlobal templateCode
 	Dim funcRef : funcRef = "Glf_" & glf_FuncCount
 	glf_FuncCount = glf_FuncCount + 1
@@ -208,9 +215,7 @@ Function Glf_ConvertCondition(value, retName)
 	Glf_ConvertCondition = "    "&retName&" = " & value
 End Function
 
-Public Sub Glf_GameTimer_Timer()
-	lightCtrl.Update()
-End Sub
+
 
 Function GlfShotProfiles(name)
 	If Glf_ShotProfiles.Exists(name) Then
@@ -220,6 +225,14 @@ Function GlfShotProfiles(name)
 		Glf_ShotProfiles.Add name, new_shotprofile
 		Set GlfShotProfiles = new_shotprofile
 	End If
+End Function
+
+Function GlfModes(name, priority)
+	Set GlfModes = (new Mode)(name, priority)
+End Function
+
+Function GlfKwargs()
+	Set GlfKwargs = CreateObject("Scripting.Dictionary")
 End Function
 
 Function Glf_ConvertShow(show, tokens)
@@ -259,7 +272,7 @@ Function Glf_ConvertShow(show, tokens)
 		x=0
 		For Each light in showStep
 			lightParts = Split(light, "|")
-			Dim lightColor
+			Dim lightColor : lightColor = ""
 			If Ubound(lightParts) = 2 Then 
 				If IsNull(Glf_IsToken(lightParts(2))) Then
 					lightColor = lightParts(2)
@@ -346,7 +359,35 @@ Private Function Glf_IsCondition(mainString)
 End Function
 
 '******************************************************
-'*****   GLF Pin Events                             ****
+'*****   GLF Shows 		                           ****
+'******************************************************
+
+Dim glf_ShowOn : glf_ShowOn = Array(Array("(lights)|100"))
+Dim glf_ShowOff : glf_ShowOff = Array(Array("(lights)|0"))
+Dim glf_ShowFlash : glf_ShowFlash = Array(Array("(lights)|100"), Array("(lights)|0"))
+Dim glf_ShowFlashColor : glf_ShowFlashColor = Array(Array("(lights)|100|(color)"), Array("(lights)|0|(color)"))
+
+With GlfShotProfiles("default")
+	With .States("on")
+			.Show = glf_ShowFlash
+	End With
+	With .States("off")
+			.Show = glf_ShowOff
+	End With
+End With
+
+With GlfShotProfiles("flash_color")
+	With .States("on")
+			.Show = glf_ShowFlashColor
+	End With
+	With .States("off")
+			.Show = glf_ShowOff
+	End With
+End With
+
+
+'******************************************************
+'*****   GLF Pin Events                            ****
 '******************************************************
 
 Const GLF_GAME_STARTED = "game_started"

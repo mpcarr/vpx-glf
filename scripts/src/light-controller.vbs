@@ -12,7 +12,7 @@
 
 Class LStateController
 
-    Private m_currentFrameState, m_on, m_off, m_seqRunners, m_lights, m_seqs, m_vpxLightSyncRunning, m_vpxLightSyncClear, m_vpxLightSyncCollection, m_tableSeqColor, m_tableSeqOffset, m_tableSeqSpeed, m_tableSeqDirection, m_tableSeqFadeUp, m_tableSeqFadeDown, m_frametime, m_initFrameTime, m_pulse, m_pulseInterval, m_lightmaps, m_seqOverrideRunners, m_pauseMainLights, m_pausedLights, m_minX, m_minY, m_maxX, m_maxY, m_width, m_height, m_centerX, m_centerY, m_coordsX, m_coordsY, m_angles, m_radii, m_tags, m_debug
+    Private m_currentFrameState, m_on, m_off, m_seqRunners, m_lights, m_seqs, m_vpxLightSyncRunning, m_vpxLightSyncClear, m_vpxLightSyncCollection, m_tableSeqColor, m_tableSeqOffset, m_tableSeqSpeed, m_tableSeqDirection, m_tableSeqFadeUp, m_tableSeqFadeDown, m_frametime, m_initFrameTime, m_pulse, m_pulseInterval, m_lightmaps, m_seqOverrideRunners, m_pauseMainLights, m_pausedLights, m_minX, m_minY, m_maxX, m_maxY, m_width, m_height, m_centerX, m_centerY, m_coordsX, m_coordsY, m_angles, m_radii, m_tags, m_debug, m_syncMs, m_syncMsCounter
 
     Private Lights(260)
 
@@ -39,6 +39,8 @@ Class LStateController
         m_pauseMainLights = False
         Set m_pausedLights = CreateObject("Scripting.Dictionary")
         Set m_lightmaps = CreateObject("Scripting.Dictionary")
+        Set m_syncMs = CreateObject("Scripting.Dictionary")
+        Set m_syncMsCounter = CreateObject("Scripting.Dictionary")
         m_minX = 1000000
         m_minY = 1000000
         m_maxX = -1000000
@@ -243,11 +245,9 @@ Class LStateController
             For idx = 0 to UBound(Lights)
                 vpxLight = Null
                 Set lcItem = new LCItem
-                Log "TRYING TO REGISTER IDX: " & idx
                 If IsArray(Lights(idx)) Then
                     tmp = Lights(idx)
                     Set vpxLight = tmp(0)
-                    Log "TEMP LIGHT NAME for idx:" & idx & ", light: " & vpxLight.name
                 ElseIf IsObject(Lights(idx)) Then
                     Set vpxLight = Lights(idx)
                 End If
@@ -274,9 +274,7 @@ Class LStateController
                     Dim e, lmStr: lmStr = "lmArr = Array("    
                     For Each e in GetElements()
                         On Error Resume Next
-                        'Log CStr(e.Name)
                         If InStr(LCase(e.Name), LCase("_" & vpxLight.Name & "_")) Or InStr(LCase(e.Name), LCase("_" & vpxLight.UserValue & "_")) Then
-                            Log e.Name
                             lmStr = lmStr & e.Name & ","
                         End If
                         If Err Then Log "Error: " & Err
@@ -285,7 +283,6 @@ Class LStateController
                     lmStr = Replace(lmStr, ",Null)", ")")
                     ExecuteGlobal "Dim lmArr : "&lmStr
                     m_lightmaps.Add vpxLight.Name, lmArr
-                    Log "Registering Light: "& vpxLight.name
                     lcItem.Init idx, vpxLight.BlinkInterval, Array(vpxLight.color, vpxLight.colorFull), vpxLight.name, vpxLight.x, vpxLight.y
                     m_lights.Add vpxLight.Name, lcItem
                     CreateSeqRunner "lSeqRunner" & CStr(vpxLight.name), 1000
@@ -541,7 +538,7 @@ Class LStateController
             Dim seq : seq  = FadeRGB(lightName, lightColor(0), color, steps)
             m_lights(lightName).Color = color
             CreateSeqRunner runner, priority
-            m_seqRunners(runner).AddItem lightName & "Fade", seq, 1, 20, Null
+            m_seqRunners(runner).AddItem lightName & "Fade", seq, 1, 10, Null,0
             If color = RGB(0,0,0) Then
                 m_lightOff(lightName)
             End If
@@ -739,7 +736,7 @@ Class LStateController
                 seq.UpdateInterval = light.BlinkInterval
                 seq.Repeat = True
 
-                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem name, seq, -1, light.BlinkInterval, Null
+                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem name, seq, -1, 200/light.BlinkInterval, Null,0
                 m_seqs.Add name & light.name, seq
             End If
             If m_on.Exists(light.name) Then
@@ -787,7 +784,7 @@ Class LStateController
                 seq.UpdateInterval = light.BlinkInterval
                 seq.Repeat = True
 
-                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem light.name & "Blink", seq, -1, light.BlinkInterval, Null
+                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem light.name & "Blink", seq.Sequence, -1, 200/light.BlinkInterval, Null,0
                 m_seqs.Add light.name & "Blink", seq
             End If
             If m_on.Exists(light.name) Then
@@ -967,17 +964,12 @@ Class LStateController
         Dim i, key
         i=0
         For Each key in runnerKeys
-            Log key
             Set itemsArray(i) = m_seqRunners(key)
             i=i+1
         Next
         
         Dim j, temp
-        Log CStr(UBound(itemsArray))
         For i = 0 To UBound(itemsArray) - 1
-            Log CStr(i)
-            'Set temp = itemsArray(i)
-            'Log CStr(itemsArray(i).Priority)
             For j = i + 1 To UBound(itemsArray)
                 If itemsArray(i).Priority > itemsArray(j).Priority Then
                     Set temp = itemsArray(i)
@@ -1001,16 +993,27 @@ Class LStateController
         m_seqOverrideRunners.Add name, seqRunner
     End Sub
 
-    Public Sub AddLightSeq(runner, key, sequence, loops, speed, tokens, priority)
+    Public Sub AddLightSeq(runner, key, sequence, loops, speed, tokens, priority, syncMs)
         If Not m_seqRunners.Exists(runner) Then
             CreateSeqRunner runner, priority
         End If
 
-        If m_seqRunners(runner).Items().Exists(key) Then
-            RemoveLightSeq runner, key
+        If syncMs = 0 Then
+            If m_seqRunners(runner).Items().Exists(key) Then
+                RemoveLightSeq runner, key
+            End If
+            m_seqRunners(runner).AddItem key, sequence, loops, speed, tokens,0
+        Else
+            If Not m_seqRunners.Exists(syncMs) Then
+                CreateSeqRunner syncMs, 10
+                m_seqRunners(syncMs).AddItem syncMs,Array("lXX|100", "lXX|0"), -1, 400/syncMs, Null, syncMs
+            End If
+
+            If Not m_syncMs.Exists(syncMs) Then
+                m_syncMs.Add syncMs, CreateObject("Scripting.Dictionary")
+            End If
+            m_syncMs(syncMs).Add runner & "_" & key, Array(runner, key, sequence, loops, speed, tokens)
         End If
-        
-        m_seqRunners(runner).AddItem key, sequence, loops, speed, tokens
     End Sub
 
     Public Sub RemoveLightSeq(runner, key)
@@ -1099,13 +1102,15 @@ Class LStateController
     Public Sub SyncLightMapColors()
         dim light,lm
         For Each light in m_lights.Keys()
-            If m_lightmaps.Exists(light) Then
-                For Each lm in m_lightmaps(light)
-                    dim color : color = m_lights(light).Color
-                    If not IsNull(lm) Then
-                        lm.Color = color(0)
-                    End If
-                Next
+            If m_lights(light).IsRGB Then
+                dim color : color = m_lights(light).Color
+                If m_lightmaps.Exists(light) Then
+                    For Each lm in m_lightmaps(light)
+                        If not IsNull(lm) Then
+                            lm.Color = color(0)
+                        End If
+                    Next
+                End If
             End If
         Next
     End Sub
@@ -1325,7 +1330,8 @@ Class LStateController
 
     Public Sub Update()
 
-        m_frameTime = gametime - m_initFrameTime : m_initFrameTime = gametime
+        'm_frameTime = gametime - m_initFrameTime : m_initFrameTime = gametime
+        m_frameTime = 20
         Dim x
         Dim lk
         dim color
@@ -1346,7 +1352,12 @@ Class LStateController
             If HasKeys(m_on) Then   
                 For Each lightKey in m_on.Keys()
                     Set lcItem = m_on(lightKey)
-                    AssignStateForFrame lightKey, (new FrameState)(lcItem.level, m_on(lightKey).Color, m_on(lightKey).Idx)
+                    If lcItem.IsRGB Then
+                        color = m_on(lightKey).Color
+                    Else
+                        color = Null
+                    End If
+                    AssignStateForFrame lightKey, (new FrameState)(lcItem.level, color, m_on(lightKey).Idx)
                 Next
             End If
 
@@ -1370,11 +1381,16 @@ Class LStateController
 
             If HasKeys(m_pulse) Then   
                 For Each lightKey in m_pulse.Keys()
-                    Dim pulseColor : pulseColor = m_pulse(lightKey).Color
-                    If IsNull(pulseColor) Then
-                        AssignStateForFrame lightKey, (new FrameState)(m_pulse(lightKey).PulseAt(m_pulse(lightKey).idx), m_pulse(lightKey).Light.Color, m_pulse(lightKey).light.Idx)
+                    Dim pulseColor
+                    If m_pulse(lightKey).IsRGB Then
+                        pulseColor = m_pulse(lightKey).Color
                     Else
-                        AssignStateForFrame lightKey, (new FrameState)(m_pulse(lightKey).PulseAt(m_pulse(lightKey).idx), m_pulse(lightKey).Color, m_pulse(lightKey).light.Idx)
+                        pulseColor = Null
+                    End If
+                    If IsNull(pulseColor) Then
+                        AssignStateForFrame lightKey, (new FrameState)(m_pulse(lightKey).PulseAt(m_pulse(lightKey).idx), Null, m_pulse(lightKey).light.Idx)
+                    Else
+                        AssignStateForFrame lightKey, (new FrameState)(m_pulse(lightKey).PulseAt(m_pulse(lightKey).idx), pulseColor, m_pulse(lightKey).light.Idx)
                     End If						
                     
                     Dim pulseUpdateInt : pulseUpdateInt = m_pulse(lightKey).interval - m_frameTime
@@ -1417,34 +1433,37 @@ Class LStateController
                             
                             Dim lightState
 
-                            If IsNull(m_tableSeqColor) Then
-                                color = syncLight.Color
-                            Else
-                                If Not IsArray(m_tableSeqColor) Then
-                                    color = Array(m_tableSeqColor, Null)
+                            If syncLight.IsRGB Then
+                                If IsNull(m_tableSeqColor) Then
+                                    color = syncLight.Color
                                 Else
-                                    
-                                    If Not IsNull(m_tableSeqSpeed) And Not m_tableSeqSpeed = 0 Then
-
-                                        Dim colorPalleteIdx : colorPalleteIdx = IncrementUInt8(m_tableSeqDirection(lightsToLeds(syncLight.Idx)),m_tableSeqOffset)
-                                        If gametime mod m_tableSeqSpeed = 0 Then
-                                            m_tableSeqOffset = m_tableSeqOffset + 1
-                                            If m_tableSeqOffset > 255 Then
-                                                m_tableSeqOffset = 0
-                                            End If	
-                                        End If
-                                        If colorPalleteIdx < 0 Then 
-                                            colorPalleteIdx = 0
-                                        End If
-                                        color = Array(m_TableSeqColor(Round(colorPalleteIdx)), Null)
-                                        'color = syncLight.Color
+                                    If Not IsArray(m_tableSeqColor) Then
+                                        color = Array(m_tableSeqColor, Null)
                                     Else
-                                        color = Array(m_TableSeqColor(m_tableSeqDirection(lightsToLeds(syncLight.Idx))), Null)
+                                        
+                                        If Not IsNull(m_tableSeqSpeed) And Not m_tableSeqSpeed = 0 Then
+
+                                            Dim colorPalleteIdx : colorPalleteIdx = IncrementUInt8(m_tableSeqDirection(lightsToLeds(syncLight.Idx)),m_tableSeqOffset)
+                                            If gametime mod m_tableSeqSpeed = 0 Then
+                                                m_tableSeqOffset = m_tableSeqOffset + 1
+                                                If m_tableSeqOffset > 255 Then
+                                                    m_tableSeqOffset = 0
+                                                End If	
+                                            End If
+                                            If colorPalleteIdx < 0 Then 
+                                                colorPalleteIdx = 0
+                                            End If
+                                            color = Array(m_TableSeqColor(Round(colorPalleteIdx)), Null)
+                                            'color = syncLight.Color
+                                        Else
+                                            color = Array(m_TableSeqColor(m_tableSeqDirection(lightsToLeds(syncLight.Idx))), Null)
+                                        End If
+                                        
                                     End If
-                                    
                                 End If
+                            Else
+                                color = Null
                             End If
-                        
                     
                             AssignStateForFrame syncLight.name, (new FrameState)(lx.GetInPlayState*100,color, syncLight.Idx)                     
                         End If
@@ -1485,7 +1504,6 @@ Class LStateController
                     'Check current color is the new color coming in, if not, set the new color.
                     
                     Set tmpLight = GetTmpLight(idx)
-
                     Dim c, cf
                     c = newColor(0)
                     cf= newColor(1)
@@ -1670,7 +1688,6 @@ Class LStateController
         Else
             isSeqEnd = False
         End If
-        Log lcSeq.Name
         dim lightInSeq
         For each lightInSeq in lcSeq.LightsInSeq
         
@@ -1703,6 +1720,17 @@ Class LStateController
         Next
 
         If isSeqEnd Then
+            'Check if any seqs need starting via syncms
+            If lcSeq.SyncMs > 0 Then
+                If m_syncMs.Exists(lcSeq.SyncMs) Then
+                    Dim seqToStart
+                    For Each seqToStart in m_syncMs(lcSeq.SyncMs).Items
+                        m_seqRunners(seqToStart(0)).AddItem seqToStart(1), seqToStart(2), seqToStart(3), seqToStart(4), seqToStart(5), 0
+                        RunLightSeq(m_seqRunners(seqToStart(0)))
+                    Next
+                    m_syncMs(lcSeq.SyncMs).RemoveAll
+                End If
+            End If
             lcSeq.CurrentIdx = 0
             seqRunner.NextItem()
         End If
@@ -1716,51 +1744,55 @@ Class LStateController
             Dim name
             Dim ls, x
             If IsArray(seq(lcSeq.CurrentIdx)) Then
-                Log Join(seq(lcSeq.CurrentIdx))
                 For x = 0 To UBound(seq(lcSeq.CurrentIdx))
                     lsName = Split(seq(lcSeq.CurrentIdx)(x),"|")
                     name = lsName(0)
                     If m_lights.Exists(name) Then
                         Set ls = m_lights(name)
                         
-                        color = lcSeq.Color
+                        If ls.IsRGB Then
+                            color = lcSeq.Color
 
-                        If IsNull(color) Then
-                            color = ls.Color
-                        End If
-                        
-                        If Ubound(lsName) = 2 Then
-                            If lsName(2) = "" Then
-                                AssignStateForFrame name, (new FrameState)(lsName(1), color, ls.Idx)
-                            Else
-                                AssignStateForFrame name, (new FrameState)(lsName(1), Array( RGB( HexToInt(Left(lsName(2), 2)), HexToInt(Mid(lsName(2), 3, 2)), HexToInt(Right(lsName(2), 2)) ), RGB(0,0,0)), ls.Idx)
+                            If IsNull(color) Then
+                                color = ls.Color
                             End If
                         Else
-                            AssignStateForFrame name, (new FrameState)(lsName(1), color, ls.Idx)
+                            Log "NOT RGB:" & ls.Idx
+                            color = Null
+                            If Ubound(lsName) = 2 Then
+                                If lsName(2) <> "" Then
+                                    color = Array( RGB( HexToInt(Left(lsName(2), 2)), HexToInt(Mid(lsName(2), 3, 2)), HexToInt(Right(lsName(2), 2)) ), Null)        
+                                End If
+                            End If
                         End If
+
+                        AssignStateForFrame name, (new FrameState)(lsName(1), color, ls.Idx)
+                        
                         lcSeq.SetLastLightState name, m_currentFrameState(name) 
                     End If
                 Next       
             Else
-                Log seq(lcSeq.CurrentIdx)
                 lsName = Split(seq(lcSeq.CurrentIdx),"|")
                 name = lsName(0)
                 If m_lights.Exists(name) Then
                     Set ls = m_lights(name)
                     
-                    color = lcSeq.Color
-                    If IsNull(color) Then
-                        color = ls.Color
-                    End If
-                    If Ubound(lsName) = 2 Then
-                        If lsName(2) = "" Then
-                            AssignStateForFrame name, (new FrameState)(lsName(1), color, ls.Idx)
-                        Else
-                            AssignStateForFrame name, (new FrameState)(lsName(1), Array( RGB( HexToInt(Left(lsName(2), 2)), HexToInt(Mid(lsName(2), 3, 2)), HexToInt(Right(lsName(2), 2)) ), RGB(0,0,0)), ls.Idx)
+                    If ls.IsRGB Then
+                        color = lcSeq.Color
+
+                        If IsNull(color) Then
+                            color = ls.Color
                         End If
                     Else
-                        AssignStateForFrame name, (new FrameState)(lsName(1), color, ls.Idx)
+                        color = Null
+                        If Ubound(lsName) = 2 Then
+                            If lsName(2) <> "" Then
+                                color = Array( RGB( HexToInt(Left(lsName(2), 2)), HexToInt(Mid(lsName(2), 3, 2)), HexToInt(Right(lsName(2), 2)) ), Null)        
+                            End If
+                        End If
                     End If
+
+                    AssignStateForFrame name, (new FrameState)(lsName(1), color, ls.Idx)
                     lcSeq.SetLastLightState name, m_currentFrameState(name) 
                 End If
             End If
@@ -1772,6 +1804,7 @@ Class LStateController
             End If
             
         End If
+    
     End Sub
 
     Private Sub Log(message)
@@ -1845,10 +1878,14 @@ End Class
 
 Class LCItem
     
-    Private m_Idx, m_State, m_blinkSeq, m_color, m_name, m_level, m_x, m_y, m_baseColor
+    Private m_Idx, m_State, m_blinkSeq, m_color, m_name, m_level, m_x, m_y, m_baseColor, m_isRGB
 
         Public Property Get Idx()
             Idx=m_Idx
+        End Property
+
+        Public Property Get IsRGB()
+            IsRGB = m_isRGB
         End Property
 
         Public Property Get Color()
@@ -1906,6 +1943,11 @@ Class LCItem
                 m_color = color
             End If
             m_baseColor = m_color
+            If CLng(color) = vbWhite Then
+                m_isRGB = True
+            Else
+                m_isRGB = False
+            End If
             m_name = name
             m_level = 100
             m_x = x
@@ -1916,7 +1958,7 @@ End Class
 
 Class LCSeq
     
-    Private m_currentIdx, m_sequence, m_name, m_image, m_color, m_updateInterval, m_Frames, m_repeat, m_lightsInSeq, m_lastLightStates, m_palette, m_pattern, m_tokens, m_loops
+    Private m_currentIdx, m_sequence, m_name, m_image, m_color, m_updateInterval, m_Frames, m_repeat, m_lightsInSeq, m_lastLightStates, m_palette, m_pattern, m_tokens, m_loops, m_syncMs
 
     Public Property Get CurrentIdx()
         CurrentIdx=m_currentIdx
@@ -1960,9 +2002,11 @@ Class LCSeq
                     If Not IsNull(token) Then
                         lightItem(0) = m_tokens(token)
                     End If
-                    token = IsToken(lightItem(2))
-                    If Not IsNull(token) Then
-                        lightItem(2) = m_tokens(token)
+                    If UBound(lightItem) = 2 Then
+                        token = IsToken(lightItem(2))
+                        If Not IsNull(token) Then
+                            lightItem(2) = m_tokens(token)
+                        End If
                     End If
                     If Not m_lightsInSeq.Exists(lightItem(0)) Then
                         m_lightsInSeq.Add lightItem(0), True
@@ -1978,9 +2022,11 @@ Class LCSeq
                 If Not IsNull(token) Then
                     lightItem(0) = m_tokens(token)
                 End If
-                token = IsToken(lightItem(2))
-                If Not IsNull(token) Then
-                    lightItem(2) = m_tokens(token)
+                If UBound(lightItem) = 2 Then
+                    token = IsToken(lightItem(2))
+                    If Not IsNull(token) Then
+                        lightItem(2) = m_tokens(token)
+                    End If
                 End If
                 If Not m_lightsInSeq.Exists(lightItem(0)) Then
                     m_lightsInSeq.Add lightItem(0), True
@@ -2107,14 +2153,31 @@ Class LCSeq
         m_pattern = input
     End Property    
 
+    Public Property Get SyncMs()
+        SyncMs=m_syncMs
+    End Property
+    
+    Public Property Let SyncMs(input)
+        m_syncMs = input
+    End Property
+    
+    Public Property Get Frames()
+        Frames=m_Frames
+    End Property
+    
+    Public Property Let Frames(input)
+        m_Frames = input
+    End Property
+
     Private Sub Class_Initialize()
         m_currentIdx = 0
-        m_color = Array(Null, Null)
-        m_updateInterval = 180
+        m_color = Null
+        m_updateInterval = 200
         m_repeat = False
         m_loops = 1
-        m_Frames = 180
+        m_Frames = 200
         m_pattern = Null
+        m_syncMs = 0
         Set m_lightsInSeq = CreateObject("Scripting.Dictionary")
         Set m_lastLightStates = CreateObject("Scripting.Dictionary")
     End Sub
@@ -2189,15 +2252,17 @@ Class LCSeqRunner
         m_priority = 1000
     End Sub
 
-    Public Sub AddItem(key, sequence, loops, speed, tokens)
+    Public Sub AddItem(key, sequence, loops, speed, tokens, syncMs)
         If Not IsNull(sequence) Then
 
             Dim lSeq : Set lSeq = New LCSeq
             lSeq.Name = key
             lSeq.Tokens = tokens
             lSeq.Sequence = sequence
-            lSeq.UpdateInterval = speed
+            lSeq.UpdateInterval = 200/speed
+            lSeq.Frames = 200/speed
             lSeq.Loops = loops
+            lSeq.SyncMs = syncMs
 
             If Not m_items.Exists(key) Then
                 m_items.Add key, lSeq
@@ -2230,9 +2295,9 @@ Class LCSeqRunner
 
     Public Sub RemoveItem(key)
         If m_items.Exists(key) Then
-                m_items(key).ResetInterval
-                m_items(key).CurrentIdx = 0
-                m_items.Remove key
+            m_items(key).ResetInterval
+            m_items(key).CurrentIdx = 0
+            m_items.Remove key
         End If
     End Sub
 

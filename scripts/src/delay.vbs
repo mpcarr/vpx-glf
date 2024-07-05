@@ -31,7 +31,7 @@ Dim delayCallbacks : Set delayCallbacks = CreateObject("Scripting.Dictionary")
 
 Sub SetDelay(name, callbackFunc, args, delayInMs)
     Dim executionTime
-    executionTime = AlignToQuarterSecond(gametime + delayInMs)
+    executionTime = AlignToNearest5th(gametime + delayInMs)
     
     If delayQueueMap.Exists(name) Then
         delayQueueMap.Remove name
@@ -46,14 +46,14 @@ Sub SetDelay(name, callbackFunc, args, delayInMs)
         delayQueue.Add executionTime, CreateObject("Scripting.Dictionary")
     End If
 
-    glf_debugLog.WriteToLog "Delay", "Adding delay for " & name & ", callback: " & callbackFunc
+    glf_debugLog.WriteToLog "Delay", "Adding delay for " & name & ", callback: " & callbackFunc & ", ExecutionTime: " & executionTime
     delayQueue(executionTime).Add name, (new DelayObject)(name, callbackFunc, executionTime, args)
     delayQueueMap.Add name, executionTime
     
 End Sub
 
-Function AlignToQuarterSecond(timeMs)
-    AlignToQuarterSecond = Int(timeMs / 125) * 125
+Function AlignToNearest5th(timeMs)
+    AlignToNearest5th = Int(timeMs / 200) * 200
 End Function
 
 Function RemoveDelay(name)
@@ -75,7 +75,7 @@ Sub DelayTick()
     Dim key, delayObject
 
     Dim executionTime
-    executionTime = AlignToQuarterSecond(gametime)
+    executionTime = AlignToNearest5th(gametime)
     If delayQueue.Exists(executionTime) Then
         For Each key In delayQueue(executionTime).Keys()
             Set delayObject = delayQueue(executionTime)(key)

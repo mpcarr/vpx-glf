@@ -62,11 +62,11 @@ Class GlfShowPlayer
             PlayOff show.Key
         Else
             If m_show_cache.Exists(show.Key) Then
-                lightCtrl.AddLightSeq m_name & "_" & show.Key, show.Key, m_show_cache(show.Key), show.Loops, 180/show.Speed, Null, m_priority
+                lightCtrl.AddLightSeq m_name & "_" & show.Key, show.Key, m_show_cache(show.Key), show.Loops, show.Speed, Null, m_priority, 0
             Else
                 Dim cachedShow : cachedShow = Glf_ConvertShow(show.Show, show.Tokens)
                 m_show_cache.Add show.Key, cachedShow
-                lightCtrl.AddLightSeq m_name & "_" & show.Key, show.Key, cachedShow, show.Loops, 180/show.Speed, Null, m_priority
+                lightCtrl.AddLightSeq m_name & "_" & show.Key, show.Key, cachedShow, show.Loops, show.Speed, Null, m_priority, 0
             End If
         End If
     End Sub
@@ -102,7 +102,7 @@ Function ShowPlayerEventHandler(args)
 End Function
 
 Class GlfShowPlayerItem
-	Private m_key, m_show, m_loops, m_speed, m_tokens, m_action
+	Private m_key, m_show, m_loops, m_speed, m_tokens, m_action, m_syncms
   
 	Public Property Get Action(): Action = m_action: End Property
     Public Property Let Action(input): m_action = input: End Property
@@ -119,6 +119,9 @@ Class GlfShowPlayerItem
 	Public Property Get Speed(): Speed = m_speed: End Property
 	Public Property Let Speed(input): m_speed = input: End Property
 
+    Public Property Get SyncMs(): SyncMs = m_syncms: End Property
+    Public Property Let SyncMs(input): m_syncms = input: End Property        
+
     Public Property Get Tokens()
         Set Tokens = m_tokens
     End Property        
@@ -128,6 +131,7 @@ Class GlfShowPlayerItem
         m_key = ""
         m_loops = -1
         m_speed = 1
+        m_syncms = 0
         Set m_tokens = CreateObject("Scripting.Dictionary")
 	    Set Init = Me
 	End Function

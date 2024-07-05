@@ -12,6 +12,7 @@ Class Mode
     Private m_multiball_locks
     Private m_multiballs
     Private m_shots
+    Private m_shot_groups
     Private m_timers
     Private m_lightplayer
     Private m_showplayer
@@ -87,6 +88,16 @@ Class Mode
         End If
     End Property
 
+    Public Property Get ShotGroups(name)
+        If m_shot_groups.Exists(name) Then
+            Set ShotGroups = m_shot_groups(name)
+        Else
+            Dim new_shot_group : Set new_shot_group = (new GlfShotGroup)(name, Me)
+            m_shot_groups.Add name, new_shot_group
+            Set ShotGroups = new_shot_group
+        End If
+    End Property
+
     Public Property Let StartEvents(value)
         m_start_events = value
         Dim evt
@@ -113,6 +124,7 @@ Class Mode
         Set m_multiball_locks = CreateObject("Scripting.Dictionary")
         Set m_multiballs = CreateObject("Scripting.Dictionary")
         Set m_shots = CreateObject("Scripting.Dictionary")
+        Set m_shot_groups = CreateObject("Scripting.Dictionary")
         Set m_lightplayer = (new GlfLightPlayer)(Me)
         Set m_showplayer = (new GlfShowPlayer)(Me)
         Set m_eventplayer = (new GlfEventPlayer)(Me)

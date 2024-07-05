@@ -51,24 +51,13 @@ Class GlfVariablePlayer
         For Each vKey in m_events(evt).Variables.Keys
             Log "Setting Variable " & vKey
             Set v = m_events(evt).Variable(vKey)
-            Select Case v.VariableType
-                Case "float"
-                    Select Case v.Action
-                        Case "add"
-                            SetPlayerState vKey, GetPlayerState(vKey) + GetRef(v.Float(0))()
-                        Case "set"
-                            SetPlayerState vKey, GetRef(v.Float(0))()
-                    End Select
-                Case "int"
-                    Select Case v.Action
-                        Case "add"
-                            SetPlayerState vKey, GetPlayerState(vKey) + GetRef(v.Int(0))()
-                        Case "set"
-                            SetPlayerState vKey, GetRef(v.Int(0))()
-                    End Select
-                Case "string"
-                    SetPlayerState vKey, v.String
-            End Select
+            Dim varValue : varValue = v.VariableValue
+            Select Case v.Action
+                Case "add"
+                    SetPlayerState vKey, GetPlayerState(vKey) + varValue
+                Case "set"
+                    SetPlayerState vKey, varValue
+        End Select
         Next
     End Sub
 
@@ -115,16 +104,25 @@ Class GlfVariablePlayerItem
     Public Property Get Block(): Block = m_block End Property
     Public Property Let Block(input): m_block = input End Property
 
-    Public Property Get Float(): Float = m_float :  End Property
 	Public Property Let Float(input): m_float = Glf_ParseInput(input, False): m_type = "float" : End Property
   
-	Public Property Get Int(): Int = m_int: End Property
 	Public Property Let Int(input): m_int = Glf_ParseInput(input, False): m_type = "int" : End Property
   
-	Public Property Get String(): String = m_string: End Property
 	Public Property Let String(input): m_string = input: m_type = "string" : End Property
 
     Public Property Get VariableType(): VariableType = m_type: End Property
+    Public Property Get VariableValue()
+        Select Case m_type
+            Case "float"
+                VariableValue = GetRef(m_float(0))()
+            Case "int"
+                VariableValue = GetRef(m_int(0))()
+            Case "string"
+                VariableValue = m_string
+            Case Else
+                VariableValue = Empty
+        End Select
+    End Property
 
     Public Property Get Player(): Player = m_player: End Property
     Public Property Let Player(input): m_player = input: End Property
