@@ -21,7 +21,7 @@ Class Mode
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get Priority(): Priority = m_priority: End Property
-
+    Public Property Get Debug(): Debug = m_debug: End Property
     Public Property Get LightPlayer(): Set LightPlayer = m_lightplayer: End Property
     Public Property Get ShowPlayer(): Set ShowPlayer = m_showplayer: End Property
     Public Property Get EventPlayer(): Set EventPlayer = m_eventplayer: End Property
@@ -112,6 +112,7 @@ Class Mode
         For Each evt in m_stop_events
             AddPinEventListener evt, m_name & "_stop", "ModeEventHandler", m_priority+1, Array("stop", Me)
         Next
+        AddPinEventListener "ball_ended", m_name & "_stop", "ModeEventHandler", m_priority+1, Array("stop", Me)
     End Property
     Public Property Let Debug(value) : m_debug = value : End Property
 
@@ -155,13 +156,21 @@ Class Mode
     Public Function ToYaml()
         dim yaml, child
         yaml = "mode:" & vbCrLf
-        yaml = yaml & "    start_events: " & Join(m_start_events) & vbCrLf
-        yaml = yaml & "    stop_events: " & Join(m_stop_events) & vbCrLf
+        yaml = yaml & "    start_events: " & Join(m_start_events, ",") & vbCrLf
+        yaml = yaml & "    stop_events: " & Join(m_stop_events, ",") & vbCrLf
         yaml = yaml & "    priority: " & m_priority & vbCrLf
-        yaml = yaml  & vbCrLf
-        For Each child in m_ballsaves.Keys
-            yaml = yaml & m_ballsaves(child).ToYaml
-        Next
+        If UBound(m_ballsaves.Keys)>-1 Then
+            yaml = yaml & "    ballsaves: " & vbCrLf
+            For Each child in m_ballsaves.Keys
+                yaml = yaml & m_ballsaves(child).ToYaml
+            Next
+        End If
+        If UBound(m_shots.Keys)>-1 Then
+            yaml = yaml & "    shots: " & vbCrLf
+            For Each child in m_shots.Keys
+                yaml = yaml & m_shots(child).ToYaml
+            Next
+        End If
         ToYaml = yaml
         Msgbox yaml
     End Function

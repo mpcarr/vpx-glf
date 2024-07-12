@@ -7,6 +7,8 @@ Class GlfShotProfile
     Private m_loop
     Private m_rotation_pattern
     Private m_states
+    Private m_states_not_to_rotate
+    Private m_states_to_rotate
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get AdvanceOnHit(): AdvanceOnHit = m_advance_on_hit: End Property
@@ -31,16 +33,31 @@ Class GlfShotProfile
             StateForIndex = Null
         End If
     End Property
+    Public Property Get StateName(index)
+        Dim stateKeys : stateKeys = m_states.Keys()
+        If UBound(stateKeys) >= index Then
+            StateName = stateKeys(index)
+        Else
+            StateName = Empty
+        End If
+    End Property
     Public Property Get StatesCount()
         StatesCount = UBound(m_states.Keys())
     End Property
+
+    Public Property Get StateNamesToRotate(): StateNamesToRotate = m_states_to_rotate: End Property
+    Public Property Let StateNamesToRotate(input): m_states_to_rotate = input: End Property
+    Public Property Get StateNamesNotToRotate(): StateNamesNotToRotate = m_states_not_to_rotate: End Property
+    Public Property Let StateNamesNotToRotate(input): m_states_not_to_rotate = input: End Property
     
 	Public default Function init(name)
         m_name = "shotprofile_" & name
         m_advance_on_hit = True
         m_block = False
         m_loop = False
-        m_rotation_pattern = Empty
+        m_rotation_pattern = Array("r")
+        m_states_to_rotate = Array()
+        m_states_not_to_rotate = Array()
         Set m_states = CreateObject("Scripting.Dictionary")
         Set Init = Me
 	End Function

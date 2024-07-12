@@ -8,6 +8,7 @@ Class GlfBaseModeDevice
     Private m_parent
     Private m_debug
 
+    Public Property Get EnableEvents(): Set EnableEvents = m_enable_events: End Property
     Public Property Let EnableEvents(value)
         Dim x
         For x=0 to UBound(value)
@@ -15,6 +16,7 @@ Class GlfBaseModeDevice
             m_enable_events.Add newEvent.Name, newEvent
         Next
     End Property
+    Public Property Get DisableEvents(): Set DisableEvents = m_disable_events: End Property
     Public Property Let DisableEvents(value)
         Dim x
         For x=0 to UBound(value)
@@ -23,46 +25,53 @@ Class GlfBaseModeDevice
         Next
     End Property
 
+    Public Property Get Mode(): Set Mode = m_mode: End Property
+
     Public Property Let Debug(value) : m_debug = value : End Property
 
 	Public default Function init(mode, device, parent)
-        m_mode = mode.Name
+        Set m_mode = mode
         m_priority = mode.Priority
         m_device = device
         Set m_parent = parent
+        m_debug = mode.Debug
 
         Set m_enable_events = CreateObject("Scripting.Dictionary")
         Set m_disable_events = CreateObject("Scripting.Dictionary")
 
-        AddPinEventListener m_mode & "_starting", m_device & "_activate", "BaseModeDeviceEventHandler", m_priority, Array("activate", Me)
-        AddPinEventListener m_mode & "_stopping", m_device & "_deactivate", "BaseModeDeviceEventHandler", m_priority, Array("deactivate", Me)
+        AddPinEventListener m_mode.Name & "_starting", m_device & "_" & m_parent.Name & "_activate", "BaseModeDeviceEventHandler", m_priority, Array("activate", Me)
+        AddPinEventListener m_mode.Name & "_stopping", m_device & "_" & m_parent.Name & "_deactivate", "BaseModeDeviceEventHandler", m_priority, Array("deactivate", Me)
         Set Init = Me
 	End Function
 
     Public Sub Activate()
+        Log "Activating"
         Dim evt
         For Each evt In m_enable_events.Keys()
-            AddPinEventListener m_enable_events(evt).EventName, m_mode & m_device & "_enable", "BaseModeDeviceEventHandler", m_priority, Array("enable", m_parent, evt)
+            AddPinEventListener m_enable_events(evt).EventName, m_mode.Name & m_device & "_" & m_parent.Name & "_enable", "BaseModeDeviceEventHandler", m_priority, Array("enable", m_parent, evt)
         Next
         For Each evt In m_disable_events.Keys()
-            AddPinEventListener m_disable_events(evt).EventName, m_mode & m_device & "_shot_group_enable", "BaseModeDeviceEventHandler", m_priority, Array("disable", m_parent, evt)
+            AddPinEventListener m_disable_events(evt).EventName, m_mode.Name & m_device & "_" & m_parent.Name & "_disable", "BaseModeDeviceEventHandler", m_priority, Array("disable", m_parent, evt)
         Next
+        m_parent.Activate
     End Sub
 
     Public Sub Deactivate()
+        Log "Deactivating"
         m_parent.Disable()
         Dim evt
         For Each evt In m_enable_events.Keys()
-            RemovePinEventListener m_enable_events(evt).EventName, m_mode & m_device & "_enable"
+            RemovePinEventListener m_enable_events(evt).EventName, m_mode.Name & m_device & "_" & m_parent.Name & "_enable"
         Next
         For Each evt In m_disable_events.Keys()
-            RemovePinEventListener m_disable_events(evt).EventName, m_mode & m_device & "_disable"
+            RemovePinEventListener m_disable_events(evt).EventName, m_mode.Name & m_device & "_" & m_parent.Name & "_disable"
         Next
+        m_parent.Deactivate
     End Sub
 
-    Private Sub Log(message)
+    Public Sub Log(message)
         If m_debug = True Then
-            glf_debugLog.WriteToLog m_mode & m_device & "_play", message
+            glf_debugLog.WriteToLog m_mode.Name & m_device & "_" & m_parent.Name & "_play", message
         End If
     End Sub
 End Class

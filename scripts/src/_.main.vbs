@@ -14,6 +14,7 @@ Dim Glf_ShotProfiles : Set Glf_ShotProfiles = CreateObject("Scripting.Dictionary
 Dim Glf_ShowStartQueue : Set Glf_ShowStartQueue = CreateObject("Scripting.Dictionary")
 Dim glf_playerEventsOrder : Set glf_playerEventsOrder = CreateObject("Scripting.Dictionary")
 Dim playerState : Set playerState = CreateObject("Scripting.Dictionary")
+Dim glf_Modes : Set glf_Modes = CreateObject("Scripting.Dictionary")
 Dim bcpController : bcpController = Null
 Dim useBCP : useBCP = False
 Dim bcpPort : bcpPort = 5050
@@ -26,7 +27,7 @@ Dim glf_ballsPerGame : glf_ballsPerGame = 3
 Dim glf_troughSize : glf_troughSize = tnob
 
 Dim glf_debugLog : Set glf_debugLog = (new GlfDebugLogFile)()
-Dim glf_debugEnabled : glf_debugEnabled = True
+Dim glf_debugEnabled : glf_debugEnabled = False
 
 lightCtrl.RegisterLights Glf_Lights
 lightCtrl.Debug = False
@@ -86,11 +87,11 @@ End Sub
 Public Sub Glf_KeyDown(ByVal keycode)
     If glf_gameStarted = True Then
 		If keycode = LeftFlipperKey Then
-			'DispatchPinEvent GLF_SWITCH_LEFT_FLIPPER_DOWN, Null
+			DispatchPinEvent "s_left_flipper_active", Null
 		End If
 		
 		If keycode = RightFlipperKey Then
-			'DispatchPinEvent GLF_SWITCH_RIGHT_FLIPPER_DOWN, Null
+			DispatchPinEvent "s_right_flipper_active", Null
 		End If
 		
 		If keycode = StartGameKey Then
@@ -110,6 +111,14 @@ Public Sub Glf_KeyUp(ByVal keycode)
 	If glf_gameStarted = True Then
 		If KeyCode = PlungerKey Then
 			Plunger.Fire
+		End If
+
+		If keycode = LeftFlipperKey Then
+			DispatchPinEvent "s_left_flipper_inactive", Null
+		End If
+		
+		If keycode = RightFlipperKey Then
+			DispatchPinEvent "s_right_flipper_inactive", Null
 		End If
 	End If
 End Sub
@@ -227,8 +236,20 @@ Function GlfShotProfiles(name)
 	End If
 End Function
 
-Function GlfModes(name, priority)
-	Set GlfModes = (new Mode)(name, priority)
+Function CreateGlfMode(name, priority)
+	If Not glf_Modes.Exists(name) Then 
+		Dim mode : Set mode = (new Mode)(name, priority)
+		glf_Modes.Add name, mode
+		Set CreateGlfMode = mode
+	End If
+End Function
+
+Function GlfModes(name)
+	If glf_Modes.Exists(name) Then 
+		Set GlfModes = glf_Modes(name)
+	Else
+		GlfModes = Null
+	End If
 End Function
 
 Function GlfKwargs()
@@ -356,6 +377,51 @@ Private Function Glf_IsCondition(mainString)
 	Else
 		Glf_IsCondition = Null
 	End If
+End Function
+
+Function Glf_RotateArray(arr, direction)
+    Dim n, rotatedArray, i
+    ReDim rotatedArray(UBound(arr))
+ 
+    If LCase(direction) = "l" Then
+        For i = 0 To UBound(arr) - 1
+            rotatedArray(i) = arr(i + 1)
+        Next
+        rotatedArray(UBound(arr)) = arr(0)
+    ElseIf LCase(direction) = "r" Then
+        For i = UBound(arr) To 1 Step -1
+            rotatedArray(i) = arr(i - 1)
+        Next
+        rotatedArray(0) = arr(UBound(arr))
+    Else
+        ' Invalid direction
+        Glf_RotateArray = arr
+        Exit Function
+    End If
+    
+    ' Return the rotated array
+    Glf_RotateArray = rotatedArray
+End Function
+
+Function Glf_CopyArray(arr)
+    Dim newArr, i
+    ReDim newArr(UBound(arr))
+    For i = 0 To UBound(arr)
+        newArr(i) = arr(i)
+    Next
+    Glf_CopyArray = newArr
+End Function
+
+Function Glf_IsInArray(value, arr)
+    Dim i
+    Glf_IsInArray = False
+
+    For i = LBound(arr) To UBound(arr)
+        If arr(i) = value Then
+            Glf_IsInArray = True
+            Exit Function
+        End If
+    Next
 End Function
 
 '******************************************************

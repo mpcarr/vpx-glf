@@ -1012,6 +1012,9 @@ Class LStateController
             If Not m_syncMs.Exists(syncMs) Then
                 m_syncMs.Add syncMs, CreateObject("Scripting.Dictionary")
             End If
+            If m_syncMs(syncMs).Exists(runner & "_" & key) Then
+                m_syncMs(syncMs).Remove runner & "_" & key
+            End If
             m_syncMs(syncMs).Add runner & "_" & key, Array(runner, key, sequence, loops, speed, tokens)
         End If
     End Sub
