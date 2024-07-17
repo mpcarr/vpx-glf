@@ -305,24 +305,24 @@ Class GlfShot
 
     Public Function ToYaml
         Dim yaml
-        yaml = "        " & Replace(m_name, "shot_", "") & ":" & vbCrLf
+        yaml = "  " & Replace(m_name, "shot_", "") & ":" & vbCrLf
         If UBound(m_switches) = 0 Then
-            yaml = yaml & "            switch: " & m_switches(0) & vbCrLf
+            yaml = yaml & "    switch: " & m_switches(0) & vbCrLf
         Else
-            yaml = yaml & "            switches: " & Join(m_switches, ",") & vbCrLf
+            yaml = yaml & "    switches: " & Join(m_switches, ",") & vbCrLf
         End If
-        yaml = yaml & "            show_tokens: " & vbCrLf
+        yaml = yaml & "    show_tokens: " & vbCrLf
         dim key
         For Each key in m_tokens.keys
             If IsArray(m_tokens(key)) Then
-                yaml = yaml & "                " & key & ": " & Join(m_tokens(key), ",") & vbCrLf
+                yaml = yaml & "      " & key & ": " & Join(m_tokens(key), ",") & vbCrLf
             Else  
-                yaml = yaml & "                " & key & ": " & m_tokens(key) & vbCrLf
+                yaml = yaml & "      " & key & ": " & m_tokens(key) & vbCrLf
             End If
         Next
 
         If UBound(m_base_device.EnableEvents.Keys) > -1 Then
-            yaml = yaml & "            enable_events: "
+            yaml = yaml & "    enable_events: "
             x=0
             For Each key in m_base_device.EnableEvents.keys
                 yaml = yaml & m_base_device.EnableEvents(key).Raw
@@ -335,7 +335,7 @@ Class GlfShot
         End If
 
         If UBound(m_base_device.DisableEvents.Keys) > -1 Then
-            yaml = yaml & "            disable_events: "
+            yaml = yaml & "    disable_events: "
             x=0
             For Each key in m_base_device.DisableEvents.keys
                 yaml = yaml & m_base_device.DisableEvents(key).Raw
@@ -348,7 +348,7 @@ Class GlfShot
         End If
 
         If UBound(m_advance_events.Keys) > -1 Then
-            yaml = yaml & "            advance_events: "
+            yaml = yaml & "    advance_events: "
             x=0
             For Each key in m_advance_events.keys
                 yaml = yaml & m_advance_events(key).Raw
@@ -361,7 +361,7 @@ Class GlfShot
         End If
 
         If UBound(m_hit_events.Keys) > -1 Then
-            yaml = yaml & "            hit_events: "
+            yaml = yaml & "    hit_events: "
             x=0
             For Each key in m_hit_events.keys
                 yaml = yaml & m_hit_events(key).Raw
@@ -373,12 +373,12 @@ Class GlfShot
             yaml = yaml & vbCrLf
         End If
 
-        yaml = yaml & "            profile: " & m_profile & vbCrLf
+        yaml = yaml & "    profile: " & m_profile & vbCrLf
         If Not IsEmpty(m_start_enabled) Then
-            yaml = yaml & "            start_enabled: " & m_start_enabled & vbCrLf
+            yaml = yaml & "    start_enabled: " & m_start_enabled & vbCrLf
         End If
         If UBound(m_restart_events.Keys) > -1 Then
-            yaml = yaml & "            restart_events: "
+            yaml = yaml & "    restart_events: "
             x=0
             For Each key in m_restart_events.keys
                 yaml = yaml & m_restart_events(key).Raw
@@ -391,7 +391,7 @@ Class GlfShot
         End If
 
         If UBound(m_reset_events.Keys) > -1 Then
-            yaml = yaml & "            reset_events: "
+            yaml = yaml & "    reset_events: "
             x=0
             For Each key in m_reset_events.keys
                 yaml = yaml & m_reset_events(key).Raw
@@ -404,9 +404,9 @@ Class GlfShot
         End If
 
         If UBound(m_control_events.Keys) > -1 Then
-            yaml = yaml & "            control_events: " & vbCrLf
+            yaml = yaml & "    control_events: " & vbCrLf
             For Each key in m_control_events.keys
-                yaml = yaml & "                - events: "
+                yaml = yaml & "      - events: "
                 Dim cEvt
                 x=0
                 For Each cEvt in m_control_events(key).Events
@@ -417,7 +417,7 @@ Class GlfShot
                     x = x + 1
                 Next
                 yaml = yaml & vbCrLf
-                yaml = yaml & "                  state: " & m_control_events(key).State & vbCrLf
+                yaml = yaml & "      state: " & m_control_events(key).State & vbCrLf
             Next
         End If
         

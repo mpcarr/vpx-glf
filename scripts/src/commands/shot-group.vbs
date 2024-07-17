@@ -265,11 +265,11 @@ Class GlfShotGroup
  
     Public Function ToYaml
         Dim yaml
-        yaml = "        " & m_name & ":" & vbCrLf
-        yaml = yaml & "            shots: " & Join(m_shots, ",") & vbCrLf
+        yaml = "  " & m_name & ":" & vbCrLf
+        yaml = yaml & "    shots: " & Join(m_shots, ",") & vbCrLf
  
         If UBound(m_enable_rotation_events.Keys) > -1 Then
-            yaml = yaml & "            enable_rotation_events: "
+            yaml = yaml & "    enable_rotation_events: "
             x=0
             For Each key in m_enable_rotation_events.keys
                 yaml = yaml & m_enable_rotation_events(key).Raw
@@ -282,7 +282,7 @@ Class GlfShotGroup
         End If
  
         If UBound(m_disable_rotation_events.Keys) > -1 Then
-            yaml = yaml & "            disable_rotation_events: "
+            yaml = yaml & "    disable_rotation_events: "
             x=0
             For Each key in m_disable_rotation_events.keys
                 yaml = yaml & m_disable_rotation_events(key).Raw
@@ -295,7 +295,7 @@ Class GlfShotGroup
         End If
  
         If UBound(m_restart_events.Keys) > -1 Then
-            yaml = yaml & "            restart_events: "
+            yaml = yaml & "    restart_events: "
             x=0
             For Each key in m_restart_events.keys
                 yaml = yaml & m_restart_events(key).Raw
@@ -308,7 +308,7 @@ Class GlfShotGroup
         End If
  
         If UBound(m_reset_events.Keys) > -1 Then
-            yaml = yaml & "            reset_events: "
+            yaml = yaml & "    reset_events: "
             x=0
             For Each key in m_reset_events.keys
                 yaml = yaml & m_reset_events(key).Raw
@@ -321,7 +321,7 @@ Class GlfShotGroup
         End If
  
         If UBound(m_rotate_events.Keys) > -1 Then
-            yaml = yaml & "            rotate_events: "
+            yaml = yaml & "    rotate_events: "
             x=0
             For Each key in m_rotate_events.keys
                 yaml = yaml & m_rotate_events(key).Raw
@@ -334,7 +334,7 @@ Class GlfShotGroup
         End If
  
         If UBound(m_rotate_left_events.Keys) > -1 Then
-            yaml = yaml & "            rotate_left_events: "
+            yaml = yaml & "    rotate_left_events: "
             x=0
             For Each key in m_rotate_left_events.keys
                 yaml = yaml & m_rotate_left_events(key).Raw
@@ -347,7 +347,7 @@ Class GlfShotGroup
         End If
  
         If UBound(m_rotate_right_events.Keys) > -1 Then
-            yaml = yaml & "            rotate_right_events: "
+            yaml = yaml & "    rotate_right_events: "
             x=0
             For Each key in m_rotate_right_events.keys
                 yaml = yaml & m_rotate_right_events(key).Raw
@@ -360,7 +360,7 @@ Class GlfShotGroup
         End If
  
         If UBound(m_base_device.EnableEvents.Keys) > -1 Then
-            yaml = yaml & "            enable_events: "
+            yaml = yaml & "    enable_events: "
             x=0
             For Each key in m_base_device.EnableEvents.keys
                 yaml = yaml & m_base_device.EnableEvents(key).Raw
@@ -373,7 +373,7 @@ Class GlfShotGroup
         End If
  
         If UBound(m_base_device.DisableEvents.Keys) > -1 Then
-            yaml = yaml & "            disable_events: "
+            yaml = yaml & "    disable_events: "
             x=0
             For Each key in m_base_device.DisableEvents.keys
                 yaml = yaml & m_base_device.DisableEvents(key).Raw
@@ -385,8 +385,8 @@ Class GlfShotGroup
             yaml = yaml & vbCrLf
         End If
  
-        yaml = yaml & "            priority: " & m_priority & vbCrLf
-        yaml = yaml & "            rotation_enabled: " & m_rotation_enabled & vbCrLf
+        yaml = yaml & "    priority: " & m_priority & vbCrLf
+        yaml = yaml & "    rotation_enabled: " & m_rotation_enabled & vbCrLf
  
         ToYaml = yaml
         End Function

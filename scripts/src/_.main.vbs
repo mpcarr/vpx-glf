@@ -75,12 +75,35 @@ Sub Glf_Options(ByVal eventId)
 	Else
 		glf_ballsPerGame = 5
 	End If
+
+	Dim glfDebug : glfDebug = Table1.Option("Glf Debug Log", 0, 1, 1, 1, 0, Array("Off", "On"))
+	If glfDebug = 1 Then
+		glf_debugEnabled = True
+	Else
+		glf_debugEnabled = False
+	End If
+
+	Dim glfuseBCP : glfuseBCP = Table1.Option("Glf Backbox Control Protocol", 0, 1, 1, 1, 0, Array("Off", "On"))
+	If glfuseBCP = 1 Then
+		useBCP = True
+		If Not IsNull(bcpController) Then
+			bcpController.Disconnect
+			bcpController = Null
+		End If
+		Glf_ConnectToBCPMediaController
+	Else
+		useBCP = False
+		If Not IsNull(bcpController) Then
+			bcpController.Disconnect
+			bcpController = Null
+		End If
+	End If
 End Sub
 
 Public Sub Glf_Exit()
 	If Not IsNull(bcpController) Then
 		bcpController.Disconnect
-		Set bcpController = Nothing
+		bcpController = Null
 	End If
 End Sub
 

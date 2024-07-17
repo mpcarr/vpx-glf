@@ -142,7 +142,12 @@ End Class
 
 Function VariablePlayerEventHandler(args)
     
-    Dim ownProps, kwargs : ownProps = args(0) : kwargs = args(1) 
+    Dim ownProps, kwargs : ownProps = args(0)
+    If IsObject(args(1)) Then
+        Set kwargs = args(1) 
+    Else
+        kwargs = args(1)
+    End If
     Dim evt : evt = ownProps(0)
     Dim variablePlayer : Set variablePlayer = ownProps(1)
     Select Case evt
@@ -153,5 +158,10 @@ Function VariablePlayerEventHandler(args)
         Case "play"
             variablePlayer.Play ownProps(2)
     End Select
-    VariablePlayerEventHandler = kwargs
+    If IsObject(args(1)) Then
+        Set VariablePlayerEventHandler = kwargs
+    Else
+        VariablePlayerEventHandler = kwargs
+    End If
+    
 End Function

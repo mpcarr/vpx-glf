@@ -75,12 +75,35 @@ Sub Glf_Options(ByVal eventId)
 	Else
 		glf_ballsPerGame = 5
 	End If
+
+	Dim glfDebug : glfDebug = Table1.Option("Glf Debug Log", 0, 1, 1, 1, 0, Array("Off", "On"))
+	If glfDebug = 1 Then
+		glf_debugEnabled = True
+	Else
+		glf_debugEnabled = False
+	End If
+
+	Dim glfuseBCP : glfuseBCP = Table1.Option("Glf Backbox Control Protocol", 0, 1, 1, 1, 0, Array("Off", "On"))
+	If glfuseBCP = 1 Then
+		useBCP = True
+		If Not IsNull(bcpController) Then
+			bcpController.Disconnect
+			bcpController = Null
+		End If
+		Glf_ConnectToBCPMediaController
+	Else
+		useBCP = False
+		If Not IsNull(bcpController) Then
+			bcpController.Disconnect
+			bcpController = Null
+		End If
+	End If
 End Sub
 
 Public Sub Glf_Exit()
 	If Not IsNull(bcpController) Then
 		bcpController.Disconnect
-		Set bcpController = Nothing
+		bcpController = Null
 	End If
 End Sub
 
@@ -1004,22 +1027,17 @@ Class GlfEventPlayer
 
     Private m_priority
     Private m_mode
+    private m_base_device
     Private m_events
-    Private m_debug
 
-    Private m_value
-
-    Public Property Let Events(value) : Set m_events = value : End Property
-    Public Property Let Debug(value) : m_debug = value : End Property
+    Public Property Get Events() : Set Events = m_events : End Property
 
 	Public default Function init(mode)
         m_mode = mode.Name
         m_priority = mode.Priority
 
         Set m_events = CreateObject("Scripting.Dictionary")
-        
-        AddPinEventListener m_mode & "_starting", "event_player_activate", "EventPlayerEventHandler", m_priority, Array("activate", Me)
-        AddPinEventListener m_mode & "_stopping", "event_player_deactivate", "EventPlayerEventHandler", m_priority, Array("deactivate", Me)
+        Set m_base_device = (new GlfBaseModeDevice)(mode, "event_player", Me)
         Set Init = Me
 	End Function
 
@@ -1037,11 +1055,14 @@ Class GlfEventPlayer
         Next
     End Sub
 
-    Private Sub Log(message)
-        If m_debug = True Then
-            glf_debugLog.WriteToLog m_mode & "_event_player_play", message
-        End If
-    End Sub
+    Public Function ToYaml
+        Dim yaml
+        Dim evt
+        For Each evt In m_events.Keys()
+            yaml = yaml & "  evt: " & Join(m_events(evt), ",") & vbCrLf
+        Next
+    End Function
+
 End Class
 
 Function EventPlayerEventHandler(args)
@@ -1050,10 +1071,6 @@ Function EventPlayerEventHandler(args)
     Dim evt : evt = ownProps(0)
     Dim eventPlayer : Set eventPlayer = ownProps(1)
     Select Case evt
-        Case "activate"
-            eventPlayer.Activate
-        Case "deactivate"
-            eventPlayer.Deactivate
         Case "play"
             dim evtToFire
             For Each evtToFire in ownProps(2)
@@ -1351,7 +1368,15 @@ Class Mode
     Public Property Get Debug(): Debug = m_debug: End Property
     Public Property Get LightPlayer(): Set LightPlayer = m_lightplayer: End Property
     Public Property Get ShowPlayer(): Set ShowPlayer = m_showplayer: End Property
-    Public Property Get EventPlayer(): Set EventPlayer = m_eventplayer: End Property
+    Public Property Get EventPlayer(event)
+        If m_eventplayer.Events.Exists(event) Then
+            Set EventPlayer = m_eventplayer(event)
+        Else
+            Dim newEvent : Set newEvent = (new GlfEvent)(event)
+            m_eventplayer.Events.Add name, newEvent
+            Set EventPlayer = newEvent
+        End If
+    End Property
     Public Property Get VariablePlayer(): Set VariablePlayer = m_variableplayer: End Property
     
 
@@ -1483,23 +1508,33 @@ Class Mode
     Public Function ToYaml()
         dim yaml, child
         yaml = "mode:" & vbCrLf
-        yaml = yaml & "    start_events: " & Join(m_start_events, ",") & vbCrLf
-        yaml = yaml & "    stop_events: " & Join(m_stop_events, ",") & vbCrLf
-        yaml = yaml & "    priority: " & m_priority & vbCrLf
+        yaml = yaml & "  start_events: " & Join(m_start_events, ",") & vbCrLf
+        yaml = yaml & "  stop_events: " & Join(m_stop_events, ",") & vbCrLf
+        yaml = yaml & "  priority: " & m_priority & vbCrLf
+        yaml = yaml & vbCrLf
         If UBound(m_ballsaves.Keys)>-1 Then
-            yaml = yaml & "    ballsaves: " & vbCrLf
+            yaml = yaml & "ballsaves: " & vbCrLf
             For Each child in m_ballsaves.Keys
                 yaml = yaml & m_ballsaves(child).ToYaml
             Next
         End If
+        yaml = yaml & vbCrLf
         If UBound(m_shots.Keys)>-1 Then
-            yaml = yaml & "    shots: " & vbCrLf
+            yaml = yaml & "shots: " & vbCrLf
             For Each child in m_shots.Keys
                 yaml = yaml & m_shots(child).ToYaml
             Next
         End If
+        yaml = yaml & vbCrLf
+        If UBound(m_shot_groups.Keys)>-1 Then
+            yaml = yaml & "shot_groups: " & vbCrLf
+            For Each child in m_shot_groups.Keys
+                yaml = yaml & m_shot_groups(child).ToYaml
+            Next
+        End If
+        yaml = yaml & vbCrLf
         ToYaml = yaml
-        Msgbox yaml
+        Log yaml
     End Function
 End Class
 
@@ -1512,6 +1547,10 @@ Function ModeEventHandler(args)
             mode.StartMode
         Case "stop"
             mode.StopMode
+        Case "started"
+            DispatchPinEvent mode.Name & "_started", Null
+        Case "stopped"
+            DispatchPinEvent mode.Name & "_stopped", Null
     End Select
     ModeEventHandler = kwargs
 End Function
@@ -1758,7 +1797,7 @@ Class GlfShotGroup
     Private m_temp_shots
     Private m_rotation_pattern
     Private m_rotation_enabled
-
+ 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get CommonState()
         Dim state : state = m_base_device.Mode.Shots(m_shots(0)).State
@@ -1771,7 +1810,7 @@ Class GlfShotGroup
         Next
         CommonState = state
     End Property
-
+ 
     Public Property Let Shots(value)
         m_shots = value
         Dim shot_name
@@ -1780,7 +1819,7 @@ Class GlfShotGroup
         Next
         m_rotation_pattern = Glf_CopyArray(Glf_ShotProfiles(m_base_device.Mode.Shots(m_shots(0)).Profile).RotationPattern)
     End Property
-
+ 
     Public Property Let EnableRotationEvents(value)
         Dim x
         For x=0 to UBound(value)
@@ -1830,7 +1869,7 @@ Class GlfShotGroup
             m_rotate_right_events.Add newEvent.Name, newEvent
         Next
     End Property
-
+ 
 	Public default Function init(name, mode)
         m_name = name
         m_mode = mode.Name
@@ -1838,7 +1877,7 @@ Class GlfShotGroup
         m_common_state = Empty
         m_rotation_enabled = True
         m_rotation_pattern = Empty
-        
+ 
         Set m_enable_rotation_events = CreateObject("Scripting.Dictionary")
         Set m_disable_rotation_events = CreateObject("Scripting.Dictionary")
         Set m_restart_events = CreateObject("Scripting.Dictionary")
@@ -1847,12 +1886,12 @@ Class GlfShotGroup
         Set m_rotate_left_events = CreateObject("Scripting.Dictionary")
         Set m_rotate_right_events = CreateObject("Scripting.Dictionary")
         Set m_temp_shots = CreateObject("Scripting.Dictionary")
-
+ 
         Set m_base_device = (new GlfBaseModeDevice)(mode, "shot_group", Me)
-
+ 
         Set Init = Me
 	End Function
-
+ 
     Public Sub Activate
         For Each evt in m_enable_rotation_events.Keys()
             m_rotation_enabled = False
@@ -1877,7 +1916,7 @@ Class GlfShotGroup
             AddPinEventListener m_rotate_right_events(evt).EventName, m_name & "_rotate_right", "ShotGroupEventHandler", m_priority, Array("rotate_right", Me, evt)
         Next
     End Sub
-
+ 
     Public Sub Deactivate
         m_rotation_enabled = True
         For Each evt in m_enable_rotation_events.Keys()
@@ -1902,21 +1941,21 @@ Class GlfShotGroup
             RemovePinEventListener m_rotate_right_events(evt).EventName, m_name & "_rotate_right"
         Next
     End Sub
-
+ 
     Private Function CheckForComplete()
         Dim state : state = CommonState()
         If state = m_common_state Then
             Exit Function
         End If
-
+ 
         m_common_state = state
-
+ 
         If state = Empty Then
             Exit Function
         End If
-
+ 
         Dim state_name : state_name = Glf_ShotProfiles(m_base_device.Mode.Shots(m_shots(0)).Profile).StateName(m_state)
-
+ 
         Log "Shot group is complete with state: " & state_name
         Dim kwargs : Set kwargs = GlfKwargs()
 		With kwargs
@@ -1924,9 +1963,9 @@ Class GlfShotGroup
         End With
         DispatchPinEvent m_name & "_complete", kwargs
         DispatchPinEvent m_name & "_" & state_name & "_complete", Null
-
+ 
     End Function
-
+ 
     Public Sub Enable()
         Dim shot
         m_base_device.Log "Enabling"
@@ -1935,45 +1974,45 @@ Class GlfShotGroup
         Next
         Dim evt
     End Sub
-
+ 
     Public Sub Disable()
         Dim shot
         For Each shot in m_shots
             m_base_device.Mode.Shots(shot).Disable()
         Next
     End Sub
-
+ 
     Public Sub EnableRotation
         m_base_device.Log "Enabling Rotation"
         m_rotation_enabled = True
     End Sub
-
+ 
     Public Sub DisableRotation
         m_base_device.Log "Disabling Rotation"
         m_rotation_enabled = False
     End Sub
-
+ 
     Public Sub Restart
         Dim shot
         For Each shot in m_shots
             m_base_device.Mode.Shots(shot).Restart()
         Next
     End Sub
-
+ 
     Public Sub Reset
         Dim shot
         For Each shot in m_shots
             m_base_device.Mode.Shots(shot).Reset()
         Next
     End Sub
-
+ 
     Public Sub Rotate(direction)
-        
+ 
         If m_rotation_enabled = False Then
             Exit Sub
         End If
         Dim shots_to_rotate : shots_to_rotate = Array()
-        
+ 
         m_temp_shots.RemoveAll
         Dim shot
         For Each shot in m_shots
@@ -1981,7 +2020,7 @@ Class GlfShotGroup
                 m_temp_shots.Add shot, m_base_device.Mode.Shots(shot)
             End If
         Next
-
+ 
         Dim shot_states, x
         x=0
         ReDim shot_states(UBound(m_temp_shots.Keys))
@@ -1989,12 +2028,12 @@ Class GlfShotGroup
             shot_states(x) = m_temp_shots(shot).State
             x=x+1
         Next 
-
+ 
         If direction = Empty Then
             direction = m_rotation_pattern(0)
             Glf_RotateArray m_rotation_pattern, "l"
         End If
-
+ 
         shot_states = Glf_RotateArray(shot_states, direction)
         x=0
         For Each shot in m_temp_shots.Keys
@@ -2002,10 +2041,138 @@ Class GlfShotGroup
             m_temp_shots(shot).Jump shot_states(x), True, False
             x=x+1
         Next 
-        
+ 
     End Sub
+ 
+    Public Function ToYaml
+        Dim yaml
+        yaml = "  " & m_name & ":" & vbCrLf
+        yaml = yaml & "    shots: " & Join(m_shots, ",") & vbCrLf
+ 
+        If UBound(m_enable_rotation_events.Keys) > -1 Then
+            yaml = yaml & "    enable_rotation_events: "
+            x=0
+            For Each key in m_enable_rotation_events.keys
+                yaml = yaml & m_enable_rotation_events(key).Raw
+                If x <> UBound(m_enable_rotation_events.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+ 
+        If UBound(m_disable_rotation_events.Keys) > -1 Then
+            yaml = yaml & "    disable_rotation_events: "
+            x=0
+            For Each key in m_disable_rotation_events.keys
+                yaml = yaml & m_disable_rotation_events(key).Raw
+                If x <> UBound(m_disable_rotation_events.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+ 
+        If UBound(m_restart_events.Keys) > -1 Then
+            yaml = yaml & "    restart_events: "
+            x=0
+            For Each key in m_restart_events.keys
+                yaml = yaml & m_restart_events(key).Raw
+                If x <> UBound(m_restart_events.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+ 
+        If UBound(m_reset_events.Keys) > -1 Then
+            yaml = yaml & "    reset_events: "
+            x=0
+            For Each key in m_reset_events.keys
+                yaml = yaml & m_reset_events(key).Raw
+                If x <> UBound(m_reset_events.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+ 
+        If UBound(m_rotate_events.Keys) > -1 Then
+            yaml = yaml & "    rotate_events: "
+            x=0
+            For Each key in m_rotate_events.keys
+                yaml = yaml & m_rotate_events(key).Raw
+                If x <> UBound(m_rotate_events.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+ 
+        If UBound(m_rotate_left_events.Keys) > -1 Then
+            yaml = yaml & "    rotate_left_events: "
+            x=0
+            For Each key in m_rotate_left_events.keys
+                yaml = yaml & m_rotate_left_events(key).Raw
+                If x <> UBound(m_rotate_left_events.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+ 
+        If UBound(m_rotate_right_events.Keys) > -1 Then
+            yaml = yaml & "    rotate_right_events: "
+            x=0
+            For Each key in m_rotate_right_events.keys
+                yaml = yaml & m_rotate_right_events(key).Raw
+                If x <> UBound(m_rotate_right_events.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+ 
+        If UBound(m_base_device.EnableEvents.Keys) > -1 Then
+            yaml = yaml & "    enable_events: "
+            x=0
+            For Each key in m_base_device.EnableEvents.keys
+                yaml = yaml & m_base_device.EnableEvents(key).Raw
+                If x <> UBound(m_base_device.EnableEvents.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+ 
+        If UBound(m_base_device.DisableEvents.Keys) > -1 Then
+            yaml = yaml & "    disable_events: "
+            x=0
+            For Each key in m_base_device.DisableEvents.keys
+                yaml = yaml & m_base_device.DisableEvents(key).Raw
+                If x <> UBound(m_base_device.DisableEvents.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+ 
+        yaml = yaml & "    priority: " & m_priority & vbCrLf
+        yaml = yaml & "    rotation_enabled: " & m_rotation_enabled & vbCrLf
+ 
+        ToYaml = yaml
+        End Function
 End Class
-
+ 
 Function ShotGroupEventHandler(args)
     Dim ownProps, kwargs : ownProps = args(0)
     If IsObject(args(1)) Then
@@ -2039,7 +2206,7 @@ Function ShotGroupEventHandler(args)
     Else
         ShotGroupEventHandler = kwargs
     End If
-    
+ 
 End Function
 
 Class GlfShotProfile
@@ -2413,24 +2580,24 @@ Class GlfShot
 
     Public Function ToYaml
         Dim yaml
-        yaml = "        " & Replace(m_name, "shot_", "") & ":" & vbCrLf
+        yaml = "  " & Replace(m_name, "shot_", "") & ":" & vbCrLf
         If UBound(m_switches) = 0 Then
-            yaml = yaml & "            switch: " & m_switches(0) & vbCrLf
+            yaml = yaml & "    switch: " & m_switches(0) & vbCrLf
         Else
-            yaml = yaml & "            switches: " & Join(m_switches, ",") & vbCrLf
+            yaml = yaml & "    switches: " & Join(m_switches, ",") & vbCrLf
         End If
-        yaml = yaml & "            show_tokens: " & vbCrLf
+        yaml = yaml & "    show_tokens: " & vbCrLf
         dim key
         For Each key in m_tokens.keys
             If IsArray(m_tokens(key)) Then
-                yaml = yaml & "                " & key & ": " & Join(m_tokens(key), ",") & vbCrLf
+                yaml = yaml & "      " & key & ": " & Join(m_tokens(key), ",") & vbCrLf
             Else  
-                yaml = yaml & "                " & key & ": " & m_tokens(key) & vbCrLf
+                yaml = yaml & "      " & key & ": " & m_tokens(key) & vbCrLf
             End If
         Next
 
         If UBound(m_base_device.EnableEvents.Keys) > -1 Then
-            yaml = yaml & "            enable_events: "
+            yaml = yaml & "    enable_events: "
             x=0
             For Each key in m_base_device.EnableEvents.keys
                 yaml = yaml & m_base_device.EnableEvents(key).Raw
@@ -2443,7 +2610,7 @@ Class GlfShot
         End If
 
         If UBound(m_base_device.DisableEvents.Keys) > -1 Then
-            yaml = yaml & "            disable_events: "
+            yaml = yaml & "    disable_events: "
             x=0
             For Each key in m_base_device.DisableEvents.keys
                 yaml = yaml & m_base_device.DisableEvents(key).Raw
@@ -2456,7 +2623,7 @@ Class GlfShot
         End If
 
         If UBound(m_advance_events.Keys) > -1 Then
-            yaml = yaml & "            advance_events: "
+            yaml = yaml & "    advance_events: "
             x=0
             For Each key in m_advance_events.keys
                 yaml = yaml & m_advance_events(key).Raw
@@ -2469,7 +2636,7 @@ Class GlfShot
         End If
 
         If UBound(m_hit_events.Keys) > -1 Then
-            yaml = yaml & "            hit_events: "
+            yaml = yaml & "    hit_events: "
             x=0
             For Each key in m_hit_events.keys
                 yaml = yaml & m_hit_events(key).Raw
@@ -2481,12 +2648,12 @@ Class GlfShot
             yaml = yaml & vbCrLf
         End If
 
-        yaml = yaml & "            profile: " & m_profile & vbCrLf
+        yaml = yaml & "    profile: " & m_profile & vbCrLf
         If Not IsEmpty(m_start_enabled) Then
-            yaml = yaml & "            start_enabled: " & m_start_enabled & vbCrLf
+            yaml = yaml & "    start_enabled: " & m_start_enabled & vbCrLf
         End If
         If UBound(m_restart_events.Keys) > -1 Then
-            yaml = yaml & "            restart_events: "
+            yaml = yaml & "    restart_events: "
             x=0
             For Each key in m_restart_events.keys
                 yaml = yaml & m_restart_events(key).Raw
@@ -2499,7 +2666,7 @@ Class GlfShot
         End If
 
         If UBound(m_reset_events.Keys) > -1 Then
-            yaml = yaml & "            reset_events: "
+            yaml = yaml & "    reset_events: "
             x=0
             For Each key in m_reset_events.keys
                 yaml = yaml & m_reset_events(key).Raw
@@ -2512,9 +2679,9 @@ Class GlfShot
         End If
 
         If UBound(m_control_events.Keys) > -1 Then
-            yaml = yaml & "            control_events: " & vbCrLf
+            yaml = yaml & "    control_events: " & vbCrLf
             For Each key in m_control_events.keys
-                yaml = yaml & "                - events: "
+                yaml = yaml & "      - events: "
                 Dim cEvt
                 x=0
                 For Each cEvt in m_control_events(key).Events
@@ -2525,7 +2692,7 @@ Class GlfShot
                     x = x + 1
                 Next
                 yaml = yaml & vbCrLf
-                yaml = yaml & "                  state: " & m_control_events(key).State & vbCrLf
+                yaml = yaml & "      state: " & m_control_events(key).State & vbCrLf
             Next
         End If
         
@@ -2736,6 +2903,103 @@ Class GlfShowPlayerItem
 
 End Class
 
+Class GlfStateMachine
+    Private m_name
+    Private m_priority
+    private m_base_device
+    Private m_states
+    Private m_transistions
+ 
+    Private m_current_state
+ 
+    Public Property Get Name(): Name = m_name: End Property
+ 
+    Public Property Get States(): States = m_states: End Property
+    Public Property Let States(value)
+        m_states = value
+    End Property
+ 
+    Public Property Get Transistions(): Transistions = m_transistions: End Property
+    Public Property Let Transistions(value)
+        m_transistions = value
+    End Property
+ 
+    Public Property Get CurrentState(): CurrentState = m_current_state: End Property
+    Public Property Let CurrentState(value)
+        m_current_state = value
+    End Property
+ 
+    Public default Function init(name, mode)
+        m_name = name
+        m_mode = mode.Name
+        m_priority = mode.Priority
+ 
+        Set m_states = CreateObject("Scripting.Dictionary")
+        Set m_transistions = CreateObject("Scripting.Dictionary")
+ 
+        Set m_base_device = (new GlfBaseModeDevice)(mode, "state_machine", Me)
+ 
+        Set Init = Me
+    End Function
+ 
+End Class
+ 
+Class GlfStateMachineState
+	Private m_name, m_label, m_show_when_active, m_show_tokens, m_events_when_started, m_events_when_stopped
+ 
+	Public Property Get Name(): Name = m_name: End Property
+    Public Property Let Name(input): m_name = input: End Property
+ 
+    Public Property Get Label(): Label = m_label: End Property
+    Public Property Let Label(input): m_label = input: End Property
+ 
+    Public Property Get ShowWhenActive(): ShowWhenActive = m_show_when_active: End Property
+    Public Property Let ShowWhenActive(input): m_show_when_active = input: End Property
+ 
+    Public Property Get ShowTokens(): Set ShowTokens = m_show_tokens: End Property
+ 
+    Public Property Get EventsWhenStarted(): EventsWhenStarted = m_events_when_started: End Property
+    Public Property Let EventsWhenStarted(input): m_events_when_started = input: End Property
+ 
+    Public Property Get EventsWhenStopped(): EventsWhenStopped = m_events_when_stopped: End Property
+    Public Property Let EventsWhenStopped(input): m_events_when_stopped = input: End Property
+ 
+	Public default Function init(name)
+        m_name = name
+        m_label = Empty
+        m_show_when_active = Empty
+        Set m_show_tokens = CreateObject("Scripting.Dictionary")
+        Set m_events_when_started = Array()
+        Set m_events_when_stopped = Array()
+	    Set Init = Me
+	End Function
+ 
+End Class
+ 
+Class GlfStateMachineTranistion
+	Private m_source, m_target, m_events, m_events_when_transistioning
+ 
+    Public Property Get Source(): Source = m_source: End Property
+    Public Property Let Source(input): m_source = input: End Property
+ 
+    Public Property Get Target(): Target = m_target: End Property
+    Public Property Let Target(input): m_target = input: End Property
+ 
+    Public Property Get Events(): Events = m_events: End Property
+    Public Property Let Events(input): m_events = input: End Property
+ 
+    Public Property Get EventsWhenTransitioning(): EventsWhenTransitioning = m_events_when_transitioning: End Property
+    Public Property Let EventsWhenTransitioning(input): m_events_when_transitioning = input: End Property
+ 
+	Public default Function init(name)
+        m_source = name
+        m_target = Empty
+        m_events = Array()
+        m_events_when_transistioning = Array()
+	    Set Init = Me
+	End Function
+ 
+End Class
 
 
 Class GlfTimer
@@ -2995,7 +3259,12 @@ End Class
 
 Function VariablePlayerEventHandler(args)
     
-    Dim ownProps, kwargs : ownProps = args(0) : kwargs = args(1) 
+    Dim ownProps, kwargs : ownProps = args(0)
+    If IsObject(args(1)) Then
+        Set kwargs = args(1) 
+    Else
+        kwargs = args(1)
+    End If
     Dim evt : evt = ownProps(0)
     Dim variablePlayer : Set variablePlayer = ownProps(1)
     Select Case evt
@@ -3006,7 +3275,12 @@ Function VariablePlayerEventHandler(args)
         Case "play"
             variablePlayer.Play ownProps(2)
     End Select
-    VariablePlayerEventHandler = kwargs
+    If IsObject(args(1)) Then
+        Set VariablePlayerEventHandler = kwargs
+    Else
+        VariablePlayerEventHandler = kwargs
+    End If
+    
 End Function
 
 
@@ -6029,9 +6303,15 @@ Sub DispatchPinEvent(e, kwargs)
     Dim k
     Dim handlers : Set handlers = glf_pinEvents(e)
     glf_debugLog.WriteToLog "DispatchPinEvent", e
+    Dim handler
     For Each k In glf_pinEventsOrder(e)
-        'glf_debugLog.WriteToLog "DispatchPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
-        GetRef(handlers(k(1))(0))(Array(handlers(k(1))(2), kwargs, e))
+        glf_debugLog.WriteToLog "DispatchPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
+        If handlers.Exists(k(1)) Then
+            handler = handlers(k(1))
+            GetRef(handler(0))(Array(handler(2), kwargs, e))
+        Else
+            glf_debugLog.WriteToLog "DispatchPinEvent_"&e, "Handler does not exist: " & k(1)
+        End If
     Next
     Glf_EventBlocks(e).RemoveAll
 End Sub

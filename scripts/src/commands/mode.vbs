@@ -24,7 +24,15 @@ Class Mode
     Public Property Get Debug(): Debug = m_debug: End Property
     Public Property Get LightPlayer(): Set LightPlayer = m_lightplayer: End Property
     Public Property Get ShowPlayer(): Set ShowPlayer = m_showplayer: End Property
-    Public Property Get EventPlayer(): Set EventPlayer = m_eventplayer: End Property
+    Public Property Get EventPlayer(event)
+        If m_eventplayer.Events.Exists(event) Then
+            Set EventPlayer = m_eventplayer(event)
+        Else
+            Dim newEvent : Set newEvent = (new GlfEvent)(event)
+            m_eventplayer.Events.Add name, newEvent
+            Set EventPlayer = newEvent
+        End If
+    End Property
     Public Property Get VariablePlayer(): Set VariablePlayer = m_variableplayer: End Property
     
 
@@ -156,23 +164,33 @@ Class Mode
     Public Function ToYaml()
         dim yaml, child
         yaml = "mode:" & vbCrLf
-        yaml = yaml & "    start_events: " & Join(m_start_events, ",") & vbCrLf
-        yaml = yaml & "    stop_events: " & Join(m_stop_events, ",") & vbCrLf
-        yaml = yaml & "    priority: " & m_priority & vbCrLf
+        yaml = yaml & "  start_events: " & Join(m_start_events, ",") & vbCrLf
+        yaml = yaml & "  stop_events: " & Join(m_stop_events, ",") & vbCrLf
+        yaml = yaml & "  priority: " & m_priority & vbCrLf
+        yaml = yaml & vbCrLf
         If UBound(m_ballsaves.Keys)>-1 Then
-            yaml = yaml & "    ballsaves: " & vbCrLf
+            yaml = yaml & "ballsaves: " & vbCrLf
             For Each child in m_ballsaves.Keys
                 yaml = yaml & m_ballsaves(child).ToYaml
             Next
         End If
+        yaml = yaml & vbCrLf
         If UBound(m_shots.Keys)>-1 Then
-            yaml = yaml & "    shots: " & vbCrLf
+            yaml = yaml & "shots: " & vbCrLf
             For Each child in m_shots.Keys
                 yaml = yaml & m_shots(child).ToYaml
             Next
         End If
+        yaml = yaml & vbCrLf
+        If UBound(m_shot_groups.Keys)>-1 Then
+            yaml = yaml & "shot_groups: " & vbCrLf
+            For Each child in m_shot_groups.Keys
+                yaml = yaml & m_shot_groups(child).ToYaml
+            Next
+        End If
+        yaml = yaml & vbCrLf
         ToYaml = yaml
-        Msgbox yaml
+        Log yaml
     End Function
 End Class
 
@@ -185,6 +203,10 @@ Function ModeEventHandler(args)
             mode.StartMode
         Case "stop"
             mode.StopMode
+        Case "started"
+            DispatchPinEvent mode.Name & "_started", Null
+        Case "stopped"
+            DispatchPinEvent mode.Name & "_stopped", Null
     End Select
     ModeEventHandler = kwargs
 End Function

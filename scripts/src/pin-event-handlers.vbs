@@ -14,9 +14,15 @@ Sub DispatchPinEvent(e, kwargs)
     Dim k
     Dim handlers : Set handlers = glf_pinEvents(e)
     glf_debugLog.WriteToLog "DispatchPinEvent", e
+    Dim handler
     For Each k In glf_pinEventsOrder(e)
-        'glf_debugLog.WriteToLog "DispatchPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
-        GetRef(handlers(k(1))(0))(Array(handlers(k(1))(2), kwargs, e))
+        glf_debugLog.WriteToLog "DispatchPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
+        If handlers.Exists(k(1)) Then
+            handler = handlers(k(1))
+            GetRef(handler(0))(Array(handler(2), kwargs, e))
+        Else
+            glf_debugLog.WriteToLog "DispatchPinEvent_"&e, "Handler does not exist: " & k(1)
+        End If
     Next
     Glf_EventBlocks(e).RemoveAll
 End Sub

@@ -4,22 +4,17 @@ Class GlfEventPlayer
 
     Private m_priority
     Private m_mode
+    private m_base_device
     Private m_events
-    Private m_debug
 
-    Private m_value
-
-    Public Property Let Events(value) : Set m_events = value : End Property
-    Public Property Let Debug(value) : m_debug = value : End Property
+    Public Property Get Events() : Set Events = m_events : End Property
 
 	Public default Function init(mode)
         m_mode = mode.Name
         m_priority = mode.Priority
 
         Set m_events = CreateObject("Scripting.Dictionary")
-        
-        AddPinEventListener m_mode & "_starting", "event_player_activate", "EventPlayerEventHandler", m_priority, Array("activate", Me)
-        AddPinEventListener m_mode & "_stopping", "event_player_deactivate", "EventPlayerEventHandler", m_priority, Array("deactivate", Me)
+        Set m_base_device = (new GlfBaseModeDevice)(mode, "event_player", Me)
         Set Init = Me
 	End Function
 
@@ -37,11 +32,14 @@ Class GlfEventPlayer
         Next
     End Sub
 
-    Private Sub Log(message)
-        If m_debug = True Then
-            glf_debugLog.WriteToLog m_mode & "_event_player_play", message
-        End If
-    End Sub
+    Public Function ToYaml
+        Dim yaml
+        Dim evt
+        For Each evt In m_events.Keys()
+            yaml = yaml & "  evt: " & Join(m_events(evt), ",") & vbCrLf
+        Next
+    End Function
+
 End Class
 
 Function EventPlayerEventHandler(args)
@@ -50,10 +48,6 @@ Function EventPlayerEventHandler(args)
     Dim evt : evt = ownProps(0)
     Dim eventPlayer : Set eventPlayer = ownProps(1)
     Select Case evt
-        Case "activate"
-            eventPlayer.Activate
-        Case "deactivate"
-            eventPlayer.Deactivate
         Case "play"
             dim evtToFire
             For Each evtToFire in ownProps(2)
