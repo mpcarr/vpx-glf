@@ -1029,7 +1029,9 @@ Class GlfEventPlayer
     Private m_mode
     private m_base_device
     Private m_events
+    Private m_eventValues
 
+    Public Property Get Name() : Name = "event_player" : End Property
     Public Property Get Events() : Set Events = m_events : End Property
 
 	Public default Function init(mode)
@@ -1037,21 +1039,40 @@ Class GlfEventPlayer
         m_priority = mode.Priority
 
         Set m_events = CreateObject("Scripting.Dictionary")
+        Set m_eventValues = CreateObject("Scripting.Dictionary")
         Set m_base_device = (new GlfBaseModeDevice)(mode, "event_player", Me)
         Set Init = Me
 	End Function
 
+    Public Sub Add(key, value)
+        Dim newEvent : Set newEvent = (new GlfEvent)(key)
+        m_events.Add newEvent.Name, newEvent
+        m_eventValues.Add newEvent.Name, value
+    End Sub
+
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener evt, m_mode & "_event_player_play", "EventPlayerEventHandler", m_priority, Array("play", Me, m_events(evt))
+            AddPinEventListener m_events(evt).EventName, m_mode & "_event_player_play", "EventPlayerEventHandler", m_priority, Array("play", Me, evt)
         Next
     End Sub
 
     Public Sub Deactivate()
         Dim evt
         For Each evt In m_events.Keys()
-            RemovePinEventListener evt, m_mode & "_event_player_play"
+            RemovePinEventListener m_events(evt).EventName, m_mode & "_event_player_play"
+        Next
+    End Sub
+
+    Public Sub FireEvent(evt)
+        If Not IsNull(m_events(evt).Condition) Then
+            If GetRef(m_events(evt).Condition)() = False Then
+                Exit Sub
+            End If
+        End If
+        Dim evtValue
+        For Each evtValue In m_eventValues(evt)
+            DispatchPinEvent evtValue, Null
         Next
     End Sub
 
@@ -1072,10 +1093,7 @@ Function EventPlayerEventHandler(args)
     Dim eventPlayer : Set eventPlayer = ownProps(1)
     Select Case evt
         Case "play"
-            dim evtToFire
-            For Each evtToFire in ownProps(2)
-                DispatchPinEvent evtToFire, Null
-            Next
+            eventPlayer.FireEvent ownProps(2)
     End Select
     EventPlayerEventHandler = kwargs
 End Function
@@ -1307,7 +1325,6 @@ Class GlfBaseModeDevice
 
     Public Sub Deactivate()
         Log "Deactivating"
-        m_parent.Disable()
         Dim evt
         For Each evt In m_enable_events.Keys()
             RemovePinEventListener m_enable_events(evt).EventName, m_mode.Name & m_device & "_" & m_parent.Name & "_enable"
@@ -1368,15 +1385,7 @@ Class Mode
     Public Property Get Debug(): Debug = m_debug: End Property
     Public Property Get LightPlayer(): Set LightPlayer = m_lightplayer: End Property
     Public Property Get ShowPlayer(): Set ShowPlayer = m_showplayer: End Property
-    Public Property Get EventPlayer(event)
-        If m_eventplayer.Events.Exists(event) Then
-            Set EventPlayer = m_eventplayer(event)
-        Else
-            Dim newEvent : Set newEvent = (new GlfEvent)(event)
-            m_eventplayer.Events.Add name, newEvent
-            Set EventPlayer = newEvent
-        End If
-    End Property
+    Public Property Get EventPlayer() : Set EventPlayer = m_eventplayer: End Property
     Public Property Get VariablePlayer(): Set VariablePlayer = m_variableplayer: End Property
     
 
@@ -2387,6 +2396,7 @@ Class GlfShot
     End Sub
 
     Public Sub Deactivate()
+        Disable()
         m_state = -1
     End Sub
 
@@ -2452,11 +2462,13 @@ Class GlfShot
 
     Private Sub StopShowForState(state)
         Dim profileState : Set profileState = Glf_ShotProfiles(m_profile).StateForIndex(state)
+        m_base_device.Log "Removing Shot Show: " & m_mode & "_" & m_name & ". Key: " & profileState.Key
         lightCtrl.RemoveLightSeq m_mode & "_" & m_name, profileState.Key
     End Sub
 
     Private Sub PlayShowForState(state)
         Dim profileState : Set profileState = Glf_ShotProfiles(m_profile).StateForIndex(state)
+        m_base_device.Log "Playing Shot Show: " & m_mode & "_" & m_name & ". Key: " & profileState.Key
         If IsObject(profileState) Then
             If IsArray(profileState.Show) Then
                 If m_show_cache.Exists(CStr(m_state) & "_" & profileState.Key) Then
@@ -3016,18 +3028,40 @@ Class GlfTimer
 
     Private m_value
 
+    Public Property Get Name() : Name = m_name : End Property
+    Public Property Get StartValue() : StartValue = m_start_value : End Property
+    Public Property Get EndValue() : EndValue = m_end_value : End Property
+    Public Property Get Direction() : Direction = m_direction : End Property
+    Public Property Get StartEvents() : StartEvents = m_start_events : End Property
+    Public Property Get StopEvents() : StopEvents = m_stop_events : End Property
+    
     Public Property Let StartValue(value) : m_start_value = value : End Property
     Public Property Let EndValue(value) : m_end_value = value : End Property
     Public Property Let Direction(value) : m_direction = value : End Property
-    Public Property Let StartEvents(value) : m_start_events = value : End Property
-    Public Property Let StopEvents(value) : m_stop_events = value : End Property
+    Public Property Let StartEvents(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_start_events.Add newEvent.Name, newEvent
+        Next
+    End Property
+    Public Property Let StopEvents(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_stop_events.Add newEvent.Name, newEvent
+        Next
+    End Property
     Public Property Let Debug(value) : m_debug = value : End Property
 
 	Public default Function init(name, mode)
         m_name = "timer_" & name
         m_mode = mode.Name
         m_priority = mode.Priority
-        
+
+        Set m_start_events = CreateObject("Scripting.Dictionary")
+        Set m_stop_events = CreateObject("Scripting.Dictionary")
+
         AddPinEventListener m_mode & "_starting", m_name & "_activate", "TimerEventHandler", m_priority, Array("activate", Me)
         AddPinEventListener m_mode & "_stopping", m_name & "_deactivate", "TimerEventHandler", m_priority, Array("deactivate", Me)
         Set Init = Me
@@ -3035,37 +3069,47 @@ Class GlfTimer
 
     Public Sub Activate()
         Dim evt
-        For Each evt in m_start_events
-            AddPinEventListener evt, m_name & "_start", "TimerEventHandler", m_priority, Array("start", Me)
+        For Each evt in m_start_events.Keys
+            AddPinEventListener m_start_events(evt).EventName, m_name & "_start", "TimerEventHandler", m_priority, Array("start", Me, evt)
         Next
         If Not IsNull(m_stop_events) Then
-            For Each evt in m_stop_events
-                AddPinEventListener evt, m_name & "_stop", "TimerEventHandler", m_priority, Array("stop", Me)
+            For Each evt in m_stop_events.Keys
+                AddPinEventListener m_stop_events(evt).EventName, m_name & "_stop", "TimerEventHandler", m_priority, Array("stop", Me, evt)
             Next
         End If
     End Sub
 
     Public Sub Deactivate()
         Dim evt
-        For Each evt in m_start_events
-            RemovePinEventListener evt, m_name & "_start"
+        For Each evt in m_start_events.Keys
+            RemovePinEventListener m_start_events(evt).EventName, m_name & "_start"
         Next
         If Not IsNull(m_stop_events) Then
-            For Each evt in m_stop_events
-                RemovePinEventListener evt, m_name & "_stop"
+            For Each evt in m_stop_events.Keys
+                RemovePinEventListener m_stop_events(evt).EventName, m_name & "_stop"
             Next
         End If
         RemoveDelay m_name & "_tick"
     End Sub
 
-    Public Sub StartTimer()
+    Public Sub StartTimer(evt)
+        If Not IsNull(m_start_events(evt).Condition) Then
+            If GetRef(m_start_events(evt).Condition)() = False Then
+                Exit Sub
+            End If
+        End If
         Log "Started"
         DispatchPinEvent m_name & "_started", Null
         m_value = m_start_value
         SetDelay m_name & "_tick", "TimerEventHandler", Array(Array("tick", Me), Null), 1000
     End Sub
 
-    Public Sub StopTimer()
+    Public Sub StopTimer(evt)
+        If Not IsNull(m_stop_events(evt).Condition) Then
+            If GetRef(m_stop_events(evt).Condition)() = False Then
+                Exit Sub
+            End If
+        End If
         Log "Stopped"
         DispatchPinEvent m_name & "_stopped", Null
         RemoveDelay m_name & "_tick"
@@ -3107,9 +3151,9 @@ Function TimerEventHandler(args)
         Case "deactivate"
             timer.Deactivate
         Case "start"
-            timer.StartTimer
+            timer.StartTimer ownProps(2)
         Case "stop"
-            timer.StopTimer
+            timer.StopTimer ownProps(2)
         Case "tick"
             timer.Tick 
     End Select
@@ -4933,6 +4977,13 @@ Class LStateController
             Next
             m_seqRunners(runner).RemoveItem key
         End If
+
+        Dim syncMs
+        For Each syncMs in m_syncMs.Keys
+            If m_syncMs(syncMs).Exists(runner & "_" & key) Then
+                m_syncMs(syncMs).Remove runner & "_" & key
+            End If
+        Next
     End Sub
 
     Public Sub RemoveAllLightSeq(lcSeqRunner)
