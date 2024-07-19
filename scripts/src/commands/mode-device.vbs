@@ -58,7 +58,6 @@ Class GlfBaseModeDevice
 
     Public Sub Deactivate()
         Log "Deactivating"
-        m_parent.Disable()
         Dim evt
         For Each evt In m_enable_events.Keys()
             RemovePinEventListener m_enable_events(evt).EventName, m_mode.Name & m_device & "_" & m_parent.Name & "_enable"
