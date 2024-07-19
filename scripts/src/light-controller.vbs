@@ -1033,6 +1033,13 @@ Class LStateController
             Next
             m_seqRunners(runner).RemoveItem key
         End If
+
+        Dim syncMs
+        For Each syncMs in m_syncMs.Keys
+            If m_syncMs(syncMs).Exists(runner & "_" & key) Then
+                m_syncMs(syncMs).Remove runner & "_" & key
+            End If
+        Next
     End Sub
 
     Public Sub RemoveAllLightSeq(lcSeqRunner)
