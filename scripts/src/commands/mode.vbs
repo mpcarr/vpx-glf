@@ -24,15 +24,7 @@ Class Mode
     Public Property Get Debug(): Debug = m_debug: End Property
     Public Property Get LightPlayer(): Set LightPlayer = m_lightplayer: End Property
     Public Property Get ShowPlayer(): Set ShowPlayer = m_showplayer: End Property
-    Public Property Get EventPlayer(event)
-        If m_eventplayer.Events.Exists(event) Then
-            Set EventPlayer = m_eventplayer(event)
-        Else
-            Dim newEvent : Set newEvent = (new GlfEvent)(event)
-            m_eventplayer.Events.Add name, newEvent
-            Set EventPlayer = newEvent
-        End If
-    End Property
+    Public Property Get EventPlayer() : Set EventPlayer = m_eventplayer: End Property
     Public Property Get VariablePlayer(): Set VariablePlayer = m_variableplayer: End Property
     
 
