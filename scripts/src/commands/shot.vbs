@@ -112,6 +112,7 @@ Class GlfShot
     End Sub
 
     Public Sub Deactivate()
+        Disable()
         m_state = -1
     End Sub
 
@@ -177,11 +178,13 @@ Class GlfShot
 
     Private Sub StopShowForState(state)
         Dim profileState : Set profileState = Glf_ShotProfiles(m_profile).StateForIndex(state)
+        m_base_device.Log "Removing Shot Show: " & m_mode & "_" & m_name & ". Key: " & profileState.Key
         lightCtrl.RemoveLightSeq m_mode & "_" & m_name, profileState.Key
     End Sub
 
     Private Sub PlayShowForState(state)
         Dim profileState : Set profileState = Glf_ShotProfiles(m_profile).StateForIndex(state)
+        m_base_device.Log "Playing Shot Show: " & m_mode & "_" & m_name & ". Key: " & profileState.Key
         If IsObject(profileState) Then
             If IsArray(profileState.Show) Then
                 If m_show_cache.Exists(CStr(m_state) & "_" & profileState.Key) Then
