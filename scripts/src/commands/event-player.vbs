@@ -6,7 +6,9 @@ Class GlfEventPlayer
     Private m_mode
     private m_base_device
     Private m_events
+    Private m_eventValues
 
+    Public Property Get Name() : Name = "event_player" : End Property
     Public Property Get Events() : Set Events = m_events : End Property
 
 	Public default Function init(mode)
@@ -14,21 +16,40 @@ Class GlfEventPlayer
         m_priority = mode.Priority
 
         Set m_events = CreateObject("Scripting.Dictionary")
+        Set m_eventValues = CreateObject("Scripting.Dictionary")
         Set m_base_device = (new GlfBaseModeDevice)(mode, "event_player", Me)
         Set Init = Me
 	End Function
 
+    Public Sub Add(key, value)
+        Dim newEvent : Set newEvent = (new GlfEvent)(key)
+        m_events.Add newEvent.Name, newEvent
+        m_eventValues.Add newEvent.Name, value
+    End Sub
+
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener evt, m_mode & "_event_player_play", "EventPlayerEventHandler", m_priority, Array("play", Me, m_events(evt))
+            AddPinEventListener m_events(evt).EventName, m_mode & "_event_player_play", "EventPlayerEventHandler", m_priority, Array("play", Me, evt)
         Next
     End Sub
 
     Public Sub Deactivate()
         Dim evt
         For Each evt In m_events.Keys()
-            RemovePinEventListener evt, m_mode & "_event_player_play"
+            RemovePinEventListener m_events(evt).EventName, m_mode & "_event_player_play"
+        Next
+    End Sub
+
+    Public Sub FireEvent(evt)
+        If Not IsNull(m_events(evt).Condition) Then
+            If GetRef(m_events(evt).Condition)() = False Then
+                Exit Sub
+            End If
+        End If
+        Dim evtValue
+        For Each evtValue In m_eventValues(evt)
+            DispatchPinEvent evtValue, Null
         Next
     End Sub
 
@@ -49,10 +70,7 @@ Function EventPlayerEventHandler(args)
     Dim eventPlayer : Set eventPlayer = ownProps(1)
     Select Case evt
         Case "play"
-            dim evtToFire
-            For Each evtToFire in ownProps(2)
-                DispatchPinEvent evtToFire, Null
-            Next
+            eventPlayer.FireEvent ownProps(2)
     End Select
     EventPlayerEventHandler = kwargs
 End Function
