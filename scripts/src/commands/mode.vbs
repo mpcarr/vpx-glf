@@ -13,6 +13,7 @@ Class Mode
     Private m_multiballs
     Private m_shots
     Private m_shot_groups
+    Private m_ballholds
     Private m_timers
     Private m_lightplayer
     Private m_showplayer
@@ -98,27 +99,42 @@ Class Mode
         End If
     End Property
 
+    Public Property Get BallHolds(name)
+        If m_ballholds.Exists(name) Then
+            Set BallHolds = m_shots(name)
+        Else
+            Dim new_ballhold : Set new_ballhold = (new GlfBallHold)(name, Me)
+            m_ballholds.Add name, new_ballhold
+            Set BallHolds = new_ballhold
+        End If
+    End Property
+
     Public Property Let StartEvents(value)
-        m_start_events = value
-        Dim evt
-        For Each evt in m_start_events
-            AddPinEventListener evt, m_name & "_start", "ModeEventHandler", m_priority, Array("start", Me)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_start_events.Add newEvent.Name, newEvent
+            AddPinEventListener newEvent.EventName, m_name & "_start", "ModeEventHandler", m_priority, Array("start", Me, newEvent)
         Next
     End Property
     
     Public Property Let StopEvents(value)
-        m_stop_events = value
-        Dim evt
-        For Each evt in m_stop_events
-            AddPinEventListener evt, m_name & "_stop", "ModeEventHandler", m_priority+1, Array("stop", Me)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_stop_events.Add newEvent.Name, newEvent
+            AddPinEventListener newEvent.EventName, m_name & "_stop", "ModeEventHandler", m_priority+1, Array("stop", Me, newEvent)
         Next
-        AddPinEventListener "ball_ended", m_name & "_stop", "ModeEventHandler", m_priority+1, Array("stop", Me)
+        Set newEvent = (new GlfEvent)("ball_ended")
+        AddPinEventListener newEvent.EventName, m_name & "_stop", "ModeEventHandler", m_priority+1, Array("stop", Me, newEvent)
     End Property
     Public Property Let Debug(value) : m_debug = value : End Property
 
 	Public default Function init(name, priority)
         m_name = "mode_"&name
         m_priority = priority
+        Set m_start_events = CreateObject("Scripting.Dictionary")
+        Set m_stop_events = CreateObject("Scripting.Dictionary")
         Set m_ballsaves = CreateObject("Scripting.Dictionary")
         Set m_counters = CreateObject("Scripting.Dictionary")
         Set m_timers = CreateObject("Scripting.Dictionary")
@@ -126,6 +142,7 @@ Class Mode
         Set m_multiballs = CreateObject("Scripting.Dictionary")
         Set m_shots = CreateObject("Scripting.Dictionary")
         Set m_shot_groups = CreateObject("Scripting.Dictionary")
+        Set m_ballholds = CreateObject("Scripting.Dictionary")
         Set m_lightplayer = (new GlfLightPlayer)(Me)
         Set m_showplayer = (new GlfShowPlayer)(Me)
         Set m_eventplayer = (new GlfEventPlayer)(Me)
@@ -187,18 +204,40 @@ Class Mode
 End Class
 
 Function ModeEventHandler(args)
-    Dim ownProps, kwargs : ownProps = args(0) : kwargs = args(1) 
+    Dim ownProps, kwargs : ownProps = args(0)
+    If IsObject(args(1)) Then
+        Set kwargs = args(1)
+    Else
+        kwargs = args(1) 
+    End If
     Dim evt : evt = ownProps(0)
     Dim mode : Set mode = ownProps(1)
+    Dim glfEvent
     Select Case evt
         Case "start"
+            Set glfEvent = ownProps(2)
+            If Not IsNull(glfEvent.Condition) Then
+                If GetRef(glfEvent.Condition)() = False Then
+                    Exit Function
+                End If
+            End If
             mode.StartMode
         Case "stop"
+            Set glfEvent = ownProps(2)
+            If Not IsNull(glfEvent.Condition) Then
+                If GetRef(glfEvent.Condition)() = False Then
+                    Exit Function
+                End If
+            End If
             mode.StopMode
         Case "started"
             DispatchPinEvent mode.Name & "_started", Null
         Case "stopped"
             DispatchPinEvent mode.Name & "_stopped", Null
     End Select
-    ModeEventHandler = kwargs
+    If IsObject(args(1)) Then
+        Set ModeEventHandler = kwargs
+    Else
+        ModeEventHandler = kwargs
+    End If
 End Function

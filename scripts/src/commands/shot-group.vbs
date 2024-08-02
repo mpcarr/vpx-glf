@@ -16,6 +16,7 @@ Class GlfShotGroup
     Private m_temp_shots
     Private m_rotation_pattern
     Private m_rotation_enabled
+    Private m_isRotating
  
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get CommonState()
@@ -32,10 +33,6 @@ Class GlfShotGroup
  
     Public Property Let Shots(value)
         m_shots = value
-        Dim shot_name
-        For Each shot_name in m_shots
-            AddPinEventListener "shot_" & shot_name & "_hit", m_name & "_" & m_mode & "_hit", "ShotGroupEventHandler", m_priority, Array("hit", Me)
-        Next
         m_rotation_pattern = Glf_CopyArray(Glf_ShotProfiles(m_base_device.Mode.Shots(m_shots(0)).Profile).RotationPattern)
     End Property
  
@@ -96,6 +93,7 @@ Class GlfShotGroup
         m_common_state = Empty
         m_rotation_enabled = True
         m_rotation_pattern = Empty
+        m_isRotating = False
  
         Set m_enable_rotation_events = CreateObject("Scripting.Dictionary")
         Set m_disable_rotation_events = CreateObject("Scripting.Dictionary")
@@ -112,6 +110,7 @@ Class GlfShotGroup
 	End Function
  
     Public Sub Activate
+        Dim evt
         For Each evt in m_enable_rotation_events.Keys()
             m_rotation_enabled = False
             AddPinEventListener m_enable_rotation_events(evt).EventName, m_name & "_enable_rotation", "ShotGroupEventHandler", m_priority, Array("enable_rotation", Me, evt)
@@ -134,9 +133,15 @@ Class GlfShotGroup
         For Each evt in m_rotate_right_events.Keys()
             AddPinEventListener m_rotate_right_events(evt).EventName, m_name & "_rotate_right", "ShotGroupEventHandler", m_priority, Array("rotate_right", Me, evt)
         Next
+        Dim shot_name
+        For Each shot_name in m_shots
+            AddPinEventListener "shot_" & shot_name & "_hit", m_name & "_" & m_mode & "_hit", "ShotGroupEventHandler", m_priority, Array("hit", Me)
+            AddPlayerStateEventListener "player_shot_" & shot_name, m_name & "_" & m_mode & "_complete", "ShotGroupEventHandler", m_priority, Array("complete", Me)
+        Next
     End Sub
  
     Public Sub Deactivate
+        Dim evt
         m_rotation_enabled = True
         For Each evt in m_enable_rotation_events.Keys()
             RemovePinEventListener m_enable_rotation_events(evt).EventName, m_name & "_enable_rotation"
@@ -159,9 +164,17 @@ Class GlfShotGroup
         For Each evt in m_rotate_right_events.Keys()
             RemovePinEventListener m_rotate_right_events(evt).EventName, m_name & "_rotate_right"
         Next
+        Dim shot_name
+        For Each shot_name in m_shots
+            RemovePinEventListener "shot_" & shot_name & "_hit", m_name & "_" & m_mode & "_hit"
+            RemovePlayerStateEventListener "player_shot_" & shot_name, m_name & "_" & m_mode & "_complete"
+        Next
     End Sub
  
-    Private Function CheckForComplete()
+    Public Function CheckForComplete()
+        If m_isRotating Then
+            Exit Function
+        End If
         Dim state : state = CommonState()
         If state = m_common_state Then
             Exit Function
@@ -173,9 +186,9 @@ Class GlfShotGroup
             Exit Function
         End If
  
-        Dim state_name : state_name = Glf_ShotProfiles(m_base_device.Mode.Shots(m_shots(0)).Profile).StateName(m_state)
+        Dim state_name : state_name = Glf_ShotProfiles(m_base_device.Mode.Shots(m_shots(0)).Profile).StateName(m_common_state)
  
-        Log "Shot group is complete with state: " & state_name
+        m_base_device.Log "Shot group is complete with state: " & state_name
         Dim kwargs : Set kwargs = GlfKwargs()
 		With kwargs
             .Add "state", state_name
@@ -255,12 +268,14 @@ Class GlfShotGroup
  
         shot_states = Glf_RotateArray(shot_states, direction)
         x=0
+        m_isRotating = True
         For Each shot in m_temp_shots.Keys
             m_base_device.Log "Rotating Shot:" & shot
             m_temp_shots(shot).Jump shot_states(x), True, False
             x=x+1
         Next 
- 
+        m_isRotating = False
+        CheckForComplete()
     End Sub
  
     Public Function ToYaml
@@ -405,6 +420,8 @@ Function ShotGroupEventHandler(args)
         Case "hit"
             DispatchPinEvent device.Name & "_hit", Null
             DispatchPinEvent device.Name & "_" & kwargs("state") & "_hit", Null
+        Case "complete"
+            device.CheckForComplete
         Case "enable_rotation"
             device.EnableRotation
         Case "disable_rotation"

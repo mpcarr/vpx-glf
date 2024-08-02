@@ -31,7 +31,10 @@ Dim delayCallbacks : Set delayCallbacks = CreateObject("Scripting.Dictionary")
 
 Sub SetDelay(name, callbackFunc, args, delayInMs)
     Dim executionTime
-    executionTime = AlignToNearest5th(gametime + delayInMs)
+    executionTime = AlignToNearest10th(gametime + delayInMs)
+    If gametime <= executionTime Then
+        executionTime = executionTime + 100
+    End If
     
     If delayQueueMap.Exists(name) Then
         delayQueueMap.Remove name
@@ -52,8 +55,8 @@ Sub SetDelay(name, callbackFunc, args, delayInMs)
     
 End Sub
 
-Function AlignToNearest5th(timeMs)
-    AlignToNearest5th = Int(timeMs / 200) * 200
+Function AlignToNearest10th(timeMs)
+    AlignToNearest10th = Int(timeMs / 100) * 100
 End Function
 
 Function RemoveDelay(name)
@@ -75,7 +78,7 @@ Sub DelayTick()
     Dim key, delayObject
 
     Dim executionTime
-    executionTime = AlignToNearest5th(gametime)
+    executionTime = AlignToNearest10th(gametime)
     If delayQueue.Exists(executionTime) Then
         For Each key In delayQueue(executionTime).Keys()
             Set delayObject = delayQueue(executionTime)(key)

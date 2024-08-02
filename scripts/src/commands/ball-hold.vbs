@@ -1,0 +1,255 @@
+
+
+Class GlfBallHold
+
+    Private m_name
+    Private m_priority
+    Private m_mode
+    Private m_base_device
+
+    Private m_enabled
+    Private m_balls_to_hold
+    Private m_hold_devices
+    Private m_balls_held
+    Private m_hold_queue
+    Private m_release_all_events
+
+    Private m_control_events
+    Private m_running
+    Private m_ticks
+    Private m_ticks_remaining
+    Private m_start_value
+    Private m_end_value
+    Private m_direction
+    Private m_tick_interval
+    Private m_starting_tick_interval
+    Private m_max_value
+    Private restart_on_complete
+    Private m_start_running
+
+    Public Property Get Name() : Name = m_name : End Property
+
+    Public Property Let EnableEvents(value) : m_base_device.EnableEvents = value : End Property
+    Public Property Let DisableEvents(value) : m_base_device.DisableEvents = value : End Property
+    
+    Public Property Get BallsToHold() : BallsToHold = m_balls_to_hold : End Property
+    Public Property Let BallsToHold(value) : m_balls_to_hold = value : End Property
+
+    Public Property Get HoldDevices() : HoldDevices = m_hold_devices : End Property
+    Public Property Let HoldDevices(value) : m_hold_devices = value : End Property
+
+    Public Property Get ReleaseAllEvents(): Set ReleaseAllEvents = m_release_all_events: End Property
+    Public Property Let ReleaseAllEvents(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_release_all_events.Add newEvent.Name, newEvent
+        Next
+    End Property
+
+	Public default Function init(name, mode)
+        m_name = "ball_hold_" & name
+        m_mode = mode.Name
+        m_priority = mode.Priority
+        m_balls_to_hold = 0
+        m_balls_held = 0
+        m_hold_devices = Array()
+        Set m_hold_queue = CreateObject("Scripting.Dictionary")
+        Set m_release_all_events = CreateObject("Scripting.Dictionary")
+
+        Set m_base_device = (new GlfBaseModeDevice)(mode, "ball_hold", Me)
+        glf_ball_holds.Add name, Me
+        Set Init = Me
+	End Function
+
+    Public Sub Activate()
+        If UBound(m_base_device.EnableEvents.Keys()) = -1 Then
+            Enable()
+        End If
+    End Sub
+
+    Public Sub Deactivate()
+        Disable()
+    End Sub
+
+    Public Sub Enable()
+        m_enabled = True
+        'Add Event Listeners
+        Dim device
+        For Each device in m_hold_devices
+            AddPinEventListener "balldevice_" & device & "_ball_enter", m_mode & "_" & name & "_hold", "BallHoldsEventHandler", m_priority, Array("hold", me, device)
+        Next
+        Dim evt
+        For Each evt in m_release_all_events.Keys
+            AddPinEventListener m_release_all_events(evt).EventName, m_mode & "_" & name & "_release_all", "BallHoldsEventHandler", m_priority, Array("release_all", me, m_release_all_events(evt))
+        Next
+    End Sub
+
+    Public Sub Disable()
+        m_enabled = False
+        Dim device
+        For Each device in m_hold_devices
+            RemovePinEventListener "balldevice_" & device & "_ball_enter", m_mode & "_" & name & "_hold"
+        Next
+        Dim evt
+        For Each evt in m_release_all_events.Keys
+            RemovePinEventListener m_release_all_events(evt).EventName, m_mode & "_" & name & "_release_all"
+        Next
+    End Sub
+
+    Public Function IsFull()
+        'Return true if hold is full
+        If RemainingSpaceInHold() = 0 Then
+            IsFull = True
+        Else
+            IsFull = False
+        End If
+    End Function
+
+    Public Function RemainingSpaceInHold()
+        'Return the remaining capacity of the hold.
+        Dim balls
+        balls = m_balls_to_hold - m_balls_held
+        If balls < 0 Then
+            balls = 0
+        End If
+        RemainingSpaceInHold = balls
+    End Function
+
+    Public Function HoldBall(device, unclaimed_balls)        
+        ' Handle result of _ball_enter event of hold_devices.
+        If IsFull() Then
+            m_base_device.Log "Cannot hold balls. Hold is full."
+            HoldBall = unclaimed_balls
+            Exit Function
+        End If
+
+        If unclaimed_balls <= 0 Then
+            HoldBalls = unclaimed_balls
+            Exit Function
+        End If
+
+        Dim capacity : capacity = RemainingSpaceInHold()
+        Dim balls_to_hold
+        If unclaimed_balls > capacity Then
+            balls_to_hold = capacity
+        Else
+            balls_to_hold = unclaimed_balls
+        End If
+        m_balls_held = m_balls_held + balls_to_hold
+        m_base_device.Log "Held " & balls_to_hold & " balls"
+
+        Dim kwargs : Set kwargs = GlfKwargs()
+        With kwargs
+            .Add "balls_held", balls_to_hold
+            .Add "total_balls_held", m_balls_held
+        End With
+        DispatchPinEvent m_name & "_held_ball", kwargs
+
+        'check if we are full now and post event if yes
+        If IsFull() Then
+            Set kwargs = GlfKwargs()
+            With kwargs
+                .Add "balls", m_balls_held
+            End With
+            DispatchPinEvent m_name & "_full", kwargs
+        End If
+
+        m_hold_queue.Add device, unclaimed_balls
+
+        HoldBall = unclaimed_balls - balls_to_hold
+    End Function
+
+    Public Function ReleaseAll()
+        'Release all balls in hold.
+        ReleaseAll = ReleaseBalls(m_balls_held)
+    End Function
+
+    Public Function ReleaseBalls(balls_to_release)
+        'Release all balls and return the actual amount of balls released.
+        '
+        'Args:
+        '----
+        '    balls_to_release: number of ball to release from hold
+        
+        If Ubound(m_hold_queue.Keys()) = -1 Then
+            ReleaseBalls = 0
+            Exit Function
+        End If
+
+        Dim remaining_balls_to_release : remaining_balls_to_release = balls_to_release
+
+        m_base_device.Log "Releasing up to " & balls_to_release & " balls from hold"
+        Dim balls_released : balls_released = 0
+        Do While Ubound(m_hold_queue.Keys()) > -1
+            Dim keys : keys = m_hold_queue.Keys()
+            Dim device, balls_held
+            device = keys(0)
+            balls_held = m_hold_queue(device)
+            m_hold_queue.Remove device
+
+            Dim deviceControl : Set deviceControl = glf_ball_devices(device)
+            
+            Dim balls : balls = balls_held
+            Dim balls_in_device : balls_in_device = deviceControl.Balls
+            If balls > balls_in_device Then
+                balls = balls_in_device
+            End If
+
+            If balls > remaining_balls_to_release Then
+                m_hold_queue.Add device, balls_held - remaining_balls_to_release
+                balls = remaining_balls_to_release
+            End If
+
+            deviceControl.EjectBalls balls
+            balls_released = balls_released + balls
+            remaining_balls_to_release = remaining_balls_to_release - balls
+            If remaining_balls_to_release <= 0 Then
+               Exit Do
+            End If
+        Loop
+
+        If balls_released > 0 Then
+            Dim kwargs : Set kwargs = GlfKwargs()
+            With kwargs
+                .Add "balls_released", balls_released
+            End With
+            DispatchPinEvent m_name & "_balls_released", kwargs
+        End If
+
+        m_balls_held = m_balls_held - balls_released
+        ReleaseBalls = balls_released
+    End Function
+
+End Class
+
+Function BallHoldsEventHandler(args)
+    Dim ownProps, kwargs : ownProps = args(0)
+    Dim evt : evt = ownProps(0)
+    Dim ball_hold : Set ball_hold = ownProps(1)
+    Dim glfEvent
+    If IsObject(args(1)) Then
+        Set kwargs = args(1)
+    Else
+        kwargs = args(1) 
+    End If
+
+    Select Case evt
+        Case "hold"
+            kwargs = ball_hold.HoldBall(ownProps(2), kwargs)
+        Case "release_all"
+            Set glfEvent = ownProps(2)
+            If Not IsNull(glfEvent.Condition) Then
+                If GetRef(glfEvent.Condition)() = False Then
+                    Exit Function
+                End If
+            End If
+            ball_hold.ReleaseAll
+    End Select
+
+    If IsObject(args(1)) Then
+        Set BallHoldsEventHandler = kwargs
+    Else
+        BallHoldsEventHandler = kwargs
+    End If
+End Function

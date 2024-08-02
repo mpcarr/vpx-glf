@@ -15,6 +15,10 @@ Dim Glf_ShowStartQueue : Set Glf_ShowStartQueue = CreateObject("Scripting.Dictio
 Dim glf_playerEventsOrder : Set glf_playerEventsOrder = CreateObject("Scripting.Dictionary")
 Dim playerState : Set playerState = CreateObject("Scripting.Dictionary")
 Dim glf_Modes : Set glf_Modes = CreateObject("Scripting.Dictionary")
+
+Dim glf_ball_devices : Set glf_ball_devices = CreateObject("Scripting.Dictionary")
+Dim glf_ball_holds : Set glf_ball_holds = CreateObject("Scripting.Dictionary")
+
 Dim bcpController : bcpController = Null
 Dim useBCP : useBCP = False
 Dim bcpPort : bcpPort = 5050
@@ -117,11 +121,21 @@ Public Sub Glf_KeyDown(ByVal keycode)
 			DispatchPinEvent "s_right_flipper_active", Null
 		End If
 		
+		If keycode = LockbarKey Then
+			DispatchPinEvent "s_lockbar_key_active", Null
+		End If
+
+		If KeyCode = PlungerKey Then
+			DispatchPinEvent "s_plunger_key_active", Null
+		End If
+		
 		If keycode = StartGameKey Then
 			If glf_canAddPlayers = True Then
 				Glf_AddPlayer()
 			End If
 		End If
+
+
 	Else
 		If keycode = StartGameKey Then
 			Glf_AddPlayer()
@@ -134,6 +148,7 @@ Public Sub Glf_KeyUp(ByVal keycode)
 	If glf_gameStarted = True Then
 		If KeyCode = PlungerKey Then
 			Plunger.Fire
+			DispatchPinEvent "s_plunger_key_inactive", Null
 		End If
 
 		If keycode = LeftFlipperKey Then
@@ -142,6 +157,10 @@ Public Sub Glf_KeyUp(ByVal keycode)
 		
 		If keycode = RightFlipperKey Then
 			DispatchPinEvent "s_right_flipper_inactive", Null
+		End If
+
+		If keycode = LockbarKey Then
+			DispatchPinEvent "s_lockbar_key_inactive", Null
 		End If
 	End If
 End Sub
@@ -224,6 +243,19 @@ Function Glf_ReplaceCurrentPlayerAttributes(inputString)
     Glf_ReplaceCurrentPlayerAttributes = outputString
 End Function
 
+Function Glf_ReplaceDeviceAttributes(inputString)
+    Dim pattern, replacement, regex, outputString
+    pattern = "device\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)"
+    Set regex = New RegExp
+    regex.Pattern = pattern
+    regex.IgnoreCase = True
+    regex.Global = True
+	replacement = "glf_$1(""$2"").$3"
+    outputString = regex.Replace(inputString, replacement)
+    Set regex = Nothing
+    Glf_ReplaceCurrentPlayerAttributes = outputString
+End Function
+
 Function Glf_ConvertIf(value, retName)
     Dim parts, condition, truePart, falsePart
     parts = Split(value, " if ")
@@ -244,6 +276,7 @@ End Function
 Function Glf_ConvertCondition(value, retName)
 	value = Replace(value, "==", "=")
 	value = Replace(value, "!=", "<>")
+	value = Replace(value, "&&", "And")
 	Glf_ConvertCondition = "    "&retName&" = " & value
 End Function
 
@@ -455,6 +488,7 @@ Dim glf_ShowOn : glf_ShowOn = Array(Array("(lights)|100"))
 Dim glf_ShowOff : glf_ShowOff = Array(Array("(lights)|0"))
 Dim glf_ShowFlash : glf_ShowFlash = Array(Array("(lights)|100"), Array("(lights)|0"))
 Dim glf_ShowFlashColor : glf_ShowFlashColor = Array(Array("(lights)|100|(color)"), Array("(lights)|0|(color)"))
+Dim glf_ShowOnColor : glf_ShowOnColor = Array(Array("(lights)|100|(color)"))
 
 With GlfShotProfiles("default")
 	With .States("on")
@@ -466,12 +500,12 @@ With GlfShotProfiles("default")
 End With
 
 With GlfShotProfiles("flash_color")
+	With .States("off")
+		.Show = glf_ShowOff
+	End With
 	With .States("on")
 			.Show = glf_ShowFlashColor
-	End With
-	With .States("off")
-			.Show = glf_ShowOff
-	End With
+	End With	
 End With
 
 

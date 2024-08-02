@@ -17,6 +17,8 @@ Class GlfShot
     Private m_show_cache
     Private m_state
     Private m_enabled
+    Private m_player_var_name
+    Private m_persist
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get Profile(): Profile = m_profile: End Property
@@ -63,6 +65,7 @@ Class GlfShot
             m_restart_events.Add newEvent.Name, newEvent
         Next
     End Property   
+    Public Property Let Persist(value) : m_persist = value : End Property
     Public Property Let Profile(value) : m_profile = value : End Property
     Public Property Let Switch(value) : m_switches = Array(value) : End Property
     Public Property Let Switches(value) : m_switches = value : End Property
@@ -82,10 +85,11 @@ Class GlfShot
         m_priority = mode.Priority
 
         m_enabled = False
-
+        m_persist = True
         Set m_base_device = (new GlfBaseModeDevice)(mode, "shot", Me)
 
         m_profile = "default"
+        m_player_var_name = "player_" & m_name
         m_state = -1
         m_switches = Array()
         m_start_enabled = Empty
@@ -101,7 +105,14 @@ Class GlfShot
 	End Function
 
     Public Sub Activate()
-        m_state = 0
+        If IsNull(GetPlayerState(m_player_var_name)) Then
+            m_state = 0
+            If m_persist Then
+                SetPlayerState m_player_var_name, 0
+            End If
+        Else
+            m_state = GetPlayerState(m_player_var_name)
+        End If
         If m_start_enabled = True Then
             Enable()
         Else
@@ -113,7 +124,6 @@ Class GlfShot
 
     Public Sub Deactivate()
         Disable()
-        m_state = -1
     End Sub
 
     Public Sub Enable()
@@ -264,6 +274,9 @@ Class GlfShot
             If profile.ProfileLoop Then
                 StopShowForState(m_state)
                 m_state = 0
+                If m_persist Then
+                    SetPlayerState m_player_var_name, 0
+                End If
                 PlayShowForState(m_state)
             Else
                 Advance = False
@@ -272,6 +285,9 @@ Class GlfShot
         Else
             StopShowForState(m_state)
             m_state = m_state + 1
+            If m_persist Then
+                SetPlayerState m_player_var_name, m_state
+            End If
             PlayShowForState(m_state)
         End If
 
@@ -298,6 +314,9 @@ Class GlfShot
 
         StopShowForState(m_state)
         m_state = state
+        If m_persist Then
+            SetPlayerState m_player_var_name, m_state
+        End If
         PlayShowForState(m_state)
     End Sub
 

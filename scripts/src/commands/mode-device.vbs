@@ -48,10 +48,10 @@ Class GlfBaseModeDevice
         Log "Activating"
         Dim evt
         For Each evt In m_enable_events.Keys()
-            AddPinEventListener m_enable_events(evt).EventName, m_mode.Name & m_device & "_" & m_parent.Name & "_enable", "BaseModeDeviceEventHandler", m_priority, Array("enable", m_parent, evt)
+            AddPinEventListener m_enable_events(evt).EventName, m_mode.Name & m_device & "_" & m_parent.Name & "_enable", "BaseModeDeviceEventHandler", m_priority, Array("enable", m_parent, m_enable_events(evt))
         Next
         For Each evt In m_disable_events.Keys()
-            AddPinEventListener m_disable_events(evt).EventName, m_mode.Name & m_device & "_" & m_parent.Name & "_disable", "BaseModeDeviceEventHandler", m_priority, Array("disable", m_parent, evt)
+            AddPinEventListener m_disable_events(evt).EventName, m_mode.Name & m_device & "_" & m_parent.Name & "_disable", "BaseModeDeviceEventHandler", m_priority, Array("disable", m_parent, m_enable_events(evt))
         Next
         m_parent.Activate
     End Sub
@@ -80,14 +80,27 @@ Function BaseModeDeviceEventHandler(args)
     Dim ownProps, kwargs : ownProps = args(0) : kwargs = args(1) 
     Dim evt : evt = ownProps(0)
     Dim device : Set device = ownProps(1)
+    Dim glfEvent
     Select Case evt
         Case "activate"
             device.Activate
         Case "deactivate"
             device.Deactivate
         Case "enable"
+            Set glfEvent = ownProps(2)
+            If Not IsNull(glfEvent.Condition) Then
+                If GetRef(glfEvent.Condition)() = False Then
+                    Exit Function
+                End If
+            End If
             device.Enable
         Case "disable"
+            Set glfEvent = ownProps(2)
+            If Not IsNull(glfEvent.Condition) Then
+                If GetRef(glfEvent.Condition)() = False Then
+                    Exit Function
+                End If
+            End If
             device.Disable
     End Select
     BaseModeDeviceEventHandler = kwargs

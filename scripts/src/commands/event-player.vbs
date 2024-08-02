@@ -65,12 +65,21 @@ End Class
 
 Function EventPlayerEventHandler(args)
     
-    Dim ownProps, kwargs : ownProps = args(0) : kwargs = args(1) 
+    Dim ownProps, kwargs : ownProps = args(0)
+    If IsObject(args(1)) Then
+        Set kwargs = args(1)
+    Else
+        kwargs = args(1) 
+    End If
     Dim evt : evt = ownProps(0)
     Dim eventPlayer : Set eventPlayer = ownProps(1)
     Select Case evt
         Case "play"
             eventPlayer.FireEvent ownProps(2)
     End Select
-    EventPlayerEventHandler = kwargs
+    If IsObject(args(1)) Then
+        Set EventPlayerEventHandler = kwargs
+    Else
+        EventPlayerEventHandler = kwargs
+    End If
 End Function

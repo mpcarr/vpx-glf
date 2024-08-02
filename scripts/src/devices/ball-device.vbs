@@ -29,6 +29,9 @@ Class BallDevice
 	Public Property Get HasBall()
         HasBall = (Not IsNull(m_balls(0)) And m_ejecting = False)
     End Property
+    
+    Public Property Get Balls(): Balls = m_balls_in_device : End Property
+
     Public Property Let EjectCallback(value) : m_eject_callback = value : End Property
     
     Public Property Let EjectAngle(value) : m_eject_angle = glf_PI * (0 - 90) / 180 : End Property
@@ -88,6 +91,7 @@ Class BallDevice
         m_balls_in_device = 0
         m_mechcanical_eject = False
         m_eject_timeout = 0
+        glf_ball_devices.Add name, Me
 	    Set Init = Me
 	End Function
 
@@ -98,7 +102,7 @@ Class BallDevice
         m_balls_in_device = m_balls_in_device + 1
         Log "Ball Entered" 
         Dim unclaimed_balls
-        unclaimed_balls = DispatchRelayPinEvent(m_name & "_ball_entered", 1)
+        unclaimed_balls = DispatchRelayPinEvent(m_name & "_ball_enter", 1)
         Log "Unclaimed Balls: " & unclaimed_balls
         If (m_default_device = False Or m_ejecting = True) And unclaimed_balls > 0 And Not IsNull(m_balls(0)) Then
             SetDelay m_name & "_eject_attempt", "BallDeviceEventHandler", Array(Array("ball_eject", Me), ball), 500
@@ -150,6 +154,13 @@ Class BallDevice
         If Not IsNull(m_eject_callback) Then
             GetRef(m_eject_callback)(m_balls(0))
         End If
+    End Sub
+
+    Public Sub EjectBalls(balls)
+        Log "Ejecting "&balls&" Balls."
+        m_ejecting_all = True
+        m_balls_to_eject = balls
+        Eject()
     End Sub
 
     Public Sub EjectAll
