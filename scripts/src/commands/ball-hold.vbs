@@ -13,6 +13,8 @@ Class GlfBallHold
     Private m_balls_held
     Private m_hold_queue
     Private m_release_all_events
+    Private m_release_one_events
+    Private m_release_one_if_full_events
 
     Private m_control_events
     Private m_running
@@ -47,6 +49,24 @@ Class GlfBallHold
         Next
     End Property
 
+    Public Property Get ReleaseOneEvents(): Set ReleaseOneEvents = m_release_one_events: End Property
+    Public Property Let ReleaseOneEvents(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_release_one_events.Add newEvent.Name, newEvent
+        Next
+    End Property
+
+    Public Property Get ReleaseOneIfFullEvents(): Set ReleaseOneIfFullEvents = m_release_one_if_full_events: End Property
+    Public Property Let ReleaseOneIfFullEvents(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_release_one_if_full_events.Add newEvent.Name, newEvent
+        Next
+    End Property
+
 	Public default Function init(name, mode)
         m_name = "ball_hold_" & name
         m_mode = mode.Name
@@ -56,6 +76,8 @@ Class GlfBallHold
         m_hold_devices = Array()
         Set m_hold_queue = CreateObject("Scripting.Dictionary")
         Set m_release_all_events = CreateObject("Scripting.Dictionary")
+        Set m_release_one_events = CreateObject("Scripting.Dictionary")
+        Set m_release_one_if_full_events = CreateObject("Scripting.Dictionary")
 
         Set m_base_device = (new GlfBaseModeDevice)(mode, "ball_hold", Me)
         glf_ball_holds.Add name, Me
@@ -83,6 +105,12 @@ Class GlfBallHold
         For Each evt in m_release_all_events.Keys
             AddPinEventListener m_release_all_events(evt).EventName, m_mode & "_" & name & "_release_all", "BallHoldsEventHandler", m_priority, Array("release_all", me, m_release_all_events(evt))
         Next
+        For Each evt in m_release_one_events.Keys
+            AddPinEventListener m_release_one_events(evt).EventName, m_mode & "_" & name & "_release_one", "BallHoldsEventHandler", m_priority, Array("release_one", me, m_release_one_events(evt))
+        Next
+        For Each evt in m_release_one_if_full_events.Keys
+            AddPinEventListener m_release_one_if_full_events(evt).EventName, m_mode & "_" & name & "_release_one_if_full", "BallHoldsEventHandler", m_priority, Array("release_one_if_full", me, m_release_one_if_full_events(evt))
+        Next
     End Sub
 
     Public Sub Disable()
@@ -94,6 +122,12 @@ Class GlfBallHold
         Dim evt
         For Each evt in m_release_all_events.Keys
             RemovePinEventListener m_release_all_events(evt).EventName, m_mode & "_" & name & "_release_all"
+        Next
+        For Each evt in m_release_one_events.Keys
+            RemovePinEventListener m_release_one_events(evt).EventName, m_mode & "_" & name & "_release_one"
+        Next
+        For Each evt in m_release_one_if_full_events.Keys
+            RemovePinEventListener m_release_one_if_full_events(evt).EventName, m_mode & "_" & name & "_release_one_if_full"
         Next
     End Sub
 
@@ -221,6 +255,76 @@ Class GlfBallHold
         ReleaseBalls = balls_released
     End Function
 
+    Public Function ToYaml()
+        Dim yaml
+        Dim evt, x
+        If UBound(m_base_device.EnableEvents().Keys) > -1 Then
+            yaml = yaml & "  enable_events: "
+            x=0
+            For Each key in m_base_device.EnableEvents().keys
+                yaml = yaml & m_base_device.EnableEvents()(key).Raw
+                If x <> UBound(m_base_device.EnableEvents().Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        If UBound(m_base_device.DisableEvents().Keys) > -1 Then
+            yaml = yaml & "  disable_events: "
+            x=0
+            For Each key in m_base_device.DisableEvents().keys
+                yaml = yaml & m_base_device.DisableEvents()(key).Raw
+                If x <> UBound(m_base_device.DisableEvents().Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        yaml = yaml & "  hold_devices: " & Join(m_hold_devices, ",") & vbCrLf
+        If m_balls_to_hold > 0 Then
+            yaml = yaml & "  balls_to_hold: " & m_balls_to_hold & vbCrLf
+        End If
+        If UBound(m_release_all_events.Keys) > -1 Then
+            yaml = yaml & "  release_all_events: "
+            x=0
+            For Each key in m_release_all_events.keys
+                yaml = yaml & m_release_all_events(key).Raw
+                If x <> UBound(m_release_all_events.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        If UBound(m_release_one_events.Keys) > -1 Then
+            yaml = yaml & "  release_one_events: "
+            x=0
+            For Each key in m_release_one_events.keys
+                yaml = yaml & m_release_one_events(key).Raw
+                If x <> UBound(m_release_one_events.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        If UBound(m_release_one_if_full_events.Keys) > -1 Then
+            yaml = yaml & "  release_one_if_full_events: "
+            x=0
+            For Each key in m_release_one_if_full_events.keys
+                yaml = yaml & m_release_one_if_full_events(key).Raw
+                If x <> UBound(m_release_one_if_full_events.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        ToYaml = yaml
+    End Function
+
 End Class
 
 Function BallHoldsEventHandler(args)
@@ -245,6 +349,24 @@ Function BallHoldsEventHandler(args)
                 End If
             End If
             ball_hold.ReleaseAll
+        Case "release_one"
+            Set glfEvent = ownProps(2)
+            If Not IsNull(glfEvent.Condition) Then
+                If GetRef(glfEvent.Condition)() = False Then
+                    Exit Function
+                End If
+            End If
+            ball_hold.ReleaseBalls 1
+        Case "release_one_if_full"
+            Set glfEvent = ownProps(2)
+            If Not IsNull(glfEvent.Condition) Then
+                If GetRef(glfEvent.Condition)() = False Then
+                    Exit Function
+                End If
+            End If
+            If ball_hold.IsFull Then
+                ball_hold.ReleaseBalls 1
+            End If
     End Select
 
     If IsObject(args(1)) Then

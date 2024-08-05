@@ -53,12 +53,19 @@ Class GlfEventPlayer
         Next
     End Sub
 
-    Public Function ToYaml
+    Public Function ToYaml()
         Dim yaml
         Dim evt
-        For Each evt In m_events.Keys()
-            yaml = yaml & "  evt: " & Join(m_events(evt), ",") & vbCrLf
-        Next
+        If UBound(m_events.Keys) > -1 Then
+            For Each key in m_events.keys
+                yaml = yaml & "  " & m_events(key).Raw & ": " & vbCrLf
+                For Each evt in m_eventValues(key)
+                    yaml = yaml & "    - " & evt & vbCrLf
+                Next
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        ToYaml = yaml
     End Function
 
 End Class

@@ -90,7 +90,7 @@ Class BallDevice
         m_balls_to_eject = 0
         m_balls_in_device = 0
         m_mechcanical_eject = False
-        m_eject_timeout = 0
+        m_eject_timeout = 1000
         glf_ball_devices.Add name, Me
 	    Set Init = Me
 	End Function
@@ -159,14 +159,14 @@ Class BallDevice
     Public Sub EjectBalls(balls)
         Log "Ejecting "&balls&" Balls."
         m_ejecting_all = True
-        m_balls_to_eject = balls
+        m_balls_to_eject = balls - 1
         Eject()
     End Sub
 
     Public Sub EjectAll
-        Log "Ejecting All."
+        Log "Ejecting All." 
         m_ejecting_all = True
-        m_balls_to_eject = m_balls_in_device
+        m_balls_to_eject = m_balls_in_device - 1 
         Eject()
     End Sub
 

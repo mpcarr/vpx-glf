@@ -172,10 +172,35 @@ Class Mode
 
     Public Function ToYaml()
         dim yaml, child
-        yaml = "mode:" & vbCrLf
-        yaml = yaml & "  start_events: " & Join(m_start_events, ",") & vbCrLf
-        yaml = yaml & "  stop_events: " & Join(m_stop_events, ",") & vbCrLf
-        yaml = yaml & "  priority: " & m_priority & vbCrLf
+        yaml = "#config_version=6" & vbCrLf
+        yaml = yaml & "mode:" & vbCrLf
+
+        If UBound(m_start_events.Keys) > -1 Then
+            yaml = yaml & "  start_events: "
+            x=0
+            For Each key in m_start_events.keys
+                yaml = yaml & m_start_events(key).Raw
+                If x <> UBound(m_start_events.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        If UBound(m_stop_events.Keys) > -1 Then
+            yaml = yaml & "  stop_events: "
+            x=0
+            For Each key in m_stop_events.keys
+                yaml = yaml & m_stop_events(key).Raw
+                If x <> UBound(m_stop_events.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+
+        yaml = yaml & "  priority: " & m_priority
         yaml = yaml & vbCrLf
         If UBound(m_ballsaves.Keys)>-1 Then
             yaml = yaml & "ballsaves: " & vbCrLf
@@ -198,8 +223,52 @@ Class Mode
             Next
         End If
         yaml = yaml & vbCrLf
+        If UBound(m_eventplayer.Events.Keys)>-1 Then
+            yaml = yaml & "event_player: " & vbCrLf
+            yaml = yaml & m_eventplayer.ToYaml()
+        End If
+        yaml = yaml & vbCrLf
+        If UBound(m_ballholds.Keys)>-1 Then
+            yaml = yaml & "ball_holds: " & vbCrLf
+            For Each child in m_ballholds.Keys
+                yaml = yaml & m_ballholds(child).ToYaml
+            Next
+        End If
+        yaml = yaml & vbCrLf
+        
+        Dim fso, modesFolder, TxtFileStream
+        Set fso = CreateObject("Scripting.FileSystemObject")
+        modesFolder = "glf_mpf\modes\" & Replace(m_name, "mode_", "") & "\config"
+
+        If Not fso.FolderExists("glf_mpf") Then
+            fso.CreateFolder "glf_mpf"
+        End If
+
+        Dim currentFolder
+        Dim folderParts
+        Dim i
+    
+        ' Split the path into parts
+        folderParts = Split(modesFolder, "\")
+        
+        ' Initialize the current folder as the root
+        currentFolder = folderParts(0)
+    
+        ' Iterate over each part of the path and create folders as needed
+        For i = 1 To UBound(folderParts)
+            currentFolder = currentFolder & "\" & folderParts(i)
+            If Not fso.FolderExists(currentFolder) Then
+                fso.CreateFolder(currentFolder)
+            End If
+        Next
+
+
+        
+        Set TxtFileStream = fso.OpenTextFile(modesFolder & "\" & Replace(m_name, "mode_", "") & ".yaml", 2, True)
+        TxtFileStream.WriteLine yaml
+        TxtFileStream.Close
+
         ToYaml = yaml
-        Log yaml
     End Function
 End Class
 

@@ -111,7 +111,8 @@ Function Glf_Drain(args)
     If glf_BIP > 0 Then
         Exit Function
     End If
-        
+    
+    DispatchPinEvent GLF_BALL_ENDING, Null
     DispatchPinEvent GLF_BALL_ENDED, Null
     SetPlayerState GLF_CURRENT_BALL, GetPlayerState(GLF_CURRENT_BALL) + 1
 

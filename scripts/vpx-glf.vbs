@@ -515,6 +515,7 @@ End With
 
 Const GLF_GAME_STARTED = "game_started"
 Const GLF_GAME_OVER = "game_ended"
+Const GLF_BALL_ENDING = "ball_ending"
 Const GLF_BALL_ENDED = "ball_ended"
 Const GLF_NEXT_PLAYER = "next_player"
 Const GLF_BALL_DRAIN = "ball_drain"
@@ -676,6 +677,8 @@ Class GlfBallHold
     Private m_balls_held
     Private m_hold_queue
     Private m_release_all_events
+    Private m_release_one_events
+    Private m_release_one_if_full_events
 
     Private m_control_events
     Private m_running
@@ -710,6 +713,24 @@ Class GlfBallHold
         Next
     End Property
 
+    Public Property Get ReleaseOneEvents(): Set ReleaseOneEvents = m_release_one_events: End Property
+    Public Property Let ReleaseOneEvents(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_release_one_events.Add newEvent.Name, newEvent
+        Next
+    End Property
+
+    Public Property Get ReleaseOneIfFullEvents(): Set ReleaseOneIfFullEvents = m_release_one_if_full_events: End Property
+    Public Property Let ReleaseOneIfFullEvents(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_release_one_if_full_events.Add newEvent.Name, newEvent
+        Next
+    End Property
+
 	Public default Function init(name, mode)
         m_name = "ball_hold_" & name
         m_mode = mode.Name
@@ -719,6 +740,8 @@ Class GlfBallHold
         m_hold_devices = Array()
         Set m_hold_queue = CreateObject("Scripting.Dictionary")
         Set m_release_all_events = CreateObject("Scripting.Dictionary")
+        Set m_release_one_events = CreateObject("Scripting.Dictionary")
+        Set m_release_one_if_full_events = CreateObject("Scripting.Dictionary")
 
         Set m_base_device = (new GlfBaseModeDevice)(mode, "ball_hold", Me)
         glf_ball_holds.Add name, Me
@@ -746,6 +769,12 @@ Class GlfBallHold
         For Each evt in m_release_all_events.Keys
             AddPinEventListener m_release_all_events(evt).EventName, m_mode & "_" & name & "_release_all", "BallHoldsEventHandler", m_priority, Array("release_all", me, m_release_all_events(evt))
         Next
+        For Each evt in m_release_one_events.Keys
+            AddPinEventListener m_release_one_events(evt).EventName, m_mode & "_" & name & "_release_one", "BallHoldsEventHandler", m_priority, Array("release_one", me, m_release_one_events(evt))
+        Next
+        For Each evt in m_release_one_if_full_events.Keys
+            AddPinEventListener m_release_one_if_full_events(evt).EventName, m_mode & "_" & name & "_release_one_if_full", "BallHoldsEventHandler", m_priority, Array("release_one_if_full", me, m_release_one_if_full_events(evt))
+        Next
     End Sub
 
     Public Sub Disable()
@@ -757,6 +786,12 @@ Class GlfBallHold
         Dim evt
         For Each evt in m_release_all_events.Keys
             RemovePinEventListener m_release_all_events(evt).EventName, m_mode & "_" & name & "_release_all"
+        Next
+        For Each evt in m_release_one_events.Keys
+            RemovePinEventListener m_release_one_events(evt).EventName, m_mode & "_" & name & "_release_one"
+        Next
+        For Each evt in m_release_one_if_full_events.Keys
+            RemovePinEventListener m_release_one_if_full_events(evt).EventName, m_mode & "_" & name & "_release_one_if_full"
         Next
     End Sub
 
@@ -884,6 +919,76 @@ Class GlfBallHold
         ReleaseBalls = balls_released
     End Function
 
+    Public Function ToYaml()
+        Dim yaml
+        Dim evt, x
+        If UBound(m_base_device.EnableEvents().Keys) > -1 Then
+            yaml = yaml & "  enable_events: "
+            x=0
+            For Each key in m_base_device.EnableEvents().keys
+                yaml = yaml & m_base_device.EnableEvents()(key).Raw
+                If x <> UBound(m_base_device.EnableEvents().Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        If UBound(m_base_device.DisableEvents().Keys) > -1 Then
+            yaml = yaml & "  disable_events: "
+            x=0
+            For Each key in m_base_device.DisableEvents().keys
+                yaml = yaml & m_base_device.DisableEvents()(key).Raw
+                If x <> UBound(m_base_device.DisableEvents().Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        yaml = yaml & "  hold_devices: " & Join(m_hold_devices, ",") & vbCrLf
+        If m_balls_to_hold > 0 Then
+            yaml = yaml & "  balls_to_hold: " & m_balls_to_hold & vbCrLf
+        End If
+        If UBound(m_release_all_events.Keys) > -1 Then
+            yaml = yaml & "  release_all_events: "
+            x=0
+            For Each key in m_release_all_events.keys
+                yaml = yaml & m_release_all_events(key).Raw
+                If x <> UBound(m_release_all_events.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        If UBound(m_release_one_events.Keys) > -1 Then
+            yaml = yaml & "  release_one_events: "
+            x=0
+            For Each key in m_release_one_events.keys
+                yaml = yaml & m_release_one_events(key).Raw
+                If x <> UBound(m_release_one_events.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        If UBound(m_release_one_if_full_events.Keys) > -1 Then
+            yaml = yaml & "  release_one_if_full_events: "
+            x=0
+            For Each key in m_release_one_if_full_events.keys
+                yaml = yaml & m_release_one_if_full_events(key).Raw
+                If x <> UBound(m_release_one_if_full_events.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        ToYaml = yaml
+    End Function
+
 End Class
 
 Function BallHoldsEventHandler(args)
@@ -908,6 +1013,24 @@ Function BallHoldsEventHandler(args)
                 End If
             End If
             ball_hold.ReleaseAll
+        Case "release_one"
+            Set glfEvent = ownProps(2)
+            If Not IsNull(glfEvent.Condition) Then
+                If GetRef(glfEvent.Condition)() = False Then
+                    Exit Function
+                End If
+            End If
+            ball_hold.ReleaseBalls 1
+        Case "release_one_if_full"
+            Set glfEvent = ownProps(2)
+            If Not IsNull(glfEvent.Condition) Then
+                If GetRef(glfEvent.Condition)() = False Then
+                    Exit Function
+                End If
+            End If
+            If ball_hold.IsFull Then
+                ball_hold.ReleaseBalls 1
+            End If
     End Select
 
     If IsObject(args(1)) Then
@@ -1365,12 +1488,19 @@ Class GlfEventPlayer
         Next
     End Sub
 
-    Public Function ToYaml
+    Public Function ToYaml()
         Dim yaml
         Dim evt
-        For Each evt In m_events.Keys()
-            yaml = yaml & "  evt: " & Join(m_events(evt), ",") & vbCrLf
-        Next
+        If UBound(m_events.Keys) > -1 Then
+            For Each key in m_events.keys
+                yaml = yaml & "  " & m_events(key).Raw & ": " & vbCrLf
+                For Each evt in m_eventValues(key)
+                    yaml = yaml & "    - " & evt & vbCrLf
+                Next
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        ToYaml = yaml
     End Function
 
 End Class
@@ -1616,7 +1746,7 @@ Class GlfBaseModeDevice
             AddPinEventListener m_enable_events(evt).EventName, m_mode.Name & m_device & "_" & m_parent.Name & "_enable", "BaseModeDeviceEventHandler", m_priority, Array("enable", m_parent, m_enable_events(evt))
         Next
         For Each evt In m_disable_events.Keys()
-            AddPinEventListener m_disable_events(evt).EventName, m_mode.Name & m_device & "_" & m_parent.Name & "_disable", "BaseModeDeviceEventHandler", m_priority, Array("disable", m_parent, m_enable_events(evt))
+            AddPinEventListener m_disable_events(evt).EventName, m_mode.Name & m_device & "_" & m_parent.Name & "_disable", "BaseModeDeviceEventHandler", m_priority, Array("disable", m_parent, m_disable_events(evt))
         Next
         m_parent.Activate
     End Sub
@@ -1844,10 +1974,35 @@ Class Mode
 
     Public Function ToYaml()
         dim yaml, child
-        yaml = "mode:" & vbCrLf
-        yaml = yaml & "  start_events: " & Join(m_start_events, ",") & vbCrLf
-        yaml = yaml & "  stop_events: " & Join(m_stop_events, ",") & vbCrLf
-        yaml = yaml & "  priority: " & m_priority & vbCrLf
+        yaml = "#config_version=6" & vbCrLf
+        yaml = yaml & "mode:" & vbCrLf
+
+        If UBound(m_start_events.Keys) > -1 Then
+            yaml = yaml & "  start_events: "
+            x=0
+            For Each key in m_start_events.keys
+                yaml = yaml & m_start_events(key).Raw
+                If x <> UBound(m_start_events.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        If UBound(m_stop_events.Keys) > -1 Then
+            yaml = yaml & "  stop_events: "
+            x=0
+            For Each key in m_stop_events.keys
+                yaml = yaml & m_stop_events(key).Raw
+                If x <> UBound(m_stop_events.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+
+        yaml = yaml & "  priority: " & m_priority
         yaml = yaml & vbCrLf
         If UBound(m_ballsaves.Keys)>-1 Then
             yaml = yaml & "ballsaves: " & vbCrLf
@@ -1870,8 +2025,52 @@ Class Mode
             Next
         End If
         yaml = yaml & vbCrLf
+        If UBound(m_eventplayer.Events.Keys)>-1 Then
+            yaml = yaml & "event_player: " & vbCrLf
+            yaml = yaml & m_eventplayer.ToYaml()
+        End If
+        yaml = yaml & vbCrLf
+        If UBound(m_ballholds.Keys)>-1 Then
+            yaml = yaml & "ball_holds: " & vbCrLf
+            For Each child in m_ballholds.Keys
+                yaml = yaml & m_ballholds(child).ToYaml
+            Next
+        End If
+        yaml = yaml & vbCrLf
+        
+        Dim fso, modesFolder, TxtFileStream
+        Set fso = CreateObject("Scripting.FileSystemObject")
+        modesFolder = "glf_mpf\modes\" & Replace(m_name, "mode_", "") & "\config"
+
+        If Not fso.FolderExists("glf_mpf") Then
+            fso.CreateFolder "glf_mpf"
+        End If
+
+        Dim currentFolder
+        Dim folderParts
+        Dim i
+    
+        ' Split the path into parts
+        folderParts = Split(modesFolder, "\")
+        
+        ' Initialize the current folder as the root
+        currentFolder = folderParts(0)
+    
+        ' Iterate over each part of the path and create folders as needed
+        For i = 1 To UBound(folderParts)
+            currentFolder = currentFolder & "\" & folderParts(i)
+            If Not fso.FolderExists(currentFolder) Then
+                fso.CreateFolder(currentFolder)
+            End If
+        Next
+
+
+        
+        Set TxtFileStream = fso.OpenTextFile(modesFolder & "\" & Replace(m_name, "mode_", "") & ".yaml", 2, True)
+        TxtFileStream.WriteLine yaml
+        TxtFileStream.Close
+
         ToYaml = yaml
-        Log yaml
     End Function
 End Class
 
@@ -2981,7 +3180,7 @@ Class GlfShot
         yaml = "  " & Replace(m_name, "shot_", "") & ":" & vbCrLf
         If UBound(m_switches) = 0 Then
             yaml = yaml & "    switch: " & m_switches(0) & vbCrLf
-        Else
+        ElseIf UBound(m_switches) > 0 Then
             yaml = yaml & "    switches: " & Join(m_switches, ",") & vbCrLf
         End If
         yaml = yaml & "    show_tokens: " & vbCrLf
@@ -3090,7 +3289,7 @@ Class GlfShot
                     x = x + 1
                 Next
                 yaml = yaml & vbCrLf
-                yaml = yaml & "      state: " & m_control_events(key).State & vbCrLf
+                yaml = yaml & "        state: " & m_control_events(key).State & vbCrLf
             Next
         End If
         
@@ -4101,7 +4300,7 @@ Class BallDevice
         m_balls_to_eject = 0
         m_balls_in_device = 0
         m_mechcanical_eject = False
-        m_eject_timeout = 0
+        m_eject_timeout = 1000
         glf_ball_devices.Add name, Me
 	    Set Init = Me
 	End Function
@@ -4170,14 +4369,14 @@ Class BallDevice
     Public Sub EjectBalls(balls)
         Log "Ejecting "&balls&" Balls."
         m_ejecting_all = True
-        m_balls_to_eject = balls
+        m_balls_to_eject = balls - 1
         Eject()
     End Sub
 
     Public Sub EjectAll
-        Log "Ejecting All."
+        Log "Ejecting All." 
         m_ejecting_all = True
-        m_balls_to_eject = m_balls_in_device
+        m_balls_to_eject = m_balls_in_device - 1 
         Eject()
     End Sub
 
@@ -4506,7 +4705,8 @@ Function Glf_Drain(args)
     If glf_BIP > 0 Then
         Exit Function
     End If
-        
+    
+    DispatchPinEvent GLF_BALL_ENDING, Null
     DispatchPinEvent GLF_BALL_ENDED, Null
     SetPlayerState GLF_CURRENT_BALL, GetPlayerState(GLF_CURRENT_BALL) + 1
 
@@ -6930,14 +7130,36 @@ Class GlfDebugLogFile
 	' *** Debug.Print the time with milliseconds, and a message of your choice
 	Public Sub WriteToLog(label, message)
 		If glf_debugEnabled = True Then
-			Dim FormattedMsg, Timestamp
+			Dim FormattedMsg, Timestamp, fso, logFolder, TxtFileStream
+	
+			' Create a FileSystemObject
+			Set fso = CreateObject("Scripting.FileSystemObject")
 			
-			Set TxtFileStream = CreateObject("Scripting.FileSystemObject").OpenTextFile("logs\"&Filename, 8, True)
+			' Define the log folder path
+			logFolder = "glf_logs"
+	
+			' Check if the log folder exists, if not, create it
+			If Not fso.FolderExists(logFolder) Then
+				fso.CreateFolder logFolder
+			End If
+	
+			' Open the log file for appending
+			Set TxtFileStream = fso.OpenTextFile(logFolder & "\" & Filename, 8, True)
+			
+			' Get the current timestamp
 			Timestamp = GetTimeStamp
-			FormattedMsg = GetTimeStamp + ": " + label + ": " + message
+			
+			' Format the message
+			FormattedMsg = Timestamp & ": " & label & ": " & message
+			
+			' Write the formatted message to the log file
 			TxtFileStream.WriteLine FormattedMsg
+			
+			' Close the file stream
 			TxtFileStream.Close
-			Debug.print label & ": " & message
+			
+			' Print the message to the debug console
+			Debug.Print label & ": " & message
 		End If
 	End Sub
 End Class

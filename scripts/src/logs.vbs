@@ -39,14 +39,36 @@ Class GlfDebugLogFile
 	' *** Debug.Print the time with milliseconds, and a message of your choice
 	Public Sub WriteToLog(label, message)
 		If glf_debugEnabled = True Then
-			Dim FormattedMsg, Timestamp
+			Dim FormattedMsg, Timestamp, fso, logFolder, TxtFileStream
+	
+			' Create a FileSystemObject
+			Set fso = CreateObject("Scripting.FileSystemObject")
 			
-			Set TxtFileStream = CreateObject("Scripting.FileSystemObject").OpenTextFile("logs\"&Filename, 8, True)
+			' Define the log folder path
+			logFolder = "glf_logs"
+	
+			' Check if the log folder exists, if not, create it
+			If Not fso.FolderExists(logFolder) Then
+				fso.CreateFolder logFolder
+			End If
+	
+			' Open the log file for appending
+			Set TxtFileStream = fso.OpenTextFile(logFolder & "\" & Filename, 8, True)
+			
+			' Get the current timestamp
 			Timestamp = GetTimeStamp
-			FormattedMsg = GetTimeStamp + ": " + label + ": " + message
+			
+			' Format the message
+			FormattedMsg = Timestamp & ": " & label & ": " & message
+			
+			' Write the formatted message to the log file
 			TxtFileStream.WriteLine FormattedMsg
+			
+			' Close the file stream
 			TxtFileStream.Close
-			Debug.print label & ": " & message
+			
+			' Print the message to the debug console
+			Debug.Print label & ": " & message
 		End If
 	End Sub
 End Class

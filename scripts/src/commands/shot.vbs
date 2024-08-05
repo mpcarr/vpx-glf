@@ -330,7 +330,7 @@ Class GlfShot
         yaml = "  " & Replace(m_name, "shot_", "") & ":" & vbCrLf
         If UBound(m_switches) = 0 Then
             yaml = yaml & "    switch: " & m_switches(0) & vbCrLf
-        Else
+        ElseIf UBound(m_switches) > 0 Then
             yaml = yaml & "    switches: " & Join(m_switches, ",") & vbCrLf
         End If
         yaml = yaml & "    show_tokens: " & vbCrLf
@@ -439,7 +439,7 @@ Class GlfShot
                     x = x + 1
                 Next
                 yaml = yaml & vbCrLf
-                yaml = yaml & "      state: " & m_control_events(key).State & vbCrLf
+                yaml = yaml & "        state: " & m_control_events(key).State & vbCrLf
             Next
         End If
         
