@@ -14,7 +14,10 @@ Dim Glf_ShotProfiles : Set Glf_ShotProfiles = CreateObject("Scripting.Dictionary
 Dim Glf_ShowStartQueue : Set Glf_ShowStartQueue = CreateObject("Scripting.Dictionary")
 Dim glf_playerEventsOrder : Set glf_playerEventsOrder = CreateObject("Scripting.Dictionary")
 Dim playerState : Set playerState = CreateObject("Scripting.Dictionary")
-Dim glf_Modes : Set glf_Modes = CreateObject("Scripting.Dictionary")
+Dim glf_running_shows : Set glf_running_shows = CreateObject("Scripting.Dictionary")
+Dim glf_cached_shows : Set glf_cached_shows = CreateObject("Scripting.Dictionary")
+
+Dim glf_modes : Set glf_modes = CreateObject("Scripting.Dictionary")
 
 Dim glf_ball_devices : Set glf_ball_devices = CreateObject("Scripting.Dictionary")
 Dim glf_ball_holds : Set glf_ball_holds = CreateObject("Scripting.Dictionary")
@@ -42,9 +45,7 @@ Public Sub Glf_ConnectToBCPMediaController
 End Sub
 
 Public Sub Glf_Init()
-	If useBCP = True Then
-		Glf_ConnectToBCPMediaController
-	End If
+	Glf_Options Null 'Force Options Check
 
 	swTrough1.DestroyBall
 	swTrough2.DestroyBall
@@ -70,6 +71,69 @@ Public Sub Glf_Init()
 		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_UnHit() : DispatchPinEvent """ & switch.Name & "_inactive"", ActiveBall : End Sub" & vbCrLf
 	Next
 	ExecuteGlobal switchHitSubs
+
+
+	'Cache Shows
+	Dim mode, show_count, shot_count
+	show_count = 0
+	shot_count = 0
+	For Each mode in glf_modes.Items()
+		glf_debugLog.WriteToLog "Init", mode.Name
+		If Not IsNull(mode.ShowPlayer) Then
+			With mode.ShowPlayer()
+				Dim show_settings
+				For Each show_settings in .EventShows()
+					If Not IsNull(show_settings.Show) Then
+						show_settings.InternalCacheId = CStr(show_count)
+						show_count = show_count + 1
+						glf_debugLog.WriteToLog "Show Settings", "show_player_" & mode.name & "_" & show_settings.Key & "_" & show_settings.InternalCacheId
+						glf_cached_shows.Add "show_player_" & mode.name & "_" & show_settings.Key & "__" & show_settings.InternalCacheId, Glf_ConvertShow(show_settings.Show, show_settings.Tokens)
+					End If 
+				Next
+			End With
+		End If
+		If UBound(mode.ModeShots) > -1 Then
+			Dim mode_shot
+			For Each mode_shot in mode.ModeShots
+				Dim shot_profile : Set shot_profile = Glf_ShotProfiles(mode_shot.Profile)
+				Dim x
+				If mode_shot.InternalCacheId = -1 Then
+					mode_shot.InternalCacheId = shot_count
+					shot_count = shot_count + 1
+				End If
+				For x=0 to shot_profile.StatesCount
+					Dim state
+					Set state = shot_profile.StateForIndex(x)
+					If state.InternalCacheId = -1 Then
+						state.InternalCacheId = CStr(show_count)
+						show_count = show_count + 1
+					End If
+
+					glf_debugLog.WriteToLog "Shot State", mode.name & "_" & x & "_" & mode_shot.Name & "_" & state.Key & "_" & mode_shot.InternalCacheId & "_" & state.InternalCacheId
+
+					Dim key
+					Dim mergedTokens : Set mergedTokens = CreateObject("Scripting.Dictionary")
+					If Not IsNull(state.Tokens) Then
+						For Each key In state.Tokens.Keys()
+							mergedTokens.Add key, state.Tokens()(key)
+						Next
+					End If
+					Dim tokens
+					If Not IsNull(mode_shot.Tokens) Then
+						Set tokens = mode_shot.Tokens
+						For Each key In tokens.Keys
+							If mergedTokens.Exists(key) Then
+								mergedTokens(key) = tokens(key)
+							Else
+								mergedTokens.Add key, tokens(key)
+							End If
+						Next
+					End If
+					glf_cached_shows.Add mode.name & "_" & x & "_" & mode_shot.Name & "_" & state.Key & "_" & mode_shot.InternalCacheId & "_" & state.InternalCacheId, Glf_ConvertShow(state.Show, mergedTokens)
+				Next
+			Next
+		End If
+	Next
 End Sub
 
 Sub Glf_Options(ByVal eventId)
@@ -83,18 +147,18 @@ Sub Glf_Options(ByVal eventId)
 	Dim glfDebug : glfDebug = Table1.Option("Glf Debug Log", 0, 1, 1, 1, 0, Array("Off", "On"))
 	If glfDebug = 1 Then
 		glf_debugEnabled = True
+		glf_debugLog.EnableLogs
 	Else
 		glf_debugEnabled = False
+		glf_debugLog.DisableLogs
 	End If
 
 	Dim glfuseBCP : glfuseBCP = Table1.Option("Glf Backbox Control Protocol", 0, 1, 1, 1, 0, Array("Off", "On"))
 	If glfuseBCP = 1 Then
 		useBCP = True
-		If Not IsNull(bcpController) Then
-			bcpController.Disconnect
-			bcpController = Null
+		If IsNull(bcpController) Then
+			Glf_ConnectToBCPMediaController
 		End If
-		Glf_ConnectToBCPMediaController
 	Else
 		useBCP = False
 		If Not IsNull(bcpController) Then
@@ -108,6 +172,9 @@ Public Sub Glf_Exit()
 	If Not IsNull(bcpController) Then
 		bcpController.Disconnect
 		bcpController = Null
+	End If
+	If glf_debugEnabled = True Then
+		glf_debugLog.DisableLogs
 	End If
 End Sub
 
@@ -293,16 +360,16 @@ Function GlfShotProfiles(name)
 End Function
 
 Function CreateGlfMode(name, priority)
-	If Not glf_Modes.Exists(name) Then 
+	If Not glf_modes.Exists(name) Then 
 		Dim mode : Set mode = (new Mode)(name, priority)
-		glf_Modes.Add name, mode
+		glf_modes.Add name, mode
 		Set CreateGlfMode = mode
 	End If
 End Function
 
 Function GlfModes(name)
-	If glf_Modes.Exists(name) Then 
-		Set GlfModes = glf_Modes(name)
+	If glf_modes.Exists(name) Then 
+		Set GlfModes = glf_modes(name)
 	Else
 		GlfModes = Null
 	End If
@@ -316,11 +383,14 @@ Function Glf_ConvertShow(show, tokens)
 
 	Dim showStep, light, lightsCount, x,tagLight, tagLights, lightParts, token, stepIdx
 	Dim newShow
-	ReDim newShow(UBound(show))
+
+
+
+	ReDim newShow(UBound(show.Steps().Keys()))
 	stepIdx = 0
-	For Each showStep in show
+	For Each showStep in show.Steps().Items()
 		lightsCount = 0 
-		For Each light in showStep
+		For Each light in showStep.Lights
 			lightParts = Split(light, "|")
 			If IsArray(lightParts) Then
 				token = Glf_IsToken(lightParts(0))
@@ -347,7 +417,7 @@ Function Glf_ConvertShow(show, tokens)
 		Dim seqArray
 		ReDim seqArray(lightsCount-1)
 		x=0
-		For Each light in showStep
+		For Each light in showStep.Lights
 			lightParts = Split(light, "|")
 			Dim lightColor : lightColor = ""
 			If Ubound(lightParts) = 2 Then 
@@ -484,11 +554,46 @@ End Function
 '*****   GLF Shows 		                           ****
 '******************************************************
 
-Dim glf_ShowOn : glf_ShowOn = Array(Array("(lights)|100"))
-Dim glf_ShowOff : glf_ShowOff = Array(Array("(lights)|0"))
-Dim glf_ShowFlash : glf_ShowFlash = Array(Array("(lights)|100"), Array("(lights)|0"))
-Dim glf_ShowFlashColor : glf_ShowFlashColor = Array(Array("(lights)|100|(color)"), Array("(lights)|0|(color)"))
-Dim glf_ShowOnColor : glf_ShowOnColor = Array(Array("(lights)|100|(color)"))
+Dim glf_ShowOn : Set glf_ShowOn = (new GlfShow)("show_on")
+With glf_ShowOn
+	With .AddStep(Null, Null, 1)
+		.Lights = Array("(lights)|100")
+	End With
+End With
+
+Dim glf_ShowOff : Set glf_ShowOff = (new GlfShow)("show_off")
+With glf_ShowOff
+	With .AddStep(Null, Null, 1)
+		.Lights = Array("(lights)|0")
+	End With
+End With
+
+Dim glf_ShowFlash : Set glf_ShowFlash = (new GlfShow)("show_flash")
+With glf_ShowFlash
+	With .AddStep(Null, Null, 1)
+		.Lights = Array("(lights)|100")
+	End With
+	With .AddStep(Null, Null, 1)
+		.Lights = Array("(lights)|0")
+	End With
+End With
+
+Dim glf_ShowFlashColor : Set glf_ShowFlashColor = (new GlfShow)("flash_color")
+With glf_ShowFlashColor
+	With .AddStep(Null, Null, 1)
+		.Lights = Array("(lights)|100|(color)")
+	End With
+	With .AddStep(Null, Null, 1)
+		.Lights = Array("(lights)|0|(color)")
+	End With
+End With
+
+Dim glf_ShowOnColor : Set glf_ShowOnColor = (new GlfShow)("flash_color")
+With glf_ShowOnColor
+	With .AddStep(Null, Null, 1)
+		.Lights = Array("(lights)|100|(color)")
+	End With
+End With
 
 With GlfShotProfiles("default")
 	With .States("on")
@@ -1641,33 +1746,11 @@ Class GlfLightPlayer
     End Sub
 
     Public Sub Play(evt, lights)
-        Dim light, lightParts
-        lightCtrl.AddLightSeq m_name & "_" & evt, evt, lights(1), -1, 1, Null, m_priority, 0
-        For Each light in lights(0)
-            lightParts = Split(light, "|")
-            If IsArray(lightParts) Then
-                If IsNull(lightCtrl.GetLightIdx(lightParts(0))) Then
-                    Dim tagLight, tagLights
-                    tagLights = lightCtrl.GetLightsForTag(lightParts(0))
-                    For Each tagLight in tagLights
-                        ProcessLight tagLight, lightParts, evt
-                    Next
-                Else
-                    ProcessLight lightParts(0), lightParts, evt
-                End If
-            End If
-        Next
+        LightPlayerCallbackHandler evt, lights(1), m_name, m_priority
     End Sub
 
     Public Sub PlayOff(evt, lights)
-        Dim light
-        lightCtrl.RemoveLightSeq m_name & "_" & evt, evt
-    End Sub
-
-    Private Sub ProcessLight(light_name, light_props, evt)
-        If UBound(light_props) = 2 Then
-            lightCtrl.FadeLightToColor light_name, light_props(1), light_props(2), m_name & "_" & evt & "_" & light_name, m_priority
-        End If
+        LightPlayerCallbackHandler evt, Null, m_name, m_priority
     End Sub
 
     Private Sub Log(message)
@@ -1676,6 +1759,46 @@ Class GlfLightPlayer
         End If
     End Sub
 End Class
+
+Function LightPlayerCallbackHandler(key, lights, mode, priority)
+    If IsNull(lights) Then
+        lightCtrl.RemoveLightSeq mode & "_" & key, key
+        glf_debugLog.WriteToLog "LightPlayer", "Removing Light Seq" & mode & "_" & key
+    Else
+        If UBound(lights) = -1 Then
+            Exit Function
+        End If
+        If IsArray(lights) Then
+            'glf_debugLog.WriteToLog "LightPlayer", "Adding Light Seq" & Join(lights) & ". Key:" & mode & "_" & key    
+        Else
+            glf_debugLog.WriteToLog "LightPlayer", "Lights not an array!?"
+        End If
+        Dim light, lightParts
+        'glf_debugLog.WriteToLog "LightPlayer", "Adding Light Seq" & Join(lights) & ". Key:" & mode & "_" & key
+        lightCtrl.AddLightSeq mode & "_" & key, key, lights, -1, 1, Null, priority, 0,100000
+        
+        'TODO - Refactor this, this is the light fading. need to handle this differently
+        'For Each light in lights(0)
+        '    lightParts = Split(light, "|")
+        '    If IsArray(lightParts) Then
+        '        If IsNull(lightCtrl.GetLightIdx(lightParts(0))) Then
+        '           Dim tagLight, tagLights
+        '            tagLights = lightCtrl.GetLightsForTag(lightParts(0))
+        '            For Each tagLight in tagLights
+        '                ProcessLight tagLight, lightParts, key
+        '                If UBound(lightParts) = 2 Then
+        '                    lightCtrl.FadeLightToColor tagLight, lightParts(1), lightParts(2), mode & "_" & key & "_" & tagLight, priority
+        '                End If
+        '            Next
+        '        Else
+        '            If UBound(lightParts) = 2 Then
+        '                lightCtrl.FadeLightToColor lightParts(0), lightParts(1), lightParts(2), mode & "_" & key & "_" & lightParts(0), priority
+        '            End If
+        '        End If
+        '    End If
+        'Next
+    End If
+End Function
 
 Function LightPlayerEventHandler(args)
     Dim ownProps : ownProps = args(0)
@@ -1808,6 +1931,7 @@ Class Mode
     Private m_stop_events
     private m_priority
     Private m_debug
+    Private m_started
 
     Private m_ballsaves
     Private m_counters
@@ -1821,6 +1945,7 @@ Class Mode
     Private m_showplayer
     Private m_variableplayer
     Private m_eventplayer
+    Private m_shot_profiles
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get Priority(): Priority = m_priority: End Property
@@ -1829,7 +1954,17 @@ Class Mode
     Public Property Get ShowPlayer(): Set ShowPlayer = m_showplayer: End Property
     Public Property Get EventPlayer() : Set EventPlayer = m_eventplayer: End Property
     Public Property Get VariablePlayer(): Set VariablePlayer = m_variableplayer: End Property
-    
+
+    Public Property Get ShotProfiles(name)
+        If m_shot_profiles.Exists(name) Then
+            Set ShotProfiles = m_shot_profiles(name)
+        Else
+            Dim new_shotprofile : Set new_shotprofile = (new GlfShotProfile)(name)
+            m_shot_profiles.Add name, new_shotprofile
+            Glf_ShotProfiles.Add name, new_shotprofile
+            Set ShotProfiles = new_shotprofile
+        End If
+    End Property
 
     Public Property Get BallSaves(name)
         If m_ballsaves.Exists(name) Then
@@ -1881,6 +2016,7 @@ Class Mode
         End If
     End Property
 
+    Public Property Get ModeShots(): ModeShots = m_shots.Items(): End Property
     Public Property Get Shots(name)
         If m_shots.Exists(name) Then
             Set Shots = m_shots(name)
@@ -1927,14 +2063,13 @@ Class Mode
             m_stop_events.Add newEvent.Name, newEvent
             AddPinEventListener newEvent.EventName, m_name & "_stop", "ModeEventHandler", m_priority+1, Array("stop", Me, newEvent)
         Next
-        Set newEvent = (new GlfEvent)("ball_ended")
-        AddPinEventListener newEvent.EventName, m_name & "_stop", "ModeEventHandler", m_priority+1, Array("stop", Me, newEvent)
     End Property
     Public Property Let Debug(value) : m_debug = value : End Property
 
 	Public default Function init(name, priority)
         m_name = "mode_"&name
         m_priority = priority
+        m_started = False
         Set m_start_events = CreateObject("Scripting.Dictionary")
         Set m_stop_events = CreateObject("Scripting.Dictionary")
         Set m_ballsaves = CreateObject("Scripting.Dictionary")
@@ -1945,25 +2080,32 @@ Class Mode
         Set m_shots = CreateObject("Scripting.Dictionary")
         Set m_shot_groups = CreateObject("Scripting.Dictionary")
         Set m_ballholds = CreateObject("Scripting.Dictionary")
+        Set m_shot_profiles = CreateObject("Scripting.Dictionary")
         Set m_lightplayer = (new GlfLightPlayer)(Me)
         Set m_showplayer = (new GlfShowPlayer)(Me)
         Set m_eventplayer = (new GlfEventPlayer)(Me)
         Set m_variableplayer = (new GlfVariablePlayer)(Me)
+        Dim newEvent : Set newEvent = (new GlfEvent)("ball_ended")
+        AddPinEventListener newEvent.EventName, m_name & "_stop", "ModeEventHandler", m_priority+1, Array("stop", Me, newEvent)
         Set Init = Me
 	End Function
 
     Public Sub StartMode()
         Log "Starting"
+        m_started=True
         DispatchPinEvent m_name & "_starting", Null
         DispatchPinEvent m_name & "_started", Null
         Log "Started"
     End Sub
 
     Public Sub StopMode()
-        Log "Stopping"
-        DispatchPinEvent m_name & "_stopping", Null
-        DispatchPinEvent m_name & "_stopped", Null
-        Log "Stopped"
+        If m_started = True Then
+            m_started = False
+            Log "Stopping"
+            DispatchPinEvent m_name & "_stopping", Null
+            DispatchPinEvent m_name & "_stopped", Null
+            Log "Stopped"
+        End If
     End Sub
 
     Private Sub Log(message)
@@ -2008,6 +2150,13 @@ Class Mode
             yaml = yaml & "ballsaves: " & vbCrLf
             For Each child in m_ballsaves.Keys
                 yaml = yaml & m_ballsaves(child).ToYaml
+            Next
+        End If
+        yaml = yaml & vbCrLf
+        If UBound(m_shot_profiles.Keys)>-1 Then
+            yaml = yaml & "shot_profiles: " & vbCrLf
+            For Each child in m_shot_profiles.Keys
+                yaml = yaml & m_shot_profiles(child).ToYaml
             Next
         End If
         yaml = yaml & vbCrLf
@@ -2847,6 +2996,36 @@ Class GlfShotProfile
         Set Init = Me
 	End Function
 
+    Public Function ToYaml()
+        Dim yaml
+        yaml = yaml & "  " & Replace(m_name, "shotprofile_", "") & ":" & vbCrLf
+        yaml = yaml & "    states: " & vbCrLf
+        Dim token,evt,x : x = 0
+        For Each evt in m_states.Keys
+            yaml = yaml & "     - name: " & StateName(x) & vbCrLf
+            'yaml = yaml & "       show: " & m_states(evt).Show & vbCrLf
+            'yaml = yaml & "       loops: " & m_states(evt).Loops & vbCrLf
+            'yaml = yaml & "       speed: " & m_states(evt).Speed & vbCrLf
+            'yaml = yaml & "       sync_ms: " & m_states(evt).SyncMs & vbCrLf
+
+            'If Ubound(m_states(evt).Tokens().Keys)>-1 Then
+            '    yaml = yaml & "       show_tokens: " & vbCrLf
+            '    For Each token in m_states(evt).Tokens().Keys()
+            '        yaml = yaml & "         " & token & ": " & m_states(evt).Tokens(token) & vbCrLf
+            '    Next
+            'End If
+
+            'yaml = yaml & "     block: " & m_block & vbCrLf
+            'yaml = yaml & "     advance_on_hit: " & m_advance_on_hit & vbCrLf
+            'yaml = yaml & "     loop: " & m_loop & vbCrLf
+            'yaml = yaml & "     rotation_pattern: " & m_rotation_pattern & vbCrLf
+            'yaml = yaml & "     state_names_to_not_rotate: " & m_states_not_to_rotate & vbCrLf
+            'yaml = yaml & "     state_names_to_rotate: " & m_states_to_rotate & vbCrLf
+            x = x +1
+        Next
+        ToYaml = yaml
+    End Function
+
 End Class
 
 Class GlfShot
@@ -2869,6 +3048,7 @@ Class GlfShot
     Private m_enabled
     Private m_player_var_name
     Private m_persist
+    Private m_internal_cache_id
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get Profile(): Profile = m_profile: End Property
@@ -2883,6 +3063,9 @@ Class GlfShot
         End If
     End Property
     
+    Public Property Get InternalCacheId(): InternalCacheId = m_internal_cache_id: End Property
+    Public Property Let InternalCacheId(input): m_internal_cache_id = input: End Property
+
     Public Property Let EnableEvents(value) : m_base_device.EnableEvents = value : End Property
     Public Property Let DisableEvents(value) : m_base_device.DisableEvents = value : End Property
     Public Property Get ControlEvents(name)
@@ -2933,7 +3116,7 @@ Class GlfShot
         m_name = "shot_" & name
         m_mode = mode.Name
         m_priority = mode.Priority
-
+        m_internal_cache_id = -1
         m_enabled = False
         m_persist = True
         Set m_base_device = (new GlfBaseModeDevice)(mode, "shot", Me)
@@ -2974,6 +3157,28 @@ Class GlfShot
 
     Public Sub Deactivate()
         Disable()
+        Dim evt
+        For Each evt in m_switches
+            RemovePinEventListener evt, m_mode & "_" & m_name & "_hit"
+        Next
+        For Each evt in m_hit_events.Keys
+            RemovePinEventListener evt, m_mode & "_" & m_name & "_hit"
+        Next
+        For Each evt in m_advance_events.Keys
+            RemovePinEventListener evt, m_mode & "_" & m_name & "_advance"
+        Next
+        For Each evt in m_control_events.Keys
+            Dim cEvt
+            For Each cEvt in m_control_events(evt).Events
+                RemovePinEventListener cEvt, m_mode & "_" & m_name & "_control"
+            Next
+        Next
+        For Each evt in m_reset_events.Keys
+            RemovePinEventListener evt, m_mode & "_" & m_name & "_reset"
+        Next
+        For Each evt in m_restart_events.Keys
+            RemovePinEventListener evt, m_mode & "_" & m_name & "_restart"
+        Next
     End Sub
 
     Public Sub Enable()
@@ -3009,26 +3214,8 @@ Class GlfShot
         m_base_device.Log "Disabling"
         m_enabled = False
         Dim evt
-        For Each evt in m_switches
-            RemovePinEventListener evt, m_mode & "_" & m_name & "_hit"
-        Next
         For Each evt in m_hit_events.Keys
             RemovePinEventListener evt, m_mode & "_" & m_name & "_hit"
-        Next
-        For Each evt in m_advance_events.Keys
-            RemovePinEventListener evt, m_mode & "_" & m_name & "_advance"
-        Next
-        For Each evt in m_control_events.Keys
-            Dim cEvt
-            For Each cEvt in m_control_events(evt).Events
-                RemovePinEventListener cEvt, m_mode & "_" & m_name & "_control"
-            Next
-        Next
-        For Each evt in m_reset_events.Keys
-            RemovePinEventListener evt, m_mode & "_" & m_name & "_reset"
-        Next
-        For Each evt in m_restart_events.Keys
-            RemovePinEventListener evt, m_mode & "_" & m_name & "_restart"
         Next
         Dim x
         For x=0 to Glf_ShotProfiles(m_profile).StatesCount()
@@ -3039,35 +3226,22 @@ Class GlfShot
     Private Sub StopShowForState(state)
         Dim profileState : Set profileState = Glf_ShotProfiles(m_profile).StateForIndex(state)
         m_base_device.Log "Removing Shot Show: " & m_mode & "_" & m_name & ". Key: " & profileState.Key
-        lightCtrl.RemoveLightSeq m_mode & "_" & m_name, profileState.Key
+        'lightCtrl.RemoveLightSeq m_mode & "_" & m_name, profileState.Key
+        If glf_running_shows.Exists(m_mode & "_" & CStr(state) & "_" & m_name & "_" & profileState.Key) Then 
+            glf_running_shows(m_mode & "_" & CStr(state) & "_" & m_name & "_" & profileState.Key).StopRunningShow()
+        End If
     End Sub
 
     Private Sub PlayShowForState(state)
+        If m_enabled = False Then
+            Exit Sub
+        End If
         Dim profileState : Set profileState = Glf_ShotProfiles(m_profile).StateForIndex(state)
         m_base_device.Log "Playing Shot Show: " & m_mode & "_" & m_name & ". Key: " & profileState.Key
         If IsObject(profileState) Then
-            If IsArray(profileState.Show) Then
-                If m_show_cache.Exists(CStr(m_state) & "_" & profileState.Key) Then
-                    lightCtrl.AddLightSeq m_mode & "_" & m_name, profileState.Key, m_show_cache(CStr(m_state) & "_" & profileState.Key), profileState.Loops, profileState.Speed, Null, m_priority, profileState.SyncMS
-                Else
-                    Dim key
-                    Dim mergedTokens : Set mergedTokens = CreateObject("Scripting.Dictionary")
-                    Dim profileStateTokens : Set profileStateTokens = profileState.Tokens
-                    For Each key In profileStateTokens.Keys
-                        mergedTokens.Add key, profileStateTokens(key)
-                    Next
-                    Dim shotTokens : Set shotTokens = m_tokens
-                    For Each key In shotTokens.Keys
-                        If mergedTokens.Exists(key) Then
-                            mergedTokens(key) = shotTokens(key)
-                        Else
-                            mergedTokens.Add key, shotTokens(key)
-                        End If
-                    Next
-                    Dim show : show = Glf_ConvertShow(profileState.Show, mergedTokens)
-                    m_show_cache.Add CStr(m_state) & "_" & profileState.Key, show
-                    lightCtrl.AddLightSeq m_mode & "_" & m_name, profileState.Key, show, profileState.Loops, profileState.Speed, Null, m_priority, profileState.SyncMS
-                End If
+            If Not IsNull(profileState.Show) Then
+                Dim new_running_show
+                Set new_running_show = (new GlfRunningShow)(m_mode & "_" & CStr(m_state) & "_" & m_name & "_" & profileState.Key, profileState.Key, profileState, m_priority, m_tokens, m_internal_cache_id)
             End If
         End If
     End Sub
@@ -3193,12 +3367,12 @@ Class GlfShot
             End If
         Next
 
-        If UBound(m_base_device.EnableEvents.Keys) > -1 Then
+        If UBound(m_base_device.EnableEvents().Keys) > -1 Then
             yaml = yaml & "    enable_events: "
             x=0
-            For Each key in m_base_device.EnableEvents.keys
-                yaml = yaml & m_base_device.EnableEvents(key).Raw
-                If x <> UBound(m_base_device.EnableEvents.Keys) Then
+            For Each key in m_base_device.EnableEvents().keys
+                yaml = yaml & m_base_device.EnableEvents()(key).Raw
+                If x <> UBound(m_base_device.EnableEvents().Keys) Then
                     yaml = yaml & ", "
                 End If
                 x = x + 1
@@ -3206,12 +3380,12 @@ Class GlfShot
             yaml = yaml & vbCrLf
         End If
 
-        If UBound(m_base_device.DisableEvents.Keys) > -1 Then
+        If UBound(m_base_device.DisableEvents().Keys) > -1 Then
             yaml = yaml & "    disable_events: "
             x=0
-            For Each key in m_base_device.DisableEvents.keys
-                yaml = yaml & m_base_device.DisableEvents(key).Raw
-                If x <> UBound(m_base_device.DisableEvents.Keys) Then
+            For Each key in m_base_device.DisableEvents().keys
+                yaml = yaml & m_base_device.DisableEvents()(key).Raw
+                If x <> UBound(m_base_device.DisableEvents().Keys) Then
                     yaml = yaml & ", "
                 End If
                 x = x + 1
@@ -3366,11 +3540,13 @@ Class GlfShowPlayer
     Private m_priority
     Private m_mode
     Private m_events
-    Private m_show_cache
     Private m_debug
     Private m_name
     Private m_value
+    private m_base_device
 
+    Public Property Get Name() : Name = "show_player" : End Property
+    Public Property Get EventShows() : EventShows = m_events.Items() : End Property
     Public Property Get Events(name)
         If m_events.Exists(name) Then
             Set Events = m_events(name)
@@ -3388,64 +3564,40 @@ Class GlfShowPlayer
         m_priority = mode.Priority
         m_debug = True
         Set m_events = CreateObject("Scripting.Dictionary")
-        Set m_show_cache = CreateObject("Scripting.Dictionary")
-        
-        AddPinEventListener m_mode & "_starting", "show_player_activate", "ShowPlayerEventHandler", m_priority, Array("activate", Me)
-        AddPinEventListener m_mode & "_stopping", "show_player_deactivate", "ShowPlayerEventHandler", m_priority, Array("deactivate", Me)
+        Set m_base_device = (new GlfBaseModeDevice)(mode, "show_player", Me)
         Set Init = Me
 	End Function
 
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
-            If IsObject(m_events(evt)) Then
-                AddPinEventListener Replace(evt, "_" & m_events(evt).Key, "") , m_mode & "_" & m_events(evt).Key & "_show_player_play", "ShowPlayerEventHandler", -m_priority, Array("play", Me, m_events(evt), evt)
-            Else
-                AddPinEventListener Replace(evt, "_" & m_events(evt), "") , m_mode & "_" & m_events(evt) & "_show_player_play", "ShowPlayerEventHandler", -m_priority, Array("play", Me, m_events(evt), evt)
-            End If
+            AddPinEventListener Replace(evt, "_" & m_events(evt).Key, "") , m_mode & "_" & m_events(evt).Key & "_show_player_play", "ShowPlayerEventHandler", -m_priority, Array("play", Me, m_events(evt), evt)
         Next
     End Sub
 
     Public Sub Deactivate()
         Dim evt
         For Each evt In m_events.Keys()
-            If IsObject(m_events(evt)) Then
-                RemovePinEventListener Replace(evt, "_" & m_events(evt).Key, ""), m_mode & "_" & m_events(evt).Key & "_show_player_play"
-            Else
-                RemovePinEventListener Replace(evt, "_" & m_events(evt), ""), m_mode & "_" & m_events(evt) & "_show_player_play"
-            End If
+            RemovePinEventListener Replace(evt, "_" & m_events(evt).Key, ""), m_mode & "_" & m_events(evt).Key & "_show_player_play"
             PlayOff m_events(evt).Key
         Next
     End Sub
 
     Public Sub Play(evt, show)
-        
         If show.Action = "stop" Then
-            PlayOff show.Key
+           PlayOff show.Key
         Else
-            If m_show_cache.Exists(show.Key) Then
-                lightCtrl.AddLightSeq m_name & "_" & show.Key, show.Key, m_show_cache(show.Key), show.Loops, show.Speed, Null, m_priority, 0
-            Else
-                Dim cachedShow : cachedShow = Glf_ConvertShow(show.Show, show.Tokens)
-                m_show_cache.Add show.Key, cachedShow
-                lightCtrl.AddLightSeq m_name & "_" & show.Key, show.Key, cachedShow, show.Loops, show.Speed, Null, m_priority, 0
-            End If
+            Dim new_running_show
+            Set new_running_show = (new GlfRunningShow)(m_name & "_" & show.Key, show.Key, show, m_priority, Null, Null)
         End If
     End Sub
-
-    'Public Sub StopShow(evt, key)
-    '    m_events.Add evt & "_" & key & ".stop", key & ".stop"
-    'End Sub
 
     Public Sub PlayOff(key)
-        lightCtrl.RemoveLightSeq m_name & "_" & key, key
-    End Sub
-
-    Private Sub Log(message)
-        If m_debug = True Then
-            glf_debugLog.WriteToLog m_mode & "_show_player", message
+        If glf_running_shows.Exists(m_name & "_" & key) Then 
+            glf_running_shows(m_name & "_" & key).StopRunningShow()
         End If
     End Sub
+
 End Class
 
 Function ShowPlayerEventHandler(args)
@@ -3464,16 +3616,28 @@ Function ShowPlayerEventHandler(args)
 End Function
 
 Class GlfShowPlayerItem
-	Private m_key, m_show, m_loops, m_speed, m_tokens, m_action, m_syncms
+	Private m_key, m_show, m_loops, m_speed, m_tokens, m_action, m_syncms, m_duration, m_priority, m_internal_cache_id
   
-	Public Property Get Action(): Action = m_action: End Property
+	Public Property Get InternalCacheId(): InternalCacheId = m_internal_cache_id: End Property
+    Public Property Let InternalCacheId(input): m_internal_cache_id = input: End Property
+    
+    Public Property Get Action(): Action = m_action: End Property
     Public Property Let Action(input): m_action = input: End Property
 
     Public Property Get Key(): Key = m_key End Property
     Public Property Let Key(input): m_key = input End Property
 
-    Public Property Get Show(): Show = m_show: End Property
-	Public Property Let Show(input): m_show = input: End Property
+    Public Property Get Priority(): Priority = m_priority End Property
+    Public Property Let Priority(input): m_priority = input End Property
+
+    Public Property Get Show()
+        If IsNull(m_show) Then
+            Show = Null
+        Else
+            Set Show = m_show
+        End If
+    End Property
+	Public Property Let Show(input): Set m_show = input: End Property
   
 	Public Property Get Loops(): Loops = m_loops: End Property
 	Public Property Let Loops(input): m_loops = input: End Property
@@ -3491,15 +3655,309 @@ Class GlfShowPlayerItem
 	Public default Function init()
         m_action = "play"
         m_key = ""
+        m_priority = 0
         m_loops = -1
+        m_internal_cache_id = -1
         m_speed = 1
         m_syncms = 0
+        m_show = Null
         Set m_tokens = CreateObject("Scripting.Dictionary")
 	    Set Init = Me
 	End Function
 
 End Class
 
+
+Class GlfShow
+
+    Private m_name
+    Private m_steps
+    Private m_total_step_time
+
+    Public Property Get Name(): Name = m_name: End Property
+    
+    Public Property Get Steps() : Set Steps = m_steps : End Property
+
+    Public Function StepAtIndex(index) : Set StepAtIndex = m_steps.Items()(index) : End Function
+    
+    Public default Function init(name)
+        m_name = name
+        m_total_step_time = 0
+        Set m_steps = CreateObject("Scripting.Dictionary")
+        Set Init = Me
+	End Function
+
+    Public Function AddStep(absolute_time, relative_time, duration)
+        Dim new_step : Set new_step = (new GlfShowStep)()
+        new_step.Duration = duration
+        new_step.RelativeTime = relative_time
+        new_step.AbsoluteTime = absolute_time
+        new_step.IsLastStep = True
+        
+        'Add a empty first step if if show does not start right away
+        If UBound(m_steps.Keys) = -1 Then
+            If Not IsNull(new_step.Time) And new_step.Time <> 0 Then
+                Dim empty_step : Set empty_step = (new GlfShowStep)()
+                empty_step.Duration = new_step.Time
+                m_total_step_time = new_step.Time
+                m_steps.Add CStr(UBound(m_steps.Keys())+1), empty_step        
+            End If
+        End If
+        
+
+        m_steps.Add CStr(UBound(m_steps.Keys())+1), new_step
+
+        If UBound(m_steps.Keys()) > 0 Then
+            Dim prevStep : Set prevStep = m_steps.Items()(UBound(m_steps.Keys())-1)
+            prevStep.IsLastStep = False
+            'need to work out previous steps duration.
+            If IsNull(prevStep.Duration) Then
+                'The previous steps duration needs calculating.
+                'If this step has a relative time then the last steps duration is that time.
+                If Not IsNull(new_step.Time) Then
+                    If new_step.IsRelativeTime Then
+                        prevStep.Duration = new_step.Time
+                    Else
+                        prevStep.Duration = new_step.Time - m_total_step_time
+                    End If
+                Else
+                    prevStep.Duration = 1
+                End If
+            End If
+            m_total_step_time = m_total_step_time + prevStep.Duration
+        Else
+            If IsNull(new_step.Duration) Then
+                m_total_step_time = m_total_step_time + 1
+            Else
+                m_total_step_time = m_total_step_time + new_step.Time
+            End If
+        End If
+
+        
+        Set AddStep = new_step
+    End Function
+
+    Public Function ToYaml()
+        'Dim yaml
+        'yaml = yaml & "  " & Replace(m_name, "shotprofile_", "") & ":" & vbCrLf
+        'yaml = yaml & "    states: " & vbCrLf
+        'Dim token,evt,x : x = 0
+        'For Each evt in m_states.Keys
+        '    yaml = yaml & "     - name: " & StateName(x) & vbCrLf
+            'yaml = yaml & "       show: " & m_states(evt).Show & vbCrLf
+            'yaml = yaml & "       loops: " & m_states(evt).Loops & vbCrLf
+            'yaml = yaml & "       speed: " & m_states(evt).Speed & vbCrLf
+            'yaml = yaml & "       sync_ms: " & m_states(evt).SyncMs & vbCrLf
+
+            'If Ubound(m_states(evt).Tokens().Keys)>-1 Then
+            '    yaml = yaml & "       show_tokens: " & vbCrLf
+            '    For Each token in m_states(evt).Tokens().Keys()
+            '        yaml = yaml & "         " & token & ": " & m_states(evt).Tokens(token) & vbCrLf
+            '    Next
+            'End If
+
+            'yaml = yaml & "     block: " & m_block & vbCrLf
+            'yaml = yaml & "     advance_on_hit: " & m_advance_on_hit & vbCrLf
+            'yaml = yaml & "     loop: " & m_loop & vbCrLf
+            'yaml = yaml & "     rotation_pattern: " & m_rotation_pattern & vbCrLf
+            'yaml = yaml & "     state_names_to_not_rotate: " & m_states_not_to_rotate & vbCrLf
+            'yaml = yaml & "     state_names_to_rotate: " & m_states_to_rotate & vbCrLf
+         '   x = x +1
+        'Next
+        'ToYaml = yaml
+    End Function
+
+End Class
+
+Class GlfRunningShow
+
+    Private m_key
+    Private m_show_name
+    Private m_show_settings
+    Private m_current_step
+    Private m_priority
+    Private m_total_steps
+    Private m_tokens
+    Private m_internal_cache_id
+
+    Public Property Get CacheName(): CacheName = m_show_name & "_" & m_internal_cache_id & "_" & ShowSettings.InternalCacheId: End Property
+    Public Property Get Tokens(): Set Tokens = m_tokens : End Property
+
+    Public Property Get Key(): Key = m_key: End Property
+    Public Property Let Key(input): m_key = input: End Property
+
+    Public Property Get Priority(): Priority = m_priority End Property
+    Public Property Let Priority(input): m_priority = input End Property        
+
+    Public Property Get CurrentStep(): CurrentStep = m_current_step End Property
+    Public Property Let CurrentStep(input): m_current_step = input End Property        
+
+    Public Property Get TotalSteps(): TotalSteps = m_total_steps End Property
+    Public Property Let TotalSteps(input): m_total_steps = input End Property        
+
+    Public Property Get ShowName(): ShowName = m_show_name: End Property
+    Public Property Let ShowName(input): m_show_name = input: End Property
+        
+    Public Property Get ShowSettings(): Set ShowSettings = m_show_settings: End Property
+    Public Property Let ShowSettings(input): Set m_show_settings = input: End Property
+    
+    Public default Function init(rname, rkey, show_settings, priority, tokens, cache_id)
+        m_show_name = rname
+        m_key = rkey
+        m_current_step = 0
+        m_priority = priority
+        m_internal_cache_id = cache_id
+        Set m_show_settings = show_settings
+
+        Dim key
+        Dim mergedTokens : Set mergedTokens = CreateObject("Scripting.Dictionary")
+        If Not IsNull(m_show_settings.Tokens) Then
+            For Each key In m_show_settings.Tokens.Keys()
+                mergedTokens.Add key, m_show_settings.Tokens()(key)
+            Next
+        End If
+        If Not IsNull(tokens) Then
+            For Each key In tokens.Keys
+                If mergedTokens.Exists(key) Then
+                    mergedTokens(key) = tokens(key)
+                Else
+                    mergedTokens.Add key, tokens(key)
+                End If
+            Next
+        End If
+        Set m_tokens = mergedTokens
+        
+        m_total_steps = UBound(m_show_settings.Show.Steps.Keys())
+        If glf_running_shows.Exists(m_show_name) Then
+            glf_running_shows(m_show_name).StopRunningShow()
+            glf_running_shows.Add m_show_name, Me
+        Else
+            glf_running_shows.Add m_show_name, Me
+        End If 
+        Play
+        Set Init = Me
+	End Function
+
+    Public Sub Play()
+        'Play the show.
+        Log "Playing show: " & m_show_name & " With Key: " & m_key
+        GlfShowStepHandler(Array(Me))
+    End Sub
+
+    Public Sub StopRunningShow()
+        Log "Removing show: " & m_show_name & " With Key: " & m_key
+        LightPlayerCallbackHandler m_key, Null, m_show_name, m_priority
+        RemoveDelay Me.ShowName & "_" & Me.Key
+        glf_running_shows.Remove m_show_name
+    End Sub
+
+    Public Sub Log(message)
+        glf_debugLog.WriteToLog "Running Show", message
+    End Sub
+End Class
+
+Function GlfShowStepHandler(args)
+    Dim running_show : Set running_show = args(0)
+    Dim nextStep : Set nextStep = running_show.ShowSettings.Show.StepAtIndex(running_show.CurrentStep)
+    If UBound(nextStep.Lights) > -1 Then
+        Dim cached_show
+        If glf_cached_shows.Exists(running_show.CacheName) Then
+            cached_show = glf_cached_shows(running_show.CacheName)
+        Else
+            msgbox "show not cached! Problem with caching"
+        End If
+        LightPlayerCallbackHandler running_show.Key, Array(cached_show(running_show.CurrentStep)), running_show.ShowName, running_show.Priority + running_show.ShowSettings.Priority
+    End If
+    running_show.CurrentStep = running_show.CurrentStep + 1
+    If running_show.CurrentStep > running_show.TotalSteps Then
+        'End of Show
+        If running_show.ShowSettings.Loops = -1 Or running_show.ShowSettings.Loops > 0 Then
+            If running_show.ShowSettings.Loops > 0 Then
+                running_show.ShowSettings.Loops = running_show.ShowSettings.Loops - 1
+            End If
+            running_show.CurrentStep = 0
+            SetDelay running_show.ShowName & "_" & running_show.Key, "GlfShowStepHandler", Array(running_show), (nextStep.Duration / running_show.ShowSettings.Speed) * 1000
+        Else
+            running_show.StopRunningShow()
+        End If
+    Else
+        SetDelay running_show.ShowName & "_" & running_show.Key, "GlfShowStepHandler", Array(running_show), (nextStep.Duration / running_show.ShowSettings.Speed) * 1000
+    End If
+End Function
+
+Class GlfShowStep
+
+    Private m_lights, m_time, m_duration, m_isLastStep, m_absTime, m_relTime
+
+    Public Property Get Lights(): Lights = m_lights: End Property
+    Public Property Let Lights(input) : m_lights = input: End Property
+
+    Public Property Get Time()
+        If IsNull(m_relTime) Then
+            Time = m_absTime
+        Else
+            Time = m_relTime
+        End If
+    End Property
+
+    Public Property Get IsRelativeTime()
+        If IsNull(m_relTime) Then
+            IsRelativeTime = True
+        Else
+            IsRelativeTime = False
+        End If
+    End Property
+
+    Public Property Let RelativeTime(input) : m_relTime = input: End Property
+    Public Property Let AbsoluteTime(input) : m_absTime = input: End Property
+
+    Public Property Get Duration(): Duration = m_duration: End Property
+    Public Property Let Duration(input) : m_duration = input: End Property
+
+    Public Property Get IsLastStep(): Duration = m_isLastStep: End Property
+    Public Property Let IsLastStep(input) : m_isLastStep = input: End Property
+        
+    Public default Function init()
+        m_lights = Array()
+        m_duration = Null
+        m_time = Null
+        m_absTime = Null
+        m_relTime = Null
+        m_isLastStep = False
+        Set Init = Me
+	End Function
+
+    Public Function ToYaml()
+        'Dim yaml
+        'yaml = yaml & "  " & Replace(m_name, "shotprofile_", "") & ":" & vbCrLf
+        'yaml = yaml & "    states: " & vbCrLf
+        'Dim token,evt,x : x = 0
+        'For Each evt in m_states.Keys
+        '    yaml = yaml & "     - name: " & StateName(x) & vbCrLf
+            'yaml = yaml & "       show: " & m_states(evt).Show & vbCrLf
+            'yaml = yaml & "       loops: " & m_states(evt).Loops & vbCrLf
+            'yaml = yaml & "       speed: " & m_states(evt).Speed & vbCrLf
+            'yaml = yaml & "       sync_ms: " & m_states(evt).SyncMs & vbCrLf
+
+            'If Ubound(m_states(evt).Tokens().Keys)>-1 Then
+            '    yaml = yaml & "       show_tokens: " & vbCrLf
+            '    For Each token in m_states(evt).Tokens().Keys()
+            '        yaml = yaml & "         " & token & ": " & m_states(evt).Tokens(token) & vbCrLf
+            '    Next
+            'End If
+
+            'yaml = yaml & "     block: " & m_block & vbCrLf
+            'yaml = yaml & "     advance_on_hit: " & m_advance_on_hit & vbCrLf
+            'yaml = yaml & "     loop: " & m_loop & vbCrLf
+            'yaml = yaml & "     rotation_pattern: " & m_rotation_pattern & vbCrLf
+            'yaml = yaml & "     state_names_to_not_rotate: " & m_states_not_to_rotate & vbCrLf
+            'yaml = yaml & "     state_names_to_rotate: " & m_states_to_rotate & vbCrLf
+         '   x = x +1
+        'Next
+        'ToYaml = yaml
+    End Function
+
+End Class
 Class GlfStateMachine
     Private m_name
     Private m_priority
@@ -4169,7 +4627,7 @@ Sub SetDelay(name, callbackFunc, args, delayInMs)
         delayQueue.Add executionTime, CreateObject("Scripting.Dictionary")
     End If
 
-    glf_debugLog.WriteToLog "Delay", "Adding delay for " & name & ", callback: " & callbackFunc & ", ExecutionTime: " & executionTime
+    'glf_debugLog.WriteToLog "Delay", "Adding delay for " & name & ", callback: " & callbackFunc & ", ExecutionTime: " & executionTime
     delayQueue(executionTime).Add name, (new DelayObject)(name, callbackFunc, executionTime, args)
     delayQueueMap.Add name, executionTime
     
@@ -4187,7 +4645,7 @@ Function RemoveDelay(name)
             End If
             delayQueueMap.Remove name
             RemoveDelay = True
-            glf_debugLog.WriteToLog "Delay", "Removing delay for " & name
+            'glf_debugLog.WriteToLog "Delay", "Removing delay for " & name
             Exit Function
         End If
     End If
@@ -4201,9 +4659,11 @@ Sub DelayTick()
     executionTime = AlignToNearest10th(gametime)
     If delayQueue.Exists(executionTime) Then
         For Each key In delayQueue(executionTime).Keys()
-            Set delayObject = delayQueue(executionTime)(key)
-            glf_debugLog.WriteToLog "Delay", "Executing delay: " & key & ", callback: " & delayObject.Callback
-            GetRef(delayObject.Callback)(delayObject.Args)
+            If Not IsNull(delayQueue(executionTime)(key)) Then
+                Set delayObject = delayQueue(executionTime)(key)
+                'glf_debugLog.WriteToLog "Delay", "Executing delay: " & key & ", callback: " & delayObject.Callback
+                GetRef(delayObject.Callback)(delayObject.Args)    
+            End If
         Next
         delayQueue.Remove executionTime
     End If
@@ -5289,7 +5749,7 @@ Class LStateController
             Dim seq : seq  = FadeRGB(lightName, lightColor(0), color, steps)
             m_lights(lightName).Color = color
             CreateSeqRunner runner, priority
-            m_seqRunners(runner).AddItem lightName & "Fade", seq, 1, 10, Null,0
+            m_seqRunners(runner).AddItem lightName & "Fade", seq, 1, 10, Null,0,200
             If color = RGB(0,0,0) Then
                 m_lightOff(lightName)
             End If
@@ -5487,7 +5947,7 @@ Class LStateController
                 seq.UpdateInterval = light.BlinkInterval
                 seq.Repeat = True
 
-                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem name, seq, -1, 200/light.BlinkInterval, Null,0
+                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem name, seq, -1, 200/light.BlinkInterval, Null,0,200
                 m_seqs.Add name & light.name, seq
             End If
             If m_on.Exists(light.name) Then
@@ -5535,7 +5995,7 @@ Class LStateController
                 seq.UpdateInterval = light.BlinkInterval
                 seq.Repeat = True
 
-                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem light.name & "Blink", seq.Sequence, -1, 200/light.BlinkInterval, Null,0
+                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem light.name & "Blink", seq.Sequence, -1, 200/light.BlinkInterval, Null,0,200
                 m_seqs.Add light.name & "Blink", seq
             End If
             If m_on.Exists(light.name) Then
@@ -5744,7 +6204,7 @@ Class LStateController
         m_seqOverrideRunners.Add name, seqRunner
     End Sub
 
-    Public Sub AddLightSeq(runner, key, sequence, loops, speed, tokens, priority, syncMs)
+    Public Sub AddLightSeq(runner, key, sequence, loops, speed, tokens, priority, syncMs, duration)
         If Not m_seqRunners.Exists(runner) Then
             CreateSeqRunner runner, priority
         End If
@@ -5753,11 +6213,11 @@ Class LStateController
             If m_seqRunners(runner).Items().Exists(key) Then
                 RemoveLightSeq runner, key
             End If
-            m_seqRunners(runner).AddItem key, sequence, loops, speed, tokens,0
+            m_seqRunners(runner).AddItem key, sequence, loops, speed, tokens,0,duration
         Else
             If Not m_seqRunners.Exists(syncMs) Then
                 CreateSeqRunner syncMs, 10
-                m_seqRunners(syncMs).AddItem syncMs,Array("lXX|100", "lXX|0"), -1, 400/syncMs, Null, syncMs
+                m_seqRunners(syncMs).AddItem syncMs,Array("lXX|100", "lXX|0"), -1, 1000/syncMs, Null, syncMs, duration
             End If
 
             If Not m_syncMs.Exists(syncMs) Then
@@ -5766,7 +6226,7 @@ Class LStateController
             If m_syncMs(syncMs).Exists(runner & "_" & key) Then
                 m_syncMs(syncMs).Remove runner & "_" & key
             End If
-            m_syncMs(syncMs).Add runner & "_" & key, Array(runner, key, sequence, loops, speed, tokens)
+            m_syncMs(syncMs).Add runner & "_" & key, Array(runner, key, sequence, loops, speed, tokens, duration)
         End If
     End Sub
 
@@ -6486,7 +6946,7 @@ Class LStateController
                 If m_syncMs.Exists(lcSeq.SyncMs) Then
                     Dim seqToStart
                     For Each seqToStart in m_syncMs(lcSeq.SyncMs).Items
-                        m_seqRunners(seqToStart(0)).AddItem seqToStart(1), seqToStart(2), seqToStart(3), seqToStart(4), seqToStart(5), 0
+                        m_seqRunners(seqToStart(0)).AddItem seqToStart(1), seqToStart(2), seqToStart(3), seqToStart(4), seqToStart(5), 0, seqToStart(6)
                         RunLightSeq(m_seqRunners(seqToStart(0)))
                     Next
                     m_syncMs(lcSeq.SyncMs).RemoveAll
@@ -7013,15 +7473,15 @@ Class LCSeqRunner
         m_priority = 1000
     End Sub
 
-    Public Sub AddItem(key, sequence, loops, speed, tokens, syncMs)
+    Public Sub AddItem(key, sequence, loops, speed, tokens, syncMs, duration)
         If Not IsNull(sequence) Then
 
             Dim lSeq : Set lSeq = New LCSeq
             lSeq.Name = key
             lSeq.Tokens = tokens
             lSeq.Sequence = sequence
-            lSeq.UpdateInterval = 200/speed
-            lSeq.Frames = 200/speed
+            lSeq.UpdateInterval = (duration/(Ubound(sequence)+1))/speed
+            lSeq.Frames = (duration/(Ubound(sequence)+1))/speed
             lSeq.Loops = loops
             lSeq.SyncMs = syncMs
 
@@ -7092,19 +7552,34 @@ End Class
 '*****************************************************************************************************************************************
 '  ERROR LOGS by baldgeek
 '*****************************************************************************************************************************************
-
-' Log File Usage:
-'   WriteToLog "Label 1", "Message 1 "
-'   WriteToLog "Label 2", "Message 2 "
-
 Class GlfDebugLogFile
 	Private Filename
 	Private TxtFileStream
 
 	Public default Function init()
         Filename = cGameName + "_" & GetTimeStamp & "_debug_log.txt"
-	  Set Init = Me
+		TxtFileStream = Null
+		Set Init = Me
 	End Function
+
+	Public Sub EnableLogs()
+		If glf_debugEnabled = True Then
+			DisableLogs()
+			Dim FormattedMsg, Timestamp, fso, logFolder
+			Set fso = CreateObject("Scripting.FileSystemObject")
+			logFolder = "glf_logs"
+			If Not fso.FolderExists(logFolder) Then
+				fso.CreateFolder logFolder
+			End If
+			Set TxtFileStream = fso.OpenTextFile(logFolder & "\" & Filename, 8, True)
+		End If
+	End Sub
+
+	Public Sub DisableLogs()
+		If Not IsNull(TxtFileStream) Then
+			TxtFileStream.Close
+		End If
+	End Sub
 	
 	Private Function LZ(ByVal Number, ByVal Places)
 		Dim Zeros
@@ -7130,35 +7605,10 @@ Class GlfDebugLogFile
 	' *** Debug.Print the time with milliseconds, and a message of your choice
 	Public Sub WriteToLog(label, message)
 		If glf_debugEnabled = True Then
-			Dim FormattedMsg, Timestamp, fso, logFolder, TxtFileStream
-	
-			' Create a FileSystemObject
-			Set fso = CreateObject("Scripting.FileSystemObject")
-			
-			' Define the log folder path
-			logFolder = "glf_logs"
-	
-			' Check if the log folder exists, if not, create it
-			If Not fso.FolderExists(logFolder) Then
-				fso.CreateFolder logFolder
-			End If
-	
-			' Open the log file for appending
-			Set TxtFileStream = fso.OpenTextFile(logFolder & "\" & Filename, 8, True)
-			
-			' Get the current timestamp
+			Dim FormattedMsg, Timestamp
 			Timestamp = GetTimeStamp
-			
-			' Format the message
 			FormattedMsg = Timestamp & ": " & label & ": " & message
-			
-			' Write the formatted message to the log file
 			TxtFileStream.WriteLine FormattedMsg
-			
-			' Close the file stream
-			TxtFileStream.Close
-			
-			' Print the message to the debug console
 			Debug.Print label & ": " & message
 		End If
 	End Sub

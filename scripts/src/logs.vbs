@@ -1,19 +1,34 @@
 '*****************************************************************************************************************************************
 '  ERROR LOGS by baldgeek
 '*****************************************************************************************************************************************
-
-' Log File Usage:
-'   WriteToLog "Label 1", "Message 1 "
-'   WriteToLog "Label 2", "Message 2 "
-
 Class GlfDebugLogFile
 	Private Filename
 	Private TxtFileStream
 
 	Public default Function init()
         Filename = cGameName + "_" & GetTimeStamp & "_debug_log.txt"
-	  Set Init = Me
+		TxtFileStream = Null
+		Set Init = Me
 	End Function
+
+	Public Sub EnableLogs()
+		If glf_debugEnabled = True Then
+			DisableLogs()
+			Dim FormattedMsg, Timestamp, fso, logFolder
+			Set fso = CreateObject("Scripting.FileSystemObject")
+			logFolder = "glf_logs"
+			If Not fso.FolderExists(logFolder) Then
+				fso.CreateFolder logFolder
+			End If
+			Set TxtFileStream = fso.OpenTextFile(logFolder & "\" & Filename, 8, True)
+		End If
+	End Sub
+
+	Public Sub DisableLogs()
+		If Not IsNull(TxtFileStream) Then
+			TxtFileStream.Close
+		End If
+	End Sub
 	
 	Private Function LZ(ByVal Number, ByVal Places)
 		Dim Zeros
@@ -39,35 +54,10 @@ Class GlfDebugLogFile
 	' *** Debug.Print the time with milliseconds, and a message of your choice
 	Public Sub WriteToLog(label, message)
 		If glf_debugEnabled = True Then
-			Dim FormattedMsg, Timestamp, fso, logFolder, TxtFileStream
-	
-			' Create a FileSystemObject
-			Set fso = CreateObject("Scripting.FileSystemObject")
-			
-			' Define the log folder path
-			logFolder = "glf_logs"
-	
-			' Check if the log folder exists, if not, create it
-			If Not fso.FolderExists(logFolder) Then
-				fso.CreateFolder logFolder
-			End If
-	
-			' Open the log file for appending
-			Set TxtFileStream = fso.OpenTextFile(logFolder & "\" & Filename, 8, True)
-			
-			' Get the current timestamp
+			Dim FormattedMsg, Timestamp
 			Timestamp = GetTimeStamp
-			
-			' Format the message
 			FormattedMsg = Timestamp & ": " & label & ": " & message
-			
-			' Write the formatted message to the log file
 			TxtFileStream.WriteLine FormattedMsg
-			
-			' Close the file stream
-			TxtFileStream.Close
-			
-			' Print the message to the debug console
 			Debug.Print label & ": " & message
 		End If
 	End Sub

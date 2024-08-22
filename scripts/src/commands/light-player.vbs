@@ -114,33 +114,11 @@ Class GlfLightPlayer
     End Sub
 
     Public Sub Play(evt, lights)
-        Dim light, lightParts
-        lightCtrl.AddLightSeq m_name & "_" & evt, evt, lights(1), -1, 1, Null, m_priority, 0
-        For Each light in lights(0)
-            lightParts = Split(light, "|")
-            If IsArray(lightParts) Then
-                If IsNull(lightCtrl.GetLightIdx(lightParts(0))) Then
-                    Dim tagLight, tagLights
-                    tagLights = lightCtrl.GetLightsForTag(lightParts(0))
-                    For Each tagLight in tagLights
-                        ProcessLight tagLight, lightParts, evt
-                    Next
-                Else
-                    ProcessLight lightParts(0), lightParts, evt
-                End If
-            End If
-        Next
+        LightPlayerCallbackHandler evt, lights(1), m_name, m_priority
     End Sub
 
     Public Sub PlayOff(evt, lights)
-        Dim light
-        lightCtrl.RemoveLightSeq m_name & "_" & evt, evt
-    End Sub
-
-    Private Sub ProcessLight(light_name, light_props, evt)
-        If UBound(light_props) = 2 Then
-            lightCtrl.FadeLightToColor light_name, light_props(1), light_props(2), m_name & "_" & evt & "_" & light_name, m_priority
-        End If
+        LightPlayerCallbackHandler evt, Null, m_name, m_priority
     End Sub
 
     Private Sub Log(message)
@@ -149,6 +127,46 @@ Class GlfLightPlayer
         End If
     End Sub
 End Class
+
+Function LightPlayerCallbackHandler(key, lights, mode, priority)
+    If IsNull(lights) Then
+        lightCtrl.RemoveLightSeq mode & "_" & key, key
+        glf_debugLog.WriteToLog "LightPlayer", "Removing Light Seq" & mode & "_" & key
+    Else
+        If UBound(lights) = -1 Then
+            Exit Function
+        End If
+        If IsArray(lights) Then
+            'glf_debugLog.WriteToLog "LightPlayer", "Adding Light Seq" & Join(lights) & ". Key:" & mode & "_" & key    
+        Else
+            glf_debugLog.WriteToLog "LightPlayer", "Lights not an array!?"
+        End If
+        Dim light, lightParts
+        'glf_debugLog.WriteToLog "LightPlayer", "Adding Light Seq" & Join(lights) & ". Key:" & mode & "_" & key
+        lightCtrl.AddLightSeq mode & "_" & key, key, lights, -1, 1, Null, priority, 0,100000
+        
+        'TODO - Refactor this, this is the light fading. need to handle this differently
+        'For Each light in lights(0)
+        '    lightParts = Split(light, "|")
+        '    If IsArray(lightParts) Then
+        '        If IsNull(lightCtrl.GetLightIdx(lightParts(0))) Then
+        '           Dim tagLight, tagLights
+        '            tagLights = lightCtrl.GetLightsForTag(lightParts(0))
+        '            For Each tagLight in tagLights
+        '                ProcessLight tagLight, lightParts, key
+        '                If UBound(lightParts) = 2 Then
+        '                    lightCtrl.FadeLightToColor tagLight, lightParts(1), lightParts(2), mode & "_" & key & "_" & tagLight, priority
+        '                End If
+        '            Next
+        '        Else
+        '            If UBound(lightParts) = 2 Then
+        '                lightCtrl.FadeLightToColor lightParts(0), lightParts(1), lightParts(2), mode & "_" & key & "_" & lightParts(0), priority
+        '            End If
+        '        End If
+        '    End If
+        'Next
+    End If
+End Function
 
 Function LightPlayerEventHandler(args)
     Dim ownProps : ownProps = args(0)

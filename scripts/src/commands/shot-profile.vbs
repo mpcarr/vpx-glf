@@ -62,4 +62,34 @@ Class GlfShotProfile
         Set Init = Me
 	End Function
 
+    Public Function ToYaml()
+        Dim yaml
+        yaml = yaml & "  " & Replace(m_name, "shotprofile_", "") & ":" & vbCrLf
+        yaml = yaml & "    states: " & vbCrLf
+        Dim token,evt,x : x = 0
+        For Each evt in m_states.Keys
+            yaml = yaml & "     - name: " & StateName(x) & vbCrLf
+            'yaml = yaml & "       show: " & m_states(evt).Show & vbCrLf
+            'yaml = yaml & "       loops: " & m_states(evt).Loops & vbCrLf
+            'yaml = yaml & "       speed: " & m_states(evt).Speed & vbCrLf
+            'yaml = yaml & "       sync_ms: " & m_states(evt).SyncMs & vbCrLf
+
+            'If Ubound(m_states(evt).Tokens().Keys)>-1 Then
+            '    yaml = yaml & "       show_tokens: " & vbCrLf
+            '    For Each token in m_states(evt).Tokens().Keys()
+            '        yaml = yaml & "         " & token & ": " & m_states(evt).Tokens(token) & vbCrLf
+            '    Next
+            'End If
+
+            'yaml = yaml & "     block: " & m_block & vbCrLf
+            'yaml = yaml & "     advance_on_hit: " & m_advance_on_hit & vbCrLf
+            'yaml = yaml & "     loop: " & m_loop & vbCrLf
+            'yaml = yaml & "     rotation_pattern: " & m_rotation_pattern & vbCrLf
+            'yaml = yaml & "     state_names_to_not_rotate: " & m_states_not_to_rotate & vbCrLf
+            'yaml = yaml & "     state_names_to_rotate: " & m_states_to_rotate & vbCrLf
+            x = x +1
+        Next
+        ToYaml = yaml
+    End Function
+
 End Class

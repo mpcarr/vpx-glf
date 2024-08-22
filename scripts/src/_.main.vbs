@@ -14,7 +14,10 @@ Dim Glf_ShotProfiles : Set Glf_ShotProfiles = CreateObject("Scripting.Dictionary
 Dim Glf_ShowStartQueue : Set Glf_ShowStartQueue = CreateObject("Scripting.Dictionary")
 Dim glf_playerEventsOrder : Set glf_playerEventsOrder = CreateObject("Scripting.Dictionary")
 Dim playerState : Set playerState = CreateObject("Scripting.Dictionary")
-Dim glf_Modes : Set glf_Modes = CreateObject("Scripting.Dictionary")
+Dim glf_running_shows : Set glf_running_shows = CreateObject("Scripting.Dictionary")
+Dim glf_cached_shows : Set glf_cached_shows = CreateObject("Scripting.Dictionary")
+
+Dim glf_modes : Set glf_modes = CreateObject("Scripting.Dictionary")
 
 Dim glf_ball_devices : Set glf_ball_devices = CreateObject("Scripting.Dictionary")
 Dim glf_ball_holds : Set glf_ball_holds = CreateObject("Scripting.Dictionary")
@@ -42,9 +45,7 @@ Public Sub Glf_ConnectToBCPMediaController
 End Sub
 
 Public Sub Glf_Init()
-	If useBCP = True Then
-		Glf_ConnectToBCPMediaController
-	End If
+	Glf_Options Null 'Force Options Check
 
 	swTrough1.DestroyBall
 	swTrough2.DestroyBall
@@ -70,6 +71,69 @@ Public Sub Glf_Init()
 		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_UnHit() : DispatchPinEvent """ & switch.Name & "_inactive"", ActiveBall : End Sub" & vbCrLf
 	Next
 	ExecuteGlobal switchHitSubs
+
+
+	'Cache Shows
+	Dim mode, show_count, shot_count
+	show_count = 0
+	shot_count = 0
+	For Each mode in glf_modes.Items()
+		glf_debugLog.WriteToLog "Init", mode.Name
+		If Not IsNull(mode.ShowPlayer) Then
+			With mode.ShowPlayer()
+				Dim show_settings
+				For Each show_settings in .EventShows()
+					If Not IsNull(show_settings.Show) Then
+						show_settings.InternalCacheId = CStr(show_count)
+						show_count = show_count + 1
+						glf_debugLog.WriteToLog "Show Settings", "show_player_" & mode.name & "_" & show_settings.Key & "_" & show_settings.InternalCacheId
+						glf_cached_shows.Add "show_player_" & mode.name & "_" & show_settings.Key & "__" & show_settings.InternalCacheId, Glf_ConvertShow(show_settings.Show, show_settings.Tokens)
+					End If 
+				Next
+			End With
+		End If
+		If UBound(mode.ModeShots) > -1 Then
+			Dim mode_shot
+			For Each mode_shot in mode.ModeShots
+				Dim shot_profile : Set shot_profile = Glf_ShotProfiles(mode_shot.Profile)
+				Dim x
+				If mode_shot.InternalCacheId = -1 Then
+					mode_shot.InternalCacheId = shot_count
+					shot_count = shot_count + 1
+				End If
+				For x=0 to shot_profile.StatesCount
+					Dim state
+					Set state = shot_profile.StateForIndex(x)
+					If state.InternalCacheId = -1 Then
+						state.InternalCacheId = CStr(show_count)
+						show_count = show_count + 1
+					End If
+
+					glf_debugLog.WriteToLog "Shot State", mode.name & "_" & x & "_" & mode_shot.Name & "_" & state.Key & "_" & mode_shot.InternalCacheId & "_" & state.InternalCacheId
+
+					Dim key
+					Dim mergedTokens : Set mergedTokens = CreateObject("Scripting.Dictionary")
+					If Not IsNull(state.Tokens) Then
+						For Each key In state.Tokens.Keys()
+							mergedTokens.Add key, state.Tokens()(key)
+						Next
+					End If
+					Dim tokens
+					If Not IsNull(mode_shot.Tokens) Then
+						Set tokens = mode_shot.Tokens
+						For Each key In tokens.Keys
+							If mergedTokens.Exists(key) Then
+								mergedTokens(key) = tokens(key)
+							Else
+								mergedTokens.Add key, tokens(key)
+							End If
+						Next
+					End If
+					glf_cached_shows.Add mode.name & "_" & x & "_" & mode_shot.Name & "_" & state.Key & "_" & mode_shot.InternalCacheId & "_" & state.InternalCacheId, Glf_ConvertShow(state.Show, mergedTokens)
+				Next
+			Next
+		End If
+	Next
 End Sub
 
 Sub Glf_Options(ByVal eventId)
@@ -83,18 +147,18 @@ Sub Glf_Options(ByVal eventId)
 	Dim glfDebug : glfDebug = Table1.Option("Glf Debug Log", 0, 1, 1, 1, 0, Array("Off", "On"))
 	If glfDebug = 1 Then
 		glf_debugEnabled = True
+		glf_debugLog.EnableLogs
 	Else
 		glf_debugEnabled = False
+		glf_debugLog.DisableLogs
 	End If
 
 	Dim glfuseBCP : glfuseBCP = Table1.Option("Glf Backbox Control Protocol", 0, 1, 1, 1, 0, Array("Off", "On"))
 	If glfuseBCP = 1 Then
 		useBCP = True
-		If Not IsNull(bcpController) Then
-			bcpController.Disconnect
-			bcpController = Null
+		If IsNull(bcpController) Then
+			Glf_ConnectToBCPMediaController
 		End If
-		Glf_ConnectToBCPMediaController
 	Else
 		useBCP = False
 		If Not IsNull(bcpController) Then
@@ -108,6 +172,9 @@ Public Sub Glf_Exit()
 	If Not IsNull(bcpController) Then
 		bcpController.Disconnect
 		bcpController = Null
+	End If
+	If glf_debugEnabled = True Then
+		glf_debugLog.DisableLogs
 	End If
 End Sub
 
@@ -293,16 +360,16 @@ Function GlfShotProfiles(name)
 End Function
 
 Function CreateGlfMode(name, priority)
-	If Not glf_Modes.Exists(name) Then 
+	If Not glf_modes.Exists(name) Then 
 		Dim mode : Set mode = (new Mode)(name, priority)
-		glf_Modes.Add name, mode
+		glf_modes.Add name, mode
 		Set CreateGlfMode = mode
 	End If
 End Function
 
 Function GlfModes(name)
-	If glf_Modes.Exists(name) Then 
-		Set GlfModes = glf_Modes(name)
+	If glf_modes.Exists(name) Then 
+		Set GlfModes = glf_modes(name)
 	Else
 		GlfModes = Null
 	End If
@@ -316,11 +383,14 @@ Function Glf_ConvertShow(show, tokens)
 
 	Dim showStep, light, lightsCount, x,tagLight, tagLights, lightParts, token, stepIdx
 	Dim newShow
-	ReDim newShow(UBound(show))
+
+
+
+	ReDim newShow(UBound(show.Steps().Keys()))
 	stepIdx = 0
-	For Each showStep in show
+	For Each showStep in show.Steps().Items()
 		lightsCount = 0 
-		For Each light in showStep
+		For Each light in showStep.Lights
 			lightParts = Split(light, "|")
 			If IsArray(lightParts) Then
 				token = Glf_IsToken(lightParts(0))
@@ -347,7 +417,7 @@ Function Glf_ConvertShow(show, tokens)
 		Dim seqArray
 		ReDim seqArray(lightsCount-1)
 		x=0
-		For Each light in showStep
+		For Each light in showStep.Lights
 			lightParts = Split(light, "|")
 			Dim lightColor : lightColor = ""
 			If Ubound(lightParts) = 2 Then 
@@ -484,11 +554,46 @@ End Function
 '*****   GLF Shows 		                           ****
 '******************************************************
 
-Dim glf_ShowOn : glf_ShowOn = Array(Array("(lights)|100"))
-Dim glf_ShowOff : glf_ShowOff = Array(Array("(lights)|0"))
-Dim glf_ShowFlash : glf_ShowFlash = Array(Array("(lights)|100"), Array("(lights)|0"))
-Dim glf_ShowFlashColor : glf_ShowFlashColor = Array(Array("(lights)|100|(color)"), Array("(lights)|0|(color)"))
-Dim glf_ShowOnColor : glf_ShowOnColor = Array(Array("(lights)|100|(color)"))
+Dim glf_ShowOn : Set glf_ShowOn = (new GlfShow)("show_on")
+With glf_ShowOn
+	With .AddStep(Null, Null, 1)
+		.Lights = Array("(lights)|100")
+	End With
+End With
+
+Dim glf_ShowOff : Set glf_ShowOff = (new GlfShow)("show_off")
+With glf_ShowOff
+	With .AddStep(Null, Null, 1)
+		.Lights = Array("(lights)|0")
+	End With
+End With
+
+Dim glf_ShowFlash : Set glf_ShowFlash = (new GlfShow)("show_flash")
+With glf_ShowFlash
+	With .AddStep(Null, Null, 1)
+		.Lights = Array("(lights)|100")
+	End With
+	With .AddStep(Null, Null, 1)
+		.Lights = Array("(lights)|0")
+	End With
+End With
+
+Dim glf_ShowFlashColor : Set glf_ShowFlashColor = (new GlfShow)("flash_color")
+With glf_ShowFlashColor
+	With .AddStep(Null, Null, 1)
+		.Lights = Array("(lights)|100|(color)")
+	End With
+	With .AddStep(Null, Null, 1)
+		.Lights = Array("(lights)|0|(color)")
+	End With
+End With
+
+Dim glf_ShowOnColor : Set glf_ShowOnColor = (new GlfShow)("flash_color")
+With glf_ShowOnColor
+	With .AddStep(Null, Null, 1)
+		.Lights = Array("(lights)|100|(color)")
+	End With
+End With
 
 With GlfShotProfiles("default")
 	With .States("on")

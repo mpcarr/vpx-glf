@@ -6,6 +6,7 @@ Class Mode
     Private m_stop_events
     private m_priority
     Private m_debug
+    Private m_started
 
     Private m_ballsaves
     Private m_counters
@@ -19,6 +20,7 @@ Class Mode
     Private m_showplayer
     Private m_variableplayer
     Private m_eventplayer
+    Private m_shot_profiles
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get Priority(): Priority = m_priority: End Property
@@ -27,7 +29,17 @@ Class Mode
     Public Property Get ShowPlayer(): Set ShowPlayer = m_showplayer: End Property
     Public Property Get EventPlayer() : Set EventPlayer = m_eventplayer: End Property
     Public Property Get VariablePlayer(): Set VariablePlayer = m_variableplayer: End Property
-    
+
+    Public Property Get ShotProfiles(name)
+        If m_shot_profiles.Exists(name) Then
+            Set ShotProfiles = m_shot_profiles(name)
+        Else
+            Dim new_shotprofile : Set new_shotprofile = (new GlfShotProfile)(name)
+            m_shot_profiles.Add name, new_shotprofile
+            Glf_ShotProfiles.Add name, new_shotprofile
+            Set ShotProfiles = new_shotprofile
+        End If
+    End Property
 
     Public Property Get BallSaves(name)
         If m_ballsaves.Exists(name) Then
@@ -79,6 +91,7 @@ Class Mode
         End If
     End Property
 
+    Public Property Get ModeShots(): ModeShots = m_shots.Items(): End Property
     Public Property Get Shots(name)
         If m_shots.Exists(name) Then
             Set Shots = m_shots(name)
@@ -125,14 +138,13 @@ Class Mode
             m_stop_events.Add newEvent.Name, newEvent
             AddPinEventListener newEvent.EventName, m_name & "_stop", "ModeEventHandler", m_priority+1, Array("stop", Me, newEvent)
         Next
-        Set newEvent = (new GlfEvent)("ball_ended")
-        AddPinEventListener newEvent.EventName, m_name & "_stop", "ModeEventHandler", m_priority+1, Array("stop", Me, newEvent)
     End Property
     Public Property Let Debug(value) : m_debug = value : End Property
 
 	Public default Function init(name, priority)
         m_name = "mode_"&name
         m_priority = priority
+        m_started = False
         Set m_start_events = CreateObject("Scripting.Dictionary")
         Set m_stop_events = CreateObject("Scripting.Dictionary")
         Set m_ballsaves = CreateObject("Scripting.Dictionary")
@@ -143,25 +155,32 @@ Class Mode
         Set m_shots = CreateObject("Scripting.Dictionary")
         Set m_shot_groups = CreateObject("Scripting.Dictionary")
         Set m_ballholds = CreateObject("Scripting.Dictionary")
+        Set m_shot_profiles = CreateObject("Scripting.Dictionary")
         Set m_lightplayer = (new GlfLightPlayer)(Me)
         Set m_showplayer = (new GlfShowPlayer)(Me)
         Set m_eventplayer = (new GlfEventPlayer)(Me)
         Set m_variableplayer = (new GlfVariablePlayer)(Me)
+        Dim newEvent : Set newEvent = (new GlfEvent)("ball_ended")
+        AddPinEventListener newEvent.EventName, m_name & "_stop", "ModeEventHandler", m_priority+1, Array("stop", Me, newEvent)
         Set Init = Me
 	End Function
 
     Public Sub StartMode()
         Log "Starting"
+        m_started=True
         DispatchPinEvent m_name & "_starting", Null
         DispatchPinEvent m_name & "_started", Null
         Log "Started"
     End Sub
 
     Public Sub StopMode()
-        Log "Stopping"
-        DispatchPinEvent m_name & "_stopping", Null
-        DispatchPinEvent m_name & "_stopped", Null
-        Log "Stopped"
+        If m_started = True Then
+            m_started = False
+            Log "Stopping"
+            DispatchPinEvent m_name & "_stopping", Null
+            DispatchPinEvent m_name & "_stopped", Null
+            Log "Stopped"
+        End If
     End Sub
 
     Private Sub Log(message)
@@ -206,6 +225,13 @@ Class Mode
             yaml = yaml & "ballsaves: " & vbCrLf
             For Each child in m_ballsaves.Keys
                 yaml = yaml & m_ballsaves(child).ToYaml
+            Next
+        End If
+        yaml = yaml & vbCrLf
+        If UBound(m_shot_profiles.Keys)>-1 Then
+            yaml = yaml & "shot_profiles: " & vbCrLf
+            For Each child in m_shot_profiles.Keys
+                yaml = yaml & m_shot_profiles(child).ToYaml
             Next
         End If
         yaml = yaml & vbCrLf

@@ -538,7 +538,7 @@ Class LStateController
             Dim seq : seq  = FadeRGB(lightName, lightColor(0), color, steps)
             m_lights(lightName).Color = color
             CreateSeqRunner runner, priority
-            m_seqRunners(runner).AddItem lightName & "Fade", seq, 1, 10, Null,0
+            m_seqRunners(runner).AddItem lightName & "Fade", seq, 1, 10, Null,0,200
             If color = RGB(0,0,0) Then
                 m_lightOff(lightName)
             End If
@@ -736,7 +736,7 @@ Class LStateController
                 seq.UpdateInterval = light.BlinkInterval
                 seq.Repeat = True
 
-                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem name, seq, -1, 200/light.BlinkInterval, Null,0
+                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem name, seq, -1, 200/light.BlinkInterval, Null,0,200
                 m_seqs.Add name & light.name, seq
             End If
             If m_on.Exists(light.name) Then
@@ -784,7 +784,7 @@ Class LStateController
                 seq.UpdateInterval = light.BlinkInterval
                 seq.Repeat = True
 
-                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem light.name & "Blink", seq.Sequence, -1, 200/light.BlinkInterval, Null,0
+                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem light.name & "Blink", seq.Sequence, -1, 200/light.BlinkInterval, Null,0,200
                 m_seqs.Add light.name & "Blink", seq
             End If
             If m_on.Exists(light.name) Then
@@ -993,7 +993,7 @@ Class LStateController
         m_seqOverrideRunners.Add name, seqRunner
     End Sub
 
-    Public Sub AddLightSeq(runner, key, sequence, loops, speed, tokens, priority, syncMs)
+    Public Sub AddLightSeq(runner, key, sequence, loops, speed, tokens, priority, syncMs, duration)
         If Not m_seqRunners.Exists(runner) Then
             CreateSeqRunner runner, priority
         End If
@@ -1002,11 +1002,11 @@ Class LStateController
             If m_seqRunners(runner).Items().Exists(key) Then
                 RemoveLightSeq runner, key
             End If
-            m_seqRunners(runner).AddItem key, sequence, loops, speed, tokens,0
+            m_seqRunners(runner).AddItem key, sequence, loops, speed, tokens,0,duration
         Else
             If Not m_seqRunners.Exists(syncMs) Then
                 CreateSeqRunner syncMs, 10
-                m_seqRunners(syncMs).AddItem syncMs,Array("lXX|100", "lXX|0"), -1, 400/syncMs, Null, syncMs
+                m_seqRunners(syncMs).AddItem syncMs,Array("lXX|100", "lXX|0"), -1, 1000/syncMs, Null, syncMs, duration
             End If
 
             If Not m_syncMs.Exists(syncMs) Then
@@ -1015,7 +1015,7 @@ Class LStateController
             If m_syncMs(syncMs).Exists(runner & "_" & key) Then
                 m_syncMs(syncMs).Remove runner & "_" & key
             End If
-            m_syncMs(syncMs).Add runner & "_" & key, Array(runner, key, sequence, loops, speed, tokens)
+            m_syncMs(syncMs).Add runner & "_" & key, Array(runner, key, sequence, loops, speed, tokens, duration)
         End If
     End Sub
 
@@ -1735,7 +1735,7 @@ Class LStateController
                 If m_syncMs.Exists(lcSeq.SyncMs) Then
                     Dim seqToStart
                     For Each seqToStart in m_syncMs(lcSeq.SyncMs).Items
-                        m_seqRunners(seqToStart(0)).AddItem seqToStart(1), seqToStart(2), seqToStart(3), seqToStart(4), seqToStart(5), 0
+                        m_seqRunners(seqToStart(0)).AddItem seqToStart(1), seqToStart(2), seqToStart(3), seqToStart(4), seqToStart(5), 0, seqToStart(6)
                         RunLightSeq(m_seqRunners(seqToStart(0)))
                     Next
                     m_syncMs(lcSeq.SyncMs).RemoveAll
@@ -2262,15 +2262,15 @@ Class LCSeqRunner
         m_priority = 1000
     End Sub
 
-    Public Sub AddItem(key, sequence, loops, speed, tokens, syncMs)
+    Public Sub AddItem(key, sequence, loops, speed, tokens, syncMs, duration)
         If Not IsNull(sequence) Then
 
             Dim lSeq : Set lSeq = New LCSeq
             lSeq.Name = key
             lSeq.Tokens = tokens
             lSeq.Sequence = sequence
-            lSeq.UpdateInterval = 200/speed
-            lSeq.Frames = 200/speed
+            lSeq.UpdateInterval = (duration/(Ubound(sequence)+1))/speed
+            lSeq.Frames = (duration/(Ubound(sequence)+1))/speed
             lSeq.Loops = loops
             lSeq.SyncMs = syncMs
 

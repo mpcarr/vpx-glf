@@ -19,6 +19,7 @@ Class GlfShot
     Private m_enabled
     Private m_player_var_name
     Private m_persist
+    Private m_internal_cache_id
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get Profile(): Profile = m_profile: End Property
@@ -33,6 +34,9 @@ Class GlfShot
         End If
     End Property
     
+    Public Property Get InternalCacheId(): InternalCacheId = m_internal_cache_id: End Property
+    Public Property Let InternalCacheId(input): m_internal_cache_id = input: End Property
+
     Public Property Let EnableEvents(value) : m_base_device.EnableEvents = value : End Property
     Public Property Let DisableEvents(value) : m_base_device.DisableEvents = value : End Property
     Public Property Get ControlEvents(name)
@@ -83,7 +87,7 @@ Class GlfShot
         m_name = "shot_" & name
         m_mode = mode.Name
         m_priority = mode.Priority
-
+        m_internal_cache_id = -1
         m_enabled = False
         m_persist = True
         Set m_base_device = (new GlfBaseModeDevice)(mode, "shot", Me)
@@ -124,6 +128,28 @@ Class GlfShot
 
     Public Sub Deactivate()
         Disable()
+        Dim evt
+        For Each evt in m_switches
+            RemovePinEventListener evt, m_mode & "_" & m_name & "_hit"
+        Next
+        For Each evt in m_hit_events.Keys
+            RemovePinEventListener evt, m_mode & "_" & m_name & "_hit"
+        Next
+        For Each evt in m_advance_events.Keys
+            RemovePinEventListener evt, m_mode & "_" & m_name & "_advance"
+        Next
+        For Each evt in m_control_events.Keys
+            Dim cEvt
+            For Each cEvt in m_control_events(evt).Events
+                RemovePinEventListener cEvt, m_mode & "_" & m_name & "_control"
+            Next
+        Next
+        For Each evt in m_reset_events.Keys
+            RemovePinEventListener evt, m_mode & "_" & m_name & "_reset"
+        Next
+        For Each evt in m_restart_events.Keys
+            RemovePinEventListener evt, m_mode & "_" & m_name & "_restart"
+        Next
     End Sub
 
     Public Sub Enable()
@@ -159,26 +185,8 @@ Class GlfShot
         m_base_device.Log "Disabling"
         m_enabled = False
         Dim evt
-        For Each evt in m_switches
-            RemovePinEventListener evt, m_mode & "_" & m_name & "_hit"
-        Next
         For Each evt in m_hit_events.Keys
             RemovePinEventListener evt, m_mode & "_" & m_name & "_hit"
-        Next
-        For Each evt in m_advance_events.Keys
-            RemovePinEventListener evt, m_mode & "_" & m_name & "_advance"
-        Next
-        For Each evt in m_control_events.Keys
-            Dim cEvt
-            For Each cEvt in m_control_events(evt).Events
-                RemovePinEventListener cEvt, m_mode & "_" & m_name & "_control"
-            Next
-        Next
-        For Each evt in m_reset_events.Keys
-            RemovePinEventListener evt, m_mode & "_" & m_name & "_reset"
-        Next
-        For Each evt in m_restart_events.Keys
-            RemovePinEventListener evt, m_mode & "_" & m_name & "_restart"
         Next
         Dim x
         For x=0 to Glf_ShotProfiles(m_profile).StatesCount()
@@ -189,35 +197,22 @@ Class GlfShot
     Private Sub StopShowForState(state)
         Dim profileState : Set profileState = Glf_ShotProfiles(m_profile).StateForIndex(state)
         m_base_device.Log "Removing Shot Show: " & m_mode & "_" & m_name & ". Key: " & profileState.Key
-        lightCtrl.RemoveLightSeq m_mode & "_" & m_name, profileState.Key
+        'lightCtrl.RemoveLightSeq m_mode & "_" & m_name, profileState.Key
+        If glf_running_shows.Exists(m_mode & "_" & CStr(state) & "_" & m_name & "_" & profileState.Key) Then 
+            glf_running_shows(m_mode & "_" & CStr(state) & "_" & m_name & "_" & profileState.Key).StopRunningShow()
+        End If
     End Sub
 
     Private Sub PlayShowForState(state)
+        If m_enabled = False Then
+            Exit Sub
+        End If
         Dim profileState : Set profileState = Glf_ShotProfiles(m_profile).StateForIndex(state)
         m_base_device.Log "Playing Shot Show: " & m_mode & "_" & m_name & ". Key: " & profileState.Key
         If IsObject(profileState) Then
-            If IsArray(profileState.Show) Then
-                If m_show_cache.Exists(CStr(m_state) & "_" & profileState.Key) Then
-                    lightCtrl.AddLightSeq m_mode & "_" & m_name, profileState.Key, m_show_cache(CStr(m_state) & "_" & profileState.Key), profileState.Loops, profileState.Speed, Null, m_priority, profileState.SyncMS
-                Else
-                    Dim key
-                    Dim mergedTokens : Set mergedTokens = CreateObject("Scripting.Dictionary")
-                    Dim profileStateTokens : Set profileStateTokens = profileState.Tokens
-                    For Each key In profileStateTokens.Keys
-                        mergedTokens.Add key, profileStateTokens(key)
-                    Next
-                    Dim shotTokens : Set shotTokens = m_tokens
-                    For Each key In shotTokens.Keys
-                        If mergedTokens.Exists(key) Then
-                            mergedTokens(key) = shotTokens(key)
-                        Else
-                            mergedTokens.Add key, shotTokens(key)
-                        End If
-                    Next
-                    Dim show : show = Glf_ConvertShow(profileState.Show, mergedTokens)
-                    m_show_cache.Add CStr(m_state) & "_" & profileState.Key, show
-                    lightCtrl.AddLightSeq m_mode & "_" & m_name, profileState.Key, show, profileState.Loops, profileState.Speed, Null, m_priority, profileState.SyncMS
-                End If
+            If Not IsNull(profileState.Show) Then
+                Dim new_running_show
+                Set new_running_show = (new GlfRunningShow)(m_mode & "_" & CStr(m_state) & "_" & m_name & "_" & profileState.Key, profileState.Key, profileState, m_priority, m_tokens, m_internal_cache_id)
             End If
         End If
     End Sub
@@ -343,12 +338,12 @@ Class GlfShot
             End If
         Next
 
-        If UBound(m_base_device.EnableEvents.Keys) > -1 Then
+        If UBound(m_base_device.EnableEvents().Keys) > -1 Then
             yaml = yaml & "    enable_events: "
             x=0
-            For Each key in m_base_device.EnableEvents.keys
-                yaml = yaml & m_base_device.EnableEvents(key).Raw
-                If x <> UBound(m_base_device.EnableEvents.Keys) Then
+            For Each key in m_base_device.EnableEvents().keys
+                yaml = yaml & m_base_device.EnableEvents()(key).Raw
+                If x <> UBound(m_base_device.EnableEvents().Keys) Then
                     yaml = yaml & ", "
                 End If
                 x = x + 1
@@ -356,12 +351,12 @@ Class GlfShot
             yaml = yaml & vbCrLf
         End If
 
-        If UBound(m_base_device.DisableEvents.Keys) > -1 Then
+        If UBound(m_base_device.DisableEvents().Keys) > -1 Then
             yaml = yaml & "    disable_events: "
             x=0
-            For Each key in m_base_device.DisableEvents.keys
-                yaml = yaml & m_base_device.DisableEvents(key).Raw
-                If x <> UBound(m_base_device.DisableEvents.Keys) Then
+            For Each key in m_base_device.DisableEvents().keys
+                yaml = yaml & m_base_device.DisableEvents()(key).Raw
+                If x <> UBound(m_base_device.DisableEvents().Keys) Then
                     yaml = yaml & ", "
                 End If
                 x = x + 1
