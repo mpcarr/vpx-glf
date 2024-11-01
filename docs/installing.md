@@ -8,15 +8,15 @@ To install and use the Game Logic Framework in your VPX table, you will need to 
 
 The GLF requires a few global settings to function correctly. 
 
-#### GLF Event Timer
+#### GLF Game Timer
 
-Add a timer object to your vpx table called Glf_EventTimer. Set it to Enabled with an Interval of 100ms.
+Add a timer object to your vpx table called Glf_GameTimer. Set it to Enabled with an Interval of -1ms.
 
 #### Global Script Settings
 
- - Your table name must be ```Table1```
  - ```cGameName``` must be set to your table name
  - ```BallSize```, ```BallMass```, ```tnob```, ```lob``` and ```gBot``` must be set
+ - ```tablewidth``` and ```tableheight``` must be set.
 
 **Example** 
 
@@ -27,6 +27,9 @@ Const BallMass = 1			'Ball mass must be 1
 Const tnob = 6              'Total playable balls (Balls in Trough)
 Const lob = 2               'Total non playable balls (Captive Balls)
 Dim gBot                    'Collection used for ball tracking
+Dim tablewidth: tablewidth = Table1.width
+Dim tableheight: tableheight = Table1.height
+
 ```
 
 ## Adding Hooks into GLF

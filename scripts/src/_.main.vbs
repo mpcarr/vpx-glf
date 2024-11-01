@@ -124,7 +124,7 @@ Public Sub Glf_Init()
 		monitorYaml = monitorYaml + "    y: 0.95" & vbCrLf
 
 
-		Dim fso, modesFolder, TxtFileStream
+		Dim fso, modesFolder, TxtFileStream, monitorFolder
 		Set fso = CreateObject("Scripting.FileSystemObject")
 		monitorFolder = "glf_mpf\monitor\"
 		If Not fso.FolderExists("glf_mpf") Then
