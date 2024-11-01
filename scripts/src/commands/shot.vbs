@@ -84,7 +84,7 @@ Class GlfShot
     Public Property Let Debug(value) : m_debug = value : End Property
 
 	Public default Function init(name, mode)
-        m_name = "shot_" & name
+        m_name = name
         m_mode = mode.Name
         m_priority = mode.Priority
         m_internal_cache_id = -1
@@ -93,7 +93,7 @@ Class GlfShot
         Set m_base_device = (new GlfBaseModeDevice)(mode, "shot", Me)
 
         m_profile = "default"
-        m_player_var_name = "player_" & m_name
+        m_player_var_name = "player_shot_" & m_name
         m_state = -1
         m_switches = Array()
         m_start_enabled = Empty
@@ -197,7 +197,6 @@ Class GlfShot
     Private Sub StopShowForState(state)
         Dim profileState : Set profileState = Glf_ShotProfiles(m_profile).StateForIndex(state)
         m_base_device.Log "Removing Shot Show: " & m_mode & "_" & m_name & ". Key: " & profileState.Key
-        'lightCtrl.RemoveLightSeq m_mode & "_" & m_name, profileState.Key
         If glf_running_shows.Exists(m_mode & "_" & CStr(state) & "_" & m_name & "_" & profileState.Key) Then 
             glf_running_shows(m_mode & "_" & CStr(state) & "_" & m_name & "_" & profileState.Key).StopRunningShow()
         End If
@@ -212,7 +211,7 @@ Class GlfShot
         If IsObject(profileState) Then
             If Not IsNull(profileState.Show) Then
                 Dim new_running_show
-                Set new_running_show = (new GlfRunningShow)(m_mode & "_" & CStr(m_state) & "_" & m_name & "_" & profileState.Key, profileState.Key, profileState, m_priority, m_tokens, m_internal_cache_id)
+                Set new_running_show = (new GlfRunningShow)(m_mode & "_" & CStr(m_state) & "_" & m_name & "_" & profileState.Key, profileState.Key, profileState, m_priority + profileState.Priority, m_tokens, m_internal_cache_id)
             End If
         End If
     End Sub

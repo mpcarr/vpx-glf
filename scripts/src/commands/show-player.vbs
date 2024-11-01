@@ -35,14 +35,15 @@ Class GlfShowPlayer
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener Replace(evt, "_" & m_events(evt).Key, "") , m_mode & "_" & m_events(evt).Key & "_show_player_play", "ShowPlayerEventHandler", -m_priority, Array("play", Me, m_events(evt), evt)
+            m_base_device.Log "Adding EVENT: " & Replace(evt, "_" & m_events(evt).Key, "")
+            AddPinEventListener evt , m_mode & "_" & m_events(evt).Key & "_show_player_play", "ShowPlayerEventHandler", -m_priority, Array("play", Me, m_events(evt), evt)
         Next
     End Sub
 
     Public Sub Deactivate()
         Dim evt
         For Each evt In m_events.Keys()
-            RemovePinEventListener Replace(evt, "_" & m_events(evt).Key, ""), m_mode & "_" & m_events(evt).Key & "_show_player_play"
+            RemovePinEventListener evt, m_mode & "_" & m_events(evt).Key & "_show_player_play"
             PlayOff m_events(evt).Key
         Next
     End Sub
@@ -61,6 +62,19 @@ Class GlfShowPlayer
             glf_running_shows(m_name & "_" & key).StopRunningShow()
         End If
     End Sub
+
+    Public Function ToYaml()
+        Dim yaml
+        Dim evt
+        If UBound(m_events.Keys) > -1 Then
+            For Each key in m_events.keys
+                yaml = yaml & "  " & key & ": " & vbCrLf
+                yaml = yaml & m_events(key).ToYaml
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        ToYaml = yaml
+    End Function
 
 End Class
 
@@ -116,6 +130,37 @@ Class GlfShowPlayerItem
         Set Tokens = m_tokens
     End Property        
   
+    Public Function ToYaml()
+        Dim yaml
+        yaml = yaml & "    " & m_show.Name &": " & vbCrLf
+        If m_action <> "play" Then
+            yaml = yaml & "      action: " & m_action & vbCrLf
+        End If
+        If m_key <> "" Then
+            yaml = yaml & "      key: " & m_key & vbCrLf
+        End If
+        If m_priority <> 0 Then
+            yaml = yaml & "      priority: " & m_priority & vbCrLf
+        End If
+        If m_loops > -1 Then
+            yaml = yaml & "      loops: " & m_loops & vbCrLf
+        End If
+        If m_speed <> 1 Then
+            yaml = yaml & "      speed: " & m_speed & vbCrLf
+        End If
+        If UBound(m_tokens.Keys) > -1 Then
+            yaml = yaml & "      show_tokens: " & vbCrLf
+            Dim key
+            For Each key in m_tokens.Keys
+                yaml = yaml & "        " & key & ": " & m_tokens(key) & vbCrLf
+            Next
+        End If
+        If m_syncms > 0 Then
+            yaml = yaml & "      sync_ms: " & m_syncms & vbCrLf
+        End If
+        ToYaml = yaml
+    End Function
+
 	Public default Function init()
         m_action = "play"
         m_key = ""

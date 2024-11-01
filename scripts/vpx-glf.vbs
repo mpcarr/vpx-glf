@@ -16,17 +16,23 @@ Dim glf_playerEventsOrder : Set glf_playerEventsOrder = CreateObject("Scripting.
 Dim playerState : Set playerState = CreateObject("Scripting.Dictionary")
 Dim glf_running_shows : Set glf_running_shows = CreateObject("Scripting.Dictionary")
 Dim glf_cached_shows : Set glf_cached_shows = CreateObject("Scripting.Dictionary")
-
+Dim glf_lightPriority : Set glf_lightPriority = CreateObject("Scripting.Dictionary")
+Dim glf_lightColorLookup : Set glf_lightColorLookup = CreateObject("Scripting.Dictionary")
+Dim glf_lightMaps : Set glf_lightMaps = CreateObject("Scripting.Dictionary")
+Dim glf_lightStacks : Set glf_lightStacks = CreateObject("Scripting.Dictionary")
+Dim glf_lightTags : Set glf_lightTags = CreateObject("Scripting.Dictionary")
+Dim glf_lightNames : Set glf_lightNames = CreateObject("Scripting.Dictionary")
 Dim glf_modes : Set glf_modes = CreateObject("Scripting.Dictionary")
 
 Dim glf_ball_devices : Set glf_ball_devices = CreateObject("Scripting.Dictionary")
 Dim glf_ball_holds : Set glf_ball_holds = CreateObject("Scripting.Dictionary")
+Dim glf_segment_displays : Set glf_segment_displays = CreateObject("Scripting.Dictionary")
+
 
 Dim bcpController : bcpController = Null
 Dim useBCP : useBCP = False
 Dim bcpPort : bcpPort = 5050
 Dim bcpExeName : bcpExeName = ""
-Dim lightCtrl : Set lightCtrl = new LStateController
 Dim glf_BIP : glf_BIP = 0
 Dim glf_FuncCount : glf_FuncCount = 0
 
@@ -36,8 +42,7 @@ Dim glf_troughSize : glf_troughSize = tnob
 Dim glf_debugLog : Set glf_debugLog = (new GlfDebugLogFile)()
 Dim glf_debugEnabled : glf_debugEnabled = False
 
-lightCtrl.RegisterLights Glf_Lights
-lightCtrl.Debug = False
+Glf_RegisterLights()
 Dim glf_ball1, glf_ball2, glf_ball3, glf_ball4, glf_ball5, glf_ball6, glf_ball7, glf_ball8	
 
 Public Sub Glf_ConnectToBCPMediaController
@@ -72,9 +77,73 @@ Public Sub Glf_Init()
 	Next
 	ExecuteGlobal switchHitSubs
 
+	If glf_debugEnabled = True Then
+
+		
+		' Calculate the scale factor
+		Dim scaleFactor
+		scaleFactor = 1080 / tableheight
+
+		Dim light
+		Dim monitorYaml : monitorYaml = "light:" & vbCrLf
+		Dim godotLightScene : godotLightScene = ""
+		For Each light in glf_lights
+			monitorYaml = monitorYaml + "  " & light.name & ":"&vbCrLf
+			monitorYaml = monitorYaml + "    size: 0.04" & vbCrLf
+			monitorYaml = monitorYaml + "    x: "& light.x/tablewidth & vbCrLf
+			monitorYaml = monitorYaml + "    y: "& light.y/tableheight & vbCrLf
+
+
+			godotLightScene = godotLightScene + "[node name="""&light.name&""" type=""Sprite2D"" parent=""lights""]" & vbCrLf
+			godotLightScene = godotLightScene + "position = Vector2("&light.x*scaleFactor&", "&light.y*scaleFactor&")" & vbCrLf
+			godotLightScene = godotLightScene + "script = ExtResource(""3_qb2nn"")" & vbCrLf
+			godotLightScene = godotLightScene + "tags = []" & vbCrLf
+			godotLightScene = godotLightScene + vbCrLf
+		Next
+
+		monitorYaml = monitorYaml + vbCrLf
+		monitorYaml = monitorYaml + "switch:" & vbCrLf
+		For Each switch in glf_switches
+			monitorYaml = monitorYaml + "  " & switch.name & ":"&vbCrLf
+			monitorYaml = monitorYaml + "    shape: RECTANGLE" & vbCrLf
+			monitorYaml = monitorYaml + "    size: 0.06" & vbCrLf
+			monitorYaml = monitorYaml + "    x: "& switch.x/tablewidth & vbCrLf
+			monitorYaml = monitorYaml + "    y: "& switch.y/tableheight & vbCrLf
+		Next
+		Dim troughCount
+		For troughCount=1 to 8
+			monitorYaml = monitorYaml + "  s_trough" & troughCount & ":"&vbCrLf
+			monitorYaml = monitorYaml + "    shape: RECTANGLE" & vbCrLf
+			monitorYaml = monitorYaml + "    size: 0.06" & vbCrLf
+			monitorYaml = monitorYaml + "    x: "& Eval("swTrough"&troughCount).x/tablewidth & vbCrLf
+			monitorYaml = monitorYaml + "    y: "& Eval("swTrough"&troughCount).y/tableheight & vbCrLf
+		Next
+		monitorYaml = monitorYaml + "  s_start:"&vbCrLf
+		monitorYaml = monitorYaml + "    size: 0.06" & vbCrLf
+		monitorYaml = monitorYaml + "    x: 0.95" & vbCrLf
+		monitorYaml = monitorYaml + "    y: 0.95" & vbCrLf
+
+
+		Dim fso, modesFolder, TxtFileStream
+		Set fso = CreateObject("Scripting.FileSystemObject")
+		monitorFolder = "glf_mpf\monitor\"
+		If Not fso.FolderExists("glf_mpf") Then
+			fso.CreateFolder "glf_mpf"
+		End If
+		If Not fso.FolderExists("glf_mpf\monitor") Then
+			fso.CreateFolder "glf_mpf\monitor"
+		End If
+		Set TxtFileStream = fso.OpenTextFile(monitorFolder & "\monitor.yaml", 2, True)
+		TxtFileStream.WriteLine monitorYaml
+		TxtFileStream.Close
+		Set TxtFileStream = fso.OpenTextFile(monitorFolder & "\gotdotlights.txt", 2, True)
+		TxtFileStream.WriteLine godotLightScene
+		TxtFileStream.Close
+		
+	End If
 
 	'Cache Shows
-	Dim mode, show_count, shot_count
+	Dim mode, show_count, shot_count, cached_show
 	show_count = 0
 	shot_count = 0
 	For Each mode in glf_modes.Items()
@@ -83,15 +152,23 @@ Public Sub Glf_Init()
 			With mode.ShowPlayer()
 				Dim show_settings
 				For Each show_settings in .EventShows()
-					If Not IsNull(show_settings.Show) Then
+					If Not IsNull(show_settings.Show) And show_settings.Action = "play" Then
 						show_settings.InternalCacheId = CStr(show_count)
 						show_count = show_count + 1
 						glf_debugLog.WriteToLog "Show Settings", "show_player_" & mode.name & "_" & show_settings.Key & "_" & show_settings.InternalCacheId
-						glf_cached_shows.Add "show_player_" & mode.name & "_" & show_settings.Key & "__" & show_settings.InternalCacheId, Glf_ConvertShow(show_settings.Show, show_settings.Tokens)
+						cached_show = Glf_ConvertShow(show_settings.Show, show_settings.Tokens)
+						glf_cached_shows.Add "show_player_" & mode.name & "_" & show_settings.Key & "__" & show_settings.InternalCacheId, cached_show
 					End If 
 				Next
 			End With
 		End If
+
+		If Not IsNull(mode.LightPlayer) Then
+			With mode.LightPlayer()
+				.ReloadLights()
+			End With
+		End If
+
 		If UBound(mode.ModeShots) > -1 Then
 			Dim mode_shot
 			For Each mode_shot in mode.ModeShots
@@ -129,7 +206,8 @@ Public Sub Glf_Init()
 							End If
 						Next
 					End If
-					glf_cached_shows.Add mode.name & "_" & x & "_" & mode_shot.Name & "_" & state.Key & "_" & mode_shot.InternalCacheId & "_" & state.InternalCacheId, Glf_ConvertShow(state.Show, mergedTokens)
+					cached_show = Glf_ConvertShow(state.Show, mergedTokens)
+					glf_cached_shows.Add mode.name & "_" & x & "_" & mode_shot.Name & "_" & state.Key & "_" & mode_shot.InternalCacheId & "_" & state.InternalCacheId, cached_show
 				Next
 			Next
 		End If
@@ -232,21 +310,92 @@ Public Sub Glf_KeyUp(ByVal keycode)
 	End If
 End Sub
 
+Dim glf_lastEventExecutionTime, glf_lastBcpExecutionTime, glf_lastLightUpdateExecutionTime
+glf_lastEventExecutionTime = 0
+glf_lastBcpExecutionTime = 0
+glf_lastLightUpdateExecutionTime = 0
+
 Public Sub Glf_GameTimer_Timer()
+
+    'If (gametime - glf_lastEventExecutionTime) >= 33 Then
+     '   glf_lastEventExecutionTime = gametime
+		DelayTick
+    'End If
+
+	If (gametime - glf_lastBcpExecutionTime) >= 300 Then
+        glf_lastBcpExecutionTime = gametime
+		Glf_BcpUpdate
+    End If
+
+End Sub
+
+Public Function Glf_RegisterLights()
+
+	Dim light, tags, tag
+	For Each light In Glf_Lights
+		tags = Split(light.BlinkPattern, ",")
+		For Each tag in tags
+			
+			tag = Trim(tag) ' Remove any leading or trailing spaces
+			If Not glf_lightTags.Exists(tag) Then
+				Set glf_lightTags(tag) = CreateObject("Scripting.Dictionary")
+			End If
+			If Not glf_lightTags(tag).Exists(light.Name) Then
+				glf_lightTags(tag).Add light.Name, True
+			End If
+		Next
+		glf_lightPriority.Add light.Name, 0
+		
+		Dim e, lmStr: lmStr = "lmArr = Array("    
+		For Each e in GetElements()
+			On Error Resume Next
+			If InStr(LCase(e.Name), LCase("_" & light.Name & "_")) Then
+				lmStr = lmStr & e.Name & ","
+			End If
+			For Each tag in tags
+				If InStr(LCase(e.Name), LCase("_" & tag & "_")) Then
+					lmStr = lmStr & e.Name & ","
+				End If
+			Next
+			If Err Then Log "Error: " & Err
+		Next
+		lmStr = lmStr & "Null)"
+		lmStr = Replace(lmStr, ",Null)", ")")
+		ExecuteGlobal "Dim lmArr : "&lmStr
+		glf_lightMaps.Add light.Name, lmArr
+		glf_lightNames.Add light.Name, light
+		Dim lightStack : Set lightStack = (new GlfLightStack)()
+		glf_lightStacks.Add light.Name, lightStack
+		light.State = 1
+		Glf_SetLight light.Name, "000000"
+	Next
+End Function
+
+Public Function Glf_SetLight(light, color)
 	
-End Sub
+	Dim rgbColor
+	If glf_lightColorLookup.Exists(color) Then
+		rgbColor = glf_lightColorLookup(color)
+	Else
+		glf_lightColorLookup.Add color, RGB( CInt("&H" & (Left(color, 2))), CInt("&H" & (Mid(color, 3, 2))), CInt("&H" & (Right(color, 2)) ))
+		rgbColor = glf_lightColorLookup(color)
+	End If
+	
 
-Public Sub Glf_EventTimer_Timer()
-	DelayTick
-End Sub
-
-Public Sub Glf_BCPUpdateTimer_Timer()
-	Glf_BcpUpdate
-End Sub
-
-Public Sub Glf_LampTimer_Timer()
-	lightCtrl.Update
-End Sub
+	If IsNull(color) Then
+		glf_lightNames(light).Color = rgb(0,0,0)
+	Else
+		glf_lightNames(light).Color = rgbColor
+	End If
+	dim lightMap
+	For Each lightMap in glf_lightMaps(light)
+		If Not IsNull(lightMap) Then
+			On Error Resume Next
+			lightMap.Color = glf_lightNames(light).Color
+			If Err Then Debug.Print "Error: " & Err & ". Light:" & light & ", LightMap: " & lightMap.Name
+		End If
+	Next
+End Function
 
 Public Function Glf_ParseInput(value, isTime)
 	Dim templateCode : templateCode = ""
@@ -348,6 +497,106 @@ Function Glf_ConvertCondition(value, retName)
 End Function
 
 
+Sub glf_ConvertYamlShowToGlfShow(yamlFilePath)
+    Dim fso, file, content, lines, line, output, i, stepLights
+    Dim glf_ShowName, stepTime, lightsDict, key, lightName, color, intensity
+    
+    ' Initialize FileSystemObject
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    
+    ' Read the YAML file
+    Set file = fso.OpenTextFile(yamlFilePath, 1)
+    content = file.ReadAll
+    file.Close
+    
+    ' Split the content into lines
+    lines = Split(content, vbLf)
+    
+    ' Initialize variables
+    glf_ShowName = fso.GetBaseName(yamlFilePath)
+    output = "Dim glf_Show" & glf_ShowName & " : Set glf_Show" & glf_ShowName & " = (new GlfShow)(""" & glf_ShowName & """)" & vbCrLf
+    output = output & "With glf_Show" & glf_ShowName & vbCrLf
+    
+    ' Iterate through lines to extract steps and lights
+	stepLights = ""
+    For i = 0 To UBound(lines)
+        line = Trim(lines(i))
+        
+        ' Close the step when a new time step or end of file is reached
+        If InStr(line, "- time:") = 1 And stepLights <> "" Then
+			'output = output & vbTab & vbTab & ".Lights = Array("& Left(stepLights, Len(stepLights) - 1)&")" & vbCrLf
+			output = output & vbTab & vbTab & ".Lights = Array(" & _ 
+            SplitStringWithUnderscore(Left(stepLights, Len(stepLights) - 1), 1500) & ")" & vbCrLf
+            output = output & vbTab & "End With" & vbCrLf
+			stepLights = ""
+		End If
+
+        ' Identify time steps
+        If InStr(line, "- time:") = 1 Then
+            stepTime = Trim(Split(line, ":")(1))
+            output = output & vbTab & "With .AddStep(" & stepTime & ", Null, Null)" & vbCrLf
+        
+		ElseIf InStr(line, "lights:") = 1 Then
+			'Do Nothing
+        ' Identify lights and colors
+        ElseIf InStr(line, "l") = 1 Then
+            key = Split(line, ":")(0)
+            lightName = Trim(key)
+            color = Trim(Split(line, """")(1))
+            
+            ' Default intensity to 100 if color is not "000000"
+            intensity = 100
+            'If color = "000000" Then
+            '    intensity = 0
+            'End If
+            
+            ' Add lights to output
+            'If intensity > 0 Then
+                
+            'End If
+			stepLights = stepLights + """" & lightName & "|" & intensity & "|" & color & ""","
+
+        End If
+    Next
+    
+    ' Close the final step and the show
+	'output = output & vbTab & vbTab & ".Lights = Array("& Left(stepLights, Len(stepLights) - 1)&")" & vbCrLf
+	output = output & vbTab & vbTab & ".Lights = Array(" & _ 
+    SplitStringWithUnderscore(Left(stepLights, Len(stepLights) - 1), 1500) & ")" & vbCrLf
+    output = output & vbTab & "End With" & vbCrLf
+    output = output & "End With" & vbCrLf
+    
+    ' Write the output to a VBScript file
+    Dim outputFilePath
+    outputFilePath = fso.GetParentFolderName(yamlFilePath) & "\" & glf_ShowName & ".vbs"
+    Set file = fso.CreateTextFile(outputFilePath, True)
+    file.Write output
+    file.Close
+    
+    ' Clean up
+    Set fso = Nothing
+    Set file = Nothing
+End Sub
+
+Function SplitStringWithUnderscore(str, maxLength)
+    Dim result, i, strLen
+    strLen = Len(str)
+    result = ""
+    
+    If strLen <= maxLength Then
+        result = str
+    Else
+        For i = 1 To strLen Step maxLength
+            If i + maxLength - 1 < strLen Then
+                result = result & Mid(str, i, maxLength) & "_" & vbCrLf & vbTab & vbTab & vbTab
+            Else
+                result = result & Mid(str, i, maxLength)
+            End If
+        Next
+    End If
+    
+    SplitStringWithUnderscore = result
+End Function
 
 Function GlfShotProfiles(name)
 	If Glf_ShotProfiles.Exists(name) Then
@@ -382,9 +631,8 @@ End Function
 Function Glf_ConvertShow(show, tokens)
 
 	Dim showStep, light, lightsCount, x,tagLight, tagLights, lightParts, token, stepIdx
-	Dim newShow
-
-
+	Dim newShow, lightsInShow
+	Set lightsInShow = CreateObject("Scripting.Dictionary")
 
 	ReDim newShow(UBound(show.Steps().Keys()))
 	stepIdx = 0
@@ -394,17 +642,17 @@ Function Glf_ConvertShow(show, tokens)
 			lightParts = Split(light, "|")
 			If IsArray(lightParts) Then
 				token = Glf_IsToken(lightParts(0))
-				If IsNull(token) And IsNull(lightCtrl.GetLightIdx(lightParts(0))) Then
-					tagLights = lightCtrl.GetLightsForTag(lightParts(0))
+				If IsNull(token) And Not glf_lightNames.Exists(lightParts(0)) Then
+					tagLights = glf_lightTags(lightParts(0)).Keys()
 					lightsCount = UBound(tagLights)+1
 				Else
 					If IsNull(token) Then
 						lightsCount = lightsCount + 1
 					Else
 						'resolve token lights
-						If IsNull(lightCtrl.GetLightIdx(tokens(token))) Then
+						If Not glf_lightNames.Exists(tokens(token)) Then
 							'token is a tag
-							tagLights = lightCtrl.GetLightsForTag(tokens(token))
+							tagLights = glf_lightTags(tokens(token)).Keys()
 							lightsCount = UBound(tagLights)+1
 						Else
 							lightsCount = lightsCount + 1
@@ -430,13 +678,16 @@ Function Glf_ConvertShow(show, tokens)
 
 			If IsArray(lightParts) Then
 				token = Glf_IsToken(lightParts(0))
-				If IsNull(token) And IsNull(lightCtrl.GetLightIdx(lightParts(0))) Then
-					tagLights = lightCtrl.GetLightsForTag(lightParts(0))
+				If IsNull(token) And Not glf_lightNames.Exists(lightParts(0)) Then
+					tagLights = glf_lightTags(lightParts(0)).Keys()
 					For Each tagLight in tagLights
 						If UBound(lightParts) >=1 Then
 							seqArray(x) = tagLight & "|"&lightParts(1)&"|"&lightColor
 						Else
 							seqArray(x) = tagLight & "|"&lightParts(1)
+						End If
+						If Not lightsInShow.Exists(tagLight) Then
+							lightsInShow.Add tagLight, True
 						End If
 						x=x+1
 					Next
@@ -447,17 +698,23 @@ Function Glf_ConvertShow(show, tokens)
 						Else
 							seqArray(x) = lightParts(0) & "|"&lightParts(1)
 						End If
+						If Not lightsInShow.Exists(lightParts(0)) Then
+							lightsInShow.Add lightParts(0), True
+						End If
 						x=x+1
 					Else
 						'resolve token lights
-						If IsNull(lightCtrl.GetLightIdx(tokens(token))) Then
+						If Not glf_lightNames.Exists(tokens(token)) Then
 							'token is a tag
-							tagLights = lightCtrl.GetLightsForTag(tokens(token))
+							tagLights = glf_lightTags(tokens(token)).Keys()
 							For Each tagLight in tagLights
 								If UBound(lightParts) >=1 Then
 									seqArray(x) = tagLight & "|"&lightParts(1)&"|"&lightColor
 								Else
 									seqArray(x) = tagLight & "|"&lightParts(1)
+								End If
+								If Not lightsInShow.Exists(tagLight) Then
+									lightsInShow.Add tagLight, True
 								End If
 								x=x+1
 							Next
@@ -466,6 +723,9 @@ Function Glf_ConvertShow(show, tokens)
 								seqArray(x) = tokens(token) & "|"&lightParts(1)&"|"&lightColor
 							Else
 								seqArray(x) = tokens(token) & "|"&lightParts(1)
+							End If
+							If Not lightsInShow.Exists(tokens(token)) Then
+								lightsInShow.Add tokens(token), True
 							End If
 							x=x+1
 						End If
@@ -477,7 +737,7 @@ Function Glf_ConvertShow(show, tokens)
 		newShow(stepIdx) = seqArray
 		stepIdx = stepIdx + 1
 	Next
-	Glf_ConvertShow = newShow
+	Glf_ConvertShow = Array(newShow, lightsInShow)
 End Function
 
 Private Function Glf_IsToken(mainString)
@@ -554,27 +814,27 @@ End Function
 '*****   GLF Shows 		                           ****
 '******************************************************
 
-Dim glf_ShowOn : Set glf_ShowOn = (new GlfShow)("show_on")
+Dim glf_ShowOn : Set glf_ShowOn = (new GlfShow)("on")
 With glf_ShowOn
-	With .AddStep(Null, Null, 1)
+	With .AddStep(Null, Null, -1)
 		.Lights = Array("(lights)|100")
 	End With
 End With
 
-Dim glf_ShowOff : Set glf_ShowOff = (new GlfShow)("show_off")
+Dim glf_ShowOff : Set glf_ShowOff = (new GlfShow)("off")
 With glf_ShowOff
-	With .AddStep(Null, Null, 1)
-		.Lights = Array("(lights)|0")
+	With .AddStep(Null, Null, -1)
+		.Lights = Array("(lights)|100|000000")
 	End With
 End With
 
-Dim glf_ShowFlash : Set glf_ShowFlash = (new GlfShow)("show_flash")
+Dim glf_ShowFlash : Set glf_ShowFlash = (new GlfShow)("flash")
 With glf_ShowFlash
 	With .AddStep(Null, Null, 1)
 		.Lights = Array("(lights)|100")
 	End With
 	With .AddStep(Null, Null, 1)
-		.Lights = Array("(lights)|0")
+		.Lights = Array("(lights)|100|000000")
 	End With
 End With
 
@@ -584,16 +844,371 @@ With glf_ShowFlashColor
 		.Lights = Array("(lights)|100|(color)")
 	End With
 	With .AddStep(Null, Null, 1)
-		.Lights = Array("(lights)|0|(color)")
+		.Lights = Array("(lights)|100|000000")
 	End With
 End With
 
-Dim glf_ShowOnColor : Set glf_ShowOnColor = (new GlfShow)("flash_color")
+Dim glf_ShowOnColor : Set glf_ShowOnColor = (new GlfShow)("led_color")
 With glf_ShowOnColor
-	With .AddStep(Null, Null, 1)
+	With .AddStep(Null, Null, -1)
 		.Lights = Array("(lights)|100|(color)")
 	End With
 End With
+
+Dim glf_Showtest : Set glf_Showtest = (new GlfShow)("test")
+With glf_Showtest
+	With .AddStep(0.00000, Null, Null)
+		.Lights = Array("l142|100|000000","l143|100|000000","l141|100|000000","l140|100|00c737","l79|100|000000","l78|100|000000","l77|100|000000","l76|100|00d628","l75|100|00d628","l74|100|00d628","l73|100|00d32b","l72|100|000000","l71|100|000000","l70|100|000000","l69|100|000000","l44|100|000000","l11|100|000000","l12|100|000000","l13|100|000000","l14|100|000000","l15|100|000000","l05|100|000000","l07|100|000000","l08|100|000000","l09|100|000000","l10|100|000000","l06|100|000000","l04|100|000000","l03|100|000000","l02|100|000000","l01|100|000000","l16|100|000000","l23|100|000000","l63|100|000000","l53|100|000000","l68|100|00eb13","l67|100|00df1f","l66|100|00d727","l35|100|000000","l62|100|000000","l34|100|000000","l92|100|000000","l60|100|000000","l61|100|000000","l19|100|000000","l18|100|000000","l17|100|000000","l49|100|000000","l59|100|000000","l65|100|000000","l33|100|000000","l32|100|000000","l31|100|000000","l30|100|000000","l29|100|000000","l41|100|000000","l40|100|000000","l39|100|000000","l38|100|000000","l37|100|000000","l28|100|000000","l27|100|000000","l26|100|000000","l25|100|000000","l24|100|000000","l45|100|000000","l43|100|000000","l50|100|000000","l51|100|000000","l52|100|000000","l21|100|000000","l22|100|000000","l20|100|000000","l58|100|000000","l57|100|000000","l56|100|000000","l55|100|000000","l54|100|000000","l48|100|000000","l46|100|000000","l47|100|000000","l64|100|000000","l42|100|000000","l84|100|000000","l83|100|000000","l82|100|000000","l81|100|000000","l80|100|000000",_
+			"l95|100|000000","l139|100|000000","l137|100|000000","l135|100|000000","l136|100|000000","l145|100|000000","l134|100|000000","l133|100|000000","l131|100|000000","l130|100|000000","l129|100|000000","l128|100|000000","l127|100|000000","l126|100|000000","l125|100|000000","l124|100|000000","l123|100|000000","l122|100|00ea14","l121|100|000000","l120|100|000000","l119|100|000000","l116|100|000000","l115|100|00ad50","l114|100|000000","l113|100|00d12d","l112|100|000000","l111|100|000000","l110|100|000000","l109|100|000000","l108|100|000000","l107|100|000000","l106|100|000000","l105|100|000000","l104|100|000000","l103|100|000000","l102|100|000000","l101|100|000000","l100|100|000000","l118|100|000000","l117|100|000000","l132|100|000000","l94|100|000000","l97|100|000000","l93|100|000000","l98|100|000000")
+	End With
+	With .AddStep(0.03333, Null, Null)
+		.Lights = Array("l140|100|00c33b","l76|100|00d22c","l75|100|00d22c","l74|100|00d22c","l73|100|00cf2f","l68|100|00e717","l67|100|00db23","l66|100|00d32b","l130|100|00fd02","l122|100|00e618","l115|100|00a955","l113|100|00cd31","l97|100|00fd02")
+	End With
+	With .AddStep(0.06667, Null, Null)
+		.Lights = Array("l140|100|00b945","l76|100|00c737","l75|100|00c737","l74|100|00c737","l73|100|00c539","l68|100|00dc22","l67|100|00d12d","l66|100|00c836","l131|100|00fa04","l130|100|00f20c","l122|100|00db23","l115|100|009e60","l113|100|00c23c","l97|100|00f20c")
+	End With
+	With .AddStep(0.10000, Null, Null)
+		.Lights = Array("l140|100|00a955","l76|100|00b846","l75|100|00b846","l74|100|00b846","l73|100|00b549","l68|100|00cd31","l67|100|00c13d","l66|100|00b945","l131|100|00ea14","l130|100|00e21c","l129|100|00ff00","l127|100|00f509","l123|100|00f10c","l122|100|00cc32","l115|100|008e70","l113|100|00b34b","l97|100|00e21c")
+	End With
+	With .AddStep(0.13333, Null, Null)
+		.Lights = Array("l140|100|009569","l76|100|00a35b","l75|100|00a35b","l74|100|00a35b","l73|100|00a15d","l68|100|00b944","l67|100|00ae50","l66|100|00a45a","l131|100|00d727","l130|100|00cf2f","l129|100|00ec12","l127|100|00e21c","l123|100|00de20","l122|100|00b846","l115|100|007b83","l113|100|009f5f","l97|100|00cf2f")
+	End With
+	With .AddStep(0.16667, Null, Null)
+		.Lights = Array("l140|100|007f7f","l76|100|008d71","l75|100|008d71","l74|100|008d71","l73|100|008a74","l68|100|00a25c","l67|100|009668","l66|100|008e70","l139|100|00f10d","l131|100|00c03d","l130|100|00b846","l129|100|00d628","l127|100|00cb33","l123|100|00c836","l122|100|00a15d","l116|100|00ef0f","l115|100|006599","l114|100|00ea14","l113|100|008876","l97|100|00b846")
+	End With
+	With .AddStep(0.20000, Null, Null)
+		.Lights = Array("l141|100|00fc03","l140|100|006698","l76|100|00748a","l75|100|00748a","l74|100|00748a","l73|100|00718d","l68|100|008975","l67|100|007d81","l66|100|007589","l139|100|00d826","l135|100|00ea14","l131|100|00a757","l130|100|009e60","l129|100|00bd41","l127|100|00b24c","l123|100|00af4f","l122|100|008876","l116|100|00d628","l115|100|004bb3","l114|100|00d12d","l113|100|006f8f","l97|100|009e60")
+	End With
+	With .AddStep(0.23333, Null, Null)
+		.Lights = Array("l141|100|00e01e","l140|100|0049b4","l77|100|00f608","l76|100|0059a5","l75|100|0059a5","l74|100|0059a5","l73|100|0056a8","l68|100|006e90","l67|100|00629c","l66|100|005aa4","l139|100|00bd41","l135|100|00cf2f","l131|100|008b72","l130|100|00837b","l129|100|00a15d","l127|100|009668","l123|100|00936b","l122|100|006d91","l121|100|00fc02","l116|100|00bb43","l115|100|0030ce","l114|100|00b648","l113|100|0054aa","l97|100|00837b")
+	End With
+	With .AddStep(0.26667, Null, Null)
+		.Lights = Array("l141|100|00c43a","l140|100|002dd1","l79|100|00e31a","l77|100|00d925","l76|100|003bc3","l75|100|003bc3","l74|100|003bc3","l73|100|0039c5","l68|100|0050ae","l67|100|0044ba","l66|100|003cc2","l139|100|009f5f","l135|100|00b24c","l131|100|006f8f","l130|100|006698","l129|100|00847a","l127|100|007985","l123|100|007688","l122|100|004faf","l121|100|00df1f","l116|100|009d61","l115|100|0013eb","l114|100|009866","l113|100|0036c8","l132|100|00ff00","l97|100|006698")
+	End With
+	With .AddStep(0.30000, Null, Null)
+		.Lights = Array("l141|100|00a45a","l140|100|000fef","l79|100|00c539","l77|100|00bb43","l76|100|001de1","l75|100|001de1","l74|100|001de1","l73|100|001ae4","l23|100|00f30b","l68|100|0032cc","l67|100|0026d8","l66|100|001ee0","l139|100|00817d","l135|100|00936b","l131|100|0050ae","l130|100|0047b7","l129|100|006698","l127|100|005ba3","l123|100|0058a6","l122|100|0031cd","l121|100|00c13d","l116|100|007f7f","l115|100|000000","l114|100|007a84","l113|100|0018e6","l112|100|00ee10","l132|100|00e01d","l97|100|0047b7")
+	End With
+	With .AddStep(0.33333, Null, Null)
+		.Lights = Array("l141|100|008579","l140|100|000000","l79|100|00a559","l77|100|009a63","l76|100|000000","l75|100|000000","l74|100|000000","l73|100|000000","l23|100|00d42a","l68|100|0013eb","l67|100|0007f7","l66|100|0000ff","l61|100|00e717","l139|100|00629c","l135|100|00738a","l131|100|0030ce","l130|100|0028d6","l129|100|0046b8","l127|100|003bc3","l124|100|00f30b","l123|100|0037c6","l122|100|0012ec","l121|100|00a05e","l116|100|005f9f","l114|100|005ba3","l113|100|000000","l112|100|00ce30","l111|100|00ee10","l132|100|00c13d","l94|100|00e11d","l97|100|0028d6")
+	End With
+	With .AddStep(0.36667, Null, Null)
+		.Lights = Array("l141|100|006599","l79|100|008579","l78|100|00e816","l77|100|007a84","l23|100|00b44a","l68|100|000000","l67|100|000000","l66|100|000000","l61|100|00c737","l17|100|00f10c","l139|100|0041bd","l135|100|0053ab","l131|100|0010ee","l130|100|0008f6","l129|100|0025d8","l127|100|001be3","l124|100|00d32b","l123|100|0017e7","l122|100|000000","l121|100|00807e","l116|100|003ec0","l114|100|003ac4","l112|100|00ae50","l111|100|00ce30","l132|100|00a05e","l94|100|00c13d","l97|100|0008f6")
+	End With
+	With .AddStep(0.40000, Null, Null)
+		.Lights = Array("l141|100|0043bb","l79|100|00649a","l78|100|00c737","l77|100|005aa4","l72|100|00ea14","l23|100|00926c","l61|100|00a559","l18|100|00f10d","l17|100|00d12d","l139|100|0020de","l135|100|0032cc","l131|100|000000","l130|100|000000","l129|100|0005f9","l127|100|000000","l124|100|00b24c","l123|100|000000","l121|100|00609e","l116|100|001ee0","l114|100|0019e5","l112|100|008c72","l111|100|00ad51","l132|100|007f7f","l94|100|009f5f","l97|100|000000")
+	End With
+	With .AddStep(0.43333, Null, Null)
+		.Lights = Array("l141|100|0022dc","l79|100|0042bc","l78|100|00a559","l77|100|0037c7","l72|100|00c836","l71|100|00e816","l23|100|00718d","l61|100|00847a","l19|100|00f00e","l18|100|00cf2f","l17|100|00af4f","l139|100|0000ff","l135|100|0010ee","l129|100|000000","l124|100|00906e","l121|100|003dc1","l116|100|000000","l114|100|000000","l112|100|006b93","l111|100|008b73","l132|100|005ea0","l94|100|007e80")
+	End With
+	With .AddStep(0.46667, Null, Null)
+		.Lights = Array("l141|100|0000fe","l79|100|0020de","l78|100|00837b","l77|100|0016e8","l72|100|00a658","l71|100|00c737","l70|100|00e21c","l69|100|00fc02","l23|100|004eaf","l61|100|00629c","l19|100|00cf2f","l18|100|00ae50","l17|100|008d71","l139|100|000000","l135|100|000000","l125|100|00f905","l124|100|006e90","l121|100|001ce2","l112|100|0049b5","l111|100|006995","l132|100|003cc2","l94|100|005ca1")
+	End With
+	With .AddStep(0.50000, Null, Null)
+		.Lights = Array("l141|100|000000","l79|100|0000ff","l78|100|00629c","l77|100|000000","l72|100|00847a","l71|100|00a45a","l70|100|00c03e","l69|100|00da24","l23|100|002dd1","l62|100|00e519","l61|100|0040be","l19|100|00ad51","l18|100|008b73","l17|100|006b93","l46|100|00f806","l137|100|00ed11","l125|100|00d826","l124|100|004bb2","l121|100|000000","l112|100|0027d7","l111|100|0047b7","l132|100|001ae4","l94|100|003ac4")
+	End With
+	With .AddStep(0.53333, Null, Null)
+		.Lights = Array("l79|100|000000","l78|100|003fbf","l72|100|00629c","l71|100|00827c","l70|100|009d61","l69|100|00b846","l23|100|000bf3","l35|100|00eb13","l62|100|00c33b","l34|100|00e915","l61|100|001ee0","l19|100|008a74","l18|100|006995","l17|100|0048b5","l46|100|00d628","l47|100|00f707","l137|100|00cb33","l125|100|00b648","l124|100|002ad4","l112|100|0005f9","l111|100|0025d9","l132|100|000000","l94|100|0018e6")
+	End With
+	With .AddStep(0.56667, Null, Null)
+		.Lights = Array("l78|100|001ee0","l72|100|0040be","l71|100|00619d","l70|100|007c82","l69|100|009668","l23|100|000000","l63|100|00f30b","l35|100|00ca34","l62|100|00a05e","l34|100|00c737","l61|100|000000","l19|100|006995","l18|100|0047b7","l17|100|0027d7","l30|100|00ff00","l26|100|00fd02","l25|100|00e01e","l46|100|00b44a","l47|100|00d529","l64|100|00f905","l137|100|00aa54","l128|100|00f30b","l126|100|00eb13","l125|100|00936b","l124|100|0008f6","l112|100|000000","l111|100|0004fb","l94|100|000000")
+	End With
+	With .AddStep(0.60000, Null, Null)
+		.Lights = Array("l143|100|00f30b","l78|100|000000","l72|100|001fdf","l71|100|003fbf","l70|100|005ba3","l69|100|007589","l63|100|00d22c","l35|100|00a856","l62|100|007f7f","l34|100|00a559","l92|100|00e915","l19|100|0047b7","l18|100|0026d8","l17|100|0006f8","l31|100|00f608","l30|100|00de20","l28|100|00fd02","l26|100|00db23","l25|100|00bf3f","l46|100|00926c","l47|100|00b44a","l64|100|00d826","l95|100|00ff00","l137|100|008876","l128|100|00d22c","l126|100|00ca34","l125|100|00728c","l124|100|000000","l120|100|00fd02","l111|100|000000")
+	End With
+	With .AddStep(0.63333, Null, Null)
+		.Lights = Array("l142|100|00e41a","l143|100|00d22c","l72|100|0000ff","l71|100|001ee0","l70|100|0039c5","l69|100|0054aa","l63|100|00b14d","l35|100|008777","l62|100|005f9f","l34|100|008479","l92|100|00c935","l60|100|00e519","l19|100|0026d8","l18|100|0005f9","l17|100|000000","l33|100|00f905","l32|100|00ff00","l31|100|00d628","l30|100|00bd41","l28|100|00dc22","l27|100|00e01e","l26|100|00bb43","l25|100|009d61","l46|100|00728c","l47|100|00936b","l64|100|00b747","l95|100|00df1f","l137|100|006797","l128|100|00b14d","l126|100|00a955","l125|100|0051ad","l120|100|00dc22","l110|100|00f707")
+	End With
+	With .AddStep(0.66667, Null, Null)
+		.Lights = Array("l142|100|00c43a","l143|100|00b24c","l72|100|000000","l71|100|0000ff","l70|100|0019e5","l69|100|0033cb","l63|100|00906e","l35|100|006797","l62|100|003ec0","l34|100|006599","l92|100|00a955","l60|100|00c539","l19|100|0006f8","l18|100|000000","l33|100|00d925","l32|100|00de20","l31|100|00b648","l30|100|009c62","l41|100|00fe01","l40|100|00f707","l39|100|00f00e","l38|100|00ea14","l37|100|00e41a","l28|100|00bc42","l27|100|00c13d","l26|100|009a64","l25|100|007d80","l46|100|0051ad","l47|100|00738b","l64|100|009668","l95|100|00bf3f","l137|100|0046b8","l128|100|00906e","l126|100|008876","l125|100|0031cd","l120|100|00bc42","l110|100|00d727")
+	End With
+	With .AddStep(0.70000, Null, Null)
+		.Lights = Array("l142|100|00a45a","l143|100|00926b","l71|100|000000","l70|100|000000","l69|100|0014ea","l63|100|00718d","l35|100|0047b7","l62|100|001fdf","l34|100|0045b9","l92|100|008975","l60|100|00a558","l19|100|000000","l49|100|00fa04","l65|100|00f40a","l33|100|00ba43","l32|100|00bf3f","l31|100|009668","l30|100|007d81","l41|100|00de20","l40|100|00d826","l39|100|00d12d","l38|100|00cb33","l37|100|00c539","l28|100|009c62","l27|100|00a15d","l26|100|007b83","l25|100|005f9f","l46|100|0032cc","l47|100|0054aa","l64|100|007787","l95|100|009f5e","l137|100|0027d7","l128|100|00718d","l126|100|006995","l125|100|0012ec","l120|100|009c62","l119|100|00f40a","l110|100|00b846","l109|100|00ff00","l98|100|00f10d")
+	End With
+	With .AddStep(0.73333, Null, Null)
+		.Lights = Array("l142|100|008677","l143|100|007589","l69|100|000000","l63|100|0053ab","l35|100|0029d5","l62|100|0001fd","l34|100|0027d7","l92|100|006b93","l60|100|008876","l49|100|00dd21","l65|100|00d727","l33|100|009c62","l32|100|00a05e","l31|100|007886","l30|100|00609e","l41|100|00c03e","l40|100|00ba44","l39|100|00b34b","l38|100|00ad51","l37|100|00a757","l28|100|007e80","l27|100|00837b","l26|100|005da1","l25|100|0040be","l46|100|0014ea","l47|100|0035c9","l64|100|005aa4","l95|100|00827c","l137|100|0009f4","l128|100|0053ab","l126|100|004ab4","l125|100|000000","l120|100|007e80","l119|100|00d727","l110|100|009965","l109|100|00e01e","l93|100|00ed11","l98|100|00d32b")
+	End With
+	With .AddStep(0.76667, Null, Null)
+		.Lights = Array("l142|100|006a94","l143|100|0058a5","l63|100|0036c8","l35|100|000df1","l62|100|000000","l34|100|000bf3","l92|100|004eb0","l60|100|006b93","l49|100|00c03e","l59|100|00ff00","l65|100|00ba44","l33|100|007f7f","l32|100|00847a","l31|100|005ca2","l30|100|0042bc","l41|100|00a35b","l40|100|009d61","l39|100|009668","l38|100|00906e","l37|100|008a74","l28|100|00629c","l27|100|006797","l26|100|0040be","l25|100|0023da","l46|100|000000","l47|100|0019e5","l64|100|003cc2","l95|100|006598","l137|100|000000","l128|100|0036c8","l126|100|002ed0","l120|100|00629c","l119|100|00ba44","l110|100|007d81","l109|100|00c43a","l117|100|00ff00","l93|100|00d12d","l98|100|00b747")
+	End With
+	With .AddStep(0.80000, Null, Null)
+		.Lights = Array("l142|100|004faf","l143|100|003dc1","l06|100|00fe01","l04|100|00f806","l03|100|00f40a","l02|100|00f00e","l01|100|00ea14","l63|100|001ce2","l35|100|000000","l34|100|000000","l92|100|0034ca","l60|100|0050ae","l49|100|00a559","l59|100|00e31b","l65|100|009f5f","l33|100|006599","l32|100|006a94","l31|100|0040bd","l30|100|0028d6","l41|100|008876","l40|100|00827b","l39|100|007b83","l38|100|007588","l37|100|00708e","l28|100|0046b8","l27|100|004bb3","l26|100|0025d9","l25|100|0009f5","l48|100|00f608","l47|100|0000ff","l64|100|0022dc","l95|100|004ab4","l128|100|001ce2","l126|100|0014ea","l120|100|0046b8","l119|100|009f5f","l110|100|00639b","l109|100|00a955","l117|100|00e31b","l93|100|00b648","l98|100|009b63")
+	End With
+	With .AddStep(0.83333, Null, Null)
+		.Lights = Array("l142|100|0036c8","l143|100|0025d9","l05|100|00f40a","l07|100|00f905","l08|100|00ff00","l06|100|00e519","l04|100|00e01e","l03|100|00db23","l02|100|00d826","l01|100|00d22c","l63|100|0004fa","l92|100|001be3","l60|100|0038c6","l49|100|008c71","l59|100|00cb33","l65|100|008777","l33|100|004cb2","l32|100|0050ad","l31|100|0028d6","l30|100|000fef","l41|100|00708e","l40|100|006a94","l39|100|00639b","l38|100|005da1","l37|100|0057a7","l28|100|002ed0","l27|100|0033cb","l26|100|000df1","l25|100|000000","l48|100|00de20","l47|100|000000","l64|100|000af4","l95|100|0032cc","l128|100|0004fa","l126|100|000000","l120|100|002ed0","l119|100|008777","l110|100|0049b5","l109|100|00906e","l117|100|00cb33","l93|100|009d61","l98|100|00837b")
+	End With
+	With .AddStep(0.86667, Null, Null)
+		.Lights = Array("l142|100|0021dd","l143|100|000fef","l05|100|00df1f","l07|100|00e31b","l08|100|00e915","l09|100|00ed11","l10|100|00f10c","l06|100|00cf2f","l04|100|00ca33","l03|100|00c638","l02|100|00c23c","l01|100|00bc42","l63|100|000000","l92|100|0006f8","l60|100|0022dc","l49|100|007787","l59|100|00b549","l65|100|00718d","l33|100|0036c8","l32|100|003bc3","l31|100|0013eb","l30|100|000000","l41|100|005aa3","l40|100|0054aa","l39|100|004cb1","l38|100|0047b7","l37|100|0041bd","l28|100|0018e5","l27|100|001de1","l26|100|000000","l24|100|00f30b","l48|100|00c836","l64|100|000000","l95|100|001ce2","l128|100|000000","l120|100|0018e5","l119|100|00718d","l110|100|0034ca","l109|100|007a84","l118|100|00f509","l117|100|00b549","l93|100|008777","l98|100|006d91")
+	End With
+	With .AddStep(0.90000, Null, Null)
+		.Lights = Array("l142|100|000eef","l143|100|000000","l11|100|00f00e","l12|100|00f40a","l13|100|00f806","l14|100|00fd01","l05|100|00cc32","l07|100|00d12d","l08|100|00d727","l09|100|00da23","l10|100|00df1f","l06|100|00bd41","l04|100|00b846","l03|100|00b34a","l02|100|00b04e","l01|100|00aa54","l92|100|000000","l60|100|0010ee","l49|100|006499","l59|100|00a25c","l65|100|005f9f","l33|100|0024da","l32|100|0028d5","l31|100|0000ff","l29|100|00ff00","l41|100|0047b7","l40|100|0041bd","l39|100|003ac4","l38|100|0034ca","l37|100|002ed0","l28|100|0006f8","l27|100|000bf3","l24|100|00e01e","l48|100|00b648","l95|100|000af4","l120|100|0006f8","l119|100|005f9f","l110|100|0021dd","l109|100|006896","l108|100|00f806","l118|100|00e31b","l117|100|00a25c","l93|100|007589","l98|100|005ba3")
+	End With
+	With .AddStep(0.93333, Null, Null)
+		.Lights = Array("l142|100|0000ff","l11|100|00e21c","l12|100|00e618","l13|100|00ea14","l14|100|00ef0f","l15|100|00f30b","l05|100|00be40","l07|100|00c33b","l08|100|00c935","l09|100|00cc32","l10|100|00d12d","l06|100|00af4f","l04|100|00aa54","l03|100|00a45a","l02|100|00a15d","l01|100|009b63","l60|100|0001fd","l49|100|0056a8","l59|100|00946a","l65|100|004faf","l33|100|0016e8","l32|100|001ae4","l31|100|000000","l29|100|00f10d","l41|100|0039c5","l40|100|0033cb","l39|100|002cd2","l38|100|0026d8","l37|100|0020de","l28|100|000000","l27|100|000000","l24|100|00d22c","l48|100|00a757","l95|100|000000","l120|100|000000","l119|100|004faf","l110|100|0013eb","l109|100|005aa4","l108|100|00ea14","l118|100|00d529","l117|100|00946a","l93|100|006797","l98|100|004cb2")
+	End With
+	With .AddStep(0.96667, Null, Null)
+		.Lights = Array("l142|100|000000","l11|100|00d925","l12|100|00de20","l13|100|00e11d","l14|100|00e618","l15|100|00eb13","l05|100|00b549","l07|100|00ba44","l08|100|00c03e","l09|100|00c43a","l10|100|00c836","l06|100|00a559","l04|100|00a05e","l03|100|009c62","l02|100|009866","l01|100|00926c","l60|100|000000","l49|100|004db1","l59|100|008b73","l65|100|0047b7","l33|100|000df1","l32|100|0012ec","l29|100|00e816","l41|100|0030ce","l40|100|002ad4","l39|100|0023db","l38|100|001de1","l37|100|0017e6","l24|100|00c934","l48|100|009e60","l119|100|0047b7","l110|100|000af3","l109|100|0050ae","l108|100|00e11d","l118|100|00cc32","l117|100|008b73","l93|100|005ea0","l98|100|0043bb")
+	End With
+	With .AddStep(1.00000, Null, Null)
+		.Lights = Array("l11|100|00d727","l12|100|00dc22","l13|100|00df1f","l14|100|00e41a","l15|100|00e915","l05|100|00b44a","l07|100|00b846","l08|100|00be40","l09|100|00c23c","l10|100|00c638","l06|100|00a35b","l04|100|009e60","l03|100|009a64","l02|100|009668","l01|100|00906e","l49|100|004ab4","l59|100|008975","l65|100|0045b9","l33|100|000bf3","l32|100|0010ee","l29|100|00e618","l41|100|002ed0","l40|100|0028d6","l39|100|0021dd","l38|100|001be3","l37|100|0015e9","l24|100|00c737","l48|100|009c62","l119|100|0045b9","l110|100|0008f6","l109|100|004eb0","l108|100|00df1f","l118|100|00ca34","l117|100|008975","l93|100|005ca2","l98|100|0041bd")
+	End With
+	With .AddStep(1.03333, Null, Null)
+		.Lights = Array("l11|100|00db23","l12|100|00df1f","l13|100|00e21c","l14|100|00e618","l15|100|00ea14","l05|100|00b747","l07|100|00bb43","l08|100|00c13d","l09|100|00c33a","l10|100|00c836","l06|100|00a45a","l04|100|00a05e","l03|100|009c62","l02|100|009965","l01|100|00946a","l49|100|0047b7","l59|100|008579","l65|100|0048b6","l33|100|000fef","l29|100|00e21c","l40|100|0027d6","l39|100|0020de","l38|100|0019e5","l37|100|0012ec","l24|100|00c33b","l48|100|009767","l119|100|004bb3","l110|100|0002fd","l109|100|0049b4","l108|100|00d826","l118|100|00cf2f","l117|100|008e70","l93|100|005ea0","l98|100|003fbf")
+	End With
+	With .AddStep(1.06667, Null, Null)
+		.Lights = Array("l142|100|0006f8","l11|100|00e21c","l12|100|00e519","l13|100|00e717","l14|100|00ea14","l15|100|00ec12","l05|100|00be40","l07|100|00c13d","l08|100|00c539","l09|100|00c737","l10|100|00ca34","l06|100|00a657","l04|100|00a35b","l03|100|00a05e","l02|100|009f5f","l01|100|009b63","l49|100|0041bd","l59|100|007d80","l65|100|004db0","l33|100|0016e8","l32|100|0012ec","l29|100|00da24","l40|100|0026d8","l39|100|001de1","l38|100|0014ea","l37|100|000cf2","l24|100|00bb43","l48|100|008e70","l120|100|0000ff","l119|100|0057a7","l110|100|000000","l109|100|0041bd","l108|100|00cb33","l118|100|00d727","l117|100|009668","l93|100|00619d","l98|100|003bc3")
+	End With
+	With .AddStep(1.10000, Null, Null)
+		.Lights = Array("l142|100|0015e9","l11|100|00eb13","l12|100|00ed11","l13|100|00ed11","l14|100|00ee10","l15|100|00ef0f","l05|100|00c737","l07|100|00c935","l08|100|00cb33","l09|100|00cb33","l10|100|00cd31","l06|100|00aa54","l04|100|00a856","l03|100|00a658","l02|100|00a657","l01|100|00a45a","l49|100|0039c5","l59|100|00738a","l65|100|0056a8","l33|100|0020de","l32|100|0014ea","l29|100|00d02e","l41|100|002ecf","l40|100|0024da","l39|100|0019e5","l38|100|000fef","l37|100|0005f9","l28|100|0004fa","l24|100|00b04e","l48|100|00837b","l81|100|00ff00","l80|100|00f707","l120|100|000fef","l119|100|006598","l109|100|0036c8","l108|100|00ba44","l118|100|00e31b","l117|100|00a15d","l93|100|006698","l98|100|0037c7")
+	End With
+	With .AddStep(1.13333, Null, Null)
+		.Lights = Array("l142|100|0027d7","l11|100|00f608","l12|100|00f509","l13|100|00f30a","l14|100|00f30b","l15|100|00f20c","l05|100|00d22c","l07|100|00d12d","l08|100|00d22c","l09|100|00d02e","l10|100|00cf2f","l06|100|00ad51","l04|100|00ad51","l03|100|00ae50","l02|100|00b04e","l01|100|00b04e","l49|100|0030ce","l59|100|006896","l65|100|00609e","l33|100|002cd1","l32|100|0018e6","l29|100|00c23c","l41|100|002fcf","l40|100|0023db","l39|100|0015e9","l38|100|0009f5","l37|100|000000","l28|100|0012ec","l24|100|00a15d","l43|100|00f806","l48|100|00748a","l42|100|00ee10","l81|100|00f707","l80|100|00eb13","l136|100|00f509","l120|100|0023db","l119|100|007787","l109|100|0029d5","l108|100|00a35b","l118|100|00f00e","l117|100|00b04e","l93|100|006b93","l98|100|0031cc")
+	End With
+	With .AddStep(1.16667, Null, Null)
+		.Lights = Array("l142|100|003cc2","l11|100|000000","l12|100|00ff00","l13|100|00fa04","l14|100|00f707","l15|100|00f409","l05|100|00dd21","l07|100|00db23","l08|100|00d925","l09|100|00d529","l10|100|00d22c","l06|100|00b04e","l04|100|00b24c","l03|100|00b549","l02|100|00b945","l01|100|00bb42","l63|100|0000ff","l92|100|0004fa","l49|100|0026d8","l59|100|005aa4","l65|100|006b93","l33|100|003bc3","l32|100|001de1","l29|100|00b34b","l41|100|0031cd","l40|100|0022dc","l39|100|0012ec","l38|100|0003fb","l28|100|0022dc","l27|100|0003fb","l24|100|00916d","l43|100|00e21c","l48|100|006599","l42|100|00d42a","l82|100|00fe01","l81|100|00ec11","l80|100|00dc22","l136|100|00e31b","l120|100|0039c4","l119|100|008c72","l109|100|001be3","l108|100|008b73","l118|100|00ff00","l117|100|00be40","l93|100|00718d","l98|100|002cd2")
+	End With
+	With .AddStep(1.20000, Null, Null)
+		.Lights = Array("l142|100|0055a9","l12|100|000000","l13|100|000000","l14|100|00fc03","l15|100|00f608","l05|100|00e915","l07|100|00e41a","l08|100|00e01e","l09|100|00d924","l10|100|00d42a","l06|100|00b24c","l04|100|00b747","l03|100|00bc42","l02|100|00c33b","l01|100|00c836","l63|100|0015e9","l92|100|0014ea","l49|100|001ce2","l59|100|004bb3","l65|100|007787","l33|100|004cb2","l32|100|0022db","l29|100|00a05d","l41|100|0033cb","l39|100|000fef","l38|100|000000","l28|100|0035c9","l27|100|000bf3","l24|100|00807e","l43|100|00ca34","l50|100|00ff00","l48|100|0053ab","l42|100|00b846","l82|100|00f508","l81|100|00e01e","l80|100|00cb33","l136|100|00ce30","l120|100|0054aa","l119|100|00a25c","l109|100|000df1","l108|100|00708e","l118|100|000000","l117|100|00ce30","l93|100|007886","l98|100|0027d7")
+	End With
+	With .AddStep(1.23333, Null, Null)
+		.Lights = Array("l142|100|006f8f","l14|100|00ff00","l15|100|00f707","l05|100|00f40a","l07|100|00ed11","l08|100|00e618","l09|100|00dd20","l10|100|00d628","l06|100|00b549","l04|100|00bc42","l03|100|00c43a","l02|100|00cd31","l01|100|00d42a","l63|100|002dd1","l92|100|0026d8","l49|100|0012ec","l59|100|003cc2","l65|100|008479","l33|100|005f9f","l32|100|002ad4","l29|100|008e70","l41|100|0036c8","l39|100|000df1","l28|100|0049b5","l27|100|0015e9","l24|100|006e90","l43|100|00af4f","l50|100|00ec12","l48|100|0040bd","l42|100|009866","l82|100|00ec12","l81|100|00d22c","l80|100|00b846","l136|100|00b747","l120|100|00708e","l119|100|00ba44","l109|100|0000ff","l108|100|0054aa","l107|100|00ec12","l117|100|00dd20","l93|100|00807e","l98|100|0022dc")
+	End With
+	With .AddStep(1.26667, Null, Null)
+		.Lights = Array("l142|100|008b73","l14|100|000000","l15|100|00f608","l05|100|00ff00","l07|100|00f509","l08|100|00ec12","l09|100|00e11d","l06|100|00b747","l04|100|00c03e","l03|100|00cb33","l02|100|00d727","l01|100|00e11d","l63|100|0048b6","l92|100|0039c5","l49|100|0009f5","l59|100|002ed0","l65|100|00926c","l33|100|00738b","l32|100|0032cc","l29|100|007a84","l41|100|003ac4","l40|100|0024da","l39|100|000cf2","l28|100|00619d","l27|100|0020de","l24|100|005aa4","l43|100|00926c","l50|100|00d628","l51|100|00f509","l48|100|002ed0","l64|100|0008f6","l42|100|007787","l83|100|00ff00","l82|100|00e11d","l81|100|00c23c","l80|100|00a35b","l136|100|009e60","l120|100|008d71","l119|100|00d22c","l109|100|000000","l108|100|0035c8","l107|100|00cf2f","l106|100|00ff00","l117|100|00ed11","l93|100|008876","l98|100|001fdf")
+	End With
+	With .AddStep(1.30000, Null, Null)
+		.Lights = Array("l142|100|00a757","l69|100|0006f8","l15|100|00f40a","l05|100|000000","l07|100|00fd02","l08|100|00f00e","l09|100|00e31b","l06|100|00b846","l04|100|00c43a","l03|100|00d12d","l02|100|00df1f","l01|100|00ec12","l63|100|006599","l35|100|0002fd","l92|100|004faf","l49|100|0001fe","l59|100|001fdf","l65|100|00a05e","l33|100|008876","l32|100|003cc2","l29|100|006599","l41|100|003fbf","l40|100|0027d7","l28|100|007886","l27|100|002dd1","l24|100|0046b8","l43|100|00748a","l50|100|00be40","l51|100|00e21c","l52|100|00f20c","l48|100|001ce1","l64|100|001ae4","l42|100|0055a9","l83|100|00f707","l82|100|00d529","l81|100|00b04e","l80|100|008d71","l136|100|00847a","l120|100|00ad51","l119|100|00ea14","l108|100|0018e6","l107|100|00b04e","l106|100|00de20","l117|100|00fc02","l93|100|00906e","l98|100|001ce2")
+	End With
+	With .AddStep(1.33333, Null, Null)
+		.Lights = Array("l142|100|00c539","l70|100|0021dd","l69|100|0028d6","l14|100|00ff00","l15|100|00f00e","l07|100|000000","l08|100|00f40a","l09|100|00e41a","l10|100|00d42a","l06|100|00b945","l04|100|00c737","l03|100|00d627","l02|100|00e717","l01|100|00f707","l63|100|00827c","l35|100|001ae4","l92|100|006698","l49|100|000000","l59|100|0012ec","l65|100|00b04e","l33|100|009d61","l32|100|0047b7","l31|100|0002fd","l29|100|004faf","l41|100|0045b9","l40|100|002bd3","l39|100|000ef0","l28|100|00916d","l27|100|003bc3","l24|100|0032cc","l43|100|0055a9","l50|100|00a35b","l51|100|00cd31","l52|100|00d727","l48|100|000bf3","l64|100|002dd1","l42|100|0032cc","l83|100|00ed11","l82|100|00c737","l81|100|009d61","l80|100|007688","l136|100|006995","l120|100|00cb33","l119|100|000000","l108|100|000000","l107|100|008f6f","l106|100|00bb43","l117|100|000000","l93|100|009866","l98|100|001ae4")
+	End With
+	With .AddStep(1.36667, Null, Null)
+		.Lights = Array("l142|100|00e11d","l70|100|0048b6","l69|100|004cb2","l14|100|00fc02","l15|100|00ea14","l08|100|00f509","l09|100|00e31b","l10|100|00d22c","l04|100|00c934","l03|100|00db23","l02|100|00ee10","l01|100|00ff00","l63|100|00a05e","l53|100|00f00e","l35|100|0034c9","l92|100|007e80","l59|100|0005f9","l65|100|00bd40","l33|100|00b34b","l32|100|0054aa","l31|100|000df1","l29|100|003ac4","l41|100|004cb2","l40|100|0030ce","l39|100|0012ec","l28|100|00aa53","l27|100|004bb3","l24|100|001fdf","l43|100|0035c9","l50|100|008876","l51|100|00b648","l52|100|00bb43","l20|100|00f608","l56|100|00f806","l54|100|00f30b","l48|100|000000","l64|100|0041bd","l42|100|000fef","l83|100|00e21c","l82|100|00b746","l81|100|008975","l80|100|005f9f","l136|100|004db1","l120|100|00ea14","l107|100|006d91","l106|100|009569","l93|100|00a05e")
+	End With
+	With .AddStep(1.40000, Null, Null)
+		.Lights = Array("l142|100|00fe01","l70|100|00728c","l69|100|00728c","l14|100|00f707","l15|100|00e31b","l09|100|00e11d","l10|100|00ce30","l06|100|00b846","l04|100|00cb33","l03|100|00de20","l02|100|00f30b","l01|100|000000","l63|100|00bf3f","l53|100|00d628","l35|100|0050ad","l62|100|000bf3","l34|100|0012ec","l92|100|009668","l59|100|000000","l65|100|00cb33","l33|100|00c836","l32|100|00619d","l31|100|001ae4","l29|100|0025d9","l41|100|0055a9","l40|100|0036c8","l39|100|0017e7","l28|100|00c33b","l27|100|005da1","l24|100|000df1","l43|100|0016e8","l50|100|006d91","l51|100|009e60","l52|100|009c62","l20|100|00e31a","l57|100|00f806","l56|100|00d42a","l55|100|00f904","l54|100|00d42a","l64|100|0058a5","l42|100|000000","l83|100|00d529","l82|100|00a658","l81|100|007589","l80|100|0047b7","l136|100|0031cc","l120|100|000000","l107|100|004ab4","l106|100|00708e","l93|100|00a955","l98|100|001be3")
+	End With
+	With .AddStep(1.43333, Null, Null)
+		.Lights = Array("l142|100|000000","l70|100|009c62","l69|100|009866","l14|100|00f00e","l15|100|00db23","l08|100|00f40a","l09|100|00de20","l10|100|00c935","l06|100|00b648","l03|100|00e01e","l02|100|00f707","l63|100|00dd21","l53|100|00ba44","l35|100|006e90","l62|100|002ad4","l34|100|002cd2","l92|100|00af4f","l65|100|00d727","l33|100|00dc22","l32|100|006f8f","l31|100|0029d4","l29|100|0012ec","l41|100|005ea0","l40|100|003ec0","l39|100|001ee0","l38|100|0000ff","l28|100|00db23","l27|100|006e90","l26|100|000fef","l24|100|000000","l43|100|000000","l50|100|0050ae","l51|100|008579","l52|100|007d81","l22|100|00f707","l20|100|00cf2f","l58|100|00fd02","l57|100|00d529","l56|100|00ae50","l55|100|00db23","l54|100|00b34b","l64|100|006f8f","l84|100|00f905","l83|100|00c638","l82|100|009569","l81|100|00619d","l80|100|0030ce","l136|100|0017e7","l107|100|0029d5","l106|100|0049b5","l93|100|00b04e","l98|100|001de0")
+	End With
+	With .AddStep(1.46667, Null, Null)
+		.Lights = Array("l70|100|00c638","l69|100|00bf3f","l13|100|00ff00","l14|100|00e717","l15|100|00d02d","l08|100|00f00e","l09|100|00d925","l10|100|00c23c","l06|100|00b44a","l04|100|00ca34","l02|100|00f905","l63|100|00fa04","l53|100|009c62","l35|100|008c72","l62|100|004ab4","l34|100|0047b7","l92|100|00c638","l60|100|0002fc","l65|100|00e21c","l33|100|00ef0f","l32|100|007d81","l31|100|003ac4","l29|100|0000ff","l41|100|006797","l40|100|0047b7","l39|100|0026d8","l38|100|0007f7","l28|100|00f20c","l27|100|00807e","l26|100|0022dc","l50|100|0035c9","l51|100|006c92","l52|100|005ea0","l21|100|00ef0f","l22|100|00dd21","l20|100|00b945","l58|100|00d826","l57|100|00af4f","l56|100|008678","l55|100|00bb43","l54|100|00906e","l47|100|0001fd","l64|100|008777","l84|100|00eb13","l83|100|00b648","l82|100|00837b","l81|100|004cb2","l80|100|001be3","l136|100|0000ff","l107|100|0008f6","l106|100|0024da","l93|100|00b747","l98|100|0022dc")
+	End With
+	With .AddStep(1.50000, Null, Null)
+		.Lights = Array("l71|100|00fa04","l70|100|00ef0f","l69|100|00e419","l13|100|00f509","l14|100|00dd21","l15|100|00c539","l08|100|00eb13","l09|100|00d32b","l10|100|00bb43","l06|100|00b14d","l04|100|00c737","l03|100|00df1f","l63|100|000000","l53|100|007e7f","l35|100|00ab53","l62|100|006c92","l34|100|00649a","l92|100|00dd21","l60|100|0011ed","l19|100|0020de","l18|100|001ce2","l65|100|00ec12","l33|100|000000","l32|100|008b73","l31|100|004cb2","l29|100|000000","l41|100|00718d","l40|100|0050ad","l39|100|0030ce","l38|100|0011ed","l28|100|000000","l27|100|00926c","l26|100|0036c7","l50|100|001be3","l51|100|0052ab","l52|100|003ec0","l21|100|00d925","l22|100|00c23c","l20|100|00a15d","l58|100|00b34b","l57|100|008876","l56|100|005f9f","l55|100|009866","l54|100|006e90","l47|100|001ae4","l64|100|009e60","l84|100|00db23","l83|100|00a459","l82|100|00718d","l81|100|0039c5","l80|100|0006f8","l136|100|000000","l145|100|00ff00","l107|100|000000","l106|100|0000ff","l93|100|00bd41","l98|100|0027d7")
+	End With
+	With .AddStep(1.53333, Null, Null)
+		.Lights = Array("l71|100|000000","l70|100|000000","l69|100|000000","l13|100|00ea14","l14|100|00d12d","l15|100|00b945","l07|100|00fe01","l08|100|00e41a","l09|100|00cb33","l10|100|00b24b","l06|100|00ac51","l04|100|00c43a","l03|100|00dd21","l02|100|00f707","l53|100|00619d","l35|100|00c836","l62|100|008e70","l34|100|00817d","l92|100|00f20c","l60|100|0021dd","l19|100|0048b6","l18|100|0048b6","l65|100|00f40a","l32|100|009965","l31|100|005f9f","l41|100|007a83","l40|100|005ca2","l39|100|003bc3","l38|100|001ce2","l27|100|00a45a","l26|100|004cb2","l50|100|0002fc","l51|100|003ac4","l52|100|0020de","l21|100|00c23c","l22|100|00a45a","l20|100|008a74","l58|100|008c72","l57|100|00619d","l56|100|0037c7","l55|100|007688","l54|100|004bb3","l47|100|0034ca","l64|100|00b648","l84|100|00ca34","l83|100|00936b","l82|100|005f9f","l81|100|0027d7","l80|100|000000","l137|100|0018e6","l145|100|00ed11","l128|100|0005f9","l106|100|000000","l105|100|00f607","l104|100|00eb13","l101|100|00ef0f","l93|100|00c13d","l98|100|002ed0")
+	End With
+	With .AddStep(1.56667, Null, Null)
+		.Lights = Array("l12|100|00f707","l13|100|00de20","l14|100|00c43a","l15|100|00ab53","l07|100|00f509","l08|100|00dc22","l09|100|00c33b","l10|100|00a955","l06|100|00a757","l04|100|00c03e","l03|100|00d925","l02|100|00f30b","l53|100|0042bc","l35|100|00e41a","l62|100|00b04e","l34|100|009e60","l92|100|000000","l60|100|0032cc","l19|100|00728c","l18|100|000000","l49|100|0001fd","l65|100|00fa04","l32|100|00a757","l31|100|00728c","l41|100|00847a","l40|100|006797","l39|100|0047b7","l38|100|0029d5","l37|100|000bf3","l27|100|00b648","l26|100|00649a","l50|100|000000","l51|100|0022db","l52|100|0003fb","l21|100|00aa54","l22|100|008777","l20|100|00728c","l58|100|006599","l57|100|003ac4","l56|100|0011ed","l55|100|0054aa","l54|100|0029d5","l47|100|0050ae","l64|100|00cc32","l84|100|00b846","l83|100|00817d","l82|100|004db1","l81|100|0016e8","l95|100|0000ff","l137|100|0039c5","l145|100|00d826","l128|100|001de0","l105|100|00da24","l104|100|00c935","l102|100|00e915","l101|100|000000","l93|100|00c539","l98|100|0036c8")
+	End With
+	With .AddStep(1.60000, Null, Null)
+		.Lights = Array("l44|100|00e816","l12|100|00e816","l13|100|00cf2e","l14|100|00b648","l15|100|009c62","l07|100|00eb13","l08|100|00d22c","l09|100|00b945","l10|100|009f5f","l06|100|00a15d","l04|100|00ba44","l03|100|00d32a","l02|100|00ee10","l53|100|0026d8","l35|100|00ff00","l62|100|00d12d","l34|100|00bb43","l60|100|0045b9","l19|100|009b63","l49|100|000bf3","l65|100|00ff00","l32|100|00b549","l31|100|008579","l30|100|0010ee","l41|100|008e70","l40|100|00728c","l39|100|0055a9","l38|100|0037c7","l37|100|001be3","l27|100|00c638","l26|100|007a83","l25|100|000df1","l51|100|000df1","l52|100|000000","l21|100|00916d","l22|100|006995","l20|100|005ba3","l58|100|003ec0","l57|100|0015e9","l56|100|000000","l55|100|0032cc","l54|100|0009f5","l46|100|0008f6","l47|100|006d91","l64|100|00e11d","l84|100|00a45a","l83|100|00708e","l82|100|003cc2","l81|100|0006f8","l95|100|0014ea","l137|100|005ca2","l145|100|00c23c","l128|100|0037c7","l105|100|00bd41","l104|100|00a559","l102|100|00be40","l93|100|00c836","l98|100|003fbf")
+	End With
+	With .AddStep(1.63333, Null, Null)
+		.Lights = Array("l44|100|00cf2f","l11|100|00f20c","l12|100|00d925","l13|100|00c03e","l14|100|00a757","l15|100|008e70","l05|100|00f806","l07|100|00e01e","l08|100|00c737","l09|100|00ae50","l10|100|009469","l06|100|009b63","l04|100|00b44a","l03|100|00cd31","l02|100|00e618","l53|100|000cf2","l35|100|000000","l62|100|00f00e","l34|100|00d628","l60|100|0059a5","l19|100|00c43a","l18|100|00d02e","l49|100|0016e8","l65|100|000000","l32|100|00c03d","l31|100|009866","l30|100|002ad4","l41|100|009866","l40|100|007d81","l39|100|00629c","l38|100|0047b7","l37|100|002cd2","l27|100|00d529","l26|100|00916d","l25|100|002bd3","l45|100|00fa04","l51|100|000000","l21|100|007886","l22|100|004cb2","l20|100|0043bb","l58|100|0019e5","l57|100|000000","l55|100|0013eb","l54|100|000000","l46|100|002dd1","l47|100|008975","l64|100|00f409","l84|100|00916d","l83|100|005ea0","l82|100|002dd1","l81|100|000000","l95|100|002ad4","l137|100|007f7f","l145|100|00ac52","l133|100|00ff00","l128|100|0052ac","l105|100|009d61","l104|100|00827c","l102|100|00916d","l93|100|00ca34","l98|100|0049b4")
+	End With
+	With .AddStep(1.66667, Null, Null)
+		.Lights = Array("l44|100|00b449","l11|100|00e01e","l12|100|00c836","l13|100|00b04e","l14|100|009767","l15|100|007f7f","l05|100|00eb13","l07|100|00d32a","l08|100|00bb43","l09|100|00a25c","l10|100|008a74","l06|100|009569","l04|100|00ad51","l03|100|00c539","l02|100|00de20","l01|100|00f806","l53|100|000000","l62|100|000000","l34|100|00ef0f","l60|100|006d91","l19|100|00ea14","l18|100|00fa04","l49|100|0022dc","l32|100|00cb32","l31|100|00ab53","l30|100|0045b8","l41|100|00a15d","l40|100|008975","l39|100|00708e","l38|100|0057a6","l37|100|003ec0","l27|100|00e31b","l26|100|00a856","l25|100|004bb3","l45|100|00dd21","l21|100|00609e","l22|100|0030ce","l20|100|002ed0","l58|100|000000","l55|100|000000","l46|100|0052ac","l47|100|00a559","l64|100|000000","l84|100|007e80","l83|100|004db1","l82|100|001fdf","l95|100|0041bd","l137|100|00a15d","l145|100|00936a","l133|100|00d826","l128|100|006d91","l126|100|0005f9","l105|100|007f7f","l104|100|005f9f","l102|100|006698","l98|100|0055a9")
+	End With
+	With .AddStep(1.70000, Null, Null)
+		.Lights = Array("l143|100|0008f6","l44|100|009965","l11|100|00cd31","l12|100|00b648","l13|100|009f5f","l14|100|008876","l15|100|00718d","l05|100|00dc22","l07|100|00c638","l08|100|00ae50","l09|100|009767","l10|100|00807e","l06|100|008f6f","l04|100|00a559","l03|100|00bd41","l02|100|00d42a","l01|100|00ed11","l34|100|000000","l60|100|00817d","l19|100|000000","l18|100|000000","l49|100|0030ce","l32|100|00d529","l31|100|00bd41","l30|100|00629c","l41|100|00aa54","l40|100|00946a","l39|100|007e80","l38|100|006896","l37|100|0051ad","l27|100|00ef0f","l26|100|00be40","l25|100|006b93","l45|100|00c03e","l21|100|0047b7","l22|100|0016e8","l20|100|0019e4","l46|100|007886","l47|100|00c13d","l84|100|006a93","l83|100|003dc1","l82|100|0012ec","l95|100|0059a5","l137|100|00c33b","l145|100|007c82","l133|100|00b04e","l128|100|008876","l126|100|0028d6","l109|100|0008f6","l105|100|00619d","l104|100|003cc2","l102|100|003bc3","l101|100|000fef","l118|100|00ee10","l98|100|00619d")
+	End With
+	With .AddStep(1.73333, Null, Null)
+		.Lights = Array("l143|100|0029d5","l44|100|007e80","l11|100|00ba44","l12|100|00a35b","l13|100|008e70","l14|100|007985","l15|100|00639b","l05|100|00cc32","l07|100|00b846","l08|100|00a05e","l09|100|008b73","l10|100|007688","l06|100|008876","l04|100|009d61","l03|100|00b34b","l02|100|00c935","l01|100|00e01d","l60|100|00946a","l49|100|003ec0","l59|100|0003fb","l65|100|00fe01","l32|100|00dd21","l31|100|00cd31","l30|100|007e80","l41|100|00b24c","l40|100|009e60","l39|100|008b73","l38|100|007886","l37|100|006599","l27|100|00f905","l26|100|00d22c","l25|100|008b73","l45|100|00a15d","l21|100|0031cd","l22|100|000000","l20|100|0007f7","l46|100|009c61","l47|100|00da24","l84|100|0058a6","l83|100|002ecf","l82|100|0008f6","l95|100|00718d","l137|100|00e21c","l145|100|006698","l133|100|008677","l128|100|00a25c","l126|100|004cb2","l110|100|000eef","l109|100|0019e5","l105|100|0043bb","l104|100|001be3","l102|100|0012ec","l101|100|000000","l118|100|00da24","l117|100|00fe01","l93|100|00c836","l98|100|006c92")
+	End With
+	With .AddStep(1.76667, Null, Null)
+		.Lights = Array("l143|100|004ab4","l44|100|00649a","l11|100|00a559","l12|100|00916d","l13|100|007e80","l14|100|006a94","l15|100|0056a8","l05|100|00bc42","l07|100|00a855","l08|100|00936b","l09|100|00807e","l10|100|006c92","l06|100|00817d","l04|100|009569","l03|100|00aa54","l02|100|00be40","l01|100|00d32b","l60|100|00a757","l49|100|004db1","l59|100|000fef","l65|100|00f806","l32|100|00e41a","l31|100|00dc22","l30|100|009965","l41|100|00b945","l40|100|00a955","l39|100|009866","l38|100|008876","l37|100|007886","l27|100|000000","l26|100|00e41a","l25|100|00aa54","l45|100|00837b","l21|100|001ce2","l20|100|000000","l46|100|00c13d","l47|100|00f20c","l84|100|0045b8","l83|100|0021dd","l82|100|0000ff","l95|100|008876","l137|100|00ff00","l145|100|004faf","l133|100|005f9f","l128|100|00bc42","l126|100|00718d","l110|100|002dd1","l109|100|002cd2","l105|100|0027d7","l104|100|000000","l102|100|000000","l118|100|00c43a","l117|100|00ee10","l93|100|00c638","l98|100|007886")
+	End With
+	With .AddStep(1.80000, Null, Null)
+		.Lights = Array("l143|100|006c92","l44|100|004bb3","l11|100|00926c","l12|100|007f7f","l13|100|006e90","l14|100|005ca2","l15|100|0049b5","l05|100|00ab52","l07|100|009965","l08|100|008678","l09|100|007589","l10|100|00629b","l06|100|007b83","l04|100|008d71","l03|100|009f5f","l02|100|00b24c","l01|100|00c539","l60|100|00b945","l49|100|005da1","l59|100|001ce2","l65|100|00f20c","l32|100|00ea14","l31|100|00e915","l30|100|00b44a","l41|100|00bf3f","l40|100|00b24c","l39|100|00a45a","l38|100|009767","l37|100|008a73","l26|100|00f509","l25|100|00c737","l45|100|006698","l21|100|0009f5","l46|100|00e21c","l47|100|000000","l84|100|0035c9","l83|100|0016e8","l82|100|000000","l95|100|009f5f","l137|100|000000","l145|100|003bc3","l133|100|0038c6","l128|100|00d42a","l126|100|00936b","l110|100|004bb3","l109|100|003fbf","l105|100|000ef0","l118|100|00af4f","l117|100|00de20","l93|100|00c23c","l98|100|00837b")
+	End With
+	With .AddStep(1.83333, Null, Null)
+		.Lights = Array("l143|100|008b73","l44|100|0033cb","l11|100|007f7f","l12|100|006e90","l13|100|005f9f","l14|100|004eb0","l15|100|003ec0","l05|100|009a64","l07|100|008a73","l08|100|007985","l09|100|006a94","l10|100|005aa4","l06|100|007589","l04|100|008579","l03|100|009569","l02|100|00a459","l01|100|00b747","l60|100|00c935","l49|100|006c92","l59|100|002ad4","l65|100|00eb13","l32|100|00ed11","l31|100|00f40a","l30|100|00cd31","l41|100|00c43a","l40|100|00ba44","l39|100|00b14d","l38|100|00a658","l37|100|009c62","l26|100|000000","l25|100|00e21c","l45|100|004ab4","l21|100|000000","l48|100|000df1","l46|100|000000","l84|100|0026d8","l83|100|000cf2","l95|100|00b549","l145|100|0028d6","l133|100|0015e9","l128|100|00e915","l126|100|00b648","l110|100|006a94","l109|100|0052ac","l105|100|000000","l118|100|009965","l117|100|00cd31","l93|100|00be40","l98|100|008d70")
+	End With
+	With .AddStep(1.86667, Null, Null)
+		.Lights = Array("l143|100|00aa54","l44|100|001ee0","l11|100|006c92","l12|100|005ea0","l13|100|0050ae","l14|100|0042bc","l15|100|0034ca","l05|100|008a74","l07|100|007d81","l08|100|006d91","l09|100|00609e","l10|100|0051ad","l06|100|006f8f","l04|100|007d81","l03|100|008b73","l02|100|009965","l01|100|00a955","l60|100|00d826","l49|100|007a84","l59|100|0038c6","l65|100|00e21b","l32|100|00f00e","l31|100|00ff00","l30|100|00e31b","l41|100|00c836","l40|100|00c13d","l39|100|00bb43","l38|100|00b44a","l37|100|00ae50","l25|100|00fb03","l45|100|0030ce","l48|100|001ce2","l84|100|0019e5","l83|100|0004fa","l95|100|00c935","l145|100|0017e7","l133|100|000000","l128|100|00fe01","l126|100|00d429","l110|100|008777","l109|100|006599","l118|100|00847a","l117|100|00bc42","l93|100|00ba44","l98|100|009766")
+	End With
+	With .AddStep(1.90000, Null, Null)
+		.Lights = Array("l143|100|00c638","l44|100|000bf3","l11|100|005ca2","l12|100|004faf","l13|100|0044ba","l14|100|0038c6","l15|100|002bd2","l05|100|007b83","l07|100|006f8f","l08|100|00629c","l09|100|0057a7","l10|100|004ab4","l06|100|006a94","l04|100|007688","l03|100|00827c","l02|100|008d71","l01|100|009b63","l60|100|00e519","l49|100|008876","l59|100|0045b9","l65|100|00da24","l32|100|00f10d","l31|100|000000","l30|100|00f707","l41|100|00cb33","l40|100|00c737","l39|100|00c43a","l38|100|00c03e","l37|100|00bd41","l25|100|000000","l24|100|0007f7","l45|100|0019e5","l48|100|002bd3","l84|100|000ef0","l83|100|000000","l95|100|00da24","l145|100|0008f6","l128|100|000000","l126|100|00f10d","l119|100|00fc03","l110|100|00a15d","l109|100|007688","l118|100|00718d","l117|100|00ac52","l93|100|00b549","l98|100|00a15d")
+	End With
+	With .AddStep(1.93333, Null, Null)
+		.Lights = Array("l143|100|00df1f","l44|100|000000","l11|100|004bb3","l12|100|0041bd","l13|100|0038c5","l14|100|002ed0","l15|100|0024da","l05|100|006d91","l07|100|00649a","l08|100|0058a6","l09|100|004faf","l10|100|0044ba","l06|100|006698","l04|100|006f8f","l03|100|007985","l02|100|00837b","l01|100|008e70","l60|100|00f00e","l49|100|00946a","l59|100|0053ab","l65|100|00d12d","l32|100|00f20c","l30|100|000000","l41|100|00cd31","l40|100|00cc32","l39|100|00cc32","l38|100|00cb33","l37|100|00ca34","l24|100|0014ea","l45|100|0005f9","l48|100|003ac4","l84|100|0004f9","l95|100|00ea14","l145|100|000000","l126|100|000000","l119|100|00ea14","l110|100|00bb43","l109|100|008777","l118|100|00609e","l117|100|009c62","l93|100|00b04e","l98|100|00aa54")
+	End With
+	With .AddStep(1.96667, Null, Null)
+		.Lights = Array("l143|100|00f40a","l11|100|003ec0","l12|100|0036c8","l13|100|002fcf","l14|100|0027d7","l15|100|001fdf","l05|100|00619d","l07|100|0059a5","l08|100|004faf","l09|100|0048b6","l10|100|0040be","l06|100|00629c","l04|100|006a94","l03|100|00728c","l02|100|007985","l01|100|00837b","l60|100|00f905","l49|100|009f5f","l59|100|005f9f","l65|100|00c935","l32|100|00f10d","l29|100|0002fc","l41|100|00ce30","l40|100|00d02e","l39|100|00d22c","l38|100|00d42a","l37|100|00d529","l24|100|001fdf","l45|100|000000","l48|100|0047b7","l84|100|000000","l95|100|00f707","l119|100|00d925","l110|100|00d02e","l109|100|009569","l118|100|0050ae","l117|100|008e70","l93|100|00ac52","l98|100|00b14d")
+	End With
+	With .AddStep(2.00000, Null, Null)
+		.Lights = Array("l143|100|000000","l11|100|0034ca","l12|100|002dd1","l13|100|0027d6","l14|100|0021dd","l15|100|001ae4","l05|100|0057a7","l07|100|0050ae","l08|100|0048b6","l09|100|0042bb","l10|100|003cc2","l06|100|005f9f","l04|100|006599","l03|100|006c92","l02|100|00718d","l01|100|007985","l60|100|00ff00","l49|100|00a955","l59|100|006995","l65|100|00c23c","l33|100|00ff00","l32|100|00f00e","l29|100|000cf2","l41|100|00cf2f","l40|100|00d32b","l39|100|00d727","l38|100|00db23","l37|100|00de20","l24|100|002ad4","l48|100|0054aa","l95|100|000000","l119|100|00cb33","l110|100|00e11d","l109|100|00a15d","l108|100|000bf3","l118|100|0043bb","l117|100|00837b","l93|100|00a757","l98|100|00b648")
+	End With
+	With .AddStep(2.03333, Null, Null)
+		.Lights = Array("l11|100|002cd2","l12|100|0026d8","l13|100|0022dc","l14|100|001de1","l15|100|0017e7","l05|100|004faf","l07|100|004ab4","l08|100|0043bb","l09|100|003fbf","l10|100|0039c5","l06|100|005ca2","l04|100|00629c","l03|100|006797","l02|100|006b93","l01|100|00728c","l60|100|000000","l49|100|00af4e","l59|100|00708e","l65|100|00bd41","l33|100|00f707","l32|100|00ef0f","l29|100|0013eb","l41|100|00d02e","l40|100|00d529","l39|100|00db23","l38|100|00e01e","l37|100|00e519","l24|100|0032cc","l48|100|005da1","l119|100|00c03e","l110|100|00ee10","l109|100|00ab53","l108|100|0017e7","l118|100|003ac4","l117|100|007a84","l93|100|00a45a","l98|100|00ba43")
+	End With
+	With .AddStep(2.06667, Null, Null)
+		.Lights = Array("l11|100|0028d6","l12|100|0023db","l13|100|001fdf","l14|100|001ae4","l15|100|0016e8","l05|100|004bb3","l07|100|0046b8","l08|100|0040be","l09|100|003dc1","l10|100|0038c6","l06|100|005ba3","l04|100|00609e","l03|100|006599","l02|100|006896","l01|100|006e90","l49|100|00b34b","l59|100|007589","l65|100|00ba44","l33|100|00f30a","l32|100|00ee10","l29|100|0017e7","l40|100|00d628","l39|100|00dd21","l38|100|00e21c","l37|100|00e816","l24|100|0036c8","l48|100|00629c","l119|100|00ba44","l110|100|00f509","l109|100|00af4f","l108|100|001ee0","l118|100|0035c9","l117|100|007589","l93|100|00a25c","l98|100|00bd41")
+	End With
+	With .AddStep(2.10000, Null, Null)
+		.Lights = Array("l13|100|0020de","l14|100|001be3","l05|100|004cb2","l07|100|0047b7","l08|100|0041bd","l02|100|006995","l01|100|006f8f","l49|100|00b24c","l59|100|00748a","l33|100|00f40a","l32|100|00ef0f","l40|100|00d529","l39|100|00dc22","l24|100|0035c9","l48|100|00619d","l119|100|00bb43","l110|100|00f40a","l108|100|001de1","l117|100|007688","l98|100|00bc42")
+	End With
+	With .AddStep(2.13333, Null, Null)
+		.Lights = Array("l11|100|002ed0","l12|100|0028d6","l13|100|0023db","l14|100|001ee0","l15|100|0018e6","l05|100|0051ad","l07|100|004bb3","l08|100|0044ba","l09|100|0040be","l10|100|003ac4","l06|100|005da1","l04|100|00639b","l03|100|006896","l02|100|006d91","l01|100|00748a","l49|100|00ae50","l59|100|006e8f","l65|100|00be40","l33|100|00f905","l29|100|0011ed","l41|100|00cf2f","l40|100|00d42a","l39|100|00da24","l38|100|00de20","l37|100|00e31b","l24|100|0030ce","l48|100|005aa3","l119|100|00c33b","l110|100|00eb13","l109|100|00a856","l108|100|0014ea","l118|100|003cc2","l117|100|007c82","l93|100|00a559","l98|100|00b945")
+	End With
+	With .AddStep(2.16667, Null, Null)
+		.Lights = Array("l11|100|0037c7","l12|100|0030ce","l13|100|002ad4","l14|100|0023db","l15|100|001ce2","l05|100|005ba3","l07|100|0053ab","l08|100|004ab4","l09|100|0044ba","l10|100|003dc1","l06|100|00609e","l04|100|006797","l03|100|006e90","l02|100|00748a","l01|100|007c82","l60|100|00fe01","l49|100|00a559","l59|100|006698","l65|100|00c539","l33|100|000000","l32|100|00f00d","l29|100|0009f5","l40|100|00d22c","l39|100|00d628","l38|100|00d826","l37|100|00db23","l24|100|0026d8","l48|100|004faf","l95|100|00ff00","l119|100|00cf2e","l110|100|00dc22","l109|100|009d61","l108|100|0005f9","l118|100|0047b7","l117|100|008777","l93|100|00a955","l98|100|00b549")
+	End With
+	With .AddStep(2.20000, Null, Null)
+		.Lights = Array("l143|100|00ec12","l11|100|0044ba","l12|100|003bc3","l13|100|0033cb","l14|100|002ad4","l15|100|0021dd","l05|100|006698","l07|100|005da0","l08|100|0053ab","l09|100|004bb3","l10|100|0042bc","l06|100|00639b","l04|100|006c92","l03|100|007589","l02|100|007d81","l01|100|008777","l60|100|00f509","l49|100|009b63","l59|100|005aa4","l65|100|00cd31","l32|100|00f10d","l29|100|0000ff","l41|100|00ce30","l40|100|00ce30","l39|100|00d02e","l38|100|00d02e","l37|100|00d12d","l24|100|001ae3","l48|100|0042bc","l84|100|0000ff","l95|100|00f20c","l119|100|00e01e","l110|100|00c737","l109|100|008f6f","l108|100|000000","l118|100|0057a7","l117|100|00946a","l93|100|00ae50","l98|100|00ae50")
+	End With
+	With .AddStep(2.23333, Null, Null)
+		.Lights = Array("l143|100|00d32b","l44|100|0003fc","l11|100|0054aa","l12|100|0048b6","l13|100|003ec0","l14|100|0033cb","l15|100|0028d6","l05|100|00748a","l07|100|006a94","l08|100|005da1","l09|100|0053ab","l10|100|0047b7","l06|100|006896","l04|100|00738b","l03|100|007e80","l02|100|008876","l01|100|00946a","l60|100|00ea14","l49|100|008e70","l59|100|004cb2","l65|100|00d628","l32|100|00f10c","l30|100|00ff00","l29|100|000000","l41|100|00cc32","l40|100|00c934","l39|100|00c836","l38|100|00c638","l37|100|00c33b","l24|100|000df1","l45|100|000fef","l48|100|0032cb","l84|100|0009f5","l95|100|00e21c","l145|100|0001fe","l126|100|00fe01","l119|100|00f30b","l110|100|00af4f","l109|100|007f7f","l118|100|006995","l117|100|00a45a","l93|100|00b34b","l98|100|00a559")
+	End With
+	With .AddStep(2.26667, Null, Null)
+		.Lights = Array("l143|100|00b548","l44|100|0016e8","l11|100|006698","l12|100|0058a6","l13|100|004bb3","l14|100|003ec0","l15|100|0030cd","l05|100|00847a","l07|100|007787","l08|100|006995","l09|100|005da1","l10|100|004eb0","l06|100|006d91","l04|100|007a84","l03|100|008777","l02|100|00946a","l01|100|00a35b","l60|100|00dd21","l49|100|00807e","l59|100|003dc1","l65|100|00df1f","l32|100|00f10d","l30|100|00eb13","l41|100|00c935","l40|100|00c33b","l39|100|00bf3f","l38|100|00b945","l37|100|00b44a","l24|100|0000ff","l45|100|0027d7","l48|100|0022dc","l84|100|0015e9","l83|100|0001fd","l95|100|00d02e","l145|100|0010ee","l126|100|00e01e","l119|100|000000","l110|100|00916c","l109|100|006c92","l118|100|007d81","l117|100|00b648","l93|100|00b846","l98|100|009b63")
+	End With
+	With .AddStep(2.30000, Null, Null)
+		.Lights = Array("l143|100|00946a","l44|100|002dd1","l11|100|007985","l12|100|006a94","l13|100|005ba3","l14|100|004ab3","l15|100|003bc3","l05|100|009569","l07|100|008678","l08|100|007688","l09|100|006797","l10|100|0058a6","l06|100|00738b","l04|100|00827c","l03|100|00926c","l02|100|00a15d","l01|100|00b34b","l60|100|00ce30","l49|100|00708e","l59|100|002ed0","l65|100|00e816","l32|100|00ee10","l31|100|00f707","l30|100|00d32b","l41|100|00c539","l40|100|00bc42","l39|100|00b44a","l38|100|00ab53","l37|100|00a15d","l25|100|00ea14","l24|100|000000","l45|100|0042bc","l48|100|0011ed","l84|100|0022db","l83|100|000af4","l95|100|00bb43","l145|100|0022db","l133|100|000bf3","l128|100|00ef0f","l126|100|00bf3f","l110|100|00728b","l109|100|0058a6","l118|100|00936b","l117|100|00c836","l93|100|00bd41","l98|100|00906e")
+	End With
+	With .AddStep(2.33333, Null, Null)
+		.Lights = Array("l143|100|00718d","l44|100|0046b8","l11|100|008e70","l12|100|007c82","l13|100|006c92","l14|100|005aa4","l15|100|0047b7","l05|100|00a856","l07|100|009668","l08|100|00847a","l09|100|00738b","l10|100|00619d","l06|100|007a84","l04|100|008b73","l03|100|009d61","l02|100|00af4f","l01|100|00c33b","l60|100|00bc42","l49|100|00609e","l59|100|001fdf","l65|100|00f10d","l32|100|00ea14","l31|100|00eb13","l30|100|00b945","l41|100|00c03e","l40|100|00b34b","l39|100|00a757","l38|100|009a64","l37|100|008e70","l26|100|00f806","l25|100|00cc32","l45|100|00619d","l21|100|0006f8","l48|100|0000ff","l46|100|00e816","l84|100|0032cb","l83|100|0014ea","l95|100|00a35b","l145|100|0037c7","l133|100|0032cc","l128|100|00d826","l126|100|009965","l110|100|0051ad","l109|100|0042bc","l105|100|0009f4","l118|100|00ab53","l117|100|00db23","l93|100|00c23c","l98|100|008579")
+	End With
+	With .AddStep(2.36667, Null, Null)
+		.Lights = Array("l143|100|004cb2","l44|100|00639b","l11|100|00a45a","l12|100|00906e","l13|100|007d81","l14|100|006995","l15|100|0055a9","l05|100|00bb43","l07|100|00a757","l08|100|00926c","l09|100|007f7f","l10|100|006b93","l06|100|00817d","l04|100|00946a","l03|100|00a955","l02|100|00bd41","l01|100|00d22c","l60|100|00a856","l49|100|004eb0","l59|100|0010ee","l65|100|00f806","l32|100|00e519","l31|100|00dd21","l30|100|009b63","l41|100|00b945","l40|100|00a955","l39|100|009965","l38|100|008975","l37|100|007985","l26|100|00e519","l25|100|00ac52","l45|100|00817d","l21|100|001be3","l48|100|000000","l46|100|00c33b","l47|100|00f30b","l84|100|0044b9","l83|100|0021dd","l82|100|0000ff","l95|100|008a74","l145|100|004eb0","l133|100|005da1","l128|100|00be40","l126|100|00738b","l110|100|002fcf","l109|100|002dd1","l105|100|0026d8","l118|100|00c33b","l117|100|00ed11","l93|100|00c539","l98|100|007886")
+	End With
+	With .AddStep(2.40000, Null, Null)
+		.Lights = Array("l143|100|0027d7","l44|100|00807e","l11|100|00bb43","l12|100|00a459","l13|100|008f6e","l14|100|007a84","l15|100|00649a","l05|100|00cd31","l07|100|00b845","l08|100|00a15d","l09|100|008c72","l10|100|007688","l06|100|008876","l04|100|009d61","l03|100|00b44a","l02|100|00ca34","l01|100|00e11d","l60|100|00936b","l49|100|003dc1","l59|100|0003fc","l65|100|00fe01","l32|100|00dd21","l31|100|00cc32","l30|100|007d81","l41|100|00b24c","l40|100|009d61","l39|100|008a74","l38|100|007787","l37|100|00649a","l27|100|00f806","l26|100|00d12d","l25|100|008975","l45|100|00a25b","l21|100|0032cc","l22|100|0000ff","l20|100|0008f6","l46|100|009a64","l47|100|00d925","l84|100|0059a5","l83|100|002fcf","l82|100|0008f6","l95|100|00708e","l137|100|00e01e","l145|100|006797","l133|100|008975","l128|100|00a15d","l126|100|004ab4","l110|100|000df1","l109|100|0018e6","l105|100|0045b9","l104|100|001de1","l102|100|0014ea","l118|100|00db23","l117|100|00ff00","l93|100|00c836","l98|100|006b93")
+	End With
+	With .AddStep(2.43333, Null, Null)
+		.Lights = Array("l143|100|0002fd","l44|100|009e60","l11|100|00d12d","l12|100|00ba44","l13|100|00a25c","l14|100|008b73","l15|100|00748a","l05|100|00df1f","l07|100|00c835","l08|100|00b14d","l09|100|009965","l10|100|00827c","l06|100|00906e","l04|100|00a658","l03|100|00be40","l02|100|00d628","l01|100|00ef0f","l60|100|007d81","l49|100|002dd1","l59|100|000000","l65|100|000000","l32|100|00d32b","l31|100|00ba44","l30|100|005da1","l41|100|00a855","l40|100|00916c","l39|100|007b83","l38|100|006599","l37|100|004db1","l27|100|00ed11","l26|100|00ba44","l25|100|006599","l45|100|00c539","l21|100|004bb3","l22|100|001ae3","l20|100|001de1","l46|100|00718d","l47|100|00bc42","l84|100|006e90","l83|100|0040be","l82|100|0015e9","l95|100|0055a9","l137|100|00bd41","l145|100|00817d","l133|100|00b747","l128|100|00837b","l126|100|0022dc","l110|100|000000","l109|100|0005f9","l105|100|006697","l104|100|0042bc","l102|100|0042bc","l101|100|0017e7","l118|100|00f20c","l117|100|000000","l93|100|00ca34","l98|100|005ea0")
+	End With
+	With .AddStep(2.46667, Null, Null)
+		.Lights = Array("l143|100|000000","l44|100|00bd41","l11|100|00e618","l12|100|00cd30","l13|100|00b648","l14|100|009c62","l15|100|00847a","l05|100|00ef0f","l07|100|00d826","l08|100|00bf3f","l09|100|00a658","l10|100|008d70","l06|100|009767","l04|100|00af4f","l03|100|00c836","l02|100|00e11d","l01|100|00fb03","l34|100|00e716","l60|100|006797","l19|100|00de20","l18|100|00ed11","l49|100|001ee0","l32|100|00c836","l31|100|00a559","l30|100|003dc1","l41|100|009e60","l40|100|008579","l39|100|006b93","l38|100|0052ac","l37|100|0038c6","l27|100|00df1f","l26|100|00a05d","l25|100|0041bd","l45|100|00e618","l21|100|006797","l22|100|0039c5","l20|100|0034ca","l58|100|0001fd","l55|100|0000ff","l46|100|0046b8","l47|100|009c62","l84|100|00847a","l83|100|0052ac","l82|100|0023db","l95|100|0039c5","l137|100|009668","l145|100|009b63","l133|100|00e519","l128|100|006599","l126|100|000000","l109|100|000000","l105|100|008975","l104|100|006a94","l102|100|00748a","l101|100|000000","l118|100|000000","l98|100|0051ad")
+	End With
+	With .AddStep(2.50000, Null, Null)
+		.Lights = Array("l44|100|00da24","l11|100|00f905","l12|100|00e01e","l13|100|00c737","l14|100|00ae50","l15|100|00946a","l05|100|00fe01","l07|100|00e519","l08|100|00cc32","l09|100|00b34b","l10|100|009965","l06|100|009e60","l04|100|00b747","l03|100|00d02e","l02|100|00ea14","l01|100|000000","l53|100|0017e7","l62|100|00e21c","l34|100|00ca34","l60|100|004faf","l19|100|00b24c","l18|100|00bc42","l49|100|0010ed","l32|100|00bb43","l31|100|00906e","l30|100|001ee0","l41|100|00946a","l40|100|007886","l39|100|005ca2","l38|100|0040be","l37|100|0024da","l27|100|00ce30","l26|100|008777","l25|100|001de1","l45|100|000000","l51|100|0001fd","l21|100|00837b","l22|100|0059a4","l20|100|004db1","l58|100|002ad4","l57|100|0001fe","l55|100|0021dd","l46|100|001ce2","l47|100|007d81","l64|100|00ec12","l84|100|009a64","l83|100|006698","l82|100|0034ca","l81|100|0000ff","l95|100|0020de","l137|100|006f8f","l145|100|00b648","l133|100|000000","l128|100|0046b8","l105|100|00ac52","l104|100|00926c","l102|100|00a559","l93|100|00c935","l98|100|0045b9")
+	End With
+	With .AddStep(2.53333, Null, Null)
+		.Lights = Array("l44|100|00f608","l11|100|000000","l12|100|00f10d","l13|100|00d826","l14|100|00bf3f","l15|100|00a45a","l05|100|000000","l07|100|00f10d","l08|100|00d826","l09|100|00bf3f","l10|100|00a45a","l06|100|00a45a","l04|100|00be40","l03|100|00d727","l02|100|00f10d","l53|100|0036c7","l35|100|00ef0f","l62|100|00be40","l34|100|00ab53","l60|100|003ac4","l19|100|00837b","l18|100|000000","l49|100|0005f9","l65|100|00fd01","l32|100|00ad51","l31|100|007a84","l30|100|0001fe","l41|100|008975","l40|100|006b93","l39|100|004cb2","l38|100|002fcf","l37|100|0012ec","l27|100|00bd41","l26|100|006d91","l25|100|000000","l51|100|0019e5","l21|100|009f5f","l22|100|007a83","l20|100|006896","l58|100|0055a9","l57|100|002ad4","l56|100|0001fd","l55|100|0045b9","l54|100|001be2","l46|100|000000","l47|100|005da1","l64|100|00d529","l84|100|00b04d","l83|100|007a84","l82|100|0046b8","l81|100|000fef","l95|100|0008f6","l137|100|0047b7","l145|100|00cf2f","l128|100|0028d6","l105|100|00ce30","l104|100|00ba44","l102|100|00d727","l93|100|00c737","l98|100|003ac4")
+	End With
+	With .AddStep(2.56667, Null, Null)
+		.Lights = Array("l44|100|000000","l12|100|00ff00","l13|100|00e717","l14|100|00ce30","l15|100|00b549","l07|100|00fb03","l08|100|00e21c","l09|100|00c935","l10|100|00b04e","l06|100|00ab53","l04|100|00c33b","l03|100|00dc22","l02|100|00f608","l53|100|0058a6","l35|100|00d02e","l62|100|009767","l34|100|008975","l92|100|00f806","l60|100|0025d8","l19|100|0054aa","l49|100|000000","l65|100|00f608","l32|100|009d61","l31|100|00649a","l30|100|000000","l41|100|007d81","l40|100|005f9f","l39|100|003ec0","l38|100|0020de","l37|100|0001fe","l27|100|00a955","l26|100|0053ab","l51|100|0033cb","l52|100|0018e6","l21|100|00bc42","l22|100|009c62","l20|100|00837b","l58|100|00817d","l57|100|0056a8","l56|100|002cd2","l55|100|006c91","l54|100|0041bd","l47|100|003cc2","l64|100|00bd41","l84|100|00c539","l83|100|008e70","l82|100|005aa4","l81|100|0022dc","l95|100|000000","l137|100|0021dd","l145|100|00e717","l128|100|000cf2","l105|100|00ef0f","l104|100|00e11d","l102|100|000000","l101|100|00e21c","l93|100|00c33b","l98|100|0030ce")
+	End With
+	With .AddStep(2.60000, Null, Null)
+		.Lights = Array("l70|100|00f509","l69|100|00ea14","l12|100|000000","l13|100|00f40a","l14|100|00db23","l15|100|00c33b","l07|100|000000","l08|100|00ea14","l09|100|00d22c","l10|100|00ba44","l06|100|00b04e","l04|100|00c737","l03|100|00df1f","l02|100|00f805","l53|100|007a84","l35|100|00af4f","l62|100|00718d","l34|100|006895","l92|100|00e01e","l60|100|0013eb","l19|100|0026d8","l18|100|0022dc","l65|100|00ed11","l32|100|008d71","l31|100|004eb0","l41|100|00728c","l40|100|0052ac","l39|100|0031cd","l38|100|0012ec","l37|100|000000","l27|100|009569","l26|100|003ac4","l50|100|0017e7","l51|100|004eb0","l52|100|0039c5","l21|100|00d628","l22|100|00bd40","l20|100|009e60","l58|100|00ad51","l57|100|00827c","l56|100|0059a5","l55|100|00936b","l54|100|006995","l47|100|001ee0","l64|100|00a25c","l84|100|00d925","l83|100|00a25c","l82|100|006e90","l81|100|0036c8","l80|100|0003fb","l137|100|000000","l145|100|00fe01","l128|100|000000","l105|100|000000","l104|100|000000","l101|100|000000","l93|100|00bd41","l98|100|0028d6")
+	End With
+	With .AddStep(2.63333, Null, Null)
+		.Lights = Array("l70|100|00c737","l69|100|00c03e","l13|100|00ff00","l14|100|00e717","l15|100|00d02e","l08|100|00f00e","l09|100|00d925","l10|100|00c23c","l06|100|00b44a","l04|100|00ca34","l03|100|00e01e","l02|100|00f905","l63|100|00fa04","l53|100|009c62","l35|100|008d71","l62|100|004bb3","l34|100|0047b7","l92|100|00c737","l60|100|0003fc","l19|100|000000","l18|100|000000","l65|100|00e21c","l33|100|00ef0e","l32|100|007d81","l31|100|003ac4","l29|100|0000ff","l41|100|006797","l40|100|0047b7","l39|100|0026d8","l38|100|0007f7","l28|100|00f20c","l27|100|00807e","l26|100|0022dc","l50|100|0035c9","l51|100|006b92","l52|100|005da1","l21|100|00ef0f","l22|100|00dd21","l20|100|00b945","l58|100|00d826","l57|100|00ae50","l56|100|008579","l55|100|00ba44","l54|100|00906e","l47|100|0002fd","l64|100|008777","l84|100|00eb13","l83|100|00b648","l82|100|00837b","l81|100|004cb2","l80|100|001ae4","l145|100|000000","l107|100|0007f7","l106|100|0023db","l93|100|00b747","l98|100|0022dc")
+	End With
+	With .AddStep(2.66667, Null, Null)
+		.Lights = Array("l70|100|009767","l69|100|00946a","l13|100|000000","l14|100|00f10d","l15|100|00dc22","l08|100|00f40a","l09|100|00de20","l10|100|00c935","l06|100|00b747","l04|100|00cb33","l02|100|00f607","l63|100|00da24","l53|100|00bd41","l35|100|006b93","l62|100|0026d8","l34|100|0029d5","l92|100|00ac52","l60|100|000000","l65|100|00d628","l33|100|00da24","l32|100|006d90","l31|100|0028d6","l29|100|0014ea","l41|100|005da1","l40|100|003dc1","l39|100|001de1","l38|100|0000ff","l28|100|00d825","l27|100|006c92","l26|100|000df1","l24|100|0000ff","l50|100|0054aa","l51|100|008876","l52|100|00807e","l21|100|000000","l22|100|00fa04","l20|100|00d12c","l58|100|000000","l57|100|00d925","l56|100|00b24b","l55|100|00de20","l54|100|00b747","l47|100|000000","l64|100|006d91","l84|100|00fa04","l83|100|00c836","l82|100|009767","l81|100|00639b","l80|100|0033cb","l136|100|001ae4","l107|100|002cd1","l106|100|004db1","l93|100|00af4f","l98|100|001de1")
+	End With
+	With .AddStep(2.70000, Null, Null)
+		.Lights = Array("l142|100|00f608","l70|100|006896","l69|100|006995","l14|100|00f806","l15|100|00e519","l08|100|00f509","l09|100|00e21c","l10|100|00cf2f","l06|100|00b846","l04|100|00ca34","l03|100|00dd20","l02|100|00f20c","l63|100|00b846","l53|100|00dc22","l35|100|0049b5","l62|100|0004fa","l34|100|000cf2","l92|100|00906e","l65|100|00c836","l33|100|00c33b","l32|100|005ea0","l31|100|0017e7","l29|100|002ad4","l41|100|0053ab","l40|100|0035c9","l39|100|0016e8","l38|100|000000","l28|100|00bd41","l27|100|0059a5","l26|100|000000","l24|100|0012ec","l43|100|001ee0","l50|100|00748a","l51|100|00a35a","l52|100|00a35b","l22|100|000000","l20|100|00e816","l57|100|000000","l56|100|00dd21","l55|100|000000","l54|100|00dc22","l64|100|0052ac","l84|100|000000","l83|100|00d826","l82|100|00ab53","l81|100|007a84","l80|100|004db1","l136|100|0038c6","l107|100|0053ab","l106|100|007985","l93|100|00a658","l98|100|001ae3")
+	End With
+	With .AddStep(2.73333, Null, Null)
+		.Lights = Array("l142|100|00d727","l70|100|0039c4","l69|100|003ec0","l14|100|00fe01","l15|100|00ed11","l09|100|00e31b","l10|100|00d32b","l06|100|00b945","l04|100|00c935","l03|100|00d925","l02|100|00ec12","l01|100|00fd01","l63|100|009569","l53|100|00f905","l35|100|002ad3","l62|100|000000","l34|100|000000","l92|100|007589","l59|100|000af4","l65|100|00b846","l33|100|00ab53","l32|100|004faf","l31|100|0009f5","l29|100|0042bc","l41|100|004ab4","l40|100|002ed0","l39|100|0010ee","l28|100|00a05e","l27|100|0045b9","l24|100|0026d8","l43|100|0040bd","l50|100|00926c","l51|100|00bf3f","l52|100|00c538","l20|100|00fd01","l56|100|000000","l54|100|00ff00","l48|100|0001fe","l64|100|003ac4","l42|100|001ce2","l83|100|00e618","l82|100|00bd41","l81|100|00916d","l80|100|006896","l136|100|0058a6","l120|100|00df1f","l107|100|007a84","l106|100|00a35b","l93|100|009d61","l98|100|001ae4")
+	End With
+	With .AddStep(2.76667, Null, Null)
+		.Lights = Array("l142|100|00b648","l71|100|0005f9","l70|100|000ef0","l69|100|0017e7","l14|100|00ff00","l15|100|00f20c","l07|100|00ff00","l08|100|00f20c","l10|100|00d529","l04|100|00c638","l03|100|00d42a","l02|100|00e41a","l01|100|00f20c","l63|100|00738b","l53|100|000000","l35|100|000ef0","l92|100|005ba3","l59|100|0018e6","l65|100|00a856","l33|100|00926c","l32|100|0042bc","l31|100|000000","l29|100|005aa4","l41|100|0042bc","l40|100|0028d5","l39|100|000df1","l28|100|008479","l27|100|0034ca","l24|100|003cc2","l43|100|00649a","l50|100|00b14d","l51|100|00d826","l52|100|00e519","l20|100|000000","l54|100|000000","l48|100|0014ea","l64|100|0023db","l42|100|0043bb","l83|100|00f20c","l82|100|00ce30","l81|100|00a658","l80|100|00827c","l136|100|007688","l120|100|00bc42","l119|100|00f508","l108|100|0009f5","l107|100|009f5f","l106|100|00cc32","l93|100|00946a","l98|100|001be3")
+	End With
+	With .AddStep(2.80000, Null, Null)
+		.Lights = Array("l142|100|009569","l71|100|000000","l70|100|000000","l69|100|000000","l14|100|000000","l15|100|00f509","l07|100|00f806","l08|100|00ee10","l09|100|00e21c","l10|100|00d628","l06|100|00b746","l04|100|00c23c","l03|100|00cd31","l02|100|00da24","l01|100|00e519","l63|100|0053ab","l35|100|000000","l92|100|0041bd","l49|100|0005f9","l59|100|0028d6","l65|100|009866","l33|100|007b83","l32|100|0036c8","l29|100|00728c","l41|100|003cc2","l40|100|0025d9","l39|100|000cf2","l28|100|006a94","l27|100|0025d9","l24|100|0052ac","l43|100|008678","l50|100|00cd31","l51|100|00ee10","l52|100|000000","l48|100|0027d7","l64|100|000fef","l42|100|006a93","l83|100|00fd02","l82|100|00dd21","l81|100|00bb43","l80|100|009b63","l136|100|00946a","l120|100|009965","l119|100|00db23","l108|100|002ad4","l107|100|00c33b","l106|100|00f20c","l117|100|00f30b","l93|100|008b73","l98|100|001de1")
+	End With
+	With .AddStep(2.83333, Null, Null)
+		.Lights = Array("l142|100|007688","l14|100|00ff00","l15|100|00f707","l05|100|00f707","l07|100|00ef0f","l08|100|00e816","l09|100|00de20","l06|100|00b549","l04|100|00bd41","l03|100|00c638","l02|100|00d02e","l01|100|00d826","l63|100|0034ca","l92|100|002bd3","l49|100|000fef","l59|100|0038c6","l65|100|008876","l33|100|00649a","l32|100|002cd2","l29|100|008876","l41|100|0037c7","l40|100|0022dc","l28|100|004faf","l27|100|0018e6","l24|100|006895","l43|100|00a757","l50|100|00e618","l51|100|000000","l48|100|003cc2","l64|100|000000","l42|100|008f6e","l83|100|000000","l82|100|00ea14","l81|100|00ce30","l80|100|00b34b","l136|100|00b14d","l120|100|007886","l119|100|00c03d","l108|100|004bb3","l107|100|00e41a","l106|100|000000","l117|100|00e21c","l93|100|00827c","l98|100|0021dd")
+	End With
+	With .AddStep(2.86667, Null, Null)
+		.Lights = Array("l142|100|0059a5","l14|100|00fc02","l15|100|00f608","l05|100|00eb13","l07|100|00e518","l08|100|00e11d","l09|100|00da24","l10|100|00d429","l06|100|00b34b","l04|100|00b846","l03|100|00be40","l02|100|00c539","l01|100|00ca34","l63|100|0019e5","l92|100|0017e7","l49|100|001ae4","l59|100|0049b5","l65|100|007985","l33|100|004faf","l32|100|0024da","l29|100|009e60","l41|100|0033cb","l39|100|000ef0","l28|100|0038c6","l27|100|000df1","l24|100|007d81","l43|100|00c638","l50|100|00fd01","l48|100|0050ae","l42|100|00b34b","l82|100|00f40a","l81|100|00de20","l80|100|00c836","l136|100|00cb33","l120|100|0058a6","l119|100|00a658","l109|100|000bf3","l108|100|006c92","l107|100|000000","l117|100|00d02e","l93|100|007984","l98|100|0026d8")
+	End With
+	With .AddStep(2.90000, Null, Null)
+		.Lights = Array("l142|100|003ec0","l12|100|00ff00","l13|100|00fb03","l14|100|00f806","l15|100|00f509","l05|100|00de20","l07|100|00db23","l08|100|00d925","l09|100|00d529","l10|100|00d22c","l06|100|00b04e","l04|100|00b24c","l03|100|00b548","l02|100|00ba44","l01|100|00bc42","l63|100|0000fe","l92|100|0005f9","l49|100|0025d9","l59|100|0059a5","l65|100|006c92","l33|100|003cc2","l32|100|001de1","l29|100|00b24c","l41|100|0031cd","l39|100|0011ed","l38|100|0002fc","l28|100|0023db","l27|100|0004fa","l24|100|00906e","l43|100|00e11d","l50|100|000000","l48|100|00639a","l42|100|00d32b","l82|100|00fd01","l81|100|00ec12","l80|100|00db23","l136|100|00e21c","l120|100|003bc3","l119|100|008d71","l109|100|001ae4","l108|100|008975","l118|100|00ff00","l117|100|00bf3f","l93|100|00728c","l98|100|002cd2")
+	End With
+	With .AddStep(2.93333, Null, Null)
+		.Lights = Array("l142|100|0027d7","l11|100|00f608","l12|100|00f509","l13|100|00f30b","l14|100|00f30b","l15|100|00f20c","l05|100|00d22c","l07|100|00d12d","l08|100|00d22c","l09|100|00d02e","l10|100|00cf2f","l06|100|00ad51","l04|100|00ad51","l03|100|00ae50","l02|100|00b04e","l01|100|00af4f","l63|100|000000","l92|100|000000","l49|100|0030ce","l59|100|006896","l65|100|00609e","l33|100|002cd2","l32|100|0018e6","l29|100|00c33b","l41|100|002fcf","l40|100|0023db","l39|100|0015e9","l38|100|0009f5","l28|100|0011ed","l27|100|000000","l24|100|00a15d","l43|100|00f806","l48|100|007589","l42|100|00ee10","l82|100|000000","l81|100|00f707","l80|100|00eb13","l136|100|00f509","l120|100|0022dc","l119|100|007787","l109|100|002ad4","l108|100|00a45a","l118|100|00ef0e","l117|100|00af4f","l93|100|006b93","l98|100|0032cc")
+	End With
+	With .AddStep(2.96667, Null, Null)
+		.Lights = Array("l142|100|0013eb","l11|100|00ea14","l12|100|00ec12","l13|100|00ec12","l14|100|00ee10","l15|100|00ef0f","l05|100|00c638","l07|100|00c836","l08|100|00cb33","l09|100|00cb33","l10|100|00cc32","l06|100|00a955","l04|100|00a757","l03|100|00a658","l02|100|00a559","l01|100|00a35b","l49|100|003ac4","l59|100|007589","l65|100|0055a9","l33|100|001fdf","l32|100|0014ea","l29|100|00d12d","l41|100|002ed0","l40|100|0025d9","l39|100|0019e5","l38|100|000fef","l37|100|0006f8","l28|100|0003fb","l24|100|00b14d","l43|100|000000","l48|100|00847a","l42|100|000000","l81|100|000000","l80|100|00f905","l136|100|000000","l120|100|000df1","l119|100|00649a","l109|100|0037c7","l108|100|00bc42","l118|100|00e11c","l117|100|00a05e","l93|100|006599","l98|100|0037c7")
+	End With
+	With .AddStep(3.00000, Null, Null)
+		.Lights = Array("l142|100|0004fa","l11|100|00e11d","l12|100|00e41a","l13|100|00e618","l14|100|00e915","l15|100|00ec12","l05|100|00bd41","l07|100|00c03e","l08|100|00c43a","l09|100|00c638","l10|100|00c935","l06|100|00a658","l04|100|00a35b","l03|100|009f5e","l02|100|009e60","l01|100|009964","l49|100|0042bc","l59|100|007f7f","l65|100|004cb2","l33|100|0014ea","l32|100|0011ec","l29|100|00dc22","l40|100|0026d8","l39|100|001de1","l38|100|0015e9","l37|100|000df1","l28|100|000000","l24|100|00bc41","l48|100|00906e","l80|100|000000","l120|100|000000","l119|100|0054aa","l109|100|0043bb","l108|100|00ce30","l118|100|00d628","l117|100|00946a","l93|100|00609e","l98|100|003cc2")
+	End With
+	With .AddStep(3.03333, Null, Null)
+		.Lights = Array("l142|100|000000","l11|100|00da24","l12|100|00de20","l13|100|00e11d","l14|100|00e519","l15|100|00ea14","l05|100|00b648","l07|100|00ba43","l08|100|00c03e","l09|100|00c33b","l10|100|00c737","l06|100|00a45a","l04|100|00a05e","l03|100|009b63","l02|100|009866","l01|100|00936b","l49|100|0048b6","l59|100|008678","l65|100|0047b7","l33|100|000ef0","l32|100|0010ee","l29|100|00e31b","l40|100|0028d6","l39|100|0020de","l38|100|001ae4","l37|100|0013eb","l24|100|00c43a","l48|100|009865","l119|100|0049b5","l110|100|0004fa","l109|100|004bb3","l108|100|00da24","l118|100|00cd31","l117|100|008c72","l93|100|005da1","l98|100|0040be")
+	End With
+	With .AddStep(3.06667, Null, Null)
+		.Lights = Array("l11|100|00d727","l12|100|00dc22","l13|100|00df1f","l14|100|00e41a","l15|100|00e915","l05|100|00b34b","l07|100|00b846","l08|100|00be40","l09|100|00c23c","l10|100|00c638","l06|100|00a35b","l04|100|009e60","l03|100|009a64","l02|100|009668","l01|100|00906e","l49|100|004bb3","l59|100|008975","l65|100|0045b9","l33|100|000bf3","l29|100|00e618","l39|100|0021dd","l38|100|001be3","l37|100|0015e9","l24|100|00c737","l48|100|009c62","l119|100|0045b9","l110|100|0008f6","l109|100|004eb0","l108|100|00df1f","l118|100|00ca34","l117|100|008975","l93|100|005ca2","l98|100|0041bd")
+	End With
+	With .AddStep(3.10000, Null, Null)
+		.Lights = Array("l11|100|00d42a","l12|100|00d826","l13|100|00dc22","l14|100|00e01d","l15|100|00e519","l05|100|00b04e","l07|100|00b549","l08|100|00bb43","l09|100|00be40","l10|100|00c33b","l06|100|00a05e","l04|100|009b63","l03|100|009668","l02|100|00936b","l01|100|008d71","l49|100|0047b7","l59|100|008678","l65|100|0041bd","l33|100|0008f6","l32|100|000cf2","l29|100|00e31b","l41|100|002bd3","l40|100|0025d9","l39|100|001ee0","l38|100|0018e6","l37|100|0012ec","l24|100|00c43a","l48|100|009965","l119|100|0041bd","l110|100|0005f9","l109|100|004bb3","l108|100|00dc22","l118|100|00c737","l117|100|008678","l93|100|0059a5","l98|100|003ec0")
+	End With
+	With .AddStep(3.13333, Null, Null)
+		.Lights = Array("l11|100|00ca34","l12|100|00cf2f","l13|100|00d22c","l14|100|00d727","l15|100|00dc22","l05|100|00a658","l07|100|00ab52","l08|100|00b14d","l09|100|00b549","l10|100|00ba44","l06|100|009668","l04|100|00926c","l03|100|008d71","l02|100|008975","l01|100|00837b","l49|100|003ec0","l59|100|007c82","l65|100|0038c6","l33|100|0000ff","l32|100|0003fb","l29|100|00d924","l41|100|0022dc","l40|100|001ce2","l39|100|0015e9","l38|100|000fef","l37|100|0009f5","l24|100|00bb43","l48|100|008f6f","l80|100|00ff00","l119|100|0038c6","l110|100|000000","l109|100|0041bc","l108|100|00d22c","l118|100|00bd41","l117|100|007c82","l93|100|004eaf","l98|100|0034c9")
+	End With
+	With .AddStep(3.16667, Null, Null)
+		.Lights = Array("l11|100|00bc42","l12|100|00c13d","l13|100|00c43a","l14|100|00c935","l15|100|00ce30","l05|100|009866","l07|100|009c61","l08|100|00a25c","l09|100|00a658","l10|100|00ac52","l06|100|008876","l04|100|00847a","l03|100|007f7f","l02|100|007b83","l01|100|007588","l49|100|0030ce","l59|100|006e90","l65|100|002ad4","l33|100|000000","l32|100|000000","l29|100|00cc32","l41|100|0014ea","l40|100|000ef0","l39|100|0007f7","l38|100|0001fe","l37|100|000000","l24|100|00ad51","l48|100|00817d","l84|100|00f20b","l83|100|00f20b","l82|100|00f20b","l81|100|00f20b","l80|100|00f10d","l119|100|002ad4","l109|100|0033ca","l108|100|00c43a","l118|100|00af4f","l117|100|006e90","l93|100|0040bd","l98|100|0026d7")
+	End With
+	With .AddStep(3.20000, Null, Null)
+		.Lights = Array("l44|100|00fd02","l11|100|00ab53","l12|100|00af4f","l13|100|00b34b","l14|100|00b846","l15|100|00bc42","l05|100|008678","l07|100|008b73","l08|100|00916d","l09|100|00946a","l10|100|009965","l06|100|007787","l04|100|00728c","l03|100|006d91","l02|100|006a94","l01|100|00649a","l49|100|001edf","l59|100|005da1","l65|100|0019e5","l29|100|00ba44","l41|100|0002fc","l40|100|000000","l39|100|000000","l38|100|000000","l24|100|009a64","l45|100|00fd02","l43|100|00fd02","l48|100|00708e","l42|100|00fd02","l84|100|00e11d","l83|100|00e11d","l82|100|00e11d","l81|100|00e11d","l80|100|00e01e","l136|100|00f10c","l145|100|00f30b","l119|100|0019e5","l109|100|0022dc","l108|100|00b34b","l118|100|009d61","l117|100|005da1","l93|100|002fcf","l98|100|0015e9")
+	End With
+	With .AddStep(3.23333, Null, Null)
+		.Lights = Array("l44|100|00e816","l11|100|009569","l12|100|009a64","l13|100|009e60","l14|100|00a25c","l15|100|00a856","l05|100|00728c","l07|100|007787","l08|100|007d81","l09|100|00807e","l10|100|008579","l06|100|00639b","l04|100|005ea0","l03|100|0059a5","l02|100|0056a8","l01|100|004faf","l49|100|000af4","l59|100|0048b6","l65|100|0004fa","l29|100|00a559","l41|100|000000","l24|100|008678","l45|100|00e816","l43|100|00e816","l50|100|00ff00","l51|100|00ff00","l21|100|00fe01","l20|100|00fe01","l48|100|005ba2","l42|100|00e816","l84|100|00cd31","l83|100|00cd31","l82|100|00cd31","l81|100|00cd31","l80|100|00cc32","l136|100|00dd21","l145|100|00de20","l119|100|0004fa","l109|100|000ef0","l108|100|009e60","l118|100|008876","l117|100|0048b6","l93|100|001be3","l98|100|0001fe")
+	End With
+	With .AddStep(3.26667, Null, Null)
+		.Lights = Array("l44|100|00d12d","l11|100|007f7f","l12|100|00847a","l13|100|008777","l14|100|008c72","l15|100|00906d","l05|100|005ba3","l07|100|00609e","l08|100|006698","l09|100|006a94","l10|100|006e90","l06|100|004bb3","l04|100|0046b8","l03|100|0042bc","l02|100|003ec0","l01|100|0038c6","l49|100|000000","l59|100|0031cd","l65|100|000000","l29|100|008e70","l24|100|006f8f","l45|100|00d12d","l43|100|00d12d","l50|100|00e816","l51|100|00e816","l21|100|00e717","l20|100|00e717","l48|100|0044ba","l42|100|00d12d","l84|100|00b648","l83|100|00b648","l82|100|00b648","l81|100|00b648","l80|100|00b549","l136|100|00c737","l145|100|00c836","l119|100|000000","l109|100|000000","l108|100|008777","l118|100|00728c","l117|100|0031cd","l93|100|0004fa","l98|100|000000")
+	End With
+	With .AddStep(3.30000, Null, Null)
+		.Lights = Array("l44|100|00b945","l11|100|006698","l12|100|006b93","l13|100|006f8f","l14|100|00738b","l15|100|007886","l05|100|0042bc","l07|100|0047b7","l08|100|004db1","l09|100|0050ae","l10|100|0056a8","l06|100|0033cb","l04|100|002ed0","l03|100|0029d5","l02|100|0026d8","l01|100|0020de","l53|100|00fe00","l59|100|0019e5","l29|100|007688","l24|100|0057a7","l45|100|00b945","l43|100|00b945","l50|100|00cf2f","l51|100|00cf2f","l52|100|00fb03","l21|100|00ce30","l22|100|00fa04","l20|100|00ce30","l48|100|002cd2","l42|100|00b945","l84|100|009d61","l83|100|009d61","l82|100|009d61","l81|100|009d61","l80|100|009c62","l136|100|00ae50","l145|100|00af4e","l108|100|006f8f","l107|100|00ed11","l105|100|00ed11","l118|100|0059a5","l117|100|0019e5","l93|100|000000")
+	End With
+	With .AddStep(3.33333, Null, Null)
+		.Lights = Array("l44|100|009e60","l11|100|004cb2","l12|100|0050ae","l13|100|0055a9","l14|100|005aa4","l15|100|005ea0","l05|100|0028d6","l07|100|002dd1","l08|100|0033cb","l09|100|0036c8","l10|100|003bc3","l06|100|0019e5","l04|100|0014ea","l03|100|000fef","l02|100|000cf2","l01|100|0006f8","l53|100|00e41a","l59|100|0000ff","l29|100|005ca2","l24|100|003cc2","l45|100|009e60","l43|100|009e60","l50|100|00b548","l51|100|00b548","l52|100|00e11d","l21|100|00b44a","l22|100|00e01e","l20|100|00b44a","l48|100|0012ec","l42|100|009e60","l84|100|00837b","l83|100|00837b","l82|100|00837b","l81|100|00837b","l80|100|00827c","l136|100|00936b","l145|100|009569","l133|100|00f10d","l108|100|0055a9","l107|100|00d32b","l105|100|00d32b","l118|100|003fbf","l117|100|0000ff")
+	End With
+	With .AddStep(3.36667, Null, Null)
+		.Lights = Array("l44|100|00837b","l11|100|0030ce","l12|100|0035c9","l13|100|0039c5","l14|100|003dc0","l15|100|0042bc","l05|100|000df1","l07|100|0012ec","l08|100|0018e6","l09|100|001be3","l10|100|0020de","l06|100|000000","l04|100|000000","l03|100|000000","l02|100|000000","l01|100|000000","l53|100|00c835","l59|100|000000","l29|100|0040be","l24|100|0021dd","l45|100|00837b","l43|100|00837b","l50|100|009965","l51|100|009965","l52|100|00c638","l21|100|009866","l22|100|00c539","l20|100|009866","l55|100|00ec12","l54|100|00ec12","l48|100|000000","l42|100|00837b","l84|100|006896","l83|100|006896","l82|100|006896","l81|100|006896","l80|100|006797","l136|100|007886","l145|100|007984","l133|100|00d529","l108|100|0039c5","l107|100|00b846","l106|100|00e618","l105|100|00b846","l104|100|00e618","l118|100|0023db","l117|100|000000")
+	End With
+	With .AddStep(3.40000, Null, Null)
+		.Lights = Array("l44|100|006797","l11|100|0014ea","l12|100|0019e5","l13|100|001de1","l14|100|0021dd","l15|100|0026d8","l05|100|000000","l07|100|000000","l08|100|000000","l09|100|0000ff","l10|100|0004fa","l53|100|00ac52","l29|100|0024da","l24|100|0005f9","l45|100|006797","l43|100|006797","l50|100|007d81","l51|100|007d81","l52|100|00aa54","l21|100|007c82","l22|100|00a955","l20|100|007c82","l58|100|00f40a","l57|100|00f40a","l56|100|00f40a","l55|100|00d02e","l54|100|00d02e","l42|100|006797","l84|100|004bb3","l83|100|004bb3","l82|100|004bb3","l81|100|004bb3","l80|100|0049b4","l136|100|005ca2","l145|100|005da1","l134|100|00fd01","l133|100|00b945","l108|100|001de1","l107|100|009b63","l106|100|00ca34","l105|100|009b63","l104|100|00ca34","l118|100|0007f7")
+	End With
+	With .AddStep(3.43333, Null, Null)
+		.Lights = Array("l44|100|0049b5","l11|100|000000","l12|100|000000","l13|100|0000ff","l14|100|0004fa","l15|100|0009f5","l09|100|000000","l10|100|000000","l53|100|008e70","l29|100|0007f7","l24|100|000000","l45|100|0049b5","l43|100|0049b5","l50|100|00609e","l51|100|00609e","l52|100|008c72","l21|100|005f9f","l22|100|008b73","l20|100|005f9f","l58|100|00d826","l57|100|00d826","l56|100|00d826","l55|100|00b34b","l54|100|00b34b","l42|100|0049b5","l84|100|002ed0","l83|100|002ed0","l82|100|002ed0","l81|100|002ed0","l80|100|002dd1","l136|100|003ec0","l145|100|0040be","l134|100|00e01e","l133|100|009b62","l108|100|0000ff","l107|100|007e80","l106|100|00ad51","l105|100|007e80","l104|100|00ad51","l103|100|00e816","l102|100|00e717","l101|100|00ff00","l100|100|00ff00","l118|100|000000")
+	End With
+	With .AddStep(3.46667, Null, Null)
+		.Lights = Array("l44|100|002bd2","l13|100|000000","l14|100|000000","l15|100|000000","l53|100|00718d","l29|100|000000","l45|100|002bd2","l43|100|002bd2","l50|100|0042bc","l51|100|0042bc","l52|100|006f8f","l21|100|0041bd","l22|100|006d91","l20|100|0041bd","l58|100|00ba44","l57|100|00ba44","l56|100|00ba44","l55|100|00946a","l54|100|00946a","l42|100|002bd2","l84|100|0010ee","l83|100|0010ee","l82|100|0010ee","l81|100|0010ee","l80|100|000fef","l136|100|0021dd","l145|100|0022dc","l134|100|00c23c","l133|100|007e80","l108|100|000000","l107|100|00609e","l106|100|008e70","l105|100|00609e","l104|100|008e70","l103|100|00cb33","l102|100|00c935","l101|100|00e21c","l100|100|00e11d")
+	End With
+	With .AddStep(3.50000, Null, Null)
+		.Lights = Array("l44|100|000df0","l53|100|0052ac","l45|100|000df0","l43|100|000df0","l50|100|0024da","l51|100|0024da","l52|100|0050ae","l21|100|0023db","l22|100|004eb0","l20|100|0023db","l58|100|009b63","l57|100|009b63","l56|100|009b63","l55|100|007688","l54|100|007688","l42|100|000df0","l84|100|000000","l83|100|000000","l82|100|000000","l81|100|000000","l80|100|000000","l136|100|0003fb","l145|100|0004fa","l134|100|00a35b","l133|100|00609e","l107|100|0041bd","l106|100|00708d","l105|100|0041bd","l104|100|00708d","l103|100|00ad51","l102|100|00ab53","l101|100|00c43a","l100|100|00c33b")
+	End With
+	With .AddStep(3.53333, Null, Null)
+		.Lights = Array("l44|100|000000","l16|100|00f707","l53|100|0034ca","l45|100|000000","l43|100|000000","l50|100|0006f8","l51|100|0006f8","l52|100|0031cd","l21|100|0004fa","l22|100|0030ce","l20|100|0004fa","l58|100|007d81","l57|100|007d81","l56|100|007d81","l55|100|0058a6","l54|100|0058a6","l42|100|000000","l136|100|000000","l145|100|000000","l134|100|008579","l133|100|0041bd","l107|100|0023db","l106|100|0051ad","l105|100|0023db","l104|100|0051ad","l103|100|008d71","l102|100|008c72","l101|100|00a559","l100|100|00a45a")
+	End With
+	With .AddStep(3.56667, Null, Null)
+		.Lights = Array("l16|100|00d925","l53|100|0015e9","l50|100|000000","l51|100|000000","l52|100|0013eb","l21|100|000000","l22|100|0012ec","l20|100|000000","l58|100|005ea0","l57|100|005ea0","l56|100|005ea0","l55|100|0039c5","l54|100|0039c5","l134|100|006698","l133|100|0022dc","l107|100|0005f9","l106|100|0033cb","l105|100|0005f9","l104|100|0033cb","l103|100|006f8f","l102|100|006e90","l101|100|008678","l100|100|008579")
+	End With
+	With .AddStep(3.60000, Null, Null)
+		.Lights = Array("l16|100|00ba44","l53|100|000000","l52|100|000000","l22|100|000000","l58|100|003fbf","l57|100|003fbf","l56|100|003fbf","l55|100|001ae4","l54|100|001ae4","l134|100|0047b7","l133|100|0004fa","l107|100|000000","l106|100|0014ea","l105|100|000000","l104|100|0014ea","l103|100|004faf","l102|100|004eb0","l101|100|006896","l100|100|006797")
+	End With
+	With .AddStep(3.63333, Null, Null)
+		.Lights = Array("l16|100|009b63","l58|100|0020de","l57|100|0020de","l56|100|0020de","l55|100|000000","l54|100|000000","l134|100|0028d6","l133|100|000000","l106|100|000000","l104|100|000000","l103|100|0031cd","l102|100|0030ce","l101|100|0048b6","l100|100|0047b7")
+	End With
+	With .AddStep(3.66667, Null, Null)
+		.Lights = Array("l16|100|007d81","l58|100|0002fd","l57|100|0002fd","l56|100|0002fd","l134|100|000af4","l103|100|0012ec","l102|100|0011ed","l101|100|002ad4","l100|100|0029d5")
+	End With
+	With .AddStep(3.70000, Null, Null)
+		.Lights = Array("l16|100|005f9f","l58|100|000000","l57|100|000000","l56|100|000000","l134|100|000000","l103|100|000000","l102|100|000000","l101|100|000cf2","l100|100|000bf3")
+	End With
+	With .AddStep(3.73333, Null, Null)
+		.Lights = Array("l16|100|0040be","l101|100|000000","l100|100|000000")
+	End With
+	With .AddStep(3.76667, Null, Null)
+		.Lights = Array("l16|100|0023db")
+	End With
+	With .AddStep(3.80000, Null, Null)
+		.Lights = Array("l16|100|0007f6")
+	End With
+	With .AddStep(3.83333, Null, Null)
+		.Lights = Array("l16|100|000000")
+	End With
+End With
+
+
 
 With GlfShotProfiles("default")
 	With .States("on")
@@ -1027,8 +1642,9 @@ Class GlfBallHold
     Public Function ToYaml()
         Dim yaml
         Dim evt, x
+        yaml = "  " & Replace(m_name, "ball_hold_", "") & ":" & vbCrLf
         If UBound(m_base_device.EnableEvents().Keys) > -1 Then
-            yaml = yaml & "  enable_events: "
+            yaml = yaml & "    enable_events: "
             x=0
             For Each key in m_base_device.EnableEvents().keys
                 yaml = yaml & m_base_device.EnableEvents()(key).Raw
@@ -1040,7 +1656,7 @@ Class GlfBallHold
             yaml = yaml & vbCrLf
         End If
         If UBound(m_base_device.DisableEvents().Keys) > -1 Then
-            yaml = yaml & "  disable_events: "
+            yaml = yaml & "    disable_events: "
             x=0
             For Each key in m_base_device.DisableEvents().keys
                 yaml = yaml & m_base_device.DisableEvents()(key).Raw
@@ -1051,12 +1667,12 @@ Class GlfBallHold
             Next
             yaml = yaml & vbCrLf
         End If
-        yaml = yaml & "  hold_devices: " & Join(m_hold_devices, ",") & vbCrLf
+        yaml = yaml & "    hold_devices: " & Join(m_hold_devices, ",") & vbCrLf
         If m_balls_to_hold > 0 Then
-            yaml = yaml & "  balls_to_hold: " & m_balls_to_hold & vbCrLf
+            yaml = yaml & "    balls_to_hold: " & m_balls_to_hold & vbCrLf
         End If
         If UBound(m_release_all_events.Keys) > -1 Then
-            yaml = yaml & "  release_all_events: "
+            yaml = yaml & "    release_all_events: "
             x=0
             For Each key in m_release_all_events.keys
                 yaml = yaml & m_release_all_events(key).Raw
@@ -1068,7 +1684,7 @@ Class GlfBallHold
             yaml = yaml & vbCrLf
         End If
         If UBound(m_release_one_events.Keys) > -1 Then
-            yaml = yaml & "  release_one_events: "
+            yaml = yaml & "    release_one_events: "
             x=0
             For Each key in m_release_one_events.keys
                 yaml = yaml & m_release_one_events(key).Raw
@@ -1080,7 +1696,7 @@ Class GlfBallHold
             yaml = yaml & vbCrLf
         End If
         If UBound(m_release_one_if_full_events.Keys) > -1 Then
-            yaml = yaml & "  release_one_if_full_events: "
+            yaml = yaml & "    release_one_if_full_events: "
             x=0
             For Each key in m_release_one_if_full_events.keys
                 yaml = yaml & m_release_one_if_full_events(key).Raw
@@ -1187,7 +1803,7 @@ Class BallSave
     Public Property Let Debug(value) : m_debug = value : End Property
 
 	Public default Function init(name, mode)
-        m_name = "ball_saves_" & name
+        m_name = "ball_save_" & name
         m_mode = mode.Name
         m_active_time = Null
 	    m_grace_period = Null
@@ -1255,7 +1871,7 @@ Class BallSave
         m_timer_started = False
         Log "Disabling..."
         RemovePinEventListener "ball_drain", m_name & "_ball_drain"
-        RemoveDelay "_ball_saves_"&m_name&"_disable"
+        RemoveDelay "_ball_save_"&m_name&"_disable"
         RemoveDelay m_name&"_grace_period"
         RemoveDelay m_name&"_hurry_up_time"
             
@@ -1309,7 +1925,7 @@ Class BallSave
     End Sub
 
     Public Sub EnterHurryUpTime
-        DispatchPinEvent m_name & "_hurry_up_time", Null
+        DispatchPinEvent m_name & "_hurry_up", Null
     End Sub
 
     Private Sub Log(message)
@@ -1320,7 +1936,7 @@ Class BallSave
 
     Public Function ToYaml
         Dim yaml
-        yaml = Replace(m_name, "ball_saves_", "") & ":" & vbCrLf
+        yaml = "  " & Replace(m_name, "ball_save_", "") & ":" & vbCrLf
         yaml = yaml & "    active_time: " & m_active_time(1) & "s" & vbCrLf
         yaml = yaml & "    grace_period: " & m_grace_period(1) & "s" & vbCrLf
         yaml = yaml & "    hurry_up_time: " & m_hurry_up_time(1) & "s" & vbCrLf
@@ -1344,9 +1960,8 @@ Class BallSave
             x = x +1
         Next
         yaml = yaml & vbCrLf
-        yaml = yaml & "    auto_launch: " & m_auto_launch & vbCrLf
+        yaml = yaml & "    auto_launch: " & LCase(m_auto_launch) & vbCrLf
         yaml = yaml & "    balls_to_save: " & m_balls_to_save & vbCrLf
-        yaml = yaml & vbCrLf
         ToYaml = yaml
     End Function
 End Class
@@ -1639,25 +2254,28 @@ Class GlfLightPlayer
     Private m_debug
     Private m_name
     Private m_value
+    private m_base_device
 
-    Public Property Let Events(value)
-        Set m_events = value
-        Dim evt
-        For Each evt in m_events
-            lightCtrl.CreateSeqRunner m_name & "_" & evt, m_priority
-        Next
+    Public Property Get Name() : Name = m_name : End Property
+    
+    Public Property Get EventNames() : EventNames = m_events.Keys() : End Property    
+    Public Property Get Events(name)
+        If m_events.Exists(name) Then
+            Set Events = m_events(name)
+        Else
+            Dim new_event : Set new_event = (new GlfLightPlayerEventItem)()
+            m_events.Add name, new_event
+            Set Events = new_event
+        End If
     End Property
-    Public Property Let Debug(value) : m_debug = value : End Property
 
 	Public default Function init(mode)
         m_name = "light_player_" & mode.name
         m_mode = mode.Name
         m_priority = mode.Priority
-        m_debug = False
         Set m_events = CreateObject("Scripting.Dictionary")
         
-        AddPinEventListener m_mode & "_starting", "light_player_activate", "LightPlayerEventHandler", m_priority, Array("activate", Me)
-        AddPinEventListener m_mode & "_stopping", "light_player_deactivate", "LightPlayerEventHandler", m_priority, Array("deactivate", Me)
+        Set m_base_device = (new GlfBaseModeDevice)(mode, "light_player", Me)
         Set Init = Me
 	End Function
 
@@ -1676,93 +2294,150 @@ Class GlfLightPlayer
         Next
     End Sub
 
-    Public Sub Add(evt, lights)
-        
-        Dim light, lightsCount, x,tagLight, tagLights, lightParts
-        lightsCount = 0
-        For Each light in lights
-            lightParts = Split(light, "|")
-            If IsArray(lightParts) Then
-                If IsNull(lightCtrl.GetLightIdx(lightParts(0))) Then
-                    tagLights = lightCtrl.GetLightsForTag(lightParts(0))
+    Public Sub ReloadLights()
+        m_base_device.Log "Reloading Lights"
+        Dim evt
+        For Each evt in m_events.Keys()
+            Dim lightName, light
+            'First get light counts
+            For Each lightName in m_events(evt).LightNames
+                Set light = m_events(evt).Lights(lightName)
+                Dim lightsCount, x,tagLight, tagLights
+                lightsCount = 0
+                If Not glf_lightNames.Exists(lightName) Then
+                    tagLights = glf_lightTags(lightName).Keys()
+                    m_base_device.Log "Tag Lights: " & Join(tagLights)
                     For Each tagLight in tagLights
                         lightsCount = lightsCount + 1
                     Next
                 Else
                     lightsCount = lightsCount + 1
                 End If
-            Else
-                If IsNull(lightCtrl.GetLightIdx(lightParts)) Then
-                    tagLights = lightCtrl.GetLightsForTag(lightParts)
-                    Log "Tag Lights: " & Join(tagLights)
+            Next
+            m_base_device.Log "Adding " & lightsCount & " lights for event: " & evt 
+            Dim seqArray
+            ReDim seqArray(lightsCount-1)
+            x=0
+            'Build Seq
+            For Each lightName in m_events(evt).LightNames
+                Set light = m_events(evt).Lights(lightName)
+
+                If Not glf_lightNames.Exists(lightName) Then
+                    tagLights = glf_lightTags(lightName).Keys()
                     For Each tagLight in tagLights
-                        lightsCount = lightsCount + 1
-                    Next
-                Else
-                    lightsCount = lightsCount + 1
-                End If
-            End If
-        Next
-        Log "Adding " & lightsCount & " lights for event: " & evt 
-        Dim seqArray
-        ReDim seqArray(lightsCount-1)
-        x=0
-        For Each light in lights
-            lightParts = Split(light, "|")
-            If IsArray(lightParts) Then
-                If IsNull(lightCtrl.GetLightIdx(lightParts(0))) Then
-                    tagLights = lightCtrl.GetLightsForTag(lightParts(0))
-                    For Each tagLight in tagLights
-                        If UBound(lightParts) >=1 Then
-                            seqArray(x) = tagLight & "|100|"&lightParts(1)
-                        Else
-                            seqArray(x) = tagLight & "|100"
-                        End If
+                        seqArray(x) = tagLight & "|100|" & light.Color
                         x=x+1
                     Next
                 Else
-                    If UBound(lightParts) >= 1 Then
-                        seqArray(x) = lightParts(0) & "|100|"&lightParts(1)
-                    Else
-                        seqArray(x) = lightParts(0) & "|100"
-                    End If
+                    seqArray(x) = lightName & "|100|" & light.Color
                     x=x+1
                 End If
-            Else
-                If IsNull(lightCtrl.GetLightIdx(lightParts)) Then
-                    tagLights = lightCtrl.GetLightsForTag(lightParts)
-                    For Each tagLight in tagLights
-                        seqArray(x) = tagLight & "|100"
-                        x=x+1
-                    Next
-                Else
-                    seqArray(x) = lightParts & "|100"
-                    x=x+1
-                End If
-            End If
-        Next
-        Log "Light List: " & Join(seqArray)
-        m_events.Add evt, Array(lights, Array(seqArray))
+            Next
+            m_base_device.Log "Light List: " & Join(seqArray)
+            m_events(evt).LightSeq = seqArray
+        Next   
     End Sub
 
     Public Sub Play(evt, lights)
-        LightPlayerCallbackHandler evt, lights(1), m_name, m_priority
+        LightPlayerCallbackHandler evt, Array(lights.LightSeq), m_name, m_priority
     End Sub
 
     Public Sub PlayOff(evt, lights)
         LightPlayerCallbackHandler evt, Null, m_name, m_priority
     End Sub
 
-    Private Sub Log(message)
-        If m_debug = True Then
-            glf_debugLog.WriteToLog m_mode & "_light_player", message
+    Public Function ToYaml()
+        Dim yaml
+        Dim evt
+        If UBound(m_events.Keys) > -1 Then
+            For Each key in m_events.keys
+                yaml = yaml & "  " & key & ": " & vbCrLf
+                yaml = yaml & m_events(key).ToYaml()
+            Next
+            yaml = yaml & vbCrLf
         End If
-    End Sub
+        ToYaml = yaml
+    End Function
+End Class
+
+Class GlfLightPlayerEventItem
+	Private m_lights, m_lightSeq
+  
+    Public Property Get LightNames() : LightNames = m_lights.Keys() : End Property
+    Public Property Get Lights(name)
+        If m_lights.Exists(name) Then
+            Set Lights = m_lights(name)
+        Else
+            Dim new_event : Set new_event = (new GlfLightPlayerItem)()
+            m_lights.Add name, new_event
+            Set Lights = new_event
+        End If    
+    End Property
+
+    Public Property Get LightSeq() : LightSeq = m_lightSeq : End Property
+    Public Property Let LightSeq(input) : m_lightSeq = input : End Property
+
+    Public Function ToYaml()
+        Dim yaml
+        If UBound(m_lights.Keys) > -1 Then
+            For Each key in m_lights.keys
+                yaml = yaml & "    " & key & ": " & vbCrLf
+                yaml = yaml & m_lights(key).ToYaml()
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        ToYaml = yaml
+    End Function
+
+	Public default Function init()
+        Set m_lights = CreateObject("Scripting.Dictionary")
+        m_lightSeq = Array()
+        Set Init = Me
+	End Function
+
+End Class
+
+Class GlfLightPlayerItem
+	Private m_light, m_color, m_fade, m_priority
+  
+    Public Property Get Light(): Light = m_light: End Property
+    Public Property Let Light(input): m_light = input: End Property
+
+    Public Property Get Color(): Color = m_color: End Property
+    Public Property Let Color(input): m_color = input: End Property
+
+    Public Property Get Fade(): Fade = m_fade: End Property
+    Public Property Let Fade(input): m_fade = input: End Property
+
+    Public Property Get Priority(): Priority = m_priority: End Property
+    Public Property Let Priority(input): m_priority = input: End Property      
+  
+    Public Function ToYaml()
+        Dim yaml
+        yaml = yaml & "      color: " & m_color & vbCrLf
+        If Not IsEmpty(m_fade) Then
+            yaml = yaml & "      fade: " & m_fade & vbCrLf
+        End If
+        If m_priority <> 0 Then
+            yaml = yaml & "      priority: " & m_priority & vbCrLf
+        End If
+        ToYaml = yaml
+    End Function
+
+	Public default Function init()
+        m_color = "ffffff"
+        m_fade = Empty
+        m_priority = 0
+        Set Init = Me
+	End Function
+
 End Class
 
 Function LightPlayerCallbackHandler(key, lights, mode, priority)
+        
+    Dim lightParts, light
     If IsNull(lights) Then
-        lightCtrl.RemoveLightSeq mode & "_" & key, key
+        
         glf_debugLog.WriteToLog "LightPlayer", "Removing Light Seq" & mode & "_" & key
     Else
         If UBound(lights) = -1 Then
@@ -1773,9 +2448,30 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority)
         Else
             glf_debugLog.WriteToLog "LightPlayer", "Lights not an array!?"
         End If
-        Dim light, lightParts
         'glf_debugLog.WriteToLog "LightPlayer", "Adding Light Seq" & Join(lights) & ". Key:" & mode & "_" & key
-        lightCtrl.AddLightSeq mode & "_" & key, key, lights, -1, 1, Null, priority, 0,100000
+        Dim lightStack
+        For Each light in lights(0)
+            lightParts = Split(light,"|")
+            
+            Set lightStack = glf_lightStacks(lightParts(0))
+            
+            If lightStack.IsEmpty() Then
+                ' If stack is empty, push the color onto the stack and set the light color
+                lightStack.Push mode & "_" & key, lightParts(2), priority
+                Glf_SetLight lightParts(0), lightParts(2)
+            Else
+                Dim current
+                Set current = lightStack.Peek()
+                If priority >= current("Priority") Then
+                    ' If the new priority is higher, push it onto the stack and change the light color
+                    lightStack.Push mode & "_" & key, lightParts(2), priority
+                    Glf_SetLight lightParts(0), lightParts(2)
+                Else
+                    ' Otherwise, just push it onto the stack without changing the light color
+                    lightStack.Push mode & "_" & key, lightParts(2), priority
+                End If
+            End If
+        Next
         
         'TODO - Refactor this, this is the light fading. need to handle this differently
         'For Each light in lights(0)
@@ -1815,6 +2511,86 @@ Function LightPlayerEventHandler(args)
     LightPlayerEventHandler = Null
 End Function
 
+Class GlfLightStack
+    Private stack
+
+    Public default Function Init()
+        ReDim stack(-1)  ' Initialize an empty array
+        Set Init = Me
+    End Function
+
+    Public Sub Push(key, color, priority)
+        Dim found : found = False
+        Dim i
+
+        ' Check if the key already exists in the stack and update it
+        For i = LBound(stack) To UBound(stack)
+            If stack(i)("Key") = key Then
+                ' Replace the existing item if the key matches
+                Set stack(i) = CreateColorPriorityObject(key, color, priority)
+                found = True
+                Exit For
+            End If
+        Next
+        
+        If Not found Then
+            ' Insert the new item into the array maintaining priority order
+            ReDim Preserve stack(UBound(stack) + 1)
+            Set stack(UBound(stack)) = CreateColorPriorityObject(key, color, priority)
+            SortStackByPriority
+        End If
+    End Sub
+
+    ' Pop the top color from the stack
+    Public Function Pop()
+        If UBound(stack) >= 0 Then
+            Set Pop = stack(UBound(stack))
+            ReDim Preserve stack(UBound(stack) - 1)
+        Else
+            Set Pop = Nothing
+        End If
+    End Function
+
+    ' Get the current top color without popping it
+    Public Function Peek()
+        If UBound(stack) >= 0 Then
+            Set Peek = stack(UBound(stack))
+        Else
+            Set Peek = Nothing
+        End If
+    End Function
+
+    ' Check if the stack is empty
+    Public Function IsEmpty()
+        IsEmpty = (UBound(stack) < 0)
+    End Function
+
+    ' Create a color-priority object
+    Private Function CreateColorPriorityObject(key, color, priority)
+        Dim colorPriorityObject
+        Set colorPriorityObject = CreateObject("Scripting.Dictionary")
+        colorPriorityObject.Add "Key", key
+        colorPriorityObject.Add "Color", color
+        colorPriorityObject.Add "Priority", priority
+        Set CreateColorPriorityObject = colorPriorityObject
+    End Function
+
+    ' Sort the stack by priority (descending)
+    Private Sub SortStackByPriority()
+        Dim i, j
+        Dim temp
+        For i = LBound(stack) To UBound(stack) - 1
+            For j = i + 1 To UBound(stack)
+                If stack(i)("Priority") < stack(j)("Priority") Then
+                    ' Swap the elements
+                    Set temp = stack(i)
+                    Set stack(i) = stack(j)
+                    Set stack(j) = temp
+                End If
+            Next
+        Next
+    End Sub
+End Class
 
 Class GlfBaseModeDevice
 
@@ -1888,7 +2664,7 @@ Class GlfBaseModeDevice
 
     Public Sub Log(message)
         If m_debug = True Then
-            glf_debugLog.WriteToLog m_mode.Name & m_device & "_" & m_parent.Name & "_play", message
+            glf_debugLog.WriteToLog m_mode.Name & m_device & "_" & m_parent.Name, message
         End If
     End Sub
 End Class
@@ -1950,8 +2726,18 @@ Class Mode
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get Priority(): Priority = m_priority: End Property
     Public Property Get Debug(): Debug = m_debug: End Property
-    Public Property Get LightPlayer(): Set LightPlayer = m_lightplayer: End Property
-    Public Property Get ShowPlayer(): Set ShowPlayer = m_showplayer: End Property
+    Public Property Get LightPlayer()
+        If IsNull(m_lightplayer) Then
+            Set m_lightplayer = (new GlfLightPlayer)(Me)
+        End If
+        Set LightPlayer = m_lightplayer
+    End Property
+    Public Property Get ShowPlayer()
+        If IsNull(m_showplayer) Then
+            Set m_showplayer = (new GlfShowPlayer)(Me)
+        End If
+        Set ShowPlayer = m_showplayer
+    End Property
     Public Property Get EventPlayer() : Set EventPlayer = m_eventplayer: End Property
     Public Property Get VariablePlayer(): Set VariablePlayer = m_variableplayer: End Property
 
@@ -2064,7 +2850,9 @@ Class Mode
             AddPinEventListener newEvent.EventName, m_name & "_stop", "ModeEventHandler", m_priority+1, Array("stop", Me, newEvent)
         Next
     End Property
-    Public Property Let Debug(value) : m_debug = value : End Property
+    Public Property Let Debug(value)
+        m_debug = value
+    End Property
 
 	Public default Function init(name, priority)
         m_name = "mode_"&name
@@ -2081,8 +2869,8 @@ Class Mode
         Set m_shot_groups = CreateObject("Scripting.Dictionary")
         Set m_ballholds = CreateObject("Scripting.Dictionary")
         Set m_shot_profiles = CreateObject("Scripting.Dictionary")
-        Set m_lightplayer = (new GlfLightPlayer)(Me)
-        Set m_showplayer = (new GlfShowPlayer)(Me)
+        m_lightplayer = Null
+        m_showplayer = Null
         Set m_eventplayer = (new GlfEventPlayer)(Me)
         Set m_variableplayer = (new GlfVariablePlayer)(Me)
         Dim newEvent : Set newEvent = (new GlfEvent)("ball_ended")
@@ -2116,7 +2904,8 @@ Class Mode
 
     Public Function ToYaml()
         dim yaml, child
-        yaml = "#config_version=6" & vbCrLf
+        yaml = "#config_version=6" & vbCrLf & vbCrLf
+
         yaml = yaml & "mode:" & vbCrLf
 
         If UBound(m_start_events.Keys) > -1 Then
@@ -2144,42 +2933,66 @@ Class Mode
             yaml = yaml & vbCrLf
         End If
 
-        yaml = yaml & "  priority: " & m_priority
-        yaml = yaml & vbCrLf
+        yaml = yaml & "  priority: " & m_priority & vbCrLf
+        
         If UBound(m_ballsaves.Keys)>-1 Then
-            yaml = yaml & "ballsaves: " & vbCrLf
+            yaml = yaml & vbCrLf
+            yaml = yaml & "ball_saves: " & vbCrLf
             For Each child in m_ballsaves.Keys
                 yaml = yaml & m_ballsaves(child).ToYaml
             Next
         End If
-        yaml = yaml & vbCrLf
+        
         If UBound(m_shot_profiles.Keys)>-1 Then
+            yaml = yaml & vbCrLf
             yaml = yaml & "shot_profiles: " & vbCrLf
             For Each child in m_shot_profiles.Keys
                 yaml = yaml & m_shot_profiles(child).ToYaml
             Next
         End If
-        yaml = yaml & vbCrLf
+        
         If UBound(m_shots.Keys)>-1 Then
+            yaml = yaml & vbCrLf
             yaml = yaml & "shots: " & vbCrLf
             For Each child in m_shots.Keys
                 yaml = yaml & m_shots(child).ToYaml
             Next
         End If
-        yaml = yaml & vbCrLf
+        
         If UBound(m_shot_groups.Keys)>-1 Then
+            yaml = yaml & vbCrLf
             yaml = yaml & "shot_groups: " & vbCrLf
             For Each child in m_shot_groups.Keys
                 yaml = yaml & m_shot_groups(child).ToYaml
             Next
         End If
-        yaml = yaml & vbCrLf
+        
         If UBound(m_eventplayer.Events.Keys)>-1 Then
+            yaml = yaml & vbCrLf
             yaml = yaml & "event_player: " & vbCrLf
             yaml = yaml & m_eventplayer.ToYaml()
         End If
-        yaml = yaml & vbCrLf
+        
+        If Not IsNull(m_showPlayer) Then
+            If UBound(m_showplayer.EventShows)>-1 Then
+                yaml = yaml & vbCrLf
+                yaml = yaml & "show_player: " & vbCrLf
+                yaml = yaml & m_showplayer.ToYaml()
+            End If
+        End If
+        
+        If Not IsNull(m_lightplayer) Then
+            If UBound(m_lightplayer.EventNames)>-1 Then
+                yaml = yaml & vbCrLf
+                yaml = yaml & "light_player: " & vbCrLf
+                For Each child in m_lightplayer.EventNames
+                    yaml = yaml & m_lightplayer.ToYaml()
+                Next
+            End If
+        End If
+        
         If UBound(m_ballholds.Keys)>-1 Then
+            yaml = yaml & vbCrLf
             yaml = yaml & "ball_holds: " & vbCrLf
             For Each child in m_ballholds.Keys
                 yaml = yaml & m_ballholds(child).ToYaml
@@ -2486,6 +3299,259 @@ Function MultiballHandler(args)
     End Select
     MultiballHandler = kwargs
 End Function
+
+Class GlfSegmentPlayer
+
+    Private m_priority
+    Private m_mode
+    Private m_name
+    Private m_events
+    private m_base_device
+
+    Public Property Get Name() : Name = "segment_player" : End Property
+
+    Public Property Get EventNames() : EventNames = m_events.Keys() : End Property    
+    Public Property Get Events(name)
+        If m_events.Exists(name) Then
+            Set Events = m_events(name)
+        Else
+            Dim new_event : Set new_event = (new GlfSegmentPlayerEventItem)()
+            m_events.Add name, new_event
+            Set Events = new_event
+        End If
+    End Property
+
+	Public default Function init(mode)
+        m_name = "segment_player_" & mode.name
+        m_mode = mode.Name
+        m_priority = mode.Priority
+        Set m_events = CreateObject("Scripting.Dictionary")
+        Set m_base_device = (new GlfBaseModeDevice)(mode, "segment_player", Me)
+        Set Init = Me
+	End Function
+
+    Public Sub Activate()
+        Dim evt
+        For Each evt In m_events.Keys()
+            AddPinEventListener evt, m_mode & "_segment_player_play", "SegmentPlayerEventHandler", -m_priority, Array("play", Me, m_events(evt), evt)
+        Next
+    End Sub
+
+    Public Sub Deactivate()
+        Dim evt
+        For Each evt In m_events.Keys()
+            RemovePinEventListener evt, m_mode & "_segment_player_play"
+            PlayOff evt, m_events(evt)
+        Next
+    End Sub
+
+    Public Sub Play(evt, segment_item)
+        SegmentPlayerCallbackHandler evt, segment_item, m_mode, m_priority
+    End Sub
+
+    Public Sub PlayOff(evt, segment_item)
+        SegmentPlayerCallbackHandler evt, Null, m_mode, m_priority
+    End Sub
+
+    Public Function ToYaml()
+        Dim yaml
+        Dim evt
+        If UBound(m_events.Keys) > -1 Then
+            For Each key in m_events.keys
+                yaml = yaml & "  " & key & ": " & vbCrLf
+                yaml = yaml & m_events(key).ToYaml()
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        ToYaml = yaml
+    End Function
+
+End Class
+
+Class GlfSegmentPlayerEventItem
+	
+    private m_display
+    private m_text
+    private m_priority
+    private m_action
+    private m_expire
+    private m_flash_mask
+    private m_flashing
+    private m_key
+    private m_transition
+
+    Public Property Get Display() : Display = m_display : End Property
+    Public Property Let Display(input) : m_display = input : End Property
+    
+    Public Property Get Text() : Text = m_text : End Property
+    Public Property Let Text(input) : m_text = input : End Property
+
+    Public Property Get Priority() : Priority = m_priority : End Property
+    Public Property Let Priority(input) : m_priority = input : End Property
+        
+    Public Property Get Action() : Action = m_action : End Property
+    Public Property Let Action(input) : m_action = input : End Property
+                
+    Public Property Get Expire() : Expire = m_expire : End Property
+    Public Property Let Expire(input) : m_events = input : End Property
+
+    Public Property Get FlashMask() : FlashMask = m_flash_mask : End Property
+    Public Property Let FlashMask(input) : m_flash_mask = input : End Property
+                        
+    Public Property Get Flashing() : Flashing = m_flashing : End Property
+    Public Property Let Flashing(input) : m_flashing = input : End Property
+                            
+    Public Property Get Key() : Key = m_key : End Property
+    Public Property Let Key(input) : m_key = input : End Property
+
+    Public Property Get Transition()
+        If IsNull(m_transition) Then
+            Set m_transition = (new GlfSegmentPlayerTransition)()
+            Set Transition = m_transition   
+        Else
+            Set Transition = m_transition
+        End If
+    End Property
+                                
+	Public default Function init()
+        m_display = Empty
+        m_text = Empty
+        m_priority = 0
+        m_action = "add"
+        m_expire = 0
+        m_flash_mask = Empty
+        m_flashing = "not_set"
+        m_key = Empty
+        m_transition = Null
+        Set Init = Me
+	End Function
+
+    Public Function ToYaml()
+        Dim yaml
+        If Not IsEmpty(m_display) Then
+            yaml = yaml & "    " & m_display & ": " & vbCrLf
+        End If
+        If Not IsEmpty(m_text) Then
+            yaml = yaml & "    " & m_text & ": " & vbCrLf
+        End If
+        If m_priority > 0 Then
+            yaml = yaml & "    " & m_priority & ": " & vbCrLf
+        End If
+        If m_action <> "add" Then
+            yaml = yaml & "    " & m_action & ": " & vbCrLf
+        End If
+        If m_expire > 0 Then
+            yaml = yaml & "    " & m_expire & ": " & vbCrLf
+        End If
+        If Not IsEmpty(m_flash_mask) Then
+            yaml = yaml & "    " & m_flash_mask & ": " & vbCrLf
+        End If
+        If m_flashing <> "not_set" Then
+            yaml = yaml & "    " & m_flashing & ": " & vbCrLf
+        End If
+        If Not IsEmpty(m_key) Then
+            yaml = yaml & "    " & m_key & ": " & vbCrLf
+        End If
+        If Not IsNull(m_transition) Then
+            yaml = yaml & m_transition.ToYaml()
+        End If
+        ToYaml = yaml
+    End Function
+
+End Class
+
+Class GlfSegmentPlayerTransition
+	
+    private m_type
+    private m_text
+    private m_direction
+
+    Public Property Get TransitionType() : TransitionType = m_type : End Property
+    Public Property Let TransitionType(input) : m_type = input : End Property
+    
+    Public Property Get Text() : Text = m_text : End Property
+    Public Property Let Text(input) : m_text = input : End Property
+
+    Public Property Get Direction() : Direction = m_direction : End Property
+    Public Property Let Direction(input) : m_direction = input : End Property                          
+
+	Public default Function init()
+        m_type = "push"
+        m_text = Empty
+        m_direction = "push"
+        Set Init = Me
+	End Function
+
+    Public Function ToYaml()
+        Dim yaml
+        yaml = yaml & "    transition:" & vbCrLf
+        yaml = yaml & "      " & m_type & ": " & vbCrLf
+        yaml = yaml & "      " & m_direction & ": " & vbCrLf
+        yaml = yaml & "      " & m_text & ": " & vbCrLf
+        ToYaml = yaml
+    End Function
+
+End Class
+
+Function SegmentPlayerEventHandler(args)
+    Dim ownProps : ownProps = args(0)
+    Dim evt : evt = ownProps(0)
+    Dim SegmentPlayer : Set SegmentPlayer = ownProps(1)
+    Select Case evt
+        Case "activate"
+            SegmentPlayer.Activate
+        Case "deactivate"
+            SegmentPlayer.Deactivate
+        Case "play"
+            SegmentPlayer.Play ownProps(3), ownProps(2)
+    End Select
+    SegmentPlayerEventHandler = Null
+End Function
+
+
+Function SegmentPlayerCallbackHandler(evt, segment_item, mode, priority)
+    'Shot Text on a display
+    Dim key
+    key = mode & "." & "segment_player_player." & segment_item.Display
+    
+    If Not IsEmpty(segment_item.Key) Then
+        key = key & segment_item.Key
+    End If
+
+    Dim display : Set display = glf_segment_displays(segment_item.Display)
+    
+    If segment_item.Action = "add" Then
+        RemoveDelay key
+        ' add text
+        s = TransitionManager.validate_config(s, self.machine.config_validator)
+        
+           
+        display.AddTextEntry segment_item.Text, segment_item.Color, segment_item.Flashing, segment_item.FlashMask, segment_item.Transition, segment_item.TransitionOut, segment_item.Priority, segment_item.Key
+                            
+        If segment_item.Expire > 0 Then
+            'TODO Add delay for remove
+            'SetDelay
+        End If
+
+    ElseIf segment_item.Action = "remove" Then
+        RemoveDelay key
+        display.RemoveTextByKey key        
+    ElseIf segment_item.Action = "flash" Then
+        display.SetFlashing "all"
+    ElseIf segment_item.Action = "flash_match" Then
+        display.SetFlashing "match"
+    ElseIf segment_item.Action = "flash_mask" Then
+        display.SetFlashingMask segment_item.FlashMask
+    ElseIf segment_item.Action = "no_flash" Then
+        display.SetFlashing "no_flash"
+    ElseIf segment_item.Action = "set_color" Then
+        If Not IsNull(segment_item.Color) Then
+            display.SetColor segment_item.Color
+        End If
+    End If
+
+
+End Function
 Class GlfShotGroup
     Private m_name
     Private m_mode
@@ -2623,7 +3689,7 @@ Class GlfShotGroup
         Next
         Dim shot_name
         For Each shot_name in m_shots
-            AddPinEventListener "shot_" & shot_name & "_hit", m_name & "_" & m_mode & "_hit", "ShotGroupEventHandler", m_priority, Array("hit", Me)
+            AddPinEventListener shot_name & "_hit", m_name & "_" & m_mode & "_hit", "ShotGroupEventHandler", m_priority, Array("hit", Me)
             AddPlayerStateEventListener "player_shot_" & shot_name, m_name & "_" & m_mode & "_complete", "ShotGroupEventHandler", m_priority, Array("complete", Me)
         Next
     End Sub
@@ -2654,7 +3720,7 @@ Class GlfShotGroup
         Next
         Dim shot_name
         For Each shot_name in m_shots
-            RemovePinEventListener "shot_" & shot_name & "_hit", m_name & "_" & m_mode & "_hit"
+            RemovePinEventListener shot_name & "_hit", m_name & "_" & m_mode & "_hit"
             RemovePlayerStateEventListener "player_shot_" & shot_name, m_name & "_" & m_mode & "_complete"
         Next
     End Sub
@@ -2888,8 +3954,6 @@ Class GlfShotGroup
             yaml = yaml & vbCrLf
         End If
  
-        yaml = yaml & "    priority: " & m_priority & vbCrLf
-        yaml = yaml & "    rotation_enabled: " & m_rotation_enabled & vbCrLf
  
         ToYaml = yaml
         End Function
@@ -3000,20 +4064,21 @@ Class GlfShotProfile
         Dim yaml
         yaml = yaml & "  " & Replace(m_name, "shotprofile_", "") & ":" & vbCrLf
         yaml = yaml & "    states: " & vbCrLf
-        Dim token,evt,x : x = 0
+        Dim token,evt,state,x : x = 0
         For Each evt in m_states.Keys
+            Set state = StateForIndex(x)
             yaml = yaml & "     - name: " & StateName(x) & vbCrLf
-            'yaml = yaml & "       show: " & m_states(evt).Show & vbCrLf
-            'yaml = yaml & "       loops: " & m_states(evt).Loops & vbCrLf
-            'yaml = yaml & "       speed: " & m_states(evt).Speed & vbCrLf
-            'yaml = yaml & "       sync_ms: " & m_states(evt).SyncMs & vbCrLf
+            yaml = yaml & "       show: " & state.Show.Name & vbCrLf
+            yaml = yaml & "       loops: " & m_states(evt).Loops & vbCrLf
+            yaml = yaml & "       speed: " & m_states(evt).Speed & vbCrLf
+            yaml = yaml & "       sync_ms: " & m_states(evt).SyncMs & vbCrLf
 
-            'If Ubound(m_states(evt).Tokens().Keys)>-1 Then
-            '    yaml = yaml & "       show_tokens: " & vbCrLf
-            '    For Each token in m_states(evt).Tokens().Keys()
-            '        yaml = yaml & "         " & token & ": " & m_states(evt).Tokens(token) & vbCrLf
-            '    Next
-            'End If
+            If Ubound(state.Tokens().Keys)>-1 Then
+                yaml = yaml & "       show_tokens: " & vbCrLf
+                For Each token in state.Tokens().Keys()
+                    yaml = yaml & "         " & token & ": " & state.Tokens()(token) & vbCrLf
+                Next
+            End If
 
             'yaml = yaml & "     block: " & m_block & vbCrLf
             'yaml = yaml & "     advance_on_hit: " & m_advance_on_hit & vbCrLf
@@ -3113,7 +4178,7 @@ Class GlfShot
     Public Property Let Debug(value) : m_debug = value : End Property
 
 	Public default Function init(name, mode)
-        m_name = "shot_" & name
+        m_name = name
         m_mode = mode.Name
         m_priority = mode.Priority
         m_internal_cache_id = -1
@@ -3122,7 +4187,7 @@ Class GlfShot
         Set m_base_device = (new GlfBaseModeDevice)(mode, "shot", Me)
 
         m_profile = "default"
-        m_player_var_name = "player_" & m_name
+        m_player_var_name = "player_shot_" & m_name
         m_state = -1
         m_switches = Array()
         m_start_enabled = Empty
@@ -3226,7 +4291,6 @@ Class GlfShot
     Private Sub StopShowForState(state)
         Dim profileState : Set profileState = Glf_ShotProfiles(m_profile).StateForIndex(state)
         m_base_device.Log "Removing Shot Show: " & m_mode & "_" & m_name & ". Key: " & profileState.Key
-        'lightCtrl.RemoveLightSeq m_mode & "_" & m_name, profileState.Key
         If glf_running_shows.Exists(m_mode & "_" & CStr(state) & "_" & m_name & "_" & profileState.Key) Then 
             glf_running_shows(m_mode & "_" & CStr(state) & "_" & m_name & "_" & profileState.Key).StopRunningShow()
         End If
@@ -3241,7 +4305,7 @@ Class GlfShot
         If IsObject(profileState) Then
             If Not IsNull(profileState.Show) Then
                 Dim new_running_show
-                Set new_running_show = (new GlfRunningShow)(m_mode & "_" & CStr(m_state) & "_" & m_name & "_" & profileState.Key, profileState.Key, profileState, m_priority, m_tokens, m_internal_cache_id)
+                Set new_running_show = (new GlfRunningShow)(m_mode & "_" & CStr(m_state) & "_" & m_name & "_" & profileState.Key, profileState.Key, profileState, m_priority + profileState.Priority, m_tokens, m_internal_cache_id)
             End If
         End If
     End Sub
@@ -3571,14 +4635,15 @@ Class GlfShowPlayer
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener Replace(evt, "_" & m_events(evt).Key, "") , m_mode & "_" & m_events(evt).Key & "_show_player_play", "ShowPlayerEventHandler", -m_priority, Array("play", Me, m_events(evt), evt)
+            m_base_device.Log "Adding EVENT: " & Replace(evt, "_" & m_events(evt).Key, "")
+            AddPinEventListener evt , m_mode & "_" & m_events(evt).Key & "_show_player_play", "ShowPlayerEventHandler", -m_priority, Array("play", Me, m_events(evt), evt)
         Next
     End Sub
 
     Public Sub Deactivate()
         Dim evt
         For Each evt In m_events.Keys()
-            RemovePinEventListener Replace(evt, "_" & m_events(evt).Key, ""), m_mode & "_" & m_events(evt).Key & "_show_player_play"
+            RemovePinEventListener evt, m_mode & "_" & m_events(evt).Key & "_show_player_play"
             PlayOff m_events(evt).Key
         Next
     End Sub
@@ -3597,6 +4662,19 @@ Class GlfShowPlayer
             glf_running_shows(m_name & "_" & key).StopRunningShow()
         End If
     End Sub
+
+    Public Function ToYaml()
+        Dim yaml
+        Dim evt
+        If UBound(m_events.Keys) > -1 Then
+            For Each key in m_events.keys
+                yaml = yaml & "  " & key & ": " & vbCrLf
+                yaml = yaml & m_events(key).ToYaml
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        ToYaml = yaml
+    End Function
 
 End Class
 
@@ -3652,6 +4730,37 @@ Class GlfShowPlayerItem
         Set Tokens = m_tokens
     End Property        
   
+    Public Function ToYaml()
+        Dim yaml
+        yaml = yaml & "    " & m_show.Name &": " & vbCrLf
+        If m_action <> "play" Then
+            yaml = yaml & "      action: " & m_action & vbCrLf
+        End If
+        If m_key <> "" Then
+            yaml = yaml & "      key: " & m_key & vbCrLf
+        End If
+        If m_priority <> 0 Then
+            yaml = yaml & "      priority: " & m_priority & vbCrLf
+        End If
+        If m_loops > -1 Then
+            yaml = yaml & "      loops: " & m_loops & vbCrLf
+        End If
+        If m_speed <> 1 Then
+            yaml = yaml & "      speed: " & m_speed & vbCrLf
+        End If
+        If UBound(m_tokens.Keys) > -1 Then
+            yaml = yaml & "      show_tokens: " & vbCrLf
+            Dim key
+            For Each key in m_tokens.Keys
+                yaml = yaml & "        " & key & ": " & m_tokens(key) & vbCrLf
+            Next
+        End If
+        If m_syncms > 0 Then
+            yaml = yaml & "      sync_ms: " & m_syncms & vbCrLf
+        End If
+        ToYaml = yaml
+    End Function
+
 	Public default Function init()
         m_action = "play"
         m_key = ""
@@ -3705,10 +4814,10 @@ Class GlfShow
         End If
         
 
-        m_steps.Add CStr(UBound(m_steps.Keys())+1), new_step
+        
 
-        If UBound(m_steps.Keys()) > 0 Then
-            Dim prevStep : Set prevStep = m_steps.Items()(UBound(m_steps.Keys())-1)
+        If UBound(m_steps.Keys()) > -1 Then
+            Dim prevStep : Set prevStep = m_steps.Items()(UBound(m_steps.Keys()))
             prevStep.IsLastStep = False
             'need to work out previous steps duration.
             If IsNull(prevStep.Duration) Then
@@ -3733,7 +4842,7 @@ Class GlfShow
             End If
         End If
 
-        
+        m_steps.Add CStr(UBound(m_steps.Keys())+1), new_step
         Set AddStep = new_step
     End Function
 
@@ -3846,7 +4955,34 @@ Class GlfRunningShow
 
     Public Sub StopRunningShow()
         Log "Removing show: " & m_show_name & " With Key: " & m_key
-        LightPlayerCallbackHandler m_key, Null, m_show_name, m_priority
+        Dim cached_show,light, cached_show_lights
+        If glf_cached_shows.Exists(CacheName) Then
+            cached_show = glf_cached_shows(CacheName)
+            Set cached_show_lights = cached_show(1)
+        Else
+            msgbox "show not cached! Problem with caching"
+        End If
+        Dim lightStack
+        For Each light in cached_show_lights.Keys()
+
+            Set lightStack = glf_lightStacks(light)
+            
+            If Not lightStack.IsEmpty() Then
+                ' Pop the current top color
+                lightStack.Pop()
+            End If
+            
+            If Not lightStack.IsEmpty() Then
+                ' Set the light to the next color on the stack
+                Dim nextColor
+                Set nextColor = lightStack.Peek()
+                Glf_SetLight light, nextColor("Color")
+            Else
+                ' Turn off the light since there's nothing on the stack
+                Glf_SetLight light, "000000"
+            End If
+        Next
+
         RemoveDelay Me.ShowName & "_" & Me.Key
         glf_running_shows.Remove m_show_name
     End Sub
@@ -3860,27 +4996,43 @@ Function GlfShowStepHandler(args)
     Dim running_show : Set running_show = args(0)
     Dim nextStep : Set nextStep = running_show.ShowSettings.Show.StepAtIndex(running_show.CurrentStep)
     If UBound(nextStep.Lights) > -1 Then
-        Dim cached_show
+        Dim cached_show, cached_show_seq
         If glf_cached_shows.Exists(running_show.CacheName) Then
             cached_show = glf_cached_shows(running_show.CacheName)
+            cached_show_seq = cached_show(0)
         Else
             msgbox "show not cached! Problem with caching"
         End If
-        LightPlayerCallbackHandler running_show.Key, Array(cached_show(running_show.CurrentStep)), running_show.ShowName, running_show.Priority + running_show.ShowSettings.Priority
+'        glf_debugLog.WriteToLog "Running Show", join(cached_show(running_show.CurrentStep))
+        LightPlayerCallbackHandler running_show.Key, Array(cached_show_seq(running_show.CurrentStep)), running_show.ShowName, running_show.Priority + running_show.ShowSettings.Priority
+    End If
+    If nextStep.Duration = -1 Then
+        glf_debugLog.WriteToLog "Running Show", "HOLD"
+        Exit Function
     End If
     running_show.CurrentStep = running_show.CurrentStep + 1
+    If nextStep.IsLastStep = True Then
+        'msgbox "last step"
+        If IsNull(nextStep.Duration) Then
+            'msgbox "5!"
+            nextStep.Duration = 1
+        End If
+    End If
     If running_show.CurrentStep > running_show.TotalSteps Then
         'End of Show
-        If running_show.ShowSettings.Loops = -1 Or running_show.ShowSettings.Loops > 0 Then
-            If running_show.ShowSettings.Loops > 0 Then
+        glf_debugLog.WriteToLog "Running Show", "END OF SHOW"
+        If running_show.ShowSettings.Loops = -1 Or running_show.ShowSettings.Loops > 1 Then
+            If running_show.ShowSettings.Loops > 1 Then
                 running_show.ShowSettings.Loops = running_show.ShowSettings.Loops - 1
             End If
             running_show.CurrentStep = 0
             SetDelay running_show.ShowName & "_" & running_show.Key, "GlfShowStepHandler", Array(running_show), (nextStep.Duration / running_show.ShowSettings.Speed) * 1000
         Else
+'            glf_debugLog.WriteToLog "Running Show", "STOPPING SHOW, NO Loops"
             running_show.StopRunningShow()
         End If
     Else
+'        glf_debugLog.WriteToLog "Running Show", "Scheduling Next Step"
         SetDelay running_show.ShowName & "_" & running_show.Key, "GlfShowStepHandler", Array(running_show), (nextStep.Duration / running_show.ShowSettings.Speed) * 1000
     End If
 End Function
@@ -3901,7 +5053,7 @@ Class GlfShowStep
     End Property
 
     Public Property Get IsRelativeTime()
-        If IsNull(m_relTime) Then
+        If Not IsNull(m_relTime) Then
             IsRelativeTime = True
         Else
             IsRelativeTime = False
@@ -3914,7 +5066,7 @@ Class GlfShowStep
     Public Property Get Duration(): Duration = m_duration: End Property
     Public Property Let Duration(input) : m_duration = input: End Property
 
-    Public Property Get IsLastStep(): Duration = m_isLastStep: End Property
+    Public Property Get IsLastStep(): IsLastStep = m_isLastStep: End Property
     Public Property Let IsLastStep(input) : m_isLastStep = input: End Property
         
     Public default Function init()
@@ -4609,10 +5761,10 @@ Dim delayCallbacks : Set delayCallbacks = CreateObject("Scripting.Dictionary")
 
 Sub SetDelay(name, callbackFunc, args, delayInMs)
     Dim executionTime
-    executionTime = AlignToNearest10th(gametime + delayInMs)
-    If gametime <= executionTime Then
-        executionTime = executionTime + 100
-    End If
+    executionTime = gametime + delayInMs
+    'If gametime >= executionTime Then
+    '    executionTime = executionTime + 100
+    'End If
     
     If delayQueueMap.Exists(name) Then
         delayQueueMap.Remove name
@@ -4641,6 +5793,7 @@ Function RemoveDelay(name)
     If delayQueueMap.Exists(name) Then
         If delayQueue.Exists(delayQueueMap(name)) Then
             If delayQueue(delayQueueMap(name)).Exists(name) Then
+                'glf_debugLog.WriteToLog "Delay", "Removing delay for " & name & " and  Execution Time: " & delayQueueMap(name)
                 delayQueue(delayQueueMap(name)).Remove name
             End If
             delayQueueMap.Remove name
@@ -4653,20 +5806,19 @@ Function RemoveDelay(name)
 End Function
 
 Sub DelayTick()
-    Dim key, delayObject
-
-    Dim executionTime
-    executionTime = AlignToNearest10th(gametime)
-    If delayQueue.Exists(executionTime) Then
-        For Each key In delayQueue(executionTime).Keys()
-            If Not IsNull(delayQueue(executionTime)(key)) Then
-                Set delayObject = delayQueue(executionTime)(key)
-                'glf_debugLog.WriteToLog "Delay", "Executing delay: " & key & ", callback: " & delayObject.Callback
-                GetRef(delayObject.Callback)(delayObject.Args)    
-            End If
-        Next
-        delayQueue.Remove executionTime
-    End If
+    Dim queueItem, key, delayObject
+    For Each queueItem in delayQueue.Keys()
+        If Int(queueItem) < gametime Then
+            For Each key In delayQueue(queueItem).Keys()
+                If IsObject(delayQueue(queueItem)(key)) Then
+                    Set delayObject = delayQueue(queueItem)(key)
+                    'glf_debugLog.WriteToLog "Delay", "Executing delay: " & key & ", callback: " & delayObject.Callback
+                    GetRef(delayObject.Callback)(delayObject.Args)    
+                End If
+            Next
+            delayQueue.Remove queueItem
+        End If
+    Next
 End Sub
 Class BallDevice
 
@@ -5033,6 +6185,35 @@ Function DropTargetEventHandler(args)
     End Select
     DropTargetEventHandler = kwargs
 End Function
+Class SegmentDisplay
+
+    Public default Function init(name)
+
+        glf_segment_displays.Add name, Me
+        Set Init = Me
+    End Function
+
+    Public Sub AddTextEntry(text, color, flashing, flash_mask, transition, transition_out, priority, key)
+
+    End Sub
+
+    Public Sub RemoveTextByKey(key)
+
+    End Sub
+
+    Public Sub SetFlashing(flash_type)
+
+    End Sub
+
+    Public Sub SetFlashingMask(mask)
+
+    End Sub
+
+    Public Sub SetColor(color)
+
+    End Sub
+
+End Class
 
 Class GlfEvent
 	Private m_raw, m_name, m_event, m_condition
@@ -5209,2346 +6390,6 @@ End Function
 Public Function EndOfBallNextPlayer(args)
     DispatchPinEvent GLF_NEXT_PLAYER, Null
 End Function
-
-
-'***********************************************************************************************************************
-' Lights State Controller - 0.9.1
-'  
-' A light state controller for original vpx tables.
-'
-' Documentation: https://github.com/mpcarr/vpx-light-controller
-'
-'***********************************************************************************************************************
-
-
-Class LStateController
-
-    Private m_currentFrameState, m_on, m_off, m_seqRunners, m_lights, m_seqs, m_vpxLightSyncRunning, m_vpxLightSyncClear, m_vpxLightSyncCollection, m_tableSeqColor, m_tableSeqOffset, m_tableSeqSpeed, m_tableSeqDirection, m_tableSeqFadeUp, m_tableSeqFadeDown, m_frametime, m_initFrameTime, m_pulse, m_pulseInterval, m_lightmaps, m_seqOverrideRunners, m_pauseMainLights, m_pausedLights, m_minX, m_minY, m_maxX, m_maxY, m_width, m_height, m_centerX, m_centerY, m_coordsX, m_coordsY, m_angles, m_radii, m_tags, m_debug, m_syncMs, m_syncMsCounter
-
-    Private Lights(260)
-
-    Private Sub Class_Initialize()
-        Set m_lights = CreateObject("Scripting.Dictionary")
-        Set m_on = CreateObject("Scripting.Dictionary")
-        Set m_off = CreateObject("Scripting.Dictionary")
-        Set m_seqRunners = CreateObject("Scripting.Dictionary")
-        Set m_seqOverrideRunners = CreateObject("Scripting.Dictionary")
-        Set m_currentFrameState = CreateObject("Scripting.Dictionary")
-        Set m_seqs = CreateObject("Scripting.Dictionary")
-        Set m_pulse = CreateObject("Scripting.Dictionary")
-        Set m_on = CreateObject("Scripting.Dictionary")
-        Set m_tags = CreateObject("Scripting.Dictionary")
-        m_vpxLightSyncRunning = False
-        m_vpxLightSyncCollection = Null
-        m_initFrameTime = 0
-        m_frameTime = 0
-        m_pulseInterval = 26
-        m_vpxLightSyncClear = False
-        m_tableSeqColor = Null
-        m_tableSeqFadeUp = Null
-        m_tableSeqFadeDown = Null
-        m_pauseMainLights = False
-        Set m_pausedLights = CreateObject("Scripting.Dictionary")
-        Set m_lightmaps = CreateObject("Scripting.Dictionary")
-        Set m_syncMs = CreateObject("Scripting.Dictionary")
-        Set m_syncMsCounter = CreateObject("Scripting.Dictionary")
-        m_minX = 1000000
-        m_minY = 1000000
-        m_maxX = -1000000
-        m_maxY = -1000000
-        m_centerX = Round(tableWidth/2)
-        m_centerY = Round(tableHeight/2)
-        m_debug = False
-    End Sub
-
-    Public Property Let Debug(value) : m_debug = value : End Property
-
-    Private Sub AssignStateForFrame(key, state)
-        If m_currentFrameState.Exists(key) Then
-            m_currentFrameState.Remove key
-        End If
-        m_currentFrameState.Add key, state
-    End Sub
-
-    Public Sub LoadLightShows()
-        Dim oFile
-        Dim oFSO : Set oFSO = CreateObject("Scripting.FileSystemObject")
-        Dim objFileToWrite : Set objFileToWrite = CreateObject("Scripting.FileSystemObject").OpenTextFile(cGameName & "_LightShows/lights-out.txt",2,true)
-        For Each oFile In oFSO.GetFolder(cGameName & "_LightShows").Files
-            If LCase(oFSO.GetExtensionName(oFile.Name)) = "yaml" And Not Left(oFile.Name,6) = "lights" Then
-                Dim textStream : Set textStream = oFSO.OpenTextFile(oFile.Path, 1)
-                Dim show : show = textStream.ReadAll
-                Dim fileName : fileName = "lSeq" & Replace(oFSO.GetFileName(oFile.Name), "."&oFSO.GetExtensionName(oFile.Name), "")
-                Dim lcSeq : lcSeq = "Dim " & fileName & " : Set " & fileName & " = New LCSeq"&vbCrLf
-                lcSeq = lcSeq + fileName & ".Name = """&fileName&""""&vbCrLf
-                Dim seq : seq = ""
-                Dim re : Set re = New RegExp
-                With re
-                    .Pattern    = "- time:.*?\n"
-                    .IgnoreCase = False
-                    .Global     = True
-                End With
-                Dim matches : Set matches = re.execute(show)
-                Dim steps : steps = matches.Count
-                Dim match, nextMatchIndex, uniqueLights
-                Set uniqueLights = CreateObject("Scripting.Dictionary")
-                nextMatchIndex = 1
-                For Each match in matches
-                    Dim lightStep
-                    If Not nextMatchIndex < steps Then
-                        lightStep = Mid(show, match.FirstIndex, Len(show))
-                    Else
-                        lightStep = Mid(show, match.FirstIndex, matches(nextMatchIndex).FirstIndex - match.FirstIndex)
-                        nextMatchIndex = nextMatchIndex + 1
-                    End If
-
-                    Dim re1 : Set re1 = New RegExp
-                    With re1
-                        .Pattern        = ".*:?: '([A-Fa-f0-9]{6})'"
-                        .IgnoreCase     = True
-                        .Global         = True
-                    End With
-
-                    Dim lightMatches : Set lightMatches = re1.execute(lightStep)
-                    If lightMatches.Count > 0 Then
-                        Dim lightMatch, lightStr, lightSplit
-                        lightStr = "Array("
-                        lightSplit = 0
-                        For Each lightMatch in lightMatches
-                            Dim sParts : sParts = Split(lightMatch.Value, ":")
-                            Dim lightName : lightName = Trim(sParts(0))
-                            Dim color : color = Trim(Replace(sParts(1),"'", ""))
-                            If color = "000000" Then
-                                lightStr = lightStr + """"&lightName&"|0|000000"","
-                            Else
-                                lightStr = lightStr + """"&lightName&"|100|"&color&""","
-                            End If
-
-                            If Len(lightStr)+20 > 2000 And lightSplit = 0 Then                           
-                                lightSplit = Len(lightStr)
-                            End If
-
-                            uniqueLights(lightname) = 0
-                        Next
-                        lightStr = Left(lightStr, Len(lightStr) - 1)
-                        lightStr = lightStr & ")"
-                        
-                        If lightSplit > 0 Then
-                            lightStr = Left(lightStr, lightSplit) & " _ " & vbCrLF & Right(lightStr, Len(lightStr)-lightSplit)
-                        End If
-
-                        seq = seq + lightStr & ", _"&vbCrLf
-                    Else
-                        seq = seq + "Array(), _"&vbCrLf
-                    End If
-
-                    
-                    Set re1 = Nothing
-                Next
-                
-                lcSeq = lcSeq + filename & ".Sequence = Array( " & Left(seq, Len(seq) - 5) & ")"&vbCrLf
-                'lcSeq = lcSeq + seq & vbCrLf
-                lcSeq = lcSeq + fileName & ".UpdateInterval = 20"&vbCrLf
-                lcSeq = lcSeq + fileName & ".Color = Null"&vbCrLf
-                lcSeq = lcSeq + fileName & ".Repeat = False"&vbCrLf
-
-                'MsgBox(lcSeq)
-                objFileToWrite.WriteLine(lcSeq)
-                ExecuteGlobal lcSeq
-                Set re = Nothing
-
-                textStream.Close
-            End if
-        Next
-        'Clean up
-        objFileToWrite.Close
-        Set objFileToWrite = Nothing
-        Set oFile = Nothing
-        Set oFSO = Nothing
-    End Sub
-
-    Public Sub CompileLights(collection, name)
-        Dim light
-        Dim lights : lights = "light:" & vbCrLf
-        For Each light in collection
-            lights = lights + light.name & ":"&vbCrLf
-            lights = lights + "   x: "& light.x/tablewidth & vbCrLf
-            lights = lights + "   y: "& light.y/tableheight & vbCrLf
-        Next
-        Dim objFileToWrite : Set objFileToWrite = CreateObject("Scripting.FileSystemObject").OpenTextFile(cGameName & "_LightShows/lights-"&name&".yaml",2,true)
-        objFileToWrite.WriteLine(lights)
-        objFileToWrite.Close
-        Set objFileToWrite = Nothing
-        Log  "Lights YAML File saved to: " & cGameName & "LightShows/lights-"&name&".yaml"
-    End Sub
-
-    Dim leds
-    Dim ledGrid()
-    Dim lightsToLeds
-
-    Sub PrintLEDs
-        Dim light
-        Dim lights : lights = ""
-    
-        Dim row,col,value,i
-        For row = LBound(ledGrid, 1) To UBound(ledGrid, 1)
-            For col = LBound(ledGrid, 2) To UBound(ledGrid, 2)
-                ' Access the array element and do something with it
-                value = ledGrid(row, col)
-                lights = lights + cstr(value) & vbTab
-            Next
-            lights = lights + vbCrLf
-        Next
-
-        Dim objFileToWrite : Set objFileToWrite = CreateObject("Scripting.FileSystemObject").OpenTextFile(cGameName & "_LightShows/led-grid.txt",2,true)
-        objFileToWrite.WriteLine(lights)
-        objFileToWrite.Close
-        Set objFileToWrite = Nothing
-        Log "Lights File saved to: " & cGameName & "LightShows/led-grid.txt"
-
-        lights = ""
-        For i = 0 To UBound(leds)
-            value = leds(i)
-            If IsArray(value) Then
-                lights = lights + "Index: " & cstr(value(0)) & ". X: " & cstr(value(1)) & ". Y:" & cstr(value(2)) & ". Angle:" & cstr(value(3)) & ". Radius:" & cstr(value(4)) & ". CoordsX:" & cstr(value(5)) & ". CoordsY:" & cstr(value(6)) & ". Angle256:" & cstr(value(7)) &". Radii256:" & cstr(value(8)) &","
-            End If
-            lights = lights + vbCrLf
-            'lights = lights + cstr(value) & ","
-            
-        Next
-
-        
-        Set objFileToWrite = CreateObject("Scripting.FileSystemObject").OpenTextFile(cGameName & "_LightShows/coordsX.txt",2,true)
-        objFileToWrite.WriteLine(lights)
-        objFileToWrite.Close
-        Set objFileToWrite = Nothing
-        Log "Lights File saved to: " & cGameName & "LightShows/coordsX.txt"
-
-
-    End Sub
-
-    Public Sub RegisterLights(aLights)
-
-
-        Dim obj, str, ii
-        For Each obj In aLights
-            idx = obj.TimerInterval
-            If IsArray(Lights(idx)) Then
-                str = "Lights(" & idx & ") = Array("
-                For Each ii In Lights(idx) : str = str & ii.Name & "," : Next
-                ExecuteGlobal str & obj.Name & ")"
-            ElseIf IsObject(Lights(idx)) Then
-                Lights(idx) = Array(Lights(idx),obj)
-            Else
-                Set Lights(idx) = obj
-            End If
-        Next
-
-        Dim idx,tmp,vpxLight,lcItem
-    
-            Dim colCount : colCount = Round(tablewidth/20)
-            Dim rowCount : rowCount = Round(tableheight/20)
-            Log "Registering Lights" 
-            dim ledIdx : ledIdx = 0
-            redim leds(UBound(Lights)-1)
-            redim lightsToLeds(UBound(Lights)-1)
-            ReDim ledGrid(rowCount,colCount)
-            For idx = 0 to UBound(Lights)
-                vpxLight = Null
-                Set lcItem = new LCItem
-                If IsArray(Lights(idx)) Then
-                    tmp = Lights(idx)
-                    Set vpxLight = tmp(0)
-                ElseIf IsObject(Lights(idx)) Then
-                    Set vpxLight = Lights(idx)
-                End If
-                If Not IsNull(vpxLight) Then
-                    Log "Registering Light: "& vpxLight.name
-
-
-                    Dim r : r = Round(vpxLight.y/20)
-                    Dim c : c = Round(vpxLight.x/20)
-                    If r < rowCount And c < colCount And r >= 0 And c >= 0 Then
-                        If Not ledGrid(r,c) = "" Then
-                            MsgBox(vpxLight.name & " is too close to another light")
-                        End If
-                        leds(ledIdx) = Array(ledIdx, c, r, 0,0,0,0,0,0) 'index, row, col, angle, radius, x256, y256, angle256, radius256
-                        lightsToLeds(idx) = ledIdx
-                        ledGrid(r,c) = ledIdx
-                        ledIdx = ledIdx + 1
-                        If (c < m_minX) Then : m_minX = c
-                        if (c > m_maxX) Then : m_maxX = c
-                
-                        if (r < m_minY) Then : m_minY = r
-                        if (r > m_maxY) Then : m_maxY = r
-                    End If
-                    Dim e, lmStr: lmStr = "lmArr = Array("    
-                    For Each e in GetElements()
-                        On Error Resume Next
-                        If InStr(LCase(e.Name), LCase("_" & vpxLight.Name & "_")) Or InStr(LCase(e.Name), LCase("_" & vpxLight.UserValue & "_")) Then
-                            lmStr = lmStr & e.Name & ","
-                        End If
-                        If Err Then Log "Error: " & Err
-                    Next
-                    lmStr = lmStr & "Null)"
-                    lmStr = Replace(lmStr, ",Null)", ")")
-                    ExecuteGlobal "Dim lmArr : "&lmStr
-                    m_lightmaps.Add vpxLight.Name, lmArr
-                    lcItem.Init idx, vpxLight.BlinkInterval, Array(vpxLight.color, vpxLight.colorFull), vpxLight.name, vpxLight.x, vpxLight.y
-                    m_lights.Add vpxLight.Name, lcItem
-                    CreateSeqRunner "lSeqRunner" & CStr(vpxLight.name), 1000
-                End If
-            Next
-            'ReDim Preserve leds(ledIdx)
-            m_width = m_maxX - m_minX + 1
-            m_height = m_maxY - m_minY + 1
-            m_centerX = m_width / 2
-            m_centerY = m_height / 2
-            GenerateLedMapCode()
-    End Sub
-
-    Private Sub GenerateLedMapCode()
-
-        Dim minX256, minY256, minAngle, minAngle256, minRadius, minRadius256
-        Dim maxX256, maxY256, maxAngle, maxAngle256, maxRadius, maxRadius256
-        Dim i, led
-        minX256 = 1000000
-        minY256 = 1000000
-        minAngle = 1000000
-        minAngle256 = 1000000
-        minRadius = 1000000
-        minRadius256 = 1000000
-
-        maxX256 = -1000000
-        maxY256 = -1000000
-        maxAngle = -1000000
-        maxAngle256 = -1000000
-        maxRadius = -1000000
-        maxRadius256 = -1000000
-
-        For i = 0 To UBound(leds)
-            led = leds(i)
-            If IsArray(led) Then
-                
-                Dim x : x = led(1)
-                Dim y : y = led(2)
-            
-                Dim radius : radius = Sqr((x - m_centerX) ^ 2 + (y - m_centerY) ^ 2)
-                Dim radians: radians = Atn2(m_centerY - y, m_centerX - x)
-                Dim angle
-                angle = radians * (180 / 3.141592653589793)
-                Do While angle < 0
-                    angle = angle + 360
-                Loop
-                Do While angle > 360
-                    angle = angle - 360
-                Loop
-            
-                If angle < minAngle Then
-                    minAngle = angle
-                End If
-                If angle > maxAngle Then
-                    maxAngle = angle
-                End If
-            
-                If radius < minRadius Then
-                    minRadius = radius
-                End If
-                If radius > maxRadius Then
-                    maxRadius = radius
-                End If
-            
-                led(3) = angle
-                led(4) = radius
-                leds(i) = led
-            End If
-        Next
-
-        For i = 0 To UBound(leds)
-            led = leds(i)
-            If IsArray(led) Then
-                Dim x256 : x256 = MapNumber(led(1), m_minX, m_maxX, 0, 255)
-                Dim y256 : y256 = MapNumber(led(2), m_minY, m_maxY, 0, 255)
-                Dim angle256 : angle256 = MapNumber(led(3), 0, 360, 0, 255)
-                Dim radius256 : radius256 = MapNumber(led(4), 0, maxRadius, 0, 255)
-            
-                led(5) = Round(x256)
-                led(6) = Round(y256)
-                led(7) = Round(angle256)
-                led(8) = Round(radius256)
-            
-                If x256 < minX256 Then minX256 = x256
-                If x256 > maxX256 Then maxX256 = x256
-            
-                If y256 < minY256 Then minY256 = y256
-                If y256 > maxY256 Then maxY256 = y256
-            
-                If angle256 < minAngle256 Then minAngle256 = angle256
-                If angle256 > maxAngle256 Then maxAngle256 = angle256
-            
-                If radius256 < minRadius256 Then minRadius256 = radius256
-                If radius256 > maxRadius256 Then maxRadius256 = radius256
-                leds(i) = led
-            End If
-        Next
-
-        reDim m_coordsX(UBound(leds)-1)
-        reDim m_coordsY(UBound(leds)-1)
-        reDim m_angles(UBound(leds)-1)
-        reDim m_radii(UBound(leds)-1)
-        
-        For i = 0 To UBound(leds)
-            led = leds(i)
-            If IsArray(led) Then
-                m_coordsX(i)    =  leds(i)(5) 'x256
-                m_coordsY(i)    =  leds(i)(6) 'y256
-                m_angles(i)     =  leds(i)(7) 'angle256
-                m_radii(i)      =  leds(i)(8) 'radius256
-            End If
-        Next
-
-    End Sub
-
-    Private Function MapNumber(l, inMin, inMax, outMin, outMax)
-        If (inMax - inMin + outMin) = 0 Then
-            MapNumber = 0
-        Else
-            MapNumber = ((l - inMin) * (outMax - outMin)) / (inMax - inMin) + outMin
-        End If
-    End Function
-
-    Private Function ReverseArray(arr)
-        Dim i, upperBound
-        upperBound = UBound(arr)
-
-        ' Create a new array of the same size
-        Dim reversedArr()
-        ReDim reversedArr(upperBound)
-
-        ' Fill the new array with elements in reverse order
-        For i = 0 To upperBound
-            reversedArr(i) = arr(upperBound - i)
-        Next
-
-        ReverseArray = reversedArr
-    End Function
-
-    Private Function Atn2(dy, dx)
-        If dx > 0 Then
-            Atn2 = Atn(dy / dx)
-        ElseIf dx < 0 Then
-            If dy = 0 Then 
-                Atn2 = pi
-            Else
-                Atn2 = Sgn(dy) * (pi - Atn(Abs(dy / dx)))
-            end if
-        ElseIf dx = 0 Then
-            if dy = 0 Then
-                Atn2 = 0
-            else
-                Atn2 = Sgn(dy) * pi / 2
-            end if
-        End If
-    End Function
-
-    Private Function ColtoArray(aDict)	'converts a collection to an indexed array. Indexes will come out random probably.
-        redim a(999)
-        dim count : count = 0
-        dim x  : for each x in aDict : set a(Count) = x : count = count + 1 : Next
-        redim preserve a(count-1) : ColtoArray = a
-    End Function
-
-    Function IncrementUInt8(x, increment)
-        If x + increment > 255 Then
-            IncrementUInt8 = x + increment - 256
-        Else
-            IncrementUInt8 = x + increment
-        End If
-    End Function
-
-    Public Sub AddLight(light, idx)
-        If m_lights.Exists(light.name) Then
-            Exit Sub
-        End If
-        Dim lcItem : Set lcItem = new LCItem
-        lcItem.Init idx, light.BlinkInterval, Array(light.color, light.colorFull), light.name, light.x, light.y
-        m_lights.Add light.Name, lcItem
-        CreateSeqRunner "lSeqRunner" & CStr(light.name), 1000
-    End Sub
-
-    Public Sub AddLightTags(light, tags)
-        If m_lights.Exists(light.name) Then
-            Dim tagArray, tag, lightName
-            lightName = light.name
-            tagArray = Split(tags, ",")
-            
-            For Each tag In tagArray
-                tag = Trim(tag) ' Remove any leading or trailing spaces
-                If Not m_tags.Exists(tag) Then
-                    Set m_tags(tag) = CreateObject("Scripting.Dictionary")
-                End If
-                If Not m_tags(tag).Exists(lightName) Then
-                    m_tags(tag).Add lightName, True
-                End If
-            Next
-        End If
-    End Sub
-
-    Public Function GetLightsForTag(tag)
-        If m_tags.Exists(tag) Then
-            GetLightsForTag = m_tags(tag).Keys()
-        Else
-            GetLightsForTag = Array()
-        End If
-    End Function
-
-    Public Sub LightState(light, state)
-        m_lightOff(light.name)
-        If state = 1 Then
-            m_lightOn(light.name)
-        ElseIF state = 2 Then
-            Blink(light)
-        End If
-    End Sub
-
-    Public Sub LightOn(light)
-        If vartype(light) = 8 Then
-            m_LightOn(light)
-        Else
-            m_LightOn(light.name)
-        End If
-    End Sub
-
-    Public Sub LightOnWithColor(light, color)
-        If vartype(light) = 8 Then
-            m_LightOnWithColor light, color
-        Else
-            m_LightOnWithColor light.name, color
-        End If
-    End Sub
-
-    Public Sub FadeLightToColor(light, color, fadeSpeed, runner, priority)
-        Dim lightName
-        If vartype(light) = 8 Then
-            lightName = light
-        Else
-            lightName = light.name
-        End If
-
-        If vartype(color) = 8 Then
-            color = RGB( HexToInt(Left(color, 2)), HexToInt(Mid(color, 3, 2)), HexToInt(Right(color, 2)) )
-        End If
-
-        If m_lights.Exists(lightName) Then
-            dim lightColor, steps
-            steps = Round(fadeSpeed/20)
-            If steps < 10 Then
-                steps = 10
-            End If
-            lightColor = m_lights(lightName).Color
-            Dim seq : seq  = FadeRGB(lightName, lightColor(0), color, steps)
-            m_lights(lightName).Color = color
-            CreateSeqRunner runner, priority
-            m_seqRunners(runner).AddItem lightName & "Fade", seq, 1, 10, Null,0,200
-            If color = RGB(0,0,0) Then
-                m_lightOff(lightName)
-            End If
-        End If
-    End Sub
-
-    Public Sub FlickerOn(light)
-        Dim name : name = light.name
-        If m_lights.Exists(name) Then
-            m_lightOn(name)
-
-            If m_pulse.Exists(name) Then 
-                Exit Sub
-            End If
-            m_pulse.Add name, (new PulseState)(m_lights(name), Array(37,100,24,0,70), 0, m_pulseInterval, 1, null)
-        End If
-    End Sub  
-    
-    Public Sub LightColor(light, color)
-
-        Dim lightName
-        If vartype(light) = 8 Then
-            lightName = light
-        Else
-            lightName = light.name
-        End If
-
-        If m_lights.Exists(lightName) Then
-            m_lights(lightName).Color = color
-            'Update internal blink seq for light
-            If m_seqs.Exists(lightName & "Blink") Then
-                m_seqs(lightName & "Blink").Color = color
-            End If
-
-        End If
-    End Sub
-
-    Public Function GetLightColor(light)
-        If m_lights.Exists(light.name) Then
-            Dim colors : colors = m_lights(light.name).Color
-            GetLightColor = colors(0)
-        Else
-            GetLightColor = RGB(0,0,0)
-        End If
-    End Function
-
-    Private Sub m_LightOn(name)
-        
-        If m_lights.Exists(name) Then
-            
-            If m_off.Exists(name) Then 
-                m_off.Remove(name)
-            End If
-            If m_seqs.Exists(name & "Blink") Then
-                m_seqRunners("lSeqRunner"&CStr(name)).RemoveItem m_seqs(name & "Blink")
-            End If
-            If m_on.Exists(name) Then 
-                Exit Sub
-            End If
-            m_on.Add name, m_lights(name)
-        End If
-    End Sub
-
-    Private Sub m_LightOnWithColor(name, color)
-        If m_lights.Exists(name) Then
-            m_lights(name).Color = color
-            If m_off.Exists(name) Then 
-                m_off.Remove(name)
-            End If
-
-            If m_seqs.Exists(name & "Blink") Then
-                m_seqRunners("lSeqRunner"&CStr(name)).RemoveItem m_seqs(name & "Blink")
-            End If
-
-            If m_on.Exists(name) Then 
-                Exit Sub
-            End If
-            m_on.Add name, m_lights(name)
-        End If
-    End Sub
-
-    Public Sub LightOff(light)
-        Dim lightName
-        If vartype(light) = 8 Then
-            lightName = light
-        Else
-            lightName = light.name
-        End If
-        m_lightOff(lightName)
-    End Sub
-
-    Private Sub m_lightOff(name)
-        If m_lights.Exists(name) Then
-            If m_on.Exists(name) Then 
-                m_on.Remove(name)
-            End If
-
-            If m_seqs.Exists(name & "Blink") Then
-                m_seqRunners("lSeqRunner"&CStr(name)).RemoveItem m_seqs(name & "Blink")
-            End If
-
-            If m_off.Exists(name) Then 
-                Exit Sub
-            End If
-            LightColor m_lights(name), m_lights(name).BaseColor
-            m_off.Add name, m_lights(name)
-        End If
-    End Sub
-
-    Public Sub UpdateBlinkInterval(light, interval)
-        If m_lights.Exists(light.name) Then
-            light.BlinkInterval = interval
-            If m_seqs.Exists(light.name & "Blink") Then
-                m_seqs.Item(light.name & "Blink").UpdateInterval = interval
-            End If
-        End If
-    End Sub
-
-    Public Sub Pulse(light, repeatCount)
-        Dim name : name = light.name
-        If m_lights.Exists(name) Then
-            If m_off.Exists(name) Then 
-                m_off.Remove(name)
-            End If
-            If m_pulse.Exists(name) Then 
-                Exit Sub
-            End If
-            'Array(100,94,32,13,6,3,0)
-            m_pulse.Add name, (new PulseState)(m_lights(name), Array(37,100,24,0,70,100,12,0), 0, m_pulseInterval, repeatCount, null)
-        End If
-    End Sub
-
-    Public Sub PulseWithColor(light, color, repeatCount)
-        Dim name : name = light.name
-        If m_lights.Exists(name) Then
-            If m_off.Exists(name) Then 
-                m_off.Remove(name)
-            End If
-            If m_pulse.Exists(name) Then 
-                Exit Sub
-            End If
-            'Array(100,94,32,13,6,3,0)
-            m_pulse.Add name, (new PulseState)(m_lights(name), Array(37,100,24,0,70,100,12,0), 0, m_pulseInterval, repeatCount,  Array(color,null))
-        End If
-    End Sub
-
-    Public Sub PulseWithProfile(light, profile, repeatCount)
-        Dim name : name = light.name
-        If m_lights.Exists(name) Then
-            If m_off.Exists(name) Then 
-                m_off.Remove(name)
-            End If
-            If m_pulse.Exists(name) Then 
-                Exit Sub
-            End If
-            m_pulse.Add name, (new PulseState)(m_lights(name), profile, 0, m_pulseInterval, repeatCount, null)
-        End If
-    End Sub       
-
-    Public Sub PulseWithState(pulse)
-        
-        If m_lights.Exists(pulse.Light) Then
-            If m_off.Exists(pulse.Light) Then 
-                m_off.Remove(pulse.Light)
-            End If
-            If m_pulse.Exists(pulse.Light) Then 
-                Exit Sub
-            End If
-            m_pulse.Add name, pulse
-        End If
-    End Sub
-
-    Public Sub LightLevel(light, lvl)
-        If m_lights.Exists(light.name) Then
-            m_lights(light.name).Level = lvl
-
-            If m_seqs.Exists(light.name & "Blink") Then
-                m_seqs(light.name & "Blink").Sequence = m_buildBlinkSeq(light.name, light.BlinkPattern)
-            End If
-        End If
-    End Sub
-
-    Public Sub AddShot(name, light, color)
-        If m_lights.Exists(light.name) Then
-            If m_seqs.Exists(name & light.name) Then
-                m_seqs(name & light.name).Color = color
-                m_seqRunners("lSeqRunner"&CStr(light.name)).AddSequenceItem m_seqs(name & light.name)
-            Else
-                Dim stateOn : stateOn = light.name&"|100"
-                Dim stateOff : stateOff = light.name&"|0"
-                Dim seq : Set seq = new LCSeq
-                seq.Name = name
-                seq.Sequence = Array(stateOn, stateOff,stateOn, stateOff)
-                seq.Color = color
-                seq.UpdateInterval = light.BlinkInterval
-                seq.Repeat = True
-
-                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem name, seq, -1, 200/light.BlinkInterval, Null,0,200
-                m_seqs.Add name & light.name, seq
-            End If
-            If m_on.Exists(light.name) Then
-                m_on.Remove light.name
-            End If
-        End If
-    End Sub
-
-    Public Sub RemoveShot(name, light)
-        If m_lights.Exists(light.name) And m_seqs.Exists(name & light.name) Then
-            m_seqRunners("lSeqRunner"&CStr(light.name)).RemoveItem m_seqs(name & light.name)
-            If IsNUll(m_seqRunners("lSeqRunner"&CStr(light.name)).CurrentItem) Then
-            LightOff(light)
-            End If
-        End If
-    End Sub
-
-    Public Sub RemoveAllShots()
-        Dim light
-        For Each light in m_lights.Keys()
-            m_seqRunners("lSeqRunner"&CStr(light)).RemoveAll
-            AssignStateForFrame light, (new FrameState)(0, Null, m_lights(light).Idx)
-        Next
-    End Sub
-
-    Public Sub RemoveShotsFromLight(light)
-        If m_lights.Exists(light.name) Then
-            m_seqRunners("lSeqRunner"&CStr(light.name)).RemoveAll   
-            m_lightOff(light.name)  
-        End If
-    End Sub
-
-    Public Sub Blink(light)
-        If m_lights.Exists(light.name) Then
-
-            If m_seqs.Exists(light.name & "Blink") Then
-                m_seqs(light.name & "Blink").ResetInterval
-                m_seqs(light.name & "Blink").CurrentIdx = 0
-                m_seqRunners("lSeqRunner"&CStr(light.name)).AddSequenceItem m_seqs(light.name & "Blink")
-            Else
-                Dim seq : Set seq = new LCSeq
-                seq.Name = light.name & "Blink"
-                seq.Sequence = m_buildBlinkSeq(light.name, light.BlinkPattern)
-                seq.Color = Null
-                seq.UpdateInterval = light.BlinkInterval
-                seq.Repeat = True
-
-                m_seqRunners("lSeqRunner"&CStr(light.name)).AddItem light.name & "Blink", seq.Sequence, -1, 200/light.BlinkInterval, Null,0,200
-                m_seqs.Add light.name & "Blink", seq
-            End If
-            If m_on.Exists(light.name) Then
-                m_on.Remove light.name
-            End If
-        End If
-    End Sub
-
-    Public Sub AddLightToBlinkGroup(group, light)
-        If m_lights.Exists(light.name) Then
-
-            If m_seqs.Exists(group & "BlinkGroup") Then
-
-                Dim i, pattern, buff : buff = Array()
-                pattern = m_seqs(group & "BlinkGroup").Pattern
-                ReDim buff(Len(pattern)-1)
-                For i = 0 To Len(pattern)-1
-                    Dim lightInSeq, ii, p, buff2
-                    buff2 = Array()
-                    If Mid(pattern, i+1, 1) = 1 Then
-                        p=1
-                    Else
-                        p=0
-                    End If
-                    ReDim buff2(UBound(m_seqs(group & "BlinkGroup").LightsInSeq)+1)
-                    ii=0
-                    For Each lightInSeq in m_seqs(group & "BlinkGroup").LightsInSeq
-                        If p = 1 Then
-                            buff2(ii) = lightInSeq & "|100"
-                        Else
-                            buff2(ii) = lightInSeq & "|0"
-                        End If
-                        ii = ii + 1
-                    Next
-                    If p = 1 Then
-                        buff2(ii) = light.name & "|100"
-                    Else
-                        buff2(ii) = light.name & "|0"
-                    End If
-                    buff(i) = buff2
-                Next
-                m_seqs(group & "BlinkGroup").Sequence = buff
-            Else
-                Dim seq : Set seq = new LCSeq
-                seq.Name = group & "BlinkGroup"
-                seq.Sequence = Array(Array(light.name & "|100"), Array(light.name & "|0"))
-                seq.Color = Null
-                seq.Pattern = "10"
-                seq.UpdateInterval = light.BlinkInterval
-                seq.Repeat = True
-                CreateSeqRunner "lSeqRunner" & group & "BlinkGroup", 1000
-                m_seqs.Add group & "BlinkGroup", seq
-            End If
-        End If
-    End Sub
-
-    Public Sub RemoveLightFromBlinkGroup(group, light)
-        If m_lights.Exists(light.name) Then
-
-            If m_seqs.Exists(group & "BlinkGroup") Then
-
-                Dim i, pattern, buff : buff = Array()
-                pattern = m_seqs(group & "BlinkGroup").Pattern
-                ReDim buff(Len(pattern)-1)
-                For i = 0 To Len(pattern)-1
-                    Dim lightInSeq, ii, p, buff2
-                    buff2 = Array()
-                    If Mid(pattern, i+1, 1) = 1 Then
-                        p=1
-                    Else
-                        p=0
-                    End If
-                    ReDim buff2(UBound(m_seqs(group & "BlinkGroup").LightsInSeq)-1)
-                    ii=0
-                    For Each lightInSeq in m_seqs(group & "BlinkGroup").LightsInSeq
-                        If Not lightInSeq = light.name Then
-                            If p = 1 Then
-                                buff2(ii) = lightInSeq & "|100"
-                            Else
-                                buff2(ii) = lightInSeq & "|0"
-                            End If
-                            ii = ii + 1
-                        End If
-                    Next
-                    buff(i) = buff2
-                Next
-                AssignStateForFrame light.name, (new FrameState)(0, Null, m_lights(light.name).Idx)
-                m_seqs(group & "BlinkGroup").Sequence = buff
-            End If
-        End If
-    End Sub
-
-    Public Sub UpdateBlinkGroupPattern(group, pattern)
-        If m_seqs.Exists(group & "BlinkGroup") Then
-
-            Dim i, buff : buff = Array()
-            m_seqs(group & "BlinkGroup").Pattern = pattern
-            ReDim buff(Len(pattern)-1)
-            For i = 0 To Len(pattern)-1
-                Dim lightInSeq, ii, p, buff2
-                buff2 = Array()
-                If Mid(pattern, i+1, 1) = 1 Then
-                    p=1
-                Else
-                    p=0
-                End If
-                ReDim buff2(UBound(m_seqs(group & "BlinkGroup").LightsInSeq))
-                ii=0
-                For Each lightInSeq in m_seqs(group & "BlinkGroup").LightsInSeq
-                    If p = 1 Then
-                        buff2(ii) = lightInSeq & "|100"
-                    Else
-                        buff2(ii) = lightInSeq & "|0"
-                    End If
-                    ii = ii + 1
-                Next
-                buff(i) = buff2
-            Next
-            m_seqs(group & "BlinkGroup").Sequence = buff
-        End If
-    End Sub
-
-    Public Sub UpdateBlinkGroupInterval(group, interval)
-        If m_seqs.Exists(group & "BlinkGroup") Then
-            m_seqs(group & "BlinkGroup").UpdateInterval = interval
-        End If 
-    End Sub
-    
-    Public Sub StartBlinkGroup(group)
-        If m_seqs.Exists(group & "BlinkGroup") Then
-            If Not m_seqRunners.Exists("lSeqRunner" & group & "BlinkGroup") Then
-                CreateSeqRunner "lSeqRunner" & group & "BlinkGroup", 1000
-            End If
-            m_seqRunners("lSeqRunner" & group & "BlinkGroup").AddSequenceItem m_seqs(group & "BlinkGroup")
-        End If
-    End Sub
-
-    Public Sub StopBlinkGroup(group)
-        If m_seqs.Exists(group & "BlinkGroup") Then
-            RemoveLightSeq "lSeqRunner" & group & "BlinkGroup", m_seqs(group & "BlinkGroup").Name
-        End If
-    End Sub
-
-    Public Function GetLightState(light)
-        GetLightState = 0
-        If(m_lights.Exists(light.name)) Then
-            If m_on.Exists(light.name) Then
-                GetLightState = 1
-            Else
-                If m_seqs.Exists(light.name & "Blink") Then
-                    GetLightState = 2
-                End If
-            End If
-        End If
-    End Function
-
-    Public Function IsShotLit(name, light)
-        IsShotLit = False
-        If(m_lights.Exists(light.name)) Then
-            If m_seqRunners("lSeqRunner"&CStr(light.name)).HasSeq(name) Then
-                IsShotLit = True
-            End If
-        End If
-    End Function
-
-    Public Sub CreateSeqRunner(name, priority)
-        If m_seqRunners.Exists(name) Then
-            Exit Sub
-        End If
-        Dim seqRunner : Set seqRunner = new LCSeqRunner
-        seqRunner.Name = name
-        seqRunner.Priority = priority
-        m_seqRunners.Add name, seqRunner
-        Dim runnerKeys : runnerKeys = m_seqRunners.Keys()
-        Dim itemsArray()
-        ReDim itemsArray(m_seqRunners.Count - 1)
-        Dim i, key
-        i=0
-        For Each key in runnerKeys
-            Set itemsArray(i) = m_seqRunners(key)
-            i=i+1
-        Next
-        
-        Dim j, temp
-        For i = 0 To UBound(itemsArray) - 1
-            For j = i + 1 To UBound(itemsArray)
-                If itemsArray(i).Priority > itemsArray(j).Priority Then
-                    Set temp = itemsArray(i)
-                    Set itemsArray(i) = itemsArray(j)
-                    Set itemsArray(j) = temp
-                End If
-            Next
-        Next
-        m_seqRunners.RemoveAll
-        For i = 0 To UBound(itemsArray)
-            m_seqRunners.Add itemsArray(i).Name, itemsArray(i)
-        Next
-    End Sub
-
-    Private Sub CreateOverrideSeqRunner(name)
-        If m_seqOverrideRunners.Exists(name) Then
-            Exit Sub
-        End If
-        Dim seqRunner : Set seqRunner = new LCSeqRunner
-        seqRunner.Name = name
-        m_seqOverrideRunners.Add name, seqRunner
-    End Sub
-
-    Public Sub AddLightSeq(runner, key, sequence, loops, speed, tokens, priority, syncMs, duration)
-        If Not m_seqRunners.Exists(runner) Then
-            CreateSeqRunner runner, priority
-        End If
-
-        If syncMs = 0 Then
-            If m_seqRunners(runner).Items().Exists(key) Then
-                RemoveLightSeq runner, key
-            End If
-            m_seqRunners(runner).AddItem key, sequence, loops, speed, tokens,0,duration
-        Else
-            If Not m_seqRunners.Exists(syncMs) Then
-                CreateSeqRunner syncMs, 10
-                m_seqRunners(syncMs).AddItem syncMs,Array("lXX|100", "lXX|0"), -1, 1000/syncMs, Null, syncMs, duration
-            End If
-
-            If Not m_syncMs.Exists(syncMs) Then
-                m_syncMs.Add syncMs, CreateObject("Scripting.Dictionary")
-            End If
-            If m_syncMs(syncMs).Exists(runner & "_" & key) Then
-                m_syncMs(syncMs).Remove runner & "_" & key
-            End If
-            m_syncMs(syncMs).Add runner & "_" & key, Array(runner, key, sequence, loops, speed, tokens, duration)
-        End If
-    End Sub
-
-    Public Sub RemoveLightSeq(runner, key)
-        If Not m_seqRunners.Exists(runner) Then
-            Exit Sub
-        End If
-
-        If m_seqRunners(runner).Items().Exists(key) Then
-            Dim light
-            For Each light in m_seqRunners(runner).ItemByKey(key).LightsInSeq
-                If(m_lights.Exists(light)) Then
-                    AssignStateForFrame light, (new FrameState)(0, Null, m_lights(light).Idx)
-                End If
-            Next
-            m_seqRunners(runner).RemoveItem key
-        End If
-
-        Dim syncMs
-        For Each syncMs in m_syncMs.Keys
-            If m_syncMs(syncMs).Exists(runner & "_" & key) Then
-                m_syncMs(syncMs).Remove runner & "_" & key
-            End If
-        Next
-    End Sub
-
-    Public Sub RemoveAllLightSeq(lcSeqRunner)
-        If Not m_seqRunners.Exists(lcSeqRunner) Then
-            Exit Sub
-        End If
-        Dim lcSeqKey, light, seqs, lcSeq
-        Set seqs = m_seqRunners(lcSeqRunner).Items()
-        For Each lcSeqKey in seqs.Keys()
-            Set lcSeq = seqs(lcSeqKey)
-            For Each light in lcSeq.LightsInSeq
-                If(m_lights.Exists(light)) Then
-                    AssignStateForFrame light, (new FrameState)(0, Null, m_lights(light).Idx)
-                End If
-            Next
-        Next
-
-        m_seqRunners(lcSeqRunner).RemoveAll
-    End Sub
-
-    Public Sub AddTableLightSeq(name, lcSeq)
-        CreateOverrideSeqRunner(name)
-
-        Dim seqOverride, hasOverride
-        hasOverride = False
-        For Each seqOverride In m_seqOverrideRunners.Keys()
-            If Not IsNull(m_seqOverrideRunners(seqOverride).CurrentItem) Then
-                hasOverride = True
-            End If
-        Next
-        If hasOverride = False Then
-            Dim light
-            For Each light in m_lights.Keys()
-                AssignStateForFrame light, (new FrameState)(0, Null, m_lights(light).Idx)
-            Next
-        End If
-        m_seqOverrideRunners(name).AddSequenceItem lcSeq
-    End Sub
-
-    Public Sub RemoveTableLightSeq(name, lcSeq)
-        If Not m_seqOverrideRunners.Exists(name) Then
-            Exit Sub
-        End If
-        m_seqOverrideRunners(name).RemoveItem lcSeq
-        Dim seqOverride, hasOverride
-        hasOverride = False
-        For Each seqOverride In m_seqOverrideRunners.Keys()
-            If Not IsNull(m_seqOverrideRunners(seqOverride).CurrentItem) Then
-                hasOverride = True
-            End If
-        Next
-        If hasOverride = False Then
-            Dim light
-            For Each light in m_lights.Keys()
-                AssignStateForFrame light, (new FrameState)(0, Null, m_lights(light).Idx)
-            Next
-        End If
-    End Sub
-
-    Public Sub RemoveAllTableLightSeqs()
-        Dim light, runner
-        For Each runner in m_seqOverrideRunners.Keys()
-            m_seqOverrideRunners(runner).RemoveAll()
-        Next
-        For Each light in m_lights.Keys()
-            AssignStateForFrame light, (new FrameState)(0, Null, m_lights(light).Idx)
-        Next
-    End Sub
-
-    Public Sub SyncLightMapColors()
-        dim light,lm
-        For Each light in m_lights.Keys()
-            If m_lights(light).IsRGB Then
-                dim color : color = m_lights(light).Color
-                If m_lightmaps.Exists(light) Then
-                    For Each lm in m_lightmaps(light)
-                        If not IsNull(lm) Then
-                            lm.Color = color(0)
-                        End If
-                    Next
-                End If
-            End If
-        Next
-    End Sub
-
-    Public Sub SyncWithVpxLights(lightSeq)
-        m_vpxLightSyncCollection = ColToArray(eval(lightSeq.collection))
-        m_vpxLightSyncRunning = True
-        m_tableSeqSpeed = Null
-        m_tableSeqOffset = 0
-        m_tableSeqDirection = Null
-    End Sub
-
-    Public Sub StopSyncWithVpxLights()
-        m_vpxLightSyncRunning = False
-        m_vpxLightSyncClear = True
-        m_tableSeqColor = Null
-        m_tableSeqFadeUp = Null
-        m_tableSeqFadeDown = Null
-        m_tableSeqSpeed = Null
-        m_tableSeqOffset = 0
-        m_tableSeqDirection = Null
-    End Sub
-
-    Public Sub SetVpxSyncLightColor(color)
-        m_tableSeqColor = color
-    End Sub
-    
-    Public Sub SetVpxSyncLightsPalette(palette, direction, speed)
-        m_tableSeqColor = palette
-        Select Case direction:
-            Case "BottomToTop": 
-                m_tableSeqDirection = m_coordsY
-                m_tableSeqColor = ReverseArray(palette)
-            Case "TopToBottom": 
-                m_tableSeqDirection = m_coordsY
-            Case "RightToLeft": 
-                m_tableSeqDirection = m_coordsX
-            Case "LeftToRight": 
-                m_tableSeqDirection = m_coordsX
-                m_tableSeqColor = ReverseArray(palette)       
-            Case "RadialOut": 
-                m_tableSeqDirection = m_radii      
-            Case "RadialIn": 
-                m_tableSeqDirection = m_radii
-                m_tableSeqColor = ReverseArray(palette) 
-            Case "Clockwise": 
-                m_tableSeqDirection = m_angles
-            Case "AntiClockwise": 
-                m_tableSeqDirection = m_angles
-                m_tableSeqColor = ReverseArray(palette) 
-        End Select  
-
-        m_tableSeqSpeed = speed
-    End Sub
-
-    Public Sub SetTableSequenceFade(fadeUp, fadeDown)
-        m_tableSeqFadeUp = fadeUp
-        m_tableSeqFadeDown = fadeDown
-    End Sub
-
-    Public Function GetLightIdx(light)
-        Dim lightName
-        If vartype(light) = 8 Then
-            lightName = light
-        Else
-            lightName = light.name
-        End If
-        dim syncLight : syncLight = Null
-        
-        If m_lights.Exists(lightName) Then
-            'found a light
-            Set syncLight = m_lights(lightName)
-        End If
-        If Not IsNull(syncLight) Then
-            'Found a light to sync.
-            GetLightIdx = lightsToLeds(syncLight.Idx)
-        Else
-            GetLightIdx = Null
-        End If
-        
-    End Function
-
-    Private Function m_buildBlinkSeq(lightName, pattern)
-        Dim i, buff : buff = Array()
-        ReDim buff(Len(pattern)-1)
-        For i = 0 To Len(pattern)-1
-            
-            If Mid(pattern, i+1, 1) = 1 Then
-                buff(i) = lightName & "|100"
-            Else
-                buff(i) = lightName & "|0"
-            End If
-        Next
-        m_buildBlinkSeq=buff
-    End Function
-
-    Private Function GetTmpLight(idx)
-        If IsArray(Lights(idx) ) Then	'if array
-            Set GetTmpLight = Lights(idx)(0)
-        Else
-            Set GetTmpLight = Lights(idx)
-        End If
-    End Function
-
-    Public Sub ResetLights()
-        Dim light
-        For Each light in m_lights.Keys()
-            m_seqRunners("lSeqRunner"&CStr(light)).RemoveAll
-            m_lightOff(light) 
-            AssignStateForFrame light, (new FrameState)(0, Null, m_lights(light).Idx)
-        Next
-        RemoveAllTableLightSeqs()
-        Dim k
-        For Each k in m_seqRunners.Keys()
-            Dim lsRunner: Set lsRunner = m_seqRunners(k)
-            lsRunner.RemoveAll
-        Next
-
-    End Sub
-
-    Public Sub PauseMainLights
-        If m_pauseMainLights = False Then
-            m_pauseMainLights = True
-            m_pausedLights.RemoveAll
-            Dim pon
-            Set pon = CreateObject("Scripting.Dictionary")
-            Dim poff : Set poff = CreateObject("Scripting.Dictionary")
-            Dim ppulse : Set ppulse = CreateObject("Scripting.Dictionary")
-            Dim pseqs : Set pseqs = CreateObject("Scripting.Dictionary")
-            Dim lightProps : Set lightProps = CreateObject("Scripting.Dictionary")
-            'Add State in
-            Dim light, item
-            For Each item in m_on.Keys()
-                pon.add item, m_on(Item)
-            Next
-            For Each item in m_off.Keys()
-                poff.add item, m_off(Item)
-            Next
-            For Each item in m_pulse.Keys()
-                ppulse.add item, m_pulse(Item)
-            Next
-            For Each item in m_seqRunners.Keys()
-                dim tmpSeq : Set tmpSeq = new LCSeqRunner
-                dim seqItem
-                For Each seqItem in m_seqRunners(Item).Items.Items()
-                    tmpSeq.AddSequenceItem seqItem
-                Next
-                tmpSeq.CurrentItemIdx = m_seqRunners(Item).CurrentItemIdx
-                pseqs.add item, tmpSeq
-            Next
-            
-            Dim savedProps(1,3)
-            
-            For Each light in m_lights.Keys()
-                    
-                savedProps(0,0) = m_lights(light).Color
-                savedProps(0,1) = m_lights(light).Level
-                If m_seqs.Exists(light & "Blink") Then
-                    savedProps(0,2) = m_seqs.Item(light & "Blink").UpdateInterval
-                Else
-                    savedProps(0,2) = Empty
-                End If
-                lightProps.add light, savedProps
-            Next
-            m_pausedLights.Add "on", pon
-            m_pausedLights.Add "off", poff
-            m_pausedLights.Add "pulse", ppulse
-            m_pausedLights.Add "runners", pseqs
-            m_pausedLights.Add "lightProps", lightProps
-            m_on.RemoveAll
-            m_off.RemoveAll
-            m_pulse.RemoveAll
-            For Each item in m_seqRunners.Items()
-                item.removeAll
-            Next			
-        End If
-    End Sub
-
-    Public Sub ResumeMainLights
-        If m_pauseMainLights = True Then
-            m_pauseMainLights = False
-            m_on.RemoveAll
-            m_off.RemoveAll
-            m_pulse.RemoveAll
-            Dim light, item
-            For Each light in m_lights.Keys()
-                AssignStateForFrame light, (new FrameState)(0, Null, m_lights(light).Idx)
-            Next
-            For Each item in m_seqRunners.Items()
-                item.removeAll
-            Next
-            'Add State in
-            For Each item in m_pausedLights("on").Keys()
-                m_on.add item, m_pausedLights("on")(Item)
-            Next
-            For Each item in m_pausedLights("off").Keys()
-                m_off.add item, m_pausedLights("off")(Item)
-            Next			
-            For Each item in m_pausedLights("pulse").Keys()
-                m_pulse.add item, m_pausedLights("pulse")(Item)
-            Next
-            For Each item in m_pausedLights("runners").Keys()
-                
-                
-                Set m_seqRunners(Item) = m_pausedLights("runners")(Item)
-            Next
-            For Each item in m_pausedLights("lightProps").Keys()
-                LightColor Eval(Item), m_pausedLights("lightProps")(Item)(0,0)
-                LightLevel Eval(Item), m_pausedLights("lightProps")(Item)(0,1)
-                If Not IsEmpty(m_pausedLights("lightProps")(Item)(0,2)) Then
-                    UpdateBlinkInterval Eval(Item), m_pausedLights("lightProps")(Item)(0,2)
-                End If
-            Next			
-            m_pausedLights.RemoveAll
-        End If
-    End Sub
-
-    Public Sub Update()
-
-        'm_frameTime = gametime - m_initFrameTime : m_initFrameTime = gametime
-        m_frameTime = 20
-        Dim x
-        Dim lk
-        dim color
-        dim idx
-        Dim lightKey
-        Dim lcItem
-        Dim tmpLight
-        Dim seqOverride, hasOverride
-        hasOverride = False
-        For Each seqOverride In m_seqOverrideRunners.Keys()
-            If Not IsNull(m_seqOverrideRunners(seqOverride).CurrentItem) Then
-                RunLightSeq m_seqOverrideRunners(seqOverride)
-                hasOverride = True
-            End If
-        Next
-        If hasOverride = False Then
-        
-            If HasKeys(m_on) Then   
-                For Each lightKey in m_on.Keys()
-                    Set lcItem = m_on(lightKey)
-                    If lcItem.IsRGB Then
-                        color = m_on(lightKey).Color
-                    Else
-                        color = Null
-                    End If
-                    AssignStateForFrame lightKey, (new FrameState)(lcItem.level, color, m_on(lightKey).Idx)
-                Next
-            End If
-
-            If HasKeys(m_off) Then
-                For Each lightKey in m_off.Keys()
-                    Set lcItem = m_off(lightKey)
-                    AssignStateForFrame lightKey, (new FrameState)(0, Null, lcItem.Idx)
-                Next
-            End If
-
-        
-            If HasKeys(m_seqRunners) Then
-                Dim k
-                For Each k in m_seqRunners.Keys()
-                    Dim lsRunner: Set lsRunner = m_seqRunners(k)
-                    If Not IsNull(lsRunner.CurrentItem) Then
-                            RunLightSeq lsRunner
-                    End If
-                Next
-            End If
-
-            If HasKeys(m_pulse) Then   
-                For Each lightKey in m_pulse.Keys()
-                    Dim pulseColor
-                    If m_pulse(lightKey).IsRGB Then
-                        pulseColor = m_pulse(lightKey).Color
-                    Else
-                        pulseColor = Null
-                    End If
-                    If IsNull(pulseColor) Then
-                        AssignStateForFrame lightKey, (new FrameState)(m_pulse(lightKey).PulseAt(m_pulse(lightKey).idx), Null, m_pulse(lightKey).light.Idx)
-                    Else
-                        AssignStateForFrame lightKey, (new FrameState)(m_pulse(lightKey).PulseAt(m_pulse(lightKey).idx), pulseColor, m_pulse(lightKey).light.Idx)
-                    End If						
-                    
-                    Dim pulseUpdateInt : pulseUpdateInt = m_pulse(lightKey).interval - m_frameTime
-                    Dim pulseIdx : pulseIdx = m_pulse(lightKey).idx
-                    If pulseUpdateInt <= 0 Then
-                        pulseUpdateInt = m_pulseInterval
-                        pulseIdx = pulseIdx + 1
-                    End If
-                    
-                    Dim pulses : pulses = m_pulse(lightKey).pulses
-                    Dim pulseCount : pulseCount = m_pulse(lightKey).Cnt
-                    
-                    
-                    If pulseIdx > UBound(m_pulse(lightKey).pulses) Then
-                        m_pulse.Remove lightKey    
-                        If pulseCount > 0 Then
-                            pulseCount = pulseCount - 1
-                            pulseIdx = 0
-                            m_pulse.Add lightKey, (new PulseState)(m_lights(lightKey),pulses, pulseIdx, pulseUpdateInt, pulseCount, pulseColor)
-                        End If
-                    Else
-                        m_pulse.Remove lightKey
-                        m_pulse.Add lightKey, (new PulseState)(m_lights(lightKey),pulses, pulseIdx, pulseUpdateInt, pulseCount, pulseColor)
-                    End If
-                Next
-            End If
-
-            If m_vpxLightSyncRunning = True Then
-                Dim lx
-                If Not IsNull(m_vpxLightSyncCollection) Then
-                    For Each lx in m_vpxLightSyncCollection
-                        'sync each light being ran by the vpx LS
-                        dim syncLight : syncLight = Null
-                        If m_lights.Exists(lx.name) Then
-                            'found a light
-                            Set syncLight = m_lights(lx.name)
-                        End If
-                        If Not IsNull(syncLight) Then
-                            'Found a light to sync.
-                            
-                            Dim lightState
-
-                            If syncLight.IsRGB Then
-                                If IsNull(m_tableSeqColor) Then
-                                    color = syncLight.Color
-                                Else
-                                    If Not IsArray(m_tableSeqColor) Then
-                                        color = Array(m_tableSeqColor, Null)
-                                    Else
-                                        
-                                        If Not IsNull(m_tableSeqSpeed) And Not m_tableSeqSpeed = 0 Then
-
-                                            Dim colorPalleteIdx : colorPalleteIdx = IncrementUInt8(m_tableSeqDirection(lightsToLeds(syncLight.Idx)),m_tableSeqOffset)
-                                            If gametime mod m_tableSeqSpeed = 0 Then
-                                                m_tableSeqOffset = m_tableSeqOffset + 1
-                                                If m_tableSeqOffset > 255 Then
-                                                    m_tableSeqOffset = 0
-                                                End If	
-                                            End If
-                                            If colorPalleteIdx < 0 Then 
-                                                colorPalleteIdx = 0
-                                            End If
-                                            color = Array(m_TableSeqColor(Round(colorPalleteIdx)), Null)
-                                            'color = syncLight.Color
-                                        Else
-                                            color = Array(m_TableSeqColor(m_tableSeqDirection(lightsToLeds(syncLight.Idx))), Null)
-                                        End If
-                                        
-                                    End If
-                                End If
-                            Else
-                                color = Null
-                            End If
-                    
-                            AssignStateForFrame syncLight.name, (new FrameState)(lx.GetInPlayState*100,color, syncLight.Idx)                     
-                        End If
-                    Next
-                End If
-            End If
-
-            If m_vpxLightSyncClear = True Then  
-                If Not IsNull(m_vpxLightSyncCollection) Then
-                    For Each lk in m_vpxLightSyncCollection
-                        'sync each light being ran by the vpx LS
-                        dim syncClearLight : syncClearLight = Null
-                        If m_lights.Exists(lk.name) Then
-                            'found a light
-                            Set syncClearLight = m_lights(lk.name)
-                        End If
-                        If Not IsNull(syncClearLight) Then
-                            AssignStateForFrame syncClearLight.name, (new FrameState)(0, Null, syncClearLight.idx) 
-                        End If
-                    Next
-                End If
-            
-                m_vpxLightSyncClear = False
-            End If
-        End If
-        
-
-        If HasKeys(m_currentFrameState) Then
-            
-            Dim frameStateKey
-            For Each frameStateKey in m_currentFrameState.Keys()
-                idx = m_currentFrameState(frameStateKey).idx
-                
-                Dim newColor : newColor = m_currentFrameState(frameStateKey).colors
-                Dim bUpdate
-
-                If Not IsNull(newColor) Then
-                    'Check current color is the new color coming in, if not, set the new color.
-                    
-                    Set tmpLight = GetTmpLight(idx)
-                    Dim c, cf
-                    c = newColor(0)
-                    cf= newColor(1)
-
-                    If Not IsNull(c) Then
-                        If Not CStr(tmpLight.Color) = CStr(c) Then
-                            bUpdate = True
-                        End If
-                    End If
-
-                    If Not IsNull(cf) Then
-                        If Not CStr(tmpLight.ColorFull) = CStr(cf) Then
-                            bUpdate = True
-                        End If
-                    End If
-                End If
-
-               
-                Dim lm
-                If IsArray(Lights(idx)) Then
-                    For Each x in Lights(idx)
-                        If bUpdate Then 
-                            If Not IsNull(c) Then
-                                x.color = c
-                            End If
-                            If Not IsNull(cf) Then
-                                x.colorFull = cf
-                            End If
-                            If m_lightmaps.Exists(x.Name) Then
-                                For Each lm in m_lightmaps(x.Name)
-                                    If Not IsNull(lm) Then
-                                        lm.Color = c
-                                    End If
-                                Next
-                            End If
-                        End If
-                        x.State = m_currentFrameState(frameStateKey).level/100
-                    Next
-                Else
-                    If bUpdate Then    
-                        If Not IsNull(c) Then
-                            Lights(idx).color = c
-                        End If
-                        If Not IsNull(cf) Then
-                            Lights(idx).colorFull = cf
-                        End If
-                        If m_lightmaps.Exists(Lights(idx).Name) Then
-                            For Each lm in m_lightmaps(Lights(idx).Name)
-                                If Not IsNull(lm) Then
-                                    lm.Color = c
-                                End If
-                            Next
-                        End If
-                    End If
-                    Lights(idx).State = m_currentFrameState(frameStateKey).level/100
-                End If
-            Next
-        End If
-        m_currentFrameState.RemoveAll
-        m_off.RemoveAll
-
-    End Sub
-
-    Private Function HexToInt(hex)
-        HexToInt = CInt("&H" & hex)
-    End Function
-
-    Function RGBToHex(r, g, b)
-        RGBToHex = Right("0" & Hex(r), 2) & _
-            Right("0" & Hex(g), 2) & _
-            Right("0" & Hex(b), 2)
-    End Function
-
-    Function FadeRGB(light, color1, color2, steps)
-
-    
-        Dim r1, g1, b1, r2, g2, b2
-        Dim i
-        Dim r, g, b
-        color1 = clng(color1)
-        color2 = clng(color2)
-        ' Extract RGB values from the color integers
-        r1 = color1 Mod 256
-        g1 = (color1 \ 256) Mod 256
-        b1 = (color1 \ (256 * 256)) Mod 256
-
-        r2 = color2 Mod 256
-        g2 = (color2 \ 256) Mod 256
-        b2 = (color2 \ (256 * 256)) Mod 256
-
-        ' Resize the output array
-        ReDim outputArray(steps - 1)
-
-        ' Generate the fade
-        For i = 0 To steps - 1
-            ' Calculate RGB values for this step
-            r = r1 + (r2 - r1) * i / (steps - 1)
-            g = g1 + (g2 - g1) * i / (steps - 1)
-            b = b1 + (b2 - b1) * i / (steps - 1)
-
-            ' Convert RGB to hex and add to output
-            outputArray(i) = light & "|100|" & RGBToHex(CInt(r), CInt(g), CInt(b))
-        Next
-        FadeRGB = outputArray
-    End Function
-
-    Public Function CreateColorPalette(startColor, endColor, steps)
-        Dim colors()
-        ReDim colors(steps)
-        
-        Dim startRed, startGreen, startBlue, endRed, endGreen, endBlue
-        startRed = HexToInt(Left(startColor, 2))
-        startGreen = HexToInt(Mid(startColor, 3, 2))
-        startBlue = HexToInt(Right(startColor, 2))
-        endRed = HexToInt(Left(endColor, 2))
-        endGreen = HexToInt(Mid(endColor, 3, 2))
-        endBlue = HexToInt(Right(endColor, 2))
-        
-        Dim redDiff, greenDiff, blueDiff
-        redDiff = endRed - startRed
-        greenDiff = endGreen - startGreen
-        blueDiff = endBlue - startBlue
-        
-        Dim i
-        For i = 0 To steps
-            Dim red, green, blue
-            red = startRed + (redDiff * (i / steps))
-            green = startGreen + (greenDiff * (i / steps))
-            blue = startBlue + (blueDiff * (i / steps))
-            colors(i) = RGB(red,green,blue)'IntToHex(red, 2) & IntToHex(green, 2) & IntToHex(blue, 2)
-        Next
-        
-        CreateColorPalette = colors
-    End Function
-
-    Function CreateColorPaletteWithStops(startColor, endColor, stopPositions, stopColors)
-
-        Dim colors(255)
-
-        Dim fStop : fStop = CreateColorPalette(startColor, stopColors(0), stopPositions(0))
-        Dim i, istep
-        For i = 0 to stopPositions(0)
-            colors(i) = fStop(i)
-        Next
-        For i = 1 to Ubound(stopColors)
-            Dim stopStep : stopStep = CreateColorPalette(stopColors(i-1), stopColors(i), stopPositions(i))
-            Dim ii
-        ' MsgBox(stopPositions(i) - stopPositions(i-1))
-            istep = 0
-            For ii = stopPositions(i-1)+1 to stopPositions(i)
-            '  MsgBox(ii)
-            colors(ii) = stopStep(iStep)
-            iStep = iStep + 1
-            Next
-        Next
-        ' MsgBox("Here")
-        Dim eStop : eStop = CreateColorPalette(stopColors(UBound(stopColors)), endColor, 255-stopPositions(UBound(stopPositions)))
-        'MsgBox(UBound(eStop))
-        iStep = 0
-        For i = 255-(255-stopPositions(UBound(stopPositions))) to 254
-            colors(i) = eStop(iStep)
-            iStep = iStep + 1
-        Next
-
-        CreateColorPaletteWithStops = colors
-    End Function
-
-    Private Function HasKeys(o)
-        If Ubound(o.Keys())>-1 Then
-            HasKeys = True
-        Else
-            HasKeys = False
-        End If
-    End Function
-
-    Private Sub RunLightSeq(seqRunner)
-
-        Dim lcSeq: Set lcSeq = seqRunner.CurrentItem
-        dim lsName, isSeqEnd
-        If UBound(lcSeq.Sequence)<lcSeq.CurrentIdx Then
-            isSeqEnd = True
-        Else
-            isSeqEnd = False
-        End If
-        dim lightInSeq
-        For each lightInSeq in lcSeq.LightsInSeq
-        
-            If isSeqEnd Then
-
-                
-
-            'Needs a guard here for something, but i've forgotten. 
-            'I remember: Only reset the light if there isn't frame data for the light. 
-            'e.g. a previous seq has affected the light, we don't want to clear that here on this frame
-                If m_lights.Exists(lightInSeq) = True AND NOT m_currentFrameState.Exists(lightInSeq) Then
-                    AssignStateForFrame lightInSeq, (new FrameState)(0, Null, m_lights(lightInSeq).Idx)
-                    LightColor m_lights(lightInSeq), m_lights(lightInSeq).BaseColor
-                End If
-            Else
-                
-
-
-                If m_currentFrameState.Exists(lightInSeq) Then
-
-                    
-                    'already frame data for this light.
-                    'replace with the last known state from this seq
-                    If Not IsNull(lcSeq.LastLightState(lightInSeq)) Then
-                        AssignStateForFrame lightInSeq, lcSeq.LastLightState(lightInSeq)
-                    End If
-                End If
-
-            End If
-        Next
-
-        If isSeqEnd Then
-            'Check if any seqs need starting via syncms
-            If lcSeq.SyncMs > 0 Then
-                If m_syncMs.Exists(lcSeq.SyncMs) Then
-                    Dim seqToStart
-                    For Each seqToStart in m_syncMs(lcSeq.SyncMs).Items
-                        m_seqRunners(seqToStart(0)).AddItem seqToStart(1), seqToStart(2), seqToStart(3), seqToStart(4), seqToStart(5), 0, seqToStart(6)
-                        RunLightSeq(m_seqRunners(seqToStart(0)))
-                    Next
-                    m_syncMs(lcSeq.SyncMs).RemoveAll
-                End If
-            End If
-            lcSeq.CurrentIdx = 0
-            seqRunner.NextItem()
-        End If
-
-        If Not IsNull(seqRunner.CurrentItem) Then
-            Dim framesRemaining, seq, color
-            Set lcSeq = seqRunner.CurrentItem
-            seq = lcSeq.Sequence
-            
-
-            Dim name
-            Dim ls, x
-            If IsArray(seq(lcSeq.CurrentIdx)) Then
-                For x = 0 To UBound(seq(lcSeq.CurrentIdx))
-                    lsName = Split(seq(lcSeq.CurrentIdx)(x),"|")
-                    name = lsName(0)
-                    If m_lights.Exists(name) Then
-                        Set ls = m_lights(name)
-                        
-                        If ls.IsRGB Then
-                            color = lcSeq.Color
-
-                            If IsNull(color) Then
-                                color = ls.Color
-                            End If
-                        Else
-                            Log "NOT RGB:" & ls.Idx
-                            color = Null
-                            If Ubound(lsName) = 2 Then
-                                If lsName(2) <> "" Then
-                                    color = Array( RGB( HexToInt(Left(lsName(2), 2)), HexToInt(Mid(lsName(2), 3, 2)), HexToInt(Right(lsName(2), 2)) ), Null)        
-                                End If
-                            End If
-                        End If
-
-                        AssignStateForFrame name, (new FrameState)(lsName(1), color, ls.Idx)
-                        
-                        lcSeq.SetLastLightState name, m_currentFrameState(name) 
-                    End If
-                Next       
-            Else
-                lsName = Split(seq(lcSeq.CurrentIdx),"|")
-                name = lsName(0)
-                If m_lights.Exists(name) Then
-                    Set ls = m_lights(name)
-                    
-                    If ls.IsRGB Then
-                        color = lcSeq.Color
-
-                        If IsNull(color) Then
-                            color = ls.Color
-                        End If
-                    Else
-                        color = Null
-                        If Ubound(lsName) = 2 Then
-                            If lsName(2) <> "" Then
-                                color = Array( RGB( HexToInt(Left(lsName(2), 2)), HexToInt(Mid(lsName(2), 3, 2)), HexToInt(Right(lsName(2), 2)) ), Null)        
-                            End If
-                        End If
-                    End If
-
-                    AssignStateForFrame name, (new FrameState)(lsName(1), color, ls.Idx)
-                    lcSeq.SetLastLightState name, m_currentFrameState(name) 
-                End If
-            End If
-
-            framesRemaining = lcSeq.Update(m_frameTime)
-            If framesRemaining < 0 Then
-                lcSeq.ResetInterval()
-                lcSeq.NextFrame()
-            End If
-            
-        End If
-    
-    End Sub
-
-    Private Sub Log(message)
-        If m_debug = True Then
-            glf_debugLog.WriteToLog "Light Controller", message
-        End If
-    End Sub
-End Class
-
-Class FrameState
-    Private m_level, m_colors, m_idx
-
-    Public Property Get Level(): Level = m_level: End Property
-    Public Property Let Level(input): m_level = input: End Property
-
-    Public Property Get Colors(): Colors = m_colors: End Property
-    Public Property Let Colors(input): m_colors = input: End Property
-
-    Public Property Get Idx(): Idx = m_idx: End Property
-    Public Property Let Idx(input): m_idx = input: End Property
-
-    Public default function init(level, colors, idx)
-        m_level = level
-        m_colors = colors
-        m_idx = idx 
-
-        Set Init = Me
-    End Function
-
-    Public Function ColorAt(idx)
-        ColorAt = m_colors(idx) 
-    End Function
-End Class
-
-Class PulseState
-    Private m_light, m_pulses, m_idx, m_interval, m_cnt, m_color
-
-    Public Property Get Light(): Set Light = m_light: End Property
-    Public Property Let Light(input): Set m_light = input: End Property
-
-    Public Property Get Pulses(): Pulses = m_pulses: End Property
-    Public Property Let Pulses(input): m_pulses = input: End Property
-
-    Public Property Get Idx(): Idx = m_idx: End Property
-    Public Property Let Idx(input): m_idx = input: End Property
-
-    Public Property Get Interval(): Interval = m_interval: End Property
-    Public Property Let Interval(input): m_interval = input: End Property
-
-    Public Property Get Cnt(): Cnt = m_cnt: End Property
-    Public Property Let Cnt(input): m_cnt = input: End Property
-
-    Public Property Get Color(): Color = m_color: End Property
-    Public Property Let Color(input): m_color = input: End Property		
-
-    Public default function init(light, pulses, idx, interval, cnt, color)
-        Set m_light = light
-        m_pulses = pulses
-        m_idx = idx 
-        m_interval = interval
-        m_cnt = cnt
-        m_color = color
-
-        Set Init = Me
-    End Function
-
-    Public Function PulseAt(idx)
-        PulseAt = m_pulses(idx) 
-    End Function
-End Class
-
-Class LCItem
-    
-    Private m_Idx, m_State, m_blinkSeq, m_color, m_name, m_level, m_x, m_y, m_baseColor, m_isRGB
-
-        Public Property Get Idx()
-            Idx=m_Idx
-        End Property
-
-        Public Property Get IsRGB()
-            IsRGB = m_isRGB
-        End Property
-
-        Public Property Get Color()
-            Color=m_color
-        End Property
-
-        Public Property Get BaseColor()
-            BaseColor=m_baseColor
-        End Property
-
-        Public Property Let Color(input)
-            If IsNull(input) Then
-                m_Color = Null
-            Else
-                If Not IsArray(input) Then
-                    input = Array(input, null)
-                End If
-                m_Color = input
-            End If
-        End Property
-
-        Public Property Let Level(input)
-            m_level = input
-        End Property
-
-        Public Property Get Level()
-            Level=m_level
-        End Property
-
-        Public Property Get Name()
-            Name=m_name
-        End Property
-
-        Public Property Get X()
-            X=m_x
-        End Property
-
-        Public Property Get Y()
-            Y=m_y
-        End Property
-
-        Public Property Get Row()
-            Row=Round(m_x/20)
-        End Property
-
-        Public Property Get Col()
-            Col=Round(m_y/20)
-        End Property
-
-        Public Sub Init(idx, intervalMs, color, name, x, y)
-            m_Idx = idx
-            If Not IsArray(color) Then
-                m_color = Array(color, null)
-            Else
-                m_color = color
-            End If
-            m_baseColor = m_color
-            If CLng(color) = vbWhite Then
-                m_isRGB = True
-            Else
-                m_isRGB = False
-            End If
-            m_name = name
-            m_level = 100
-            m_x = x
-            m_y = y
-        End Sub
-
-End Class
-
-Class LCSeq
-    
-    Private m_currentIdx, m_sequence, m_name, m_image, m_color, m_updateInterval, m_Frames, m_repeat, m_lightsInSeq, m_lastLightStates, m_palette, m_pattern, m_tokens, m_loops, m_syncMs
-
-    Public Property Get CurrentIdx()
-        CurrentIdx=m_currentIdx
-    End Property
-
-    Public Property Let CurrentIdx(input)
-        m_lastLightStates.RemoveAll()
-        m_currentIdx = input
-    End Property
-
-    Public Property Get Tokens()
-        Tokens=m_tokens
-    End Property
-
-    Public Property Let Tokens(input)
-        If Not IsNull(input) Then
-            Set m_tokens = input
-        End If
-    End Property    
-
-    Public Property Get LightsInSeq()
-        LightsInSeq=m_lightsInSeq.Keys()
-    End Property
-
-    Public Property Get Sequence()
-        Sequence=m_sequence
-    End Property
-    
-    Public Property Let Sequence(input)
-        Dim item, light, lightItem, token
-        m_lightsInSeq.RemoveAll
-        Dim i, x
-        ' Iterate through the input array
-        For i = 0 To UBound(input)
-            item = input(i)
-            If IsArray(item) Then
-                For x = 0 To UBound(item)
-                    light = item(x)
-                    lightItem = Split(light, "|")
-                    token = IsToken(lightItem(0))
-                    If Not IsNull(token) Then
-                        lightItem(0) = m_tokens(token)
-                    End If
-                    If UBound(lightItem) = 2 Then
-                        token = IsToken(lightItem(2))
-                        If Not IsNull(token) Then
-                            lightItem(2) = m_tokens(token)
-                        End If
-                    End If
-                    If Not m_lightsInSeq.Exists(lightItem(0)) Then
-                        m_lightsInSeq.Add lightItem(0), True
-                    End If
-                    light = Join(lightItem, "|")
-                    item(x) = light
-                Next
-                ' Update the input array with modified item array
-                input(i) = item
-            Else
-                lightItem = Split(item, "|")
-                token = IsToken(lightItem(0))
-                If Not IsNull(token) Then
-                    lightItem(0) = m_tokens(token)
-                End If
-                If UBound(lightItem) = 2 Then
-                    token = IsToken(lightItem(2))
-                    If Not IsNull(token) Then
-                        lightItem(2) = m_tokens(token)
-                    End If
-                End If
-                If Not m_lightsInSeq.Exists(lightItem(0)) Then
-                    m_lightsInSeq.Add lightItem(0), True
-                End If
-                light = Join(lightItem, "|")
-                ' Update the input array with modified item string
-                input(i) = light
-            End If
-        Next
-        ' Assign the modified input array to m_sequence
-        m_sequence = input
-    End Property
-
-    Private Function IsToken(mainString)
-        ' Check if the string contains an opening parenthesis and ends with a closing parenthesis
-        If InStr(mainString, "(") > 0 And Right(mainString, 1) = ")" Then
-            ' Extract the substring within the parentheses
-            Dim startPos, subString
-            startPos = InStr(mainString, "(")
-            subString = Mid(mainString, startPos + 1, Len(mainString) - startPos - 1)
-            IsToken = subString
-        Else
-            IsToken = Null
-        End If
-    End Function
-    
-
-    Public Property Get LastLightState(light)
-        If m_lastLightStates.Exists(light) Then
-            dim c : Set c = m_lastLightStates(light)
-            Set LastLightState = c
-        Else
-            LastLightState = Null
-        End If
-    End Property
-
-    Public Property Let LastLightState(light, input)
-        If m_lastLightStates.Exists(light) Then
-            m_lastLightStates.Remove light
-        End If
-        If input.level > 0 Then
-            m_lastLightStates.Add light, input
-        End If
-    End Property
-
-    Public Sub SetLastLightState(light, input)	
-        If m_lastLightStates.Exists(light) Then	
-            m_lastLightStates.Remove light	
-        End If	
-        If input.level > 0 Then	
-                m_lastLightStates.Add light, input	
-        End If	
-    End Sub
-
-    Public Property Get Color()
-        Color=m_color
-    End Property
-    
-    Public Property Let Color(input)
-        If IsNull(input) Then
-            m_Color = Null
-        Else
-            If Not IsArray(input) Then
-                input = Array(input, null)
-            End If
-            m_Color = input
-        End If
-    End Property
-
-    Public Property Get Palette()
-        Palette=m_palette
-    End Property
-    
-    Public Property Let Palette(input)
-        If IsNull(input) Then
-            m_palette = Null
-        Else
-            If Not IsArray(input) Then
-                m_palette = Null
-            Else
-                m_palette = input
-            End If
-        End If
-    End Property
-
-    Public Property Get Name()
-        Name=m_name
-    End Property
-    
-    Public Property Let Name(input)
-        m_name = input
-    End Property        
-
-    Public Property Get UpdateInterval()
-        UpdateInterval=m_updateInterval
-    End Property
-
-    Public Property Let UpdateInterval(input)
-        m_updateInterval = input
-        'm_Frames = input
-    End Property
-
-    Public Property Get Repeat()
-        Repeat=m_repeat
-    End Property
-
-    Public Property Let Repeat(input)
-        m_repeat = input
-    End Property
-
-    Public Property Get Loops()
-        Loops=m_loops
-    End Property
-
-    Public Property Let Loops(input)
-        m_loops = input
-    End Property
-
-    Public Property Get Pattern()
-        Pattern=m_pattern
-    End Property
-
-    Public Property Let Pattern(input)
-        m_pattern = input
-    End Property    
-
-    Public Property Get SyncMs()
-        SyncMs=m_syncMs
-    End Property
-    
-    Public Property Let SyncMs(input)
-        m_syncMs = input
-    End Property
-    
-    Public Property Get Frames()
-        Frames=m_Frames
-    End Property
-    
-    Public Property Let Frames(input)
-        m_Frames = input
-    End Property
-
-    Private Sub Class_Initialize()
-        m_currentIdx = 0
-        m_color = Null
-        m_updateInterval = 200
-        m_repeat = False
-        m_loops = 1
-        m_Frames = 200
-        m_pattern = Null
-        m_syncMs = 0
-        Set m_lightsInSeq = CreateObject("Scripting.Dictionary")
-        Set m_lastLightStates = CreateObject("Scripting.Dictionary")
-    End Sub
-
-    Public Property Get Update(framesPassed)
-        m_Frames = m_Frames - framesPassed
-        Update = m_Frames
-    End Property
-
-    Public Sub NextFrame()
-        m_currentIdx = m_currentIdx + 1
-    End Sub
-
-    Public Sub ResetInterval()
-        m_Frames = m_updateInterval
-        Exit Sub
-    End Sub
-
-End Class
-
-Class LCSeqRunner
-    
-    Private m_name, m_items, m_currentItemIdx, m_priority
-
-    Public Property Get Name()
-        Name=m_name
-    End Property
-    
-    Public Property Let Name(input)
-        m_name = input
-    End Property
-
-    Public Property Get Priority()
-        Priority=m_priority
-    End Property
-
-    Public Property Let Priority(input)
-        m_priority = input
-    End Property
-
-    Public Property Get Items()
-        Set Items = m_items
-    End Property
-
-    Public Property Get ItemByKey(key)
-        Set ItemByKey = m_items(key)
-    End Property
-
-    Public Property Get CurrentItemIdx()
-        CurrentItemIdx = m_currentItemIdx
-    End Property
-
-    Public Property Let CurrentItemIdx(input)
-        m_currentItemIdx = input
-    End Property
-
-    Public Property Get CurrentItem()
-        Dim items: items = m_items.Items()
-        If m_currentItemIdx > UBound(items) Then
-            m_currentItemIdx = 0
-        End If
-        If UBound(items) = -1 Then       
-            CurrentItem  = Null
-        Else
-            Set CurrentItem = items(m_currentItemIdx)                
-        End If
-    End Property
-
-    Private Sub Class_Initialize()    
-        Set m_items = CreateObject("Scripting.Dictionary")
-        m_currentItemIdx = 0
-        m_priority = 1000
-    End Sub
-
-    Public Sub AddItem(key, sequence, loops, speed, tokens, syncMs, duration)
-        If Not IsNull(sequence) Then
-
-            Dim lSeq : Set lSeq = New LCSeq
-            lSeq.Name = key
-            lSeq.Tokens = tokens
-            lSeq.Sequence = sequence
-            lSeq.UpdateInterval = (duration/(Ubound(sequence)+1))/speed
-            lSeq.Frames = (duration/(Ubound(sequence)+1))/speed
-            lSeq.Loops = loops
-            lSeq.SyncMs = syncMs
-
-            If Not m_items.Exists(key) Then
-                m_items.Add key, lSeq
-            End If
-        End If
-    End Sub
-
-    Public Sub AddSequenceItem(sequence)
-        If Not IsNull(sequence) Then
-            Dim loops
-            If sequence.Repeat = True Then
-                sequence.Loops = -1
-            Else
-                sequence.Loops = 1
-            End If
-            If Not m_items.Exists(sequence.Name) Then
-                m_items.Add sequence.Name, sequence
-            End If
-        End If
-    End Sub
-
-    Public Sub RemoveAll()
-        Dim item
-        For Each item in m_items.Keys()
-            m_items(item).ResetInterval
-            m_items(item).CurrentIdx = 0
-            m_items.Remove item
-        Next
-    End Sub
-
-    Public Sub RemoveItem(key)
-        If m_items.Exists(key) Then
-            m_items(key).ResetInterval
-            m_items(key).CurrentIdx = 0
-            m_items.Remove key
-        End If
-    End Sub
-
-    Public Sub NextItem()
-        Dim items: items = m_items.Items
-        Dim keys : keys = m_items.Keys
-        If items(m_currentItemIdx).Loops = 1 Then
-            RemoveItem(keys(m_currentItemIdx))
-        Else
-            If items(m_currentItemIdx).Loops > 1 Then
-                items(m_currentItemIdx).Loops = items(m_currentItemIdx).Loops - 1
-            End If
-            m_currentItemIdx = m_currentItemIdx + 1
-        End If
-        
-        If m_currentItemIdx > UBound(m_items.Items) Then   
-            m_currentItemIdx = 0
-        End If
-    End Sub
-
-    Public Function HasSeq(key)
-        If m_items.Exists(key) Then
-            HasSeq = True
-        Else
-            HasSeq = False
-        End If
-    End Function
-
-End Class
-
 '*****************************************************************************************************************************************
 '  ERROR LOGS by baldgeek
 '*****************************************************************************************************************************************

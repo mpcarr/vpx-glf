@@ -25,8 +25,18 @@ Class Mode
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get Priority(): Priority = m_priority: End Property
     Public Property Get Debug(): Debug = m_debug: End Property
-    Public Property Get LightPlayer(): Set LightPlayer = m_lightplayer: End Property
-    Public Property Get ShowPlayer(): Set ShowPlayer = m_showplayer: End Property
+    Public Property Get LightPlayer()
+        If IsNull(m_lightplayer) Then
+            Set m_lightplayer = (new GlfLightPlayer)(Me)
+        End If
+        Set LightPlayer = m_lightplayer
+    End Property
+    Public Property Get ShowPlayer()
+        If IsNull(m_showplayer) Then
+            Set m_showplayer = (new GlfShowPlayer)(Me)
+        End If
+        Set ShowPlayer = m_showplayer
+    End Property
     Public Property Get EventPlayer() : Set EventPlayer = m_eventplayer: End Property
     Public Property Get VariablePlayer(): Set VariablePlayer = m_variableplayer: End Property
 
@@ -139,7 +149,9 @@ Class Mode
             AddPinEventListener newEvent.EventName, m_name & "_stop", "ModeEventHandler", m_priority+1, Array("stop", Me, newEvent)
         Next
     End Property
-    Public Property Let Debug(value) : m_debug = value : End Property
+    Public Property Let Debug(value)
+        m_debug = value
+    End Property
 
 	Public default Function init(name, priority)
         m_name = "mode_"&name
@@ -156,8 +168,8 @@ Class Mode
         Set m_shot_groups = CreateObject("Scripting.Dictionary")
         Set m_ballholds = CreateObject("Scripting.Dictionary")
         Set m_shot_profiles = CreateObject("Scripting.Dictionary")
-        Set m_lightplayer = (new GlfLightPlayer)(Me)
-        Set m_showplayer = (new GlfShowPlayer)(Me)
+        m_lightplayer = Null
+        m_showplayer = Null
         Set m_eventplayer = (new GlfEventPlayer)(Me)
         Set m_variableplayer = (new GlfVariablePlayer)(Me)
         Dim newEvent : Set newEvent = (new GlfEvent)("ball_ended")
@@ -191,7 +203,8 @@ Class Mode
 
     Public Function ToYaml()
         dim yaml, child
-        yaml = "#config_version=6" & vbCrLf
+        yaml = "#config_version=6" & vbCrLf & vbCrLf
+
         yaml = yaml & "mode:" & vbCrLf
 
         If UBound(m_start_events.Keys) > -1 Then
@@ -219,42 +232,66 @@ Class Mode
             yaml = yaml & vbCrLf
         End If
 
-        yaml = yaml & "  priority: " & m_priority
-        yaml = yaml & vbCrLf
+        yaml = yaml & "  priority: " & m_priority & vbCrLf
+        
         If UBound(m_ballsaves.Keys)>-1 Then
-            yaml = yaml & "ballsaves: " & vbCrLf
+            yaml = yaml & vbCrLf
+            yaml = yaml & "ball_saves: " & vbCrLf
             For Each child in m_ballsaves.Keys
                 yaml = yaml & m_ballsaves(child).ToYaml
             Next
         End If
-        yaml = yaml & vbCrLf
+        
         If UBound(m_shot_profiles.Keys)>-1 Then
+            yaml = yaml & vbCrLf
             yaml = yaml & "shot_profiles: " & vbCrLf
             For Each child in m_shot_profiles.Keys
                 yaml = yaml & m_shot_profiles(child).ToYaml
             Next
         End If
-        yaml = yaml & vbCrLf
+        
         If UBound(m_shots.Keys)>-1 Then
+            yaml = yaml & vbCrLf
             yaml = yaml & "shots: " & vbCrLf
             For Each child in m_shots.Keys
                 yaml = yaml & m_shots(child).ToYaml
             Next
         End If
-        yaml = yaml & vbCrLf
+        
         If UBound(m_shot_groups.Keys)>-1 Then
+            yaml = yaml & vbCrLf
             yaml = yaml & "shot_groups: " & vbCrLf
             For Each child in m_shot_groups.Keys
                 yaml = yaml & m_shot_groups(child).ToYaml
             Next
         End If
-        yaml = yaml & vbCrLf
+        
         If UBound(m_eventplayer.Events.Keys)>-1 Then
+            yaml = yaml & vbCrLf
             yaml = yaml & "event_player: " & vbCrLf
             yaml = yaml & m_eventplayer.ToYaml()
         End If
-        yaml = yaml & vbCrLf
+        
+        If Not IsNull(m_showPlayer) Then
+            If UBound(m_showplayer.EventShows)>-1 Then
+                yaml = yaml & vbCrLf
+                yaml = yaml & "show_player: " & vbCrLf
+                yaml = yaml & m_showplayer.ToYaml()
+            End If
+        End If
+        
+        If Not IsNull(m_lightplayer) Then
+            If UBound(m_lightplayer.EventNames)>-1 Then
+                yaml = yaml & vbCrLf
+                yaml = yaml & "light_player: " & vbCrLf
+                For Each child in m_lightplayer.EventNames
+                    yaml = yaml & m_lightplayer.ToYaml()
+                Next
+            End If
+        End If
+        
         If UBound(m_ballholds.Keys)>-1 Then
+            yaml = yaml & vbCrLf
             yaml = yaml & "ball_holds: " & vbCrLf
             For Each child in m_ballholds.Keys
                 yaml = yaml & m_ballholds(child).ToYaml

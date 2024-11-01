@@ -31,10 +31,10 @@ Dim delayCallbacks : Set delayCallbacks = CreateObject("Scripting.Dictionary")
 
 Sub SetDelay(name, callbackFunc, args, delayInMs)
     Dim executionTime
-    executionTime = AlignToNearest10th(gametime + delayInMs)
-    If gametime <= executionTime Then
-        executionTime = executionTime + 100
-    End If
+    executionTime = gametime + delayInMs
+    'If gametime >= executionTime Then
+    '    executionTime = executionTime + 100
+    'End If
     
     If delayQueueMap.Exists(name) Then
         delayQueueMap.Remove name
@@ -63,6 +63,7 @@ Function RemoveDelay(name)
     If delayQueueMap.Exists(name) Then
         If delayQueue.Exists(delayQueueMap(name)) Then
             If delayQueue(delayQueueMap(name)).Exists(name) Then
+                'glf_debugLog.WriteToLog "Delay", "Removing delay for " & name & " and  Execution Time: " & delayQueueMap(name)
                 delayQueue(delayQueueMap(name)).Remove name
             End If
             delayQueueMap.Remove name
@@ -75,18 +76,17 @@ Function RemoveDelay(name)
 End Function
 
 Sub DelayTick()
-    Dim key, delayObject
-
-    Dim executionTime
-    executionTime = AlignToNearest10th(gametime)
-    If delayQueue.Exists(executionTime) Then
-        For Each key In delayQueue(executionTime).Keys()
-            If Not IsNull(delayQueue(executionTime)(key)) Then
-                Set delayObject = delayQueue(executionTime)(key)
-                'glf_debugLog.WriteToLog "Delay", "Executing delay: " & key & ", callback: " & delayObject.Callback
-                GetRef(delayObject.Callback)(delayObject.Args)    
-            End If
-        Next
-        delayQueue.Remove executionTime
-    End If
+    Dim queueItem, key, delayObject
+    For Each queueItem in delayQueue.Keys()
+        If Int(queueItem) < gametime Then
+            For Each key In delayQueue(queueItem).Keys()
+                If IsObject(delayQueue(queueItem)(key)) Then
+                    Set delayObject = delayQueue(queueItem)(key)
+                    'glf_debugLog.WriteToLog "Delay", "Executing delay: " & key & ", callback: " & delayObject.Callback
+                    GetRef(delayObject.Callback)(delayObject.Args)    
+                End If
+            Next
+            delayQueue.Remove queueItem
+        End If
+    Next
 End Sub

@@ -36,10 +36,10 @@ Class GlfShow
         End If
         
 
-        m_steps.Add CStr(UBound(m_steps.Keys())+1), new_step
+        
 
-        If UBound(m_steps.Keys()) > 0 Then
-            Dim prevStep : Set prevStep = m_steps.Items()(UBound(m_steps.Keys())-1)
+        If UBound(m_steps.Keys()) > -1 Then
+            Dim prevStep : Set prevStep = m_steps.Items()(UBound(m_steps.Keys()))
             prevStep.IsLastStep = False
             'need to work out previous steps duration.
             If IsNull(prevStep.Duration) Then
@@ -64,7 +64,7 @@ Class GlfShow
             End If
         End If
 
-        
+        m_steps.Add CStr(UBound(m_steps.Keys())+1), new_step
         Set AddStep = new_step
     End Function
 
@@ -177,7 +177,34 @@ Class GlfRunningShow
 
     Public Sub StopRunningShow()
         Log "Removing show: " & m_show_name & " With Key: " & m_key
-        LightPlayerCallbackHandler m_key, Null, m_show_name, m_priority
+        Dim cached_show,light, cached_show_lights
+        If glf_cached_shows.Exists(CacheName) Then
+            cached_show = glf_cached_shows(CacheName)
+            Set cached_show_lights = cached_show(1)
+        Else
+            msgbox "show not cached! Problem with caching"
+        End If
+        Dim lightStack
+        For Each light in cached_show_lights.Keys()
+
+            Set lightStack = glf_lightStacks(light)
+            
+            If Not lightStack.IsEmpty() Then
+                ' Pop the current top color
+                lightStack.Pop()
+            End If
+            
+            If Not lightStack.IsEmpty() Then
+                ' Set the light to the next color on the stack
+                Dim nextColor
+                Set nextColor = lightStack.Peek()
+                Glf_SetLight light, nextColor("Color")
+            Else
+                ' Turn off the light since there's nothing on the stack
+                Glf_SetLight light, "000000"
+            End If
+        Next
+
         RemoveDelay Me.ShowName & "_" & Me.Key
         glf_running_shows.Remove m_show_name
     End Sub
@@ -191,27 +218,43 @@ Function GlfShowStepHandler(args)
     Dim running_show : Set running_show = args(0)
     Dim nextStep : Set nextStep = running_show.ShowSettings.Show.StepAtIndex(running_show.CurrentStep)
     If UBound(nextStep.Lights) > -1 Then
-        Dim cached_show
+        Dim cached_show, cached_show_seq
         If glf_cached_shows.Exists(running_show.CacheName) Then
             cached_show = glf_cached_shows(running_show.CacheName)
+            cached_show_seq = cached_show(0)
         Else
             msgbox "show not cached! Problem with caching"
         End If
-        LightPlayerCallbackHandler running_show.Key, Array(cached_show(running_show.CurrentStep)), running_show.ShowName, running_show.Priority + running_show.ShowSettings.Priority
+'        glf_debugLog.WriteToLog "Running Show", join(cached_show(running_show.CurrentStep))
+        LightPlayerCallbackHandler running_show.Key, Array(cached_show_seq(running_show.CurrentStep)), running_show.ShowName, running_show.Priority + running_show.ShowSettings.Priority
+    End If
+    If nextStep.Duration = -1 Then
+        glf_debugLog.WriteToLog "Running Show", "HOLD"
+        Exit Function
     End If
     running_show.CurrentStep = running_show.CurrentStep + 1
+    If nextStep.IsLastStep = True Then
+        'msgbox "last step"
+        If IsNull(nextStep.Duration) Then
+            'msgbox "5!"
+            nextStep.Duration = 1
+        End If
+    End If
     If running_show.CurrentStep > running_show.TotalSteps Then
         'End of Show
-        If running_show.ShowSettings.Loops = -1 Or running_show.ShowSettings.Loops > 0 Then
-            If running_show.ShowSettings.Loops > 0 Then
+        glf_debugLog.WriteToLog "Running Show", "END OF SHOW"
+        If running_show.ShowSettings.Loops = -1 Or running_show.ShowSettings.Loops > 1 Then
+            If running_show.ShowSettings.Loops > 1 Then
                 running_show.ShowSettings.Loops = running_show.ShowSettings.Loops - 1
             End If
             running_show.CurrentStep = 0
             SetDelay running_show.ShowName & "_" & running_show.Key, "GlfShowStepHandler", Array(running_show), (nextStep.Duration / running_show.ShowSettings.Speed) * 1000
         Else
+'            glf_debugLog.WriteToLog "Running Show", "STOPPING SHOW, NO Loops"
             running_show.StopRunningShow()
         End If
     Else
+'        glf_debugLog.WriteToLog "Running Show", "Scheduling Next Step"
         SetDelay running_show.ShowName & "_" & running_show.Key, "GlfShowStepHandler", Array(running_show), (nextStep.Duration / running_show.ShowSettings.Speed) * 1000
     End If
 End Function
@@ -232,7 +275,7 @@ Class GlfShowStep
     End Property
 
     Public Property Get IsRelativeTime()
-        If IsNull(m_relTime) Then
+        If Not IsNull(m_relTime) Then
             IsRelativeTime = True
         Else
             IsRelativeTime = False
@@ -245,7 +288,7 @@ Class GlfShowStep
     Public Property Get Duration(): Duration = m_duration: End Property
     Public Property Let Duration(input) : m_duration = input: End Property
 
-    Public Property Get IsLastStep(): Duration = m_isLastStep: End Property
+    Public Property Get IsLastStep(): IsLastStep = m_isLastStep: End Property
     Public Property Let IsLastStep(input) : m_isLastStep = input: End Property
         
     Public default Function init()

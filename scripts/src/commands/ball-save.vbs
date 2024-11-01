@@ -41,7 +41,7 @@ Class BallSave
     Public Property Let Debug(value) : m_debug = value : End Property
 
 	Public default Function init(name, mode)
-        m_name = "ball_saves_" & name
+        m_name = "ball_save_" & name
         m_mode = mode.Name
         m_active_time = Null
 	    m_grace_period = Null
@@ -109,7 +109,7 @@ Class BallSave
         m_timer_started = False
         Log "Disabling..."
         RemovePinEventListener "ball_drain", m_name & "_ball_drain"
-        RemoveDelay "_ball_saves_"&m_name&"_disable"
+        RemoveDelay "_ball_save_"&m_name&"_disable"
         RemoveDelay m_name&"_grace_period"
         RemoveDelay m_name&"_hurry_up_time"
             
@@ -163,7 +163,7 @@ Class BallSave
     End Sub
 
     Public Sub EnterHurryUpTime
-        DispatchPinEvent m_name & "_hurry_up_time", Null
+        DispatchPinEvent m_name & "_hurry_up", Null
     End Sub
 
     Private Sub Log(message)
@@ -174,7 +174,7 @@ Class BallSave
 
     Public Function ToYaml
         Dim yaml
-        yaml = Replace(m_name, "ball_saves_", "") & ":" & vbCrLf
+        yaml = "  " & Replace(m_name, "ball_save_", "") & ":" & vbCrLf
         yaml = yaml & "    active_time: " & m_active_time(1) & "s" & vbCrLf
         yaml = yaml & "    grace_period: " & m_grace_period(1) & "s" & vbCrLf
         yaml = yaml & "    hurry_up_time: " & m_hurry_up_time(1) & "s" & vbCrLf
@@ -198,9 +198,8 @@ Class BallSave
             x = x +1
         Next
         yaml = yaml & vbCrLf
-        yaml = yaml & "    auto_launch: " & m_auto_launch & vbCrLf
+        yaml = yaml & "    auto_launch: " & LCase(m_auto_launch) & vbCrLf
         yaml = yaml & "    balls_to_save: " & m_balls_to_save & vbCrLf
-        yaml = yaml & vbCrLf
         ToYaml = yaml
     End Function
 End Class

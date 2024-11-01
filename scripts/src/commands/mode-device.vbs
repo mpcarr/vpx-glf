@@ -70,7 +70,7 @@ Class GlfBaseModeDevice
 
     Public Sub Log(message)
         If m_debug = True Then
-            glf_debugLog.WriteToLog m_mode.Name & m_device & "_" & m_parent.Name & "_play", message
+            glf_debugLog.WriteToLog m_mode.Name & m_device & "_" & m_parent.Name, message
         End If
     End Sub
 End Class

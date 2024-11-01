@@ -135,7 +135,7 @@ Class GlfShotGroup
         Next
         Dim shot_name
         For Each shot_name in m_shots
-            AddPinEventListener "shot_" & shot_name & "_hit", m_name & "_" & m_mode & "_hit", "ShotGroupEventHandler", m_priority, Array("hit", Me)
+            AddPinEventListener shot_name & "_hit", m_name & "_" & m_mode & "_hit", "ShotGroupEventHandler", m_priority, Array("hit", Me)
             AddPlayerStateEventListener "player_shot_" & shot_name, m_name & "_" & m_mode & "_complete", "ShotGroupEventHandler", m_priority, Array("complete", Me)
         Next
     End Sub
@@ -166,7 +166,7 @@ Class GlfShotGroup
         Next
         Dim shot_name
         For Each shot_name in m_shots
-            RemovePinEventListener "shot_" & shot_name & "_hit", m_name & "_" & m_mode & "_hit"
+            RemovePinEventListener shot_name & "_hit", m_name & "_" & m_mode & "_hit"
             RemovePlayerStateEventListener "player_shot_" & shot_name, m_name & "_" & m_mode & "_complete"
         Next
     End Sub
@@ -400,8 +400,6 @@ Class GlfShotGroup
             yaml = yaml & vbCrLf
         End If
  
-        yaml = yaml & "    priority: " & m_priority & vbCrLf
-        yaml = yaml & "    rotation_enabled: " & m_rotation_enabled & vbCrLf
  
         ToYaml = yaml
         End Function

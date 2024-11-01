@@ -258,8 +258,9 @@ Class GlfBallHold
     Public Function ToYaml()
         Dim yaml
         Dim evt, x
+        yaml = "  " & Replace(m_name, "ball_hold_", "") & ":" & vbCrLf
         If UBound(m_base_device.EnableEvents().Keys) > -1 Then
-            yaml = yaml & "  enable_events: "
+            yaml = yaml & "    enable_events: "
             x=0
             For Each key in m_base_device.EnableEvents().keys
                 yaml = yaml & m_base_device.EnableEvents()(key).Raw
@@ -271,7 +272,7 @@ Class GlfBallHold
             yaml = yaml & vbCrLf
         End If
         If UBound(m_base_device.DisableEvents().Keys) > -1 Then
-            yaml = yaml & "  disable_events: "
+            yaml = yaml & "    disable_events: "
             x=0
             For Each key in m_base_device.DisableEvents().keys
                 yaml = yaml & m_base_device.DisableEvents()(key).Raw
@@ -282,12 +283,12 @@ Class GlfBallHold
             Next
             yaml = yaml & vbCrLf
         End If
-        yaml = yaml & "  hold_devices: " & Join(m_hold_devices, ",") & vbCrLf
+        yaml = yaml & "    hold_devices: " & Join(m_hold_devices, ",") & vbCrLf
         If m_balls_to_hold > 0 Then
-            yaml = yaml & "  balls_to_hold: " & m_balls_to_hold & vbCrLf
+            yaml = yaml & "    balls_to_hold: " & m_balls_to_hold & vbCrLf
         End If
         If UBound(m_release_all_events.Keys) > -1 Then
-            yaml = yaml & "  release_all_events: "
+            yaml = yaml & "    release_all_events: "
             x=0
             For Each key in m_release_all_events.keys
                 yaml = yaml & m_release_all_events(key).Raw
@@ -299,7 +300,7 @@ Class GlfBallHold
             yaml = yaml & vbCrLf
         End If
         If UBound(m_release_one_events.Keys) > -1 Then
-            yaml = yaml & "  release_one_events: "
+            yaml = yaml & "    release_one_events: "
             x=0
             For Each key in m_release_one_events.keys
                 yaml = yaml & m_release_one_events(key).Raw
@@ -311,7 +312,7 @@ Class GlfBallHold
             yaml = yaml & vbCrLf
         End If
         If UBound(m_release_one_if_full_events.Keys) > -1 Then
-            yaml = yaml & "  release_one_if_full_events: "
+            yaml = yaml & "    release_one_if_full_events: "
             x=0
             For Each key in m_release_one_if_full_events.keys
                 yaml = yaml & m_release_one_if_full_events(key).Raw
