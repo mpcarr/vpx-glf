@@ -17,6 +17,7 @@ Class Mode
     Private m_ballholds
     Private m_timers
     Private m_lightplayer
+    Private m_segment_display_player
     Private m_showplayer
     Private m_variableplayer
     Private m_eventplayer
@@ -36,6 +37,12 @@ Class Mode
             Set m_showplayer = (new GlfShowPlayer)(Me)
         End If
         Set ShowPlayer = m_showplayer
+    End Property
+    Public Property Get SegmentDisplayPlayer()
+        If IsNull(m_segment_display_player) Then
+            Set m_segment_display_player = (new GlfSegmentDisplayPlayer)(Me)
+        End If
+        Set SegmentDisplayPlayer = m_segment_display_player
     End Property
     Public Property Get EventPlayer() : Set EventPlayer = m_eventplayer: End Property
     Public Property Get VariablePlayer(): Set VariablePlayer = m_variableplayer: End Property
@@ -170,6 +177,7 @@ Class Mode
         Set m_shot_profiles = CreateObject("Scripting.Dictionary")
         m_lightplayer = Null
         m_showplayer = Null
+        m_segment_display_player = Null
         Set m_eventplayer = (new GlfEventPlayer)(Me)
         Set m_variableplayer = (new GlfVariablePlayer)(Me)
         Dim newEvent : Set newEvent = (new GlfEvent)("ball_ended")
@@ -286,6 +294,16 @@ Class Mode
                 yaml = yaml & "light_player: " & vbCrLf
                 For Each child in m_lightplayer.EventNames
                     yaml = yaml & m_lightplayer.ToYaml()
+                Next
+            End If
+        End If
+
+        If Not IsNull(m_segment_display_player) Then
+            If UBound(m_segment_display_player.EventNames)>-1 Then
+                yaml = yaml & vbCrLf
+                yaml = yaml & "segment_display_player: " & vbCrLf
+                For Each child in m_segment_display_player.EventNames
+                    yaml = yaml & m_segment_display_player.ToYaml()
                 Next
             End If
         End If

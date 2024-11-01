@@ -1,5 +1,5 @@
 
-Class GlfSegmentPlayer
+Class GlfSegmentDisplayPlayer
 
     Private m_priority
     Private m_mode
@@ -78,6 +78,8 @@ Class GlfSegmentPlayerEventItem
     private m_flashing
     private m_key
     private m_transition
+    private m_transition_out
+    private m_color
 
     Public Property Get Display() : Display = m_display : End Property
     Public Property Let Display(input) : m_display = input : End Property
@@ -103,12 +105,24 @@ Class GlfSegmentPlayerEventItem
     Public Property Get Key() : Key = m_key : End Property
     Public Property Let Key(input) : m_key = input : End Property
 
+    Public Property Get Color() : Color = m_color : End Property
+    Public Property Let Color(input) : m_color = input : End Property
+
     Public Property Get Transition()
         If IsNull(m_transition) Then
             Set m_transition = (new GlfSegmentPlayerTransition)()
             Set Transition = m_transition   
         Else
             Set Transition = m_transition
+        End If
+    End Property
+
+    Public Property Get TransitionOut()
+        If IsNull(m_transition_out) Then
+            Set m_transition_out = (new GlfSegmentPlayerTransition)()
+            Set TransitionOut = m_transition_out   
+        Else
+            Set TransitionOut = m_transition_out
         End If
     End Property
                                 
@@ -122,6 +136,8 @@ Class GlfSegmentPlayerEventItem
         m_flashing = "not_set"
         m_key = Empty
         m_transition = Null
+        m_transition_out = Null
+        m_color = Rgb(255,255,255)
         Set Init = Me
 	End Function
 
@@ -151,8 +167,14 @@ Class GlfSegmentPlayerEventItem
         If Not IsEmpty(m_key) Then
             yaml = yaml & "    " & m_key & ": " & vbCrLf
         End If
+        If Not IsEmpty(m_color) Then
+            yaml = yaml & "    " & m_color & ": " & vbCrLf
+        End If
         If Not IsNull(m_transition) Then
             yaml = yaml & m_transition.ToYaml()
+        End If
+        If Not IsNull(m_transition_out) Then
+            yaml = yaml & m_transition_out.ToYaml()
         End If
         ToYaml = yaml
     End Function
@@ -221,10 +243,7 @@ Function SegmentPlayerCallbackHandler(evt, segment_item, mode, priority)
     
     If segment_item.Action = "add" Then
         RemoveDelay key
-        ' add text
-        s = TransitionManager.validate_config(s, self.machine.config_validator)
         
-           
         display.AddTextEntry segment_item.Text, segment_item.Color, segment_item.Flashing, segment_item.FlashMask, segment_item.Transition, segment_item.TransitionOut, segment_item.Priority, segment_item.Key
                             
         If segment_item.Expire > 0 Then
