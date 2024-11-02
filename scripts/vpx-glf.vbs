@@ -6233,6 +6233,7 @@ Class GlfLightSegmentDisplay
     private m_lights
     private m_segmentmap
     private m_segment_type
+    private m_size
 
     Public Property Get SegmentType() : SegmentType = m_segment_type : End Property
     Public Property Let SegmentType(input)
@@ -6247,17 +6248,21 @@ Class GlfLightSegmentDisplay
     Public Property Get LightGroup() : LightGroup = m_light_group : End Property
     Public Property Let LightGroup(input) : m_light_group = input : End Property
 
+    Public Property Get SegmentSize() : SegmentSize = m_size : End Property
+    Public Property Let SegmentSize(input) : m_size = input : End Property
+
     Public default Function init(name)
 
         m_flash_on = True
         m_flashing = "no_flash"
         m_flash_mask = Empty
         m_text = Empty
+        m_size = 0
         m_segment_type = Empty
         m_segmentmap = Null
         m_light_group = Empty
         m_current_text = Empty
-        m_display_state = Null
+        m_display_state = Empty
         m_lights = Array()  
 
         glf_segment_displays.Add name, Me
@@ -6278,9 +6283,8 @@ Class GlfLightSegmentDisplay
         If flashing = "no_flash" or m_flash_on = True or Not IsEmpty(text) Then
             If text <> m_display_state Then
                 m_display_state = text
-                
                 'Set text to lights.
-                text = Right(text, UBound(m_lights))
+                text = Right(text, m_size)
                 If text <> m_current_text Then
                     m_current_text = text
                     UpdateText()
@@ -6291,9 +6295,12 @@ Class GlfLightSegmentDisplay
 
     Private Sub UpdateText()
         'iterate lights and chars
-        'mapped_text = TextToSegmentMapper.map_segment_text_to_segments_with_color(
-        '    self._current_text, len(self._lights), self._segment_map)
-
+        Dim mapped_text, segment
+        mapped_text = MapSegmentTextToSegments(m_current_text, m_size, m_segmentmap)
+        For Each segment in mapped_text
+            'Glf_SetLight lightForChar(char), "ffffff"
+            msgbox(segment.char)
+        Next
         'for char, lights_for_char in zip(mapped_text, self._lights):
         '    for name, light in lights_for_char.items():
         '        if getattr(char[0], name):
@@ -6303,7 +6310,7 @@ Class GlfLightSegmentDisplay
     End Sub
 
     Public Sub AddTextEntry(text, color, flashing, flash_mask, transition, transition_out, priority, key)
-
+        SetText text, "no_flash", Empty
     End Sub
 
     Public Sub RemoveTextByKey(key)
@@ -6323,45 +6330,6 @@ Class GlfLightSegmentDisplay
     End Sub
 
 End Class
-
-Class Segment
-    ' Define properties
-    Public dp, char
-
-    ' Constructor equivalent to __init__
-    Public default Function init(dpValue, charValue)
-        Me.dp = dpValue
-        Me.char = charValue
-        Set Init = Me
-    End Function
-
-    ' Function to return a string representation of the Segment
-    Public Function ToString()
-        ToString = "<dp=" & Me.dp & " char=" & Me.char & ">"
-    End Function
-
-    ' Function to create a copy with dp set to 1
-    Public Function CopyWithDpOn()
-        Dim newSegment
-        Set newSegment = (New Segment)(1, Me.char)
-        Set CopyWithDpOn = newSegment
-    End Function
-
-    ' Function to compare two Segment objects
-    Public Function IsEqual(other)
-        If Not IsObject(other) Then
-            IsEqual = False
-            Exit Function
-        End If
-        
-        If (Me.dp = other.dp) And (Me.char = other.char) Then
-            IsEqual = True
-        Else
-            IsEqual = False
-        End If
-    End Function
-End Class
-
 
 Class FourteenSegments
     Public dp, l, m, n, k, j, h, g2, g1, f, e, d, c, b, a, char
@@ -6606,6 +6574,26 @@ SEVEN_SEGMENTS.Add 124, (New SevenSegments)(0, 0, 1, 1, 0, 0, 0, 0, "|")
 SEVEN_SEGMENTS.Add 125, (New SevenSegments)(0, 1, 1, 1, 0, 0, 0, 0, "}")
 SEVEN_SEGMENTS.Add 126, (New SevenSegments)(0, 0, 0, 0, 0, 0, 0, 1, "~")
 
+
+Function MapSegmentTextToSegments(text, display_width, segment_mapping)
+    'Map a segment display text to a certain display mapping.
+    Dim segments()
+	ReDim segments(Len(text)-1)
+
+	Dim charCode, i
+    For i = 1 To Len(text)
+        char = Mid(text, i, 1)
+        charCode = Asc(char)
+        If segment_mapping.Exists(CharCode) Then
+            Set mapping = segment_mapping(CharCode)
+        Else
+            Set mapping = segment_mapping(Null)
+        End If
+        Set segments(i-1) = mapping
+    Next
+
+    MapSegmentTextToSegments = segments
+End Function
 
 Class GlfEvent
 	Private m_raw, m_name, m_event, m_condition
