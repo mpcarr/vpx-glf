@@ -315,9 +315,6 @@ glf_lastEventExecutionTime = 0
 glf_lastBcpExecutionTime = 0
 glf_lastLightUpdateExecutionTime = 0
 
-Flasher001.VideoCapWidth=300
-Flasher001.VideoCapHeight=300
-
 Public Sub Glf_GameTimer_Timer()
 
     'If (gametime - glf_lastEventExecutionTime) >= 33 Then
