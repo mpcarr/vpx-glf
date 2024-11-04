@@ -13,13 +13,12 @@ Class GlfVpxBcpController
         Set m_bcpController = CreateObject("vpx_bcp_server.VpxBcpController")
         m_bcpController.Connect port, backboxCommand
         m_connected = True
-        Glf_BCPUpdateTimer.Enabled = True
-        If Err Then Debug.print("Can not start VPX BCP Controller") : m_connected = False
+        If Err Then MsgBox("Can not start VPX BCP Controller") : m_connected = False
         Set Init = Me
 	End Function
 
 	Public Sub Send(commandMessage)
-		If m_connected Then
+		If m_connected = True Then
             m_bcpController.Send commandMessage
         End If
 	End Sub
@@ -81,7 +80,6 @@ Class GlfVpxBcpController
         If m_connected Then
             m_bcpController.Disconnect()
             m_connected = False
-            Glf_BCPUpdateTimer.Enabled = False
         End If
     End Sub
 End Class
@@ -109,19 +107,20 @@ Sub Glf_BcpUpdate()
         Exit Sub
     End If
     If IsArray(messages) and UBound(messages)>-1 Then
-        Dim message, parameters, parameter
+        Dim message, parameters, parameter, eventName
         For Each message in messages
+            'debug.print(message.Command)
             Select Case message.Command
                 case "hello"
                     bcpController.Reset
                 case "monitor_start"
                     Dim category : category = message.GetValue("category")
                     If category = "player_vars" Then
-                        AddPlayerStateEventListener "score", "bcp_player_var_score", "BcpSendPlayerVar", 1000, Null
-                        AddPlayerStateEventListener "current_ball", "bcp_player_var_ball", "BcpSendPlayerVar", 1000, Null
+                        AddPlayerStateEventListener "score", "bcp_player_var_score", "Glf_BcpSendPlayerVar", 1000, Null
+                        AddPlayerStateEventListener "current_ball", "bcp_player_var_ball", "Glf_BcpSendPlayerVar", 1000, Null
                     End If
                 case "register_trigger"
-                    Dim eventName : eventName = message.GetValue("event")
+                    eventName = message.GetValue("event")
             End Select
         Next
     End If

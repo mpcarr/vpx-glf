@@ -46,7 +46,7 @@ Glf_RegisterLights()
 Dim glf_ball1, glf_ball2, glf_ball3, glf_ball4, glf_ball5, glf_ball6, glf_ball7, glf_ball8	
 
 Public Sub Glf_ConnectToBCPMediaController
-    Set bcpController = (new GlfVpxBcpController)(bcpPort	, bcpExeName)
+    Set bcpController = (new GlfVpxBcpController)(bcpPort, bcpExeName)
 End Sub
 
 Public Sub Glf_Init()
@@ -315,13 +315,15 @@ glf_lastEventExecutionTime = 0
 glf_lastBcpExecutionTime = 0
 glf_lastLightUpdateExecutionTime = 0
 
+Flasher001.VideoCapWidth=300
+Flasher001.VideoCapHeight=300
+
 Public Sub Glf_GameTimer_Timer()
 
     'If (gametime - glf_lastEventExecutionTime) >= 33 Then
      '   glf_lastEventExecutionTime = gametime
 		DelayTick
     'End If
-
 	If (gametime - glf_lastBcpExecutionTime) >= 300 Then
         glf_lastBcpExecutionTime = gametime
 		Glf_BcpUpdate
@@ -1265,13 +1267,12 @@ Class GlfVpxBcpController
         Set m_bcpController = CreateObject("vpx_bcp_server.VpxBcpController")
         m_bcpController.Connect port, backboxCommand
         m_connected = True
-        Glf_BCPUpdateTimer.Enabled = True
-        If Err Then Debug.print("Can not start VPX BCP Controller") : m_connected = False
+        If Err Then MsgBox("Can not start VPX BCP Controller") : m_connected = False
         Set Init = Me
 	End Function
 
 	Public Sub Send(commandMessage)
-		If m_connected Then
+		If m_connected = True Then
             m_bcpController.Send commandMessage
         End If
 	End Sub
@@ -1333,7 +1334,6 @@ Class GlfVpxBcpController
         If m_connected Then
             m_bcpController.Disconnect()
             m_connected = False
-            Glf_BCPUpdateTimer.Enabled = False
         End If
     End Sub
 End Class
@@ -1361,19 +1361,20 @@ Sub Glf_BcpUpdate()
         Exit Sub
     End If
     If IsArray(messages) and UBound(messages)>-1 Then
-        Dim message, parameters, parameter
+        Dim message, parameters, parameter, eventName
         For Each message in messages
+            'debug.print(message.Command)
             Select Case message.Command
                 case "hello"
                     bcpController.Reset
                 case "monitor_start"
                     Dim category : category = message.GetValue("category")
                     If category = "player_vars" Then
-                        AddPlayerStateEventListener "score", "bcp_player_var_score", "BcpSendPlayerVar", 1000, Null
-                        AddPlayerStateEventListener "current_ball", "bcp_player_var_ball", "BcpSendPlayerVar", 1000, Null
+                        AddPlayerStateEventListener "score", "bcp_player_var_score", "Glf_BcpSendPlayerVar", 1000, Null
+                        AddPlayerStateEventListener "current_ball", "bcp_player_var_ball", "Glf_BcpSendPlayerVar", 1000, Null
                     End If
                 case "register_trigger"
-                    Dim eventName : eventName = message.GetValue("event")
+                    eventName = message.GetValue("event")
             End Select
         Next
     End If
@@ -3368,7 +3369,14 @@ Class GlfSegmentDisplayPlayer
     End Sub
 
     Public Sub PlayOff(evt, segment_item)
-        SegmentPlayerCallbackHandler evt, Null, m_mode, m_priority
+        Dim key
+        key = m_mode & "." & "segment_player_player." & segment_item.Display
+        If Not IsEmpty(segment_item.Key) Then
+            key = key & segment_item.Key
+        End If
+        Dim display : Set display = glf_segment_displays(segment_item.Display)
+        RemoveDelay key
+        display.RemoveTextByKey key    
     End Sub
 
     Public Function ToYaml()
@@ -3550,43 +3558,45 @@ End Function
 
 
 Function SegmentPlayerCallbackHandler(evt, segment_item, mode, priority)
-    'Shot Text on a display
-    Dim key
-    key = mode & "." & "segment_player_player." & segment_item.Display
-    
-    If Not IsEmpty(segment_item.Key) Then
-        key = key & segment_item.Key
-    End If
 
-    Dim display : Set display = glf_segment_displays(segment_item.Display)
-    
-    If segment_item.Action = "add" Then
-        RemoveDelay key
+    If IsObject(segment_item) Then
+        'Shot Text on a display
+        Dim key
+        key = mode & "." & "segment_player_player." & segment_item.Display
         
-        display.AddTextEntry segment_item.Text, segment_item.Color, segment_item.Flashing, segment_item.FlashMask, segment_item.Transition, segment_item.TransitionOut, segment_item.Priority, segment_item.Key
-                            
-        If segment_item.Expire > 0 Then
-            'TODO Add delay for remove
-            'SetDelay
+        If Not IsEmpty(segment_item.Key) Then
+            key = key & segment_item.Key
         End If
 
-    ElseIf segment_item.Action = "remove" Then
-        RemoveDelay key
-        display.RemoveTextByKey key        
-    ElseIf segment_item.Action = "flash" Then
-        display.SetFlashing "all"
-    ElseIf segment_item.Action = "flash_match" Then
-        display.SetFlashing "match"
-    ElseIf segment_item.Action = "flash_mask" Then
-        display.SetFlashingMask segment_item.FlashMask
-    ElseIf segment_item.Action = "no_flash" Then
-        display.SetFlashing "no_flash"
-    ElseIf segment_item.Action = "set_color" Then
-        If Not IsNull(segment_item.Color) Then
-            display.SetColor segment_item.Color
+        Dim display : Set display = glf_segment_displays(segment_item.Display)
+        
+        If segment_item.Action = "add" Then
+            RemoveDelay key
+            
+            display.AddTextEntry segment_item.Text, segment_item.Color, segment_item.Flashing, segment_item.FlashMask, segment_item.Transition, segment_item.TransitionOut, segment_item.Priority, segment_item.Key
+                                
+            If segment_item.Expire > 0 Then
+                'TODO Add delay for remove
+                'SetDelay
+            End If
+
+        ElseIf segment_item.Action = "remove" Then
+            RemoveDelay key
+            display.RemoveTextByKey key        
+        ElseIf segment_item.Action = "flash" Then
+            display.SetFlashing "all"
+        ElseIf segment_item.Action = "flash_match" Then
+            display.SetFlashing "match"
+        ElseIf segment_item.Action = "flash_mask" Then
+            display.SetFlashingMask segment_item.FlashMask
+        ElseIf segment_item.Action = "no_flash" Then
+            display.SetFlashing "no_flash"
+        ElseIf segment_item.Action = "set_color" Then
+            If Not IsNull(segment_item.Color) Then
+                display.SetColor segment_item.Color
+            End If
         End If
     End If
-
 
 End Function
 Class GlfShotGroup
@@ -6231,6 +6241,7 @@ Class GlfLightSegmentDisplay
     private m_current_text
     private m_display_state
     private m_lights
+    private m_light_group
     private m_segmentmap
     private m_segment_type
     private m_size
@@ -6243,13 +6254,20 @@ Class GlfLightSegmentDisplay
         ElseIf m_segment_type = "7Segment" Then
             Set m_segmentmap = SEVEN_SEGMENTS
         End If
+        CalculateLights()
     End Property
 
     Public Property Get LightGroup() : LightGroup = m_light_group : End Property
-    Public Property Let LightGroup(input) : m_light_group = input : End Property
+    Public Property Let LightGroup(input)
+        m_light_group = input
+        CalculateLights()
+    End Property
 
     Public Property Get SegmentSize() : SegmentSize = m_size : End Property
-    Public Property Let SegmentSize(input) : m_size = input : End Property
+    Public Property Let SegmentSize(input)
+        m_size = input
+        CalculateLights()
+    End Property
 
     Public default Function init(name)
 
@@ -6268,6 +6286,22 @@ Class GlfLightSegmentDisplay
         glf_segment_displays.Add name, Me
         Set Init = Me
     End Function
+
+    Private Sub CalculateLights()
+        If Not IsEmpty(m_segment_type) And m_size > 0 And Not IsEmpty(m_light_group) Then
+            m_lights = Array()
+            If m_segment_type = "14Segment" Then
+                ReDim m_lights(m_size * 15)
+            ElseIf m_segment_type = "7Segment" Then
+                ReDim m_lights(m_size * 8)
+            End If
+
+            Dim i
+            For i=0 to UBound(m_lights)
+                m_lights(i) = m_light_group & CStr(i+1)
+            Next
+        End If
+    End Sub
 
     Private Sub SetText(text, flashing, flash_mask)
         'Set a text to the display.
@@ -6297,9 +6331,31 @@ Class GlfLightSegmentDisplay
         'iterate lights and chars
         Dim mapped_text, segment
         mapped_text = MapSegmentTextToSegments(m_current_text, m_size, m_segmentmap)
+        Dim segment_idx : segment_idx = 1
         For Each segment in mapped_text
-            'Glf_SetLight lightForChar(char), "ffffff"
-            msgbox(segment.char)
+            
+            If m_segment_type = "14Segment" Then
+                Glf_SetLight m_light_group & CStr(segment_idx), SegmentColor(segment.a)
+                Glf_SetLight m_light_group & CStr(segment_idx + 1), SegmentColor(segment.b)
+                Glf_SetLight m_light_group & CStr(segment_idx + 2), SegmentColor(segment.c)
+                Glf_SetLight m_light_group & CStr(segment_idx + 3), SegmentColor(segment.d)
+                Glf_SetLight m_light_group & CStr(segment_idx + 4), SegmentColor(segment.e)
+                Glf_SetLight m_light_group & CStr(segment_idx + 5), SegmentColor(segment.f)
+                Glf_SetLight m_light_group & CStr(segment_idx + 6), SegmentColor(segment.g1)
+                Glf_SetLight m_light_group & CStr(segment_idx + 7), SegmentColor(segment.g2)
+                Glf_SetLight m_light_group & CStr(segment_idx + 8), SegmentColor(segment.h)
+                Glf_SetLight m_light_group & CStr(segment_idx + 9), SegmentColor(segment.j)
+                Glf_SetLight m_light_group & CStr(segment_idx + 10), SegmentColor(segment.k)
+                Glf_SetLight m_light_group & CStr(segment_idx + 11), SegmentColor(segment.n)
+                Glf_SetLight m_light_group & CStr(segment_idx + 12), SegmentColor(segment.m)
+                Glf_SetLight m_light_group & CStr(segment_idx + 13), SegmentColor(segment.l)
+                Glf_SetLight m_light_group & CStr(segment_idx + 14), SegmentColor(segment.dp)
+
+            ElseIf m_segment_type = "7Segment" Then
+                
+            End If
+            
+            segment_idx = segment_idx + 15
         Next
         'for char, lights_for_char in zip(mapped_text, self._lights):
         '    for name, light in lights_for_char.items():
@@ -6308,6 +6364,14 @@ Class GlfLightSegmentDisplay
         '        else:
         '            light.remove_from_stack_by_key(key=self._key)
     End Sub
+
+    Private Function SegmentColor(value)
+        If value = 1 Then
+            SegmentColor = "ffffff"
+        Else
+            SegmentColor = "000000"
+        End If
+    End Function
 
     Public Sub AddTextEntry(text, color, flashing, flash_mask, transition, transition_out, priority, key)
         SetText text, "no_flash", Empty

@@ -49,7 +49,14 @@ Class GlfSegmentDisplayPlayer
     End Sub
 
     Public Sub PlayOff(evt, segment_item)
-        SegmentPlayerCallbackHandler evt, Null, m_mode, m_priority
+        Dim key
+        key = m_mode & "." & "segment_player_player." & segment_item.Display
+        If Not IsEmpty(segment_item.Key) Then
+            key = key & segment_item.Key
+        End If
+        Dim display : Set display = glf_segment_displays(segment_item.Display)
+        RemoveDelay key
+        display.RemoveTextByKey key    
     End Sub
 
     Public Function ToYaml()
@@ -231,42 +238,44 @@ End Function
 
 
 Function SegmentPlayerCallbackHandler(evt, segment_item, mode, priority)
-    'Shot Text on a display
-    Dim key
-    key = mode & "." & "segment_player_player." & segment_item.Display
-    
-    If Not IsEmpty(segment_item.Key) Then
-        key = key & segment_item.Key
-    End If
 
-    Dim display : Set display = glf_segment_displays(segment_item.Display)
-    
-    If segment_item.Action = "add" Then
-        RemoveDelay key
+    If IsObject(segment_item) Then
+        'Shot Text on a display
+        Dim key
+        key = mode & "." & "segment_player_player." & segment_item.Display
         
-        display.AddTextEntry segment_item.Text, segment_item.Color, segment_item.Flashing, segment_item.FlashMask, segment_item.Transition, segment_item.TransitionOut, segment_item.Priority, segment_item.Key
-                            
-        If segment_item.Expire > 0 Then
-            'TODO Add delay for remove
-            'SetDelay
+        If Not IsEmpty(segment_item.Key) Then
+            key = key & segment_item.Key
         End If
 
-    ElseIf segment_item.Action = "remove" Then
-        RemoveDelay key
-        display.RemoveTextByKey key        
-    ElseIf segment_item.Action = "flash" Then
-        display.SetFlashing "all"
-    ElseIf segment_item.Action = "flash_match" Then
-        display.SetFlashing "match"
-    ElseIf segment_item.Action = "flash_mask" Then
-        display.SetFlashingMask segment_item.FlashMask
-    ElseIf segment_item.Action = "no_flash" Then
-        display.SetFlashing "no_flash"
-    ElseIf segment_item.Action = "set_color" Then
-        If Not IsNull(segment_item.Color) Then
-            display.SetColor segment_item.Color
+        Dim display : Set display = glf_segment_displays(segment_item.Display)
+        
+        If segment_item.Action = "add" Then
+            RemoveDelay key
+            
+            display.AddTextEntry segment_item.Text, segment_item.Color, segment_item.Flashing, segment_item.FlashMask, segment_item.Transition, segment_item.TransitionOut, segment_item.Priority, segment_item.Key
+                                
+            If segment_item.Expire > 0 Then
+                'TODO Add delay for remove
+                'SetDelay
+            End If
+
+        ElseIf segment_item.Action = "remove" Then
+            RemoveDelay key
+            display.RemoveTextByKey key        
+        ElseIf segment_item.Action = "flash" Then
+            display.SetFlashing "all"
+        ElseIf segment_item.Action = "flash_match" Then
+            display.SetFlashing "match"
+        ElseIf segment_item.Action = "flash_mask" Then
+            display.SetFlashingMask segment_item.FlashMask
+        ElseIf segment_item.Action = "no_flash" Then
+            display.SetFlashing "no_flash"
+        ElseIf segment_item.Action = "set_color" Then
+            If Not IsNull(segment_item.Color) Then
+                display.SetColor segment_item.Color
+            End If
         End If
     End If
-
 
 End Function

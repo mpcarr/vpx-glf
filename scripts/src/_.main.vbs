@@ -46,7 +46,7 @@ Glf_RegisterLights()
 Dim glf_ball1, glf_ball2, glf_ball3, glf_ball4, glf_ball5, glf_ball6, glf_ball7, glf_ball8	
 
 Public Sub Glf_ConnectToBCPMediaController
-    Set bcpController = (new GlfVpxBcpController)(bcpPort	, bcpExeName)
+    Set bcpController = (new GlfVpxBcpController)(bcpPort, bcpExeName)
 End Sub
 
 Public Sub Glf_Init()
@@ -315,13 +315,15 @@ glf_lastEventExecutionTime = 0
 glf_lastBcpExecutionTime = 0
 glf_lastLightUpdateExecutionTime = 0
 
+Flasher001.VideoCapWidth=300
+Flasher001.VideoCapHeight=300
+
 Public Sub Glf_GameTimer_Timer()
 
     'If (gametime - glf_lastEventExecutionTime) >= 33 Then
      '   glf_lastEventExecutionTime = gametime
 		DelayTick
     'End If
-
 	If (gametime - glf_lastBcpExecutionTime) >= 300 Then
         glf_lastBcpExecutionTime = gametime
 		Glf_BcpUpdate
