@@ -13,7 +13,7 @@ Dim Glf_EventBlocks : Set Glf_EventBlocks = CreateObject("Scripting.Dictionary")
 Dim Glf_ShotProfiles : Set Glf_ShotProfiles = CreateObject("Scripting.Dictionary")
 Dim Glf_ShowStartQueue : Set Glf_ShowStartQueue = CreateObject("Scripting.Dictionary")
 Dim glf_playerEventsOrder : Set glf_playerEventsOrder = CreateObject("Scripting.Dictionary")
-Dim playerState : Set playerState = CreateObject("Scripting.Dictionary")
+Dim glf_playerState : Set glf_playerState = CreateObject("Scripting.Dictionary")
 Dim glf_running_shows : Set glf_running_shows = CreateObject("Scripting.Dictionary")
 Dim glf_cached_shows : Set glf_cached_shows = CreateObject("Scripting.Dictionary")
 Dim glf_lightPriority : Set glf_lightPriority = CreateObject("Scripting.Dictionary")
@@ -23,6 +23,7 @@ Dim glf_lightStacks : Set glf_lightStacks = CreateObject("Scripting.Dictionary")
 Dim glf_lightTags : Set glf_lightTags = CreateObject("Scripting.Dictionary")
 Dim glf_lightNames : Set glf_lightNames = CreateObject("Scripting.Dictionary")
 Dim glf_modes : Set glf_modes = CreateObject("Scripting.Dictionary")
+Dim glf_timers : Set glf_timers = CreateObject("Scripting.Dictionary")
 
 Dim glf_ball_devices : Set glf_ball_devices = CreateObject("Scripting.Dictionary")
 Dim glf_ball_holds : Set glf_ball_holds = CreateObject("Scripting.Dictionary")
@@ -212,6 +213,13 @@ Public Sub Glf_Init()
 			Next
 		End If
 	Next
+
+	Glf_Reset()
+End Sub
+
+Sub Glf_Reset()
+
+	DispatchQueuePinEvent "reset_complete", Null
 End Sub
 
 Sub Glf_Options(ByVal eventId)
@@ -402,6 +410,8 @@ Public Function Glf_ParseInput(value, isTime)
     Select Case VarType(value)
         Case 8 ' vbString
 			tmp = Glf_ReplaceCurrentPlayerAttributes(tmp)
+			tmp = Glf_ReplaceDeviceAttributes(tmp)
+			'msgbox tmp
 			If InStr(tmp, " if ") Then
 				templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
 				templateCode = templateCode & vbTab & Glf_ConvertIf(tmp, "Glf_" & glf_FuncCount) & vbCrLf
@@ -424,7 +434,7 @@ Public Function Glf_ParseInput(value, isTime)
 	ExecuteGlobal templateCode
 	Dim funcRef : funcRef = "Glf_" & glf_FuncCount
 	glf_FuncCount = glf_FuncCount + 1
-	Glf_ParseInput = Array(funcRef, value)
+	Glf_ParseInput = Array(funcRef, value, True)
 End Function
 
 Public Function Glf_ParseEventInput(value)
@@ -434,6 +444,7 @@ Public Function Glf_ParseEventInput(value)
 		Glf_ParseEventInput = Array(value, value, Null)
 	Else
 		dim conditionReplaced : conditionReplaced = Glf_ReplaceCurrentPlayerAttributes(condition)
+		conditionReplaced = Glf_ReplaceDeviceAttributes(conditionReplaced)
 		templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
 		templateCode = templateCode & vbTab & Glf_ConvertCondition(conditionReplaced, "Glf_" & glf_FuncCount) & vbCrLf
 		templateCode = templateCode & "End Function"
@@ -460,15 +471,15 @@ End Function
 
 Function Glf_ReplaceDeviceAttributes(inputString)
     Dim pattern, replacement, regex, outputString
-    pattern = "device\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)"
+    pattern = "devices\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)"
     Set regex = New RegExp
     regex.Pattern = pattern
     regex.IgnoreCase = True
     regex.Global = True
-	replacement = "glf_$1(""$2"").$3"
+	replacement = "glf_$1(""$2"").GetValue(""$3"")"
     outputString = regex.Replace(inputString, replacement)
     Set regex = Nothing
-    Glf_ReplaceCurrentPlayerAttributes = outputString
+    Glf_ReplaceDeviceAttributes = outputString
 End Function
 
 Function Glf_ConvertIf(value, retName)
@@ -808,6 +819,29 @@ Function Glf_IsInArray(value, arr)
         End If
     Next
 End Function
+
+Class GlfInput
+	Private m_raw, m_value, m_isGetRef
+  
+    Public Property Get Value() 
+		If m_isGetRef = True Then
+			Value = GetRef(m_value)()
+		Else
+			Value = m_value
+		End If
+	End Property
+
+    Public Property Get Raw() : Raw = m_raw : End Property
+
+	Public default Function init(input, isTime)
+        m_raw = input
+        Dim parsedInput : parsedInput = Glf_ParseInput(input, isTime)
+        m_value = parsedInput(0)
+        m_isGetRef = parsedInput(2)
+	    Set Init = Me
+	End Function
+
+End Class
 
 '******************************************************
 '*****   GLF Shows 		                           ****
@@ -1232,6 +1266,7 @@ End With
 '*****   GLF Pin Events                            ****
 '******************************************************
 
+Const GLF_GAME_START = "game_start"
 Const GLF_GAME_STARTED = "game_started"
 Const GLF_GAME_OVER = "game_ended"
 Const GLF_BALL_ENDING = "ball_ending"

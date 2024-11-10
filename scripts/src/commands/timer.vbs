@@ -33,7 +33,6 @@ Class GlfTimer
     Public Property Get StartValue() : StartValue = m_start_value : End Property
     Public Property Get EndValue() : EndValue = m_end_value : End Property
     Public Property Get Direction() : Direction = m_direction : End Property
-
     Public Property Let StartValue(value) : m_start_value = value : End Property
     Public Property Let EndValue(value) : m_end_value = value : End Property
     Public Property Let Direction(value) : m_direction = value : End Property
@@ -43,6 +42,13 @@ Class GlfTimer
     Public Property Let TickInterval(value)
         m_tick_interval = value * 1000
         m_starting_tick_interval = value
+    End Property
+
+    Public Property Get GetValue(value)
+        Select Case value
+            Case "ticks_remaining"
+              GetValue = m_ticks_remaining
+        End Select
     End Property
 
 	Public default Function init(name, mode)
@@ -61,6 +67,8 @@ Class GlfTimer
         m_running = False
 
         Set m_base_device = (new GlfBaseModeDevice)(mode, "timer", Me)
+
+        glf_timers.Add name, Me
 
         Set Init = Me
 	End Function
@@ -272,7 +280,7 @@ Class GlfTimer
                 .Add "ticks", m_ticks
                 .Add "ticks_remaining", m_ticks_remaining
             End With
-            DispatchPinEvent "m_name" & "_tick", kwargs
+            DispatchPinEvent m_name & "_tick", kwargs
             m_base_device.Log "Ticks: "&m_ticks&", Remaining: " & m_ticks_remaining
         End If
     End Function

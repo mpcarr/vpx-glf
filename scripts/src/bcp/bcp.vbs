@@ -85,6 +85,9 @@ Class GlfVpxBcpController
 End Class
 
 Sub Glf_BcpSendPlayerVar(args)
+    If IsNull(bcpController) Then
+        Exit Sub
+    End If
     Dim ownProps, kwargs : ownProps = args(0) : kwargs = args(1) 
     Dim player_var : player_var = kwargs(0)
     Dim value : value = kwargs(1)

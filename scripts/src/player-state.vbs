@@ -3,8 +3,8 @@ Function GetPlayerState(key)
         Exit Function
     End If
 
-    If playerState(glf_currentPlayer).Exists(key)  Then
-        GetPlayerState = playerState(glf_currentPlayer)(key)
+    If glf_playerState(glf_currentPlayer).Exists(key)  Then
+        GetPlayerState = glf_playerState(glf_currentPlayer)(key)
     Else
         GetPlayerState = Null
     End If
@@ -23,8 +23,8 @@ Function GetPlayerScore(player)
             p = "PLAYER 4"
     End Select
 
-    If playerState.Exists(p) Then
-        GetPlayerScore = playerState(p)(SCORE)
+    If glf_playerState.Exists(p) Then
+        GetPlayerScore = glf_playerState(p)(SCORE)
     Else
         GetPlayerScore = 0
     End If
@@ -58,11 +58,11 @@ Function SetPlayerState(key, value)
         End If
     End If   
     Dim prevValue
-    If playerState(glf_currentPlayer).Exists(key) Then
-        prevValue = playerState(glf_currentPlayer)(key)
-        playerState(glf_currentPlayer).Remove key
+    If glf_playerState(glf_currentPlayer).Exists(key) Then
+        prevValue = glf_playerState(glf_currentPlayer)(key)
+        glf_playerState(glf_currentPlayer).Remove key
     End If
-    playerState(glf_currentPlayer).Add key, value
+    glf_playerState(glf_currentPlayer).Add key, value
     
     If glf_playerEvents.Exists(key) Then
         FirePlayerEventHandlers key, value, prevValue
@@ -165,7 +165,7 @@ End Sub
 
 Sub EmitAllglf_playerEvents()
     Dim key
-    For Each key in playerState(glf_currentPlayer).Keys()
+    For Each key in glf_playerState(glf_currentPlayer).Keys()
         FirePlayerEventHandlers key, GetPlayerState(key), GetPlayerState(key)
     Next
 End Sub

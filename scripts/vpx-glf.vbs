@@ -13,7 +13,7 @@ Dim Glf_EventBlocks : Set Glf_EventBlocks = CreateObject("Scripting.Dictionary")
 Dim Glf_ShotProfiles : Set Glf_ShotProfiles = CreateObject("Scripting.Dictionary")
 Dim Glf_ShowStartQueue : Set Glf_ShowStartQueue = CreateObject("Scripting.Dictionary")
 Dim glf_playerEventsOrder : Set glf_playerEventsOrder = CreateObject("Scripting.Dictionary")
-Dim playerState : Set playerState = CreateObject("Scripting.Dictionary")
+Dim glf_playerState : Set glf_playerState = CreateObject("Scripting.Dictionary")
 Dim glf_running_shows : Set glf_running_shows = CreateObject("Scripting.Dictionary")
 Dim glf_cached_shows : Set glf_cached_shows = CreateObject("Scripting.Dictionary")
 Dim glf_lightPriority : Set glf_lightPriority = CreateObject("Scripting.Dictionary")
@@ -23,6 +23,7 @@ Dim glf_lightStacks : Set glf_lightStacks = CreateObject("Scripting.Dictionary")
 Dim glf_lightTags : Set glf_lightTags = CreateObject("Scripting.Dictionary")
 Dim glf_lightNames : Set glf_lightNames = CreateObject("Scripting.Dictionary")
 Dim glf_modes : Set glf_modes = CreateObject("Scripting.Dictionary")
+Dim glf_timers : Set glf_timers = CreateObject("Scripting.Dictionary")
 
 Dim glf_ball_devices : Set glf_ball_devices = CreateObject("Scripting.Dictionary")
 Dim glf_ball_holds : Set glf_ball_holds = CreateObject("Scripting.Dictionary")
@@ -212,6 +213,13 @@ Public Sub Glf_Init()
 			Next
 		End If
 	Next
+
+	Glf_Reset()
+End Sub
+
+Sub Glf_Reset()
+
+	DispatchQueuePinEvent "reset_complete", Null
 End Sub
 
 Sub Glf_Options(ByVal eventId)
@@ -402,6 +410,8 @@ Public Function Glf_ParseInput(value, isTime)
     Select Case VarType(value)
         Case 8 ' vbString
 			tmp = Glf_ReplaceCurrentPlayerAttributes(tmp)
+			tmp = Glf_ReplaceDeviceAttributes(tmp)
+			'msgbox tmp
 			If InStr(tmp, " if ") Then
 				templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
 				templateCode = templateCode & vbTab & Glf_ConvertIf(tmp, "Glf_" & glf_FuncCount) & vbCrLf
@@ -424,7 +434,7 @@ Public Function Glf_ParseInput(value, isTime)
 	ExecuteGlobal templateCode
 	Dim funcRef : funcRef = "Glf_" & glf_FuncCount
 	glf_FuncCount = glf_FuncCount + 1
-	Glf_ParseInput = Array(funcRef, value)
+	Glf_ParseInput = Array(funcRef, value, True)
 End Function
 
 Public Function Glf_ParseEventInput(value)
@@ -434,6 +444,7 @@ Public Function Glf_ParseEventInput(value)
 		Glf_ParseEventInput = Array(value, value, Null)
 	Else
 		dim conditionReplaced : conditionReplaced = Glf_ReplaceCurrentPlayerAttributes(condition)
+		conditionReplaced = Glf_ReplaceDeviceAttributes(conditionReplaced)
 		templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
 		templateCode = templateCode & vbTab & Glf_ConvertCondition(conditionReplaced, "Glf_" & glf_FuncCount) & vbCrLf
 		templateCode = templateCode & "End Function"
@@ -460,15 +471,15 @@ End Function
 
 Function Glf_ReplaceDeviceAttributes(inputString)
     Dim pattern, replacement, regex, outputString
-    pattern = "device\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)"
+    pattern = "devices\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)"
     Set regex = New RegExp
     regex.Pattern = pattern
     regex.IgnoreCase = True
     regex.Global = True
-	replacement = "glf_$1(""$2"").$3"
+	replacement = "glf_$1(""$2"").GetValue(""$3"")"
     outputString = regex.Replace(inputString, replacement)
     Set regex = Nothing
-    Glf_ReplaceCurrentPlayerAttributes = outputString
+    Glf_ReplaceDeviceAttributes = outputString
 End Function
 
 Function Glf_ConvertIf(value, retName)
@@ -808,6 +819,29 @@ Function Glf_IsInArray(value, arr)
         End If
     Next
 End Function
+
+Class GlfInput
+	Private m_raw, m_value, m_isGetRef
+  
+    Public Property Get Value() 
+		If m_isGetRef = True Then
+			Value = GetRef(m_value)()
+		Else
+			Value = m_value
+		End If
+	End Property
+
+    Public Property Get Raw() : Raw = m_raw : End Property
+
+	Public default Function init(input, isTime)
+        m_raw = input
+        Dim parsedInput : parsedInput = Glf_ParseInput(input, isTime)
+        m_value = parsedInput(0)
+        m_isGetRef = parsedInput(2)
+	    Set Init = Me
+	End Function
+
+End Class
 
 '******************************************************
 '*****   GLF Shows 		                           ****
@@ -1232,6 +1266,7 @@ End With
 '*****   GLF Pin Events                            ****
 '******************************************************
 
+Const GLF_GAME_START = "game_start"
 Const GLF_GAME_STARTED = "game_started"
 Const GLF_GAME_OVER = "game_ended"
 Const GLF_BALL_ENDING = "ball_ending"
@@ -1336,6 +1371,9 @@ Class GlfVpxBcpController
 End Class
 
 Sub Glf_BcpSendPlayerVar(args)
+    If IsNull(bcpController) Then
+        Exit Sub
+    End If
     Dim ownProps, kwargs : ownProps = args(0) : kwargs = args(1) 
     Dim player_var : player_var = kwargs(0)
     Dim value : value = kwargs(1)
@@ -3408,8 +3446,16 @@ Class GlfSegmentPlayerEventItem
     Public Property Get Display() : Display = m_display : End Property
     Public Property Let Display(input) : m_display = input : End Property
     
-    Public Property Get Text() : Text = m_text : End Property
-    Public Property Let Text(input) : m_text = input : End Property
+    Public Property Get Text()
+        If Not IsNull(m_text) Then
+            Text = m_text.Value()
+        Else
+            Text = Empty
+        End If
+    End Property
+    Public Property Let Text(input) 
+        Set m_text = (new GlfInput)(input, False)
+    End Property
 
     Public Property Get Priority() : Priority = m_priority : End Property
     Public Property Let Priority(input) : m_priority = input : End Property
@@ -3452,7 +3498,7 @@ Class GlfSegmentPlayerEventItem
                                 
 	Public default Function init()
         m_display = Empty
-        m_text = Empty
+        m_text = Null
         m_priority = 0
         m_action = "add"
         m_expire = 0
@@ -3470,8 +3516,8 @@ Class GlfSegmentPlayerEventItem
         If Not IsEmpty(m_display) Then
             yaml = yaml & "    " & m_display & ": " & vbCrLf
         End If
-        If Not IsEmpty(m_text) Then
-            yaml = yaml & "    " & m_text & ": " & vbCrLf
+        If Not IsNull(m_text) Then
+            yaml = yaml & "    " & m_text.Raw() & ": " & vbCrLf
         End If
         If m_priority > 0 Then
             yaml = yaml & "    " & m_priority & ": " & vbCrLf
@@ -3569,7 +3615,6 @@ Function SegmentPlayerCallbackHandler(evt, segment_item, mode, priority)
         
         If segment_item.Action = "add" Then
             RemoveDelay key
-            
             display.AddTextEntry segment_item.Text, segment_item.Color, segment_item.Flashing, segment_item.FlashMask, segment_item.Transition, segment_item.TransitionOut, segment_item.Priority, segment_item.Key
                                 
             If segment_item.Expire > 0 Then
@@ -5286,7 +5331,6 @@ Class GlfTimer
     Public Property Get StartValue() : StartValue = m_start_value : End Property
     Public Property Get EndValue() : EndValue = m_end_value : End Property
     Public Property Get Direction() : Direction = m_direction : End Property
-
     Public Property Let StartValue(value) : m_start_value = value : End Property
     Public Property Let EndValue(value) : m_end_value = value : End Property
     Public Property Let Direction(value) : m_direction = value : End Property
@@ -5296,6 +5340,13 @@ Class GlfTimer
     Public Property Let TickInterval(value)
         m_tick_interval = value * 1000
         m_starting_tick_interval = value
+    End Property
+
+    Public Property Get GetValue(value)
+        Select Case value
+            Case "ticks_remaining"
+              GetValue = m_ticks_remaining
+        End Select
     End Property
 
 	Public default Function init(name, mode)
@@ -5314,6 +5365,8 @@ Class GlfTimer
         m_running = False
 
         Set m_base_device = (new GlfBaseModeDevice)(mode, "timer", Me)
+
+        glf_timers.Add name, Me
 
         Set Init = Me
 	End Function
@@ -5525,7 +5578,7 @@ Class GlfTimer
                 .Add "ticks", m_ticks
                 .Add "ticks_remaining", m_ticks_remaining
             End With
-            DispatchPinEvent "m_name" & "_tick", kwargs
+            DispatchPinEvent m_name & "_tick", kwargs
             m_base_device.Log "Ticks: "&m_ticks&", Remaining: " & m_ticks_remaining
         End If
     End Function
@@ -6681,24 +6734,24 @@ End Class
 '******************************************************
 
 Sub Glf_AddPlayer()
-    Select Case UBound(playerState.Keys())
+    Select Case UBound(glf_playerState.Keys())
         Case -1:
-            playerState.Add "PLAYER 1", Glf_InitNewPlayer()
+            glf_playerState.Add "PLAYER 1", Glf_InitNewPlayer()
             Glf_BcpAddPlayer 1
             glf_currentPlayer = "PLAYER 1"
         Case 0:     
             If GetPlayerState(GLF_CURRENT_BALL) = 1 Then
-                playerState.Add "PLAYER 2", Glf_InitNewPlayer()
+                glf_playerState.Add "PLAYER 2", Glf_InitNewPlayer()
                 Glf_BcpAddPlayer 2
             End If
         Case 1:
             If GetPlayerState(GLF_CURRENT_BALL) = 1 Then
-                playerState.Add "PLAYER 3", Glf_InitNewPlayer()
+                glf_playerState.Add "PLAYER 3", Glf_InitNewPlayer()
                 Glf_BcpAddPlayer 3
             End If     
         Case 2:   
             If GetPlayerState(GLF_CURRENT_BALL) = 1 Then
-                playerState.Add "PLAYER 4", Glf_InitNewPlayer()
+                glf_playerState.Add "PLAYER 4", Glf_InitNewPlayer()
                 Glf_BcpAddPlayer 4
             End If  
             glf_canAddPlayers = False
@@ -6731,6 +6784,7 @@ End Function
 '*****************************
 Sub Glf_StartGame()
     glf_gameStarted = True
+    DispatchPinEvent GLF_GAME_START, Null
     If useBcp Then
         bcpController.Send "player_turn_start?player_num=int:1"
         bcpController.Send "ball_start?player_num=int:1&ball=int:1"
@@ -6795,17 +6849,17 @@ Function Glf_Drain(args)
     Dim previousPlayerNumber : previousPlayerNumber = Getglf_currentPlayerNumber()
     Select Case glf_currentPlayer
         Case "PLAYER 1":
-            If UBound(playerState.Keys()) > 0 Then
+            If UBound(glf_playerState.Keys()) > 0 Then
                 glf_currentPlayer = "PLAYER 2"
             End If
         Case "PLAYER 2":
-            If UBound(playerState.Keys()) > 1 Then
+            If UBound(glf_playerState.Keys()) > 1 Then
                 glf_currentPlayer = "PLAYER 3"
             Else
                 glf_currentPlayer = "PLAYER 1"
             End If
         Case "PLAYER 3":
-            If UBound(playerState.Keys()) > 2 Then
+            If UBound(glf_playerState.Keys()) > 2 Then
                 glf_currentPlayer = "PLAYER 4"
             Else
                 glf_currentPlayer = "PLAYER 1"
@@ -6821,7 +6875,7 @@ Function Glf_Drain(args)
         DispatchPinEvent GLF_GAME_OVER, Null
         glf_gameStarted = False
         glf_currentPlayer = Null
-        playerState.RemoveAll()
+        glf_playerState.RemoveAll()
     Else
         SetDelay "end_of_ball_delay", "EndOfBallNextPlayer", Null, 1000 
     End If
@@ -6949,6 +7003,86 @@ Function DispatchRelayPinEvent(e, kwargs)
     Glf_EventBlocks(e).RemoveAll
 End Function
 
+Function DispatchQueuePinEvent(e, kwargs)
+    If Not glf_pinEvents.Exists(e) Then
+        'glf_debugLog.WriteToLog "DispatchRelayPinEvent", e & " has no listeners"
+        Exit Function
+    End If
+    If Not Glf_EventBlocks.Exists(e) Then
+        Glf_EventBlocks.Add e, CreateObject("Scripting.Dictionary")
+    End If
+    glf_lastPinEvent = e
+    Dim k,i,retArgs
+    Dim handlers : Set handlers = glf_pinEvents(e)
+    If IsNull(kwargs) Then
+        Set kwargs = GlfKwargs()
+    End If
+    'glf_debugLog.WriteToLog "DispatchReplayPinEvent", e
+    For i=0 to UBound(glf_pinEventsOrder(e))
+        k = glf_pinEventsOrder(e)(i)
+        'glf_debugLog.WriteToLog "DispatchQueuePinEvent"&e, "key: " & k(1) & ", priority: " & k(0)
+        msgbox "DispatchQueuePinEvent: " & e & " , key: " & k(1) & ", priority: " & k(0)
+        msgbox handlers(k(1))(0)
+        'Call the handlers.
+        'The handlers might return a waitfor command.
+        'If NO wait for command, continue calling handlers.
+        'IF wait for command, then AddPinEventListener for the waitfor event. The callback handler needs to be ContinueDispatchQueuePinEvent.
+        Set retArgs = GetRef(handlers(k(1))(0))(Array(handlers(k(1))(2), kwargs, e))
+        If retArgs.Exists("wait_for") And i<Ubound(glf_pinEventsOrder(e)) Then
+            'pause execution of handlers at index I. 
+            AddPinEventListener retArgs("wait_for"), k(1) & "_wait_for", "ContinueDispatchQueuePinEvent", k(0), Array(e, kwargs, i+1)
+            Exit For
+            'add event listener for the wait_for event.
+            'pass in the index and handlers from this.
+            'in the handler for resume queue event, process from the index the remaining handlers.
+        End If
+    Next
+    Glf_EventBlocks(e).RemoveAll
+End Function
+
+
+'args Array(3)
+' Array(original_event, orignal_kwargs, index)
+' wait_for kwargs
+' event
+Function ContinueDispatchQueuePinEvent(args)
+    Dim arrContinue : arrContinue = args(0)
+    Dim e : e = arrContinue(0)
+    Dim kwargs : kwargs = arrContinue(1)
+    Dim idx : idx = arrContinue(2)
+    
+    If Not glf_pinEvents.Exists(e) Then
+        'glf_debugLog.WriteToLog "DispatchRelayPinEvent", e & " has no listeners"
+        Exit Function
+    End If
+    If Not Glf_EventBlocks.Exists(e) Then
+        Glf_EventBlocks.Add e, CreateObject("Scripting.Dictionary")
+    End If
+    glf_lastPinEvent = e
+    Dim k,i,retArgs
+    Dim handlers : Set handlers = glf_pinEvents(e)
+    'glf_debugLog.WriteToLog "DispatchReplayPinEvent", e
+    For i=idx to UBound(glf_pinEventsOrder(e))
+        k = glf_pinEventsOrder(e)(i)
+        'glf_debugLog.WriteToLog "DispatchReplayPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
+
+        'Call the handlers.
+        'The handlers might return a waitfor command.
+        'If NO wait for command, continue calling handlers.
+        'IF wait for command, then AddPinEventListener for the waitfor event. The callback handler needs to be ContinueDispatchQueuePinEvent.
+        Set retArgs = GetRef(handlers(k(1))(0))(Array(handlers(k(1))(2), kwargs, e))
+        If retArgs.Exists("wait_for") And i<Ubound(glf_pinEventsOrder(e)) Then
+            'pause execution of handlers at index I. 
+            AddPinEventListener retArgs("wait_for"), k(1) & "_wait_for", "ContinueDispatchQueuePinEvent", k(0), Array(e, kwargs, i)
+            Exit For
+            'add event listener for the wait_for event.
+            'pass in the index and handlers from this.
+            'in the handler for resume queue event, process from the index the remaining handlers.
+        End If
+    Next
+    Glf_EventBlocks(e).RemoveAll
+End Function
+
 Sub AddPinEventListener(evt, key, callbackName, priority, args)
     Dim i, inserted, tempArray
     If Not glf_pinEvents.Exists(evt) Then
@@ -7035,8 +7169,8 @@ Function GetPlayerState(key)
         Exit Function
     End If
 
-    If playerState(glf_currentPlayer).Exists(key)  Then
-        GetPlayerState = playerState(glf_currentPlayer)(key)
+    If glf_playerState(glf_currentPlayer).Exists(key)  Then
+        GetPlayerState = glf_playerState(glf_currentPlayer)(key)
     Else
         GetPlayerState = Null
     End If
@@ -7055,8 +7189,8 @@ Function GetPlayerScore(player)
             p = "PLAYER 4"
     End Select
 
-    If playerState.Exists(p) Then
-        GetPlayerScore = playerState(p)(SCORE)
+    If glf_playerState.Exists(p) Then
+        GetPlayerScore = glf_playerState(p)(SCORE)
     Else
         GetPlayerScore = 0
     End If
@@ -7090,11 +7224,11 @@ Function SetPlayerState(key, value)
         End If
     End If   
     Dim prevValue
-    If playerState(glf_currentPlayer).Exists(key) Then
-        prevValue = playerState(glf_currentPlayer)(key)
-        playerState(glf_currentPlayer).Remove key
+    If glf_playerState(glf_currentPlayer).Exists(key) Then
+        prevValue = glf_playerState(glf_currentPlayer)(key)
+        glf_playerState(glf_currentPlayer).Remove key
     End If
-    playerState(glf_currentPlayer).Add key, value
+    glf_playerState(glf_currentPlayer).Add key, value
     
     If glf_playerEvents.Exists(key) Then
         FirePlayerEventHandlers key, value, prevValue
@@ -7197,7 +7331,7 @@ End Sub
 
 Sub EmitAllglf_playerEvents()
     Dim key
-    For Each key in playerState(glf_currentPlayer).Keys()
+    For Each key in glf_playerState(glf_currentPlayer).Keys()
         FirePlayerEventHandlers key, GetPlayerState(key), GetPlayerState(key)
     Next
 End Sub

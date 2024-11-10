@@ -5,24 +5,24 @@
 '******************************************************
 
 Sub Glf_AddPlayer()
-    Select Case UBound(playerState.Keys())
+    Select Case UBound(glf_playerState.Keys())
         Case -1:
-            playerState.Add "PLAYER 1", Glf_InitNewPlayer()
+            glf_playerState.Add "PLAYER 1", Glf_InitNewPlayer()
             Glf_BcpAddPlayer 1
             glf_currentPlayer = "PLAYER 1"
         Case 0:     
             If GetPlayerState(GLF_CURRENT_BALL) = 1 Then
-                playerState.Add "PLAYER 2", Glf_InitNewPlayer()
+                glf_playerState.Add "PLAYER 2", Glf_InitNewPlayer()
                 Glf_BcpAddPlayer 2
             End If
         Case 1:
             If GetPlayerState(GLF_CURRENT_BALL) = 1 Then
-                playerState.Add "PLAYER 3", Glf_InitNewPlayer()
+                glf_playerState.Add "PLAYER 3", Glf_InitNewPlayer()
                 Glf_BcpAddPlayer 3
             End If     
         Case 2:   
             If GetPlayerState(GLF_CURRENT_BALL) = 1 Then
-                playerState.Add "PLAYER 4", Glf_InitNewPlayer()
+                glf_playerState.Add "PLAYER 4", Glf_InitNewPlayer()
                 Glf_BcpAddPlayer 4
             End If  
             glf_canAddPlayers = False
@@ -55,6 +55,7 @@ End Function
 '*****************************
 Sub Glf_StartGame()
     glf_gameStarted = True
+    DispatchPinEvent GLF_GAME_START, Null
     If useBcp Then
         bcpController.Send "player_turn_start?player_num=int:1"
         bcpController.Send "ball_start?player_num=int:1&ball=int:1"
@@ -119,17 +120,17 @@ Function Glf_Drain(args)
     Dim previousPlayerNumber : previousPlayerNumber = Getglf_currentPlayerNumber()
     Select Case glf_currentPlayer
         Case "PLAYER 1":
-            If UBound(playerState.Keys()) > 0 Then
+            If UBound(glf_playerState.Keys()) > 0 Then
                 glf_currentPlayer = "PLAYER 2"
             End If
         Case "PLAYER 2":
-            If UBound(playerState.Keys()) > 1 Then
+            If UBound(glf_playerState.Keys()) > 1 Then
                 glf_currentPlayer = "PLAYER 3"
             Else
                 glf_currentPlayer = "PLAYER 1"
             End If
         Case "PLAYER 3":
-            If UBound(playerState.Keys()) > 2 Then
+            If UBound(glf_playerState.Keys()) > 2 Then
                 glf_currentPlayer = "PLAYER 4"
             Else
                 glf_currentPlayer = "PLAYER 1"
@@ -145,7 +146,7 @@ Function Glf_Drain(args)
         DispatchPinEvent GLF_GAME_OVER, Null
         glf_gameStarted = False
         glf_currentPlayer = Null
-        playerState.RemoveAll()
+        glf_playerState.RemoveAll()
     Else
         SetDelay "end_of_ball_delay", "EndOfBallNextPlayer", Null, 1000 
     End If

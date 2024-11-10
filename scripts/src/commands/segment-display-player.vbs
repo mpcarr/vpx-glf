@@ -91,8 +91,16 @@ Class GlfSegmentPlayerEventItem
     Public Property Get Display() : Display = m_display : End Property
     Public Property Let Display(input) : m_display = input : End Property
     
-    Public Property Get Text() : Text = m_text : End Property
-    Public Property Let Text(input) : m_text = input : End Property
+    Public Property Get Text()
+        If Not IsNull(m_text) Then
+            Text = m_text.Value()
+        Else
+            Text = Empty
+        End If
+    End Property
+    Public Property Let Text(input) 
+        Set m_text = (new GlfInput)(input, False)
+    End Property
 
     Public Property Get Priority() : Priority = m_priority : End Property
     Public Property Let Priority(input) : m_priority = input : End Property
@@ -135,7 +143,7 @@ Class GlfSegmentPlayerEventItem
                                 
 	Public default Function init()
         m_display = Empty
-        m_text = Empty
+        m_text = Null
         m_priority = 0
         m_action = "add"
         m_expire = 0
@@ -153,8 +161,8 @@ Class GlfSegmentPlayerEventItem
         If Not IsEmpty(m_display) Then
             yaml = yaml & "    " & m_display & ": " & vbCrLf
         End If
-        If Not IsEmpty(m_text) Then
-            yaml = yaml & "    " & m_text & ": " & vbCrLf
+        If Not IsNull(m_text) Then
+            yaml = yaml & "    " & m_text.Raw() & ": " & vbCrLf
         End If
         If m_priority > 0 Then
             yaml = yaml & "    " & m_priority & ": " & vbCrLf
@@ -252,7 +260,6 @@ Function SegmentPlayerCallbackHandler(evt, segment_item, mode, priority)
         
         If segment_item.Action = "add" Then
             RemoveDelay key
-            
             display.AddTextEntry segment_item.Text, segment_item.Color, segment_item.Flashing, segment_item.FlashMask, segment_item.Transition, segment_item.TransitionOut, segment_item.Priority, segment_item.Key
                                 
             If segment_item.Expire > 0 Then
