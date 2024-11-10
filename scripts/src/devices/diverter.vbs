@@ -1,5 +1,5 @@
 
-Class Diverter
+Class GlfDiverter
 
     Private m_name
     Private m_activate_events

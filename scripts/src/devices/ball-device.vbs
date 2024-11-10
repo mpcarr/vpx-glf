@@ -1,4 +1,4 @@
-Class BallDevice
+Class GlfBallDevice
 
     Private m_name
     Private m_ball_switches

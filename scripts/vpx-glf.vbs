@@ -5917,7 +5917,7 @@ Sub DelayTick()
         End If
     Next
 End Sub
-Class BallDevice
+Class GlfBallDevice
 
     Private m_name
     Private m_ball_switches
@@ -6122,7 +6122,7 @@ Function BallDeviceEventHandler(args)
     End Select
 End Function
 
-Class Diverter
+Class GlfDiverter
 
     Private m_name
     Private m_activate_events
@@ -6231,7 +6231,7 @@ Function DiverterEventHandler(args)
     End Select
     DiverterEventHandler = kwargs
 End Function
-Class DropTarget
+Class GlfDropTarget
 	Private m_primary, m_secondary, m_prim, m_sw, m_animate, m_isDropped
     Private m_reset_events
   

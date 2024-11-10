@@ -1,4 +1,4 @@
-Class DropTarget
+Class GlfDropTarget
 	Private m_primary, m_secondary, m_prim, m_sw, m_animate, m_isDropped
     Private m_reset_events
   
