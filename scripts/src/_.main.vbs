@@ -103,7 +103,7 @@ Public Sub Glf_Init()
 			monitorYaml = monitorYaml + "    y: "& switch.y/tableheight & vbCrLf
 		Next
 		Dim troughCount
-		For troughCount=1 to 8
+		For troughCount=1 to troughCount
 			monitorYaml = monitorYaml + "  s_trough" & troughCount & ":"&vbCrLf
 			monitorYaml = monitorYaml + "    shape: RECTANGLE" & vbCrLf
 			monitorYaml = monitorYaml + "    size: 0.06" & vbCrLf
