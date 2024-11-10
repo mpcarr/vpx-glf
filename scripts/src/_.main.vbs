@@ -221,7 +221,7 @@ Sub Glf_Options(ByVal eventId)
 		glf_ballsPerGame = 5
 	End If
 
-	Dim glfDebug : glfDebug = Table1.Option("Glf Debug Log", 0, 1, 1, 1, 0, Array("Off", "On"))
+	Dim glfDebug : glfDebug = Table1.Option("Glf Debug Log", 0, 1, 1, 0, 0, Array("Off", "On"))
 	If glfDebug = 1 Then
 		glf_debugEnabled = True
 		glf_debugLog.EnableLogs
@@ -230,7 +230,7 @@ Sub Glf_Options(ByVal eventId)
 		glf_debugLog.DisableLogs
 	End If
 
-	Dim glfuseBCP : glfuseBCP = Table1.Option("Glf Backbox Control Protocol", 0, 1, 1, 1, 0, Array("Off", "On"))
+	Dim glfuseBCP : glfuseBCP = Table1.Option("Glf Backbox Control Protocol", 0, 1, 1, 0, 0, Array("Off", "On"))
 	If glfuseBCP = 1 Then
 		useBCP = True
 		If IsNull(bcpController) Then
