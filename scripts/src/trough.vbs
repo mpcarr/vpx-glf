@@ -73,11 +73,12 @@ Sub UpdateTrough
 End Sub
 
 Sub UpdateTroughDebounced(args)
-	If swTrough1.BallCntOver = 0 Then swTrough2.kick 57, 10
-	If swTrough2.BallCntOver = 0 Then swTrough3.kick 57, 10
-	If swTrough3.BallCntOver = 0 Then swTrough4.kick 57, 10
-	If swTrough4.BallCntOver = 0 Then swTrough5.kick 57, 10
-    If swTrough5.BallCntOver = 0 Then swTrough6.kick 57, 10
-    If swTrough6.BallCntOver = 0 Then swTrough7.kick 57, 10
-    If swTrough7.BallCntOver = 0 Then Drain.kick 57, 10
+	If glf_troughSize > 1 And swTrough1.BallCntOver = 0 Then swTrough2.kick 57, 10
+	If glf_troughSize > 2 And swTrough2.BallCntOver = 0 Then swTrough3.kick 57, 10
+	If glf_troughSize > 3 And swTrough3.BallCntOver = 0 Then swTrough4.kick 57, 10
+	If glf_troughSize > 4 And swTrough4.BallCntOver = 0 Then swTrough5.kick 57, 10
+    If glf_troughSize > 5 And swTrough5.BallCntOver = 0 Then swTrough6.kick 57, 10
+    If glf_troughSize > 6 And swTrough6.BallCntOver = 0 Then swTrough7.kick 57, 10
+    
+	If glf_lastTroughSw.BallCntOver = 0 Then Drain.kick 57, 10
 End Sub
