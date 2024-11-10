@@ -57,14 +57,14 @@ End Sub
 Sub swTrough7_UnHit
 	UpdateTrough
 End Sub
-Sub swTrough8_Hit
+Sub Drain_Hit
 	UpdateTrough
     If glf_gameStarted = True Then
         glf_BIP = glf_BIP - 1
         DispatchRelayPinEvent GLF_BALL_DRAIN, 1
     End If
 End Sub
-Sub swTrough8_UnHit
+Sub Drain_UnHit
 	UpdateTrough
 End Sub
 
@@ -79,5 +79,5 @@ Sub UpdateTroughDebounced(args)
 	If swTrough4.BallCntOver = 0 Then swTrough5.kick 57, 10
     If swTrough5.BallCntOver = 0 Then swTrough6.kick 57, 10
     If swTrough6.BallCntOver = 0 Then swTrough7.kick 57, 10
-    If swTrough7.BallCntOver = 0 Then swTrough8.kick 57, 10
+    If swTrough7.BallCntOver = 0 Then Drain.kick 57, 10
 End Sub
