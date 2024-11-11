@@ -507,15 +507,6 @@
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#mode-config" class="md-nav__link">
-    <span class="md-ellipsis">
-      Mode Config
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#ball-save-config" class="md-nav__link">
     <span class="md-ellipsis">
       Ball Save Config
@@ -568,29 +559,18 @@
 <p><a href="https://github.com/mpcarr/vpx-glf/raw/main/tutorial/glf_tutorial_ballsave.vpx">Tutorial - Ball Save VPX File</a></p>
 <h3 id="configuration">Configuration</h3>
 <p>To configure your ball save we need a mode for it live under. Create the following config to create a mode and a ball save logic block</p>
-<h4 id="mode-config">Mode Config</h4>
-<pre><code>Sub CreateBaseMode
-    Dim mode_base
-    Set mode_base = (new Mode)(&quot;base&quot;, 1000)
-
-    With mode_base
-        .StartEvents = Array(&quot;ball_started&quot;)
-        .StopEvents = Array(&quot;ball_ended&quot;) 
-    End With
-End Sub
-</code></pre>
-<p>The mode above will start every time a new ball is started and it will end when a ball ends.</p>
 <h4 id="ball-save-config">Ball Save Config</h4>
-<pre><code>With mode_base.BallSaves(&quot;base&quot;)
-    .EnableEvents = Array(&quot;mode_base_started&quot;)
-    .TimerStartEvents = Array(&quot;balldevice_plunger_ball_eject_success&quot;)
-    .ActiveTime = 15
-    .HurryUpTime = 5
-    .GracePeriod = 3
-    .BallsToSave = -1
-    .AutoLaunch = True
+<pre><code>With CreateGlfMode(&quot;base&quot;, 1000)
+    With BallSaves(&quot;base&quot;)
+        .EnableEvents = Array(&quot;mode_base_started&quot;)
+        .TimerStartEvents = Array(&quot;balldevice_plunger_ball_eject_success&quot;)
+        .ActiveTime = 15
+        .HurryUpTime = 5
+        .GracePeriod = 3
+        .BallsToSave = -1
+        .AutoLaunch = True
+    End With
 End With
-
 </code></pre>
 <p>As you can see from the settings above the ball save will be active for 15 seconds once the ball has successfully been ejected from the plunger lane, it has a grace period of 3 seconds meaning that it will actually be active for 18 seconds in total and it will save an unlimited about of balls as long as it is active.</p>
 <h4 id="update-plunger-config">Update Plunger config</h4>
