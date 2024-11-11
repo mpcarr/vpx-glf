@@ -6,29 +6,29 @@ nav:
     - 'Tutorial':
       - 'Trough': 'tutorial/tutorial-trough.md'
       - 'Plunger': 'tutorial/tutorial-plunger.md'
-      - 'Ball Save': 'tutorial/tutorial-ballsave.md'
-      - 'Lights': 'tutorial/tutorial-lights.md'
-      - 'Shows': 'tutorial/tutorial-shows.md'
-  - 'Features': features.md
-  - 'Game Logic':
-    - Virtual Devices:
-          - 'Ball Device': ball-device.md
-          - 'Diverter': diverter.md
-          - 'Drop Target': drop-target.md
-    - 'Game Logic Commands':
-          - 'Ball Save': ball-save.md
-          - 'Counter': counter.md
-          - 'Event Player': event-player.md
-          - 'Light Player': light-player.md
-          - 'Mode': mode.md
-          - 'Multiball Locks': multiball-locks.md
-          - 'Multiball': multiball.md
-          - 'Show Player': show-player.md
-          - 'Timer': timer.md
-    - 'Events System': events.md
-    - 'Player State': player-state.md
-  - 'Light Controller': light-controller.md
-  - 'DMD / LCD': dmd-lcd.md
+      #- 'Ball Save': 'tutorial/tutorial-ballsave.md'
+      #- 'Lights': 'tutorial/tutorial-lights.md'
+      #- 'Shows': 'tutorial/tutorial-shows.md'
+  #- 'Features': features.md
+  #- 'Game Logic':
+    #- Virtual Devices:
+    #      - 'Ball Device': ball-device.md
+    #      - 'Diverter': diverter.md
+    #      - 'Drop Target': drop-target.md
+    #- 'Game Logic Commands':
+    #      - 'Ball Save': ball-save.md
+    #      - 'Counter': counter.md
+    #      - 'Event Player': event-player.md
+    #      - 'Light Player': light-player.md
+    #      - 'Mode': mode.md
+    #      - 'Multiball Locks': multiball-locks.md
+    #      - 'Multiball': multiball.md
+    #      - 'Show Player': show-player.md
+    #      - 'Timer': timer.md
+    #- 'Events System': events.md
+    #- 'Player State': player-state.md
+  #- 'Light Controller': light-controller.md
+  #- 'DMD / LCD': dmd-lcd.md
   - About: about.md
 extra_css:
   - stylesheets/extra.css
