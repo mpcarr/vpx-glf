@@ -11,6 +11,10 @@
         <link rel="canonical" href="https://mpcarr.github.io/vpx-gle-framework/tutorial/tutorial-lights/">
       
       
+        <link rel="prev" href="../tutorial-plunger/">
+      
+      
+        <link rel="next" href="../../about/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -18,7 +22,7 @@
     
     
       
-        <title>Tutorial - Lights - VPX Game Logic Framework</title>
+        <title>Lights - VPX Game Logic Framework</title>
       
     
     
@@ -106,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Tutorial - Lights
+              Lights
             
           </span>
         </div>
@@ -199,10 +203,12 @@
         
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href="../../installing/" class="md-tabs__link">
           
   
@@ -268,23 +274,28 @@
       
   
   
+    
   
   
+  
     
     
     
-      
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
         
           
-          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
             
   
   <span class="md-ellipsis">
@@ -295,7 +306,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_1">
             <span class="md-nav__icon md-icon"></span>
             Getting Started
@@ -327,6 +338,8 @@
                 
   
   
+    
+  
   
   
     
@@ -336,11 +349,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" checked>
         
           
           <label class="md-nav__link" for="__nav_1_2" id="__nav_1_2_label" tabindex="0">
@@ -354,7 +367,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_1_2">
             <span class="md-nav__icon md-icon"></span>
             Tutorial
@@ -398,6 +411,105 @@
   
 
       </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Lights
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Lights
+  </span>
+  
+
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#download-the-vpx-file" class="md-nav__link">
+    <span class="md-ellipsis">
+      Download the VPX file
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#light-tags" class="md-nav__link">
+    <span class="md-ellipsis">
+      Light Tags
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#add-lights-to-glf" class="md-nav__link">
+    <span class="md-ellipsis">
+      Add Lights to GLF
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#light-player-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Light Player Configuration
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -476,18 +588,27 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#light-player-configuration" class="md-nav__link">
+  <a href="#light-tags" class="md-nav__link">
     <span class="md-ellipsis">
-      Light Player Configuration
+      Light Tags
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#light-tags" class="md-nav__link">
+  <a href="#add-lights-to-glf" class="md-nav__link">
     <span class="md-ellipsis">
-      Light Tags
+      Add Lights to GLF
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#light-player-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Light Player Configuration
     </span>
   </a>
   
@@ -514,26 +635,47 @@
 <p><img alt="lights" src="../../images/tutorial-lights.gif" /></p>
 <h3 id="download-the-vpx-file">Download the VPX file</h3>
 <p><a href="https://github.com/mpcarr/vpx-glf/raw/main/tutorial/glf_tutorial_lights.vpx">Tutorial - Lights VPX File</a></p>
-<h3 id="light-player-configuration">Light Player Configuration</h3>
-<p>For the GI add the configuration for a light player.</p>
-<pre><code>mode_base.LightPlayer.Add &quot;mode_base_started&quot;, _
-Array( _
-    &quot;l00|FF0000&quot;, _
-    &quot;l01|FF0000&quot;, _
-    &quot;l02|FF0000&quot;, _
-    &quot;l03|FF0000&quot; _
-    )
-</code></pre>
-<p>This light player will now listen for the event <strong>mode_base_started</strong> and then turn on lights l100, l101, l102, l103. It will also change the color to red.</p>
 <h3 id="light-tags">Light Tags</h3>
-<p>The goal of our light player here is to turn on the GI. We can make this easier by giving our lights tags and then using the tag in the light player.</p>
-<pre><code>lightCtrl.AddLightTags l100, &quot;gi, leftsling&quot;
-lightCtrl.AddLightTags l101, &quot;gi, leftsling&quot;
-lightCtrl.AddLightTags l102, &quot;gi, rightsling&quot;
-lightCtrl.AddLightTags l103, &quot;gi, rightsling&quot;
+<p>Lights can be grouped together using tags. This makes it easy to change the state of many lights all at the same time. In this example we will assign all our GI (General Illumination) lights with the tag <em>GI</em>.</p>
+<p>To do this in the vpx editor we are going to borrow the BlinkPattern property of the light object to hold our tag names. Select all of your GI lights, and under BlinkPattern type <code>GI</code>. You can add more tags to a light using a csv format, for example <code>GI,SLING_GI</code></p>
+<h3 id="add-lights-to-glf">Add Lights to GLF</h3>
+<p>To allow the GLF to control your lights you need to add them to the glf_lights collection you created during the getting started guide. In VPX open your collection manager and add all your lights to glf_lights.</p>
+<h3 id="light-player-configuration">Light Player Configuration</h3>
+<p>To control your lights you need a to use a <code>LightPlayer</code>. You also need a mode to contain your light player. Add the following configuration to your script</p>
+<pre><code>Public Sub CreateGIMode()
+
+    With CreateGlfMode(&quot;gi_control&quot;, 1000)
+        .StartEvents = Array(&quot;ball_started&quot;)
+        .StopEvents = Array(&quot;ball_ended&quot;) 
+        With .LightPlayer()
+            With .Events(&quot;mode_gi_control_started&quot;)
+                With .Lights(&quot;GI&quot;)
+                    .Color = &quot;ffffff&quot;
+                End With
+            End With
+        End With
+    End With
+
+End Sub
+
 </code></pre>
-<p>Now we can use the tag <strong>gi</strong> in our light player like so.</p>
-<pre><code>mode_base.LightPlayer.Add &quot;mode_base_started&quot;, Array(&quot;gi|FF0000&quot;)
+<p>Lets step through the mode config. We create a new mode called gi_control, the mode will start when the ball_started event is posted by the system and will end when the ball_ended event is posted. We setup a light player within this mode that listens for the mode started event and changes the GI lights to white color.</p>
+<p>We now need to include this mode in our game. To do that, in your ConfigureGlfDevices sub add the following</p>
+<pre><code>    Sub ConfigureGlfDevices
+        Dim ball_device_plunger
+        Set ball_device_plunger = (new GlfBallDevice)(&quot;plunger&quot;)
+
+        With ball_device_plunger
+            .BallSwitches = Array(&quot;sw01&quot;)
+            .EjectTimeout = 2
+            .MechcanicalEject = True
+            .DefaultDevice = True
+        End With
+
+        CreateGIMode() '&lt;---Add this to enable the mode
+
+        'Other device config....
+    End Sub
 </code></pre>
 
 

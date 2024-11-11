@@ -9,36 +9,57 @@ The light player is used to turn lights on and off when events happen. It inheri
 ### Download the VPX file
 [Tutorial - Lights VPX File](https://github.com/mpcarr/vpx-glf/raw/main/tutorial/glf_tutorial_lights.vpx)
 
-### Light Player Configuration
-
-For the GI add the configuration for a light player.
-
-```
-mode_base.LightPlayer.Add "mode_base_started", _
-Array( _
-	"l00|FF0000", _
-	"l01|FF0000", _
-	"l02|FF0000", _
-	"l03|FF0000" _
-	)
-```
-
-This light player will now listen for the event **mode_base_started** and then turn on lights l100, l101, l102, l103. It will also change the color to red.
-
-
 ### Light Tags
 
-The goal of our light player here is to turn on the GI. We can make this easier by giving our lights tags and then using the tag in the light player.
+Lights can be grouped together using tags. This makes it easy to change the state of many lights all at the same time. In this example we will assign all our GI (General Illumination) lights with the tag *GI*.
+
+To do this in the vpx editor we are going to borrow the BlinkPattern property of the light object to hold our tag names. Select all of your GI lights, and under BlinkPattern type ```GI```. You can add more tags to a light using a csv format, for example ```GI,SLING_GI```
+
+### Add Lights to GLF
+
+To allow the GLF to control your lights you need to add them to the glf_lights collection you created during the getting started guide. In VPX open your collection manager and add all your lights to glf_lights.
+
+### Light Player Configuration
+
+To control your lights you need a to use a ```LightPlayer```. You also need a mode to contain your light player. Add the following configuration to your script
 
 ```
-lightCtrl.AddLightTags l100, "gi, leftsling"
-lightCtrl.AddLightTags l101, "gi, leftsling"
-lightCtrl.AddLightTags l102, "gi, rightsling"
-lightCtrl.AddLightTags l103, "gi, rightsling"
+Public Sub CreateGIMode()
+
+    With CreateGlfMode("gi_control", 1000)
+        .StartEvents = Array("ball_started")
+        .StopEvents = Array("ball_ended") 
+        With .LightPlayer()
+            With .Events("mode_gi_control_started")
+                With .Lights("GI")
+                    .Color = "ffffff"
+                End With
+            End With
+        End With
+    End With
+    
+End Sub
+
 ```
 
-Now we can use the tag **gi** in our light player like so.
+Lets step through the mode config. We create a new mode called gi_control, the mode will start when the ball_started event is posted by the system and will end when the ball_ended event is posted. We setup a light player within this mode that listens for the mode started event and changes the GI lights to white color.
+
+We now need to include this mode in our game. To do that, in your ConfigureGlfDevices sub add the following
 
 ```
-mode_base.LightPlayer.Add "mode_base_started", Array("gi|FF0000")
+    Sub ConfigureGlfDevices
+        Dim ball_device_plunger
+        Set ball_device_plunger = (new GlfBallDevice)("plunger")
+
+        With ball_device_plunger
+            .BallSwitches = Array("sw01")
+            .EjectTimeout = 2
+            .MechcanicalEject = True
+            .DefaultDevice = True
+        End With
+
+        CreateGIMode() '<---Add this to enable the mode
+        
+        'Other device config....
+    End Sub
 ```

@@ -403,6 +403,27 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/tutorial-lights/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Lights
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -605,7 +626,7 @@
 <p>A ball device is anything on your table that can hold a ball and then release it.</p>
 <h2 id="scoop-example">Scoop Example</h2>
 <pre><code>Dim ball_device_scoop
-Set ball_device_scoop = (new BallDevice)(&quot;scoop&quot;)
+Set ball_device_scoop = (new GlfBallDevice)(&quot;scoop&quot;)
 
 With ball_device_scoop
     .BallSwitches = Array(&quot;sw39&quot;)
@@ -617,7 +638,7 @@ End With
 <p>In the above example we created a ball device called <strong>ball_device_scoop</strong>, it has one switch so holds one ball and an eject timeout of 2 seconds. When the ball ends, if there are any balls in this device, it will eject them as we set the eject all events to ball_ended.</p>
 <h2 id="plunger-example">Plunger Example</h2>
 <pre><code>Dim ball_device_scoop
-Set ball_device_scoop = (new BallDevice)(&quot;plunger&quot;)
+Set ball_device_scoop = (new GlfBallDevice)(&quot;plunger&quot;)
 
 With ball_device_scoop
     .BallSwitches = Array(&quot;sw10&quot;)

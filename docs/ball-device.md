@@ -6,7 +6,7 @@ A ball device is anything on your table that can hold a ball and then release it
 
 ```
 Dim ball_device_scoop
-Set ball_device_scoop = (new BallDevice)("scoop")
+Set ball_device_scoop = (new GlfBallDevice)("scoop")
 
 With ball_device_scoop
     .BallSwitches = Array("sw39")
@@ -22,7 +22,7 @@ In the above example we created a ball device called **ball_device_scoop**, it h
 
 ```
 Dim ball_device_scoop
-Set ball_device_scoop = (new BallDevice)("plunger")
+Set ball_device_scoop = (new GlfBallDevice)("plunger")
 
 With ball_device_scoop
     .BallSwitches = Array("sw10")

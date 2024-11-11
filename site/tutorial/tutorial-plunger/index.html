@@ -14,7 +14,7 @@
         <link rel="prev" href="../tutorial-trough/">
       
       
-        <link rel="next" href="../../about/">
+        <link rel="next" href="../tutorial-lights/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -485,6 +485,27 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-lights/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Lights
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -604,7 +625,7 @@ It is the default ball device that is used to get balls onto the playfield.</p>
 <p>To configure your plunger device add the code below to your Configure Glf Devices Sub.</p>
 <pre><code>Sub ConfigureGlfDevices
     Dim ball_device_plunger
-    Set ball_device_plunger = (new BallDevice)(&quot;plunger&quot;)
+    Set ball_device_plunger = (new GlfBallDevice)(&quot;plunger&quot;)
 
     With ball_device_plunger
         .BallSwitches = Array(&quot;sw01&quot;)
