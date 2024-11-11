@@ -599,6 +599,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#enabling-the-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Enabling the Mode
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -620,6 +629,27 @@
   
   <span class="md-ellipsis">
     Lights
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-shows/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shows
   </span>
   
 
@@ -1234,6 +1264,15 @@
   
 </li>
       
+        <li class="md-nav__item">
+  <a href="#enabling-the-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Enabling the Mode
+    </span>
+  </a>
+  
+</li>
+      
     </ul>
   
 </nav>
@@ -1256,21 +1295,20 @@
 <h3 id="configuration">Configuration</h3>
 <p>To configure your ball save we need a mode for it live under. Create the following config to create a mode and a ball save logic block</p>
 <h4 id="mode-config">Mode Config</h4>
-<pre><code>Dim mode_ballsave
-Set mode_ballsave = (new Mode)(&quot;ballsave&quot;, 1000)
+<pre><code>Sub CreateBaseMode
+    Dim mode_base
+    Set mode_base = (new Mode)(&quot;base&quot;, 1000)
 
-With mode_ballsave
-    .StartEvents = Array(&quot;ball_started&quot;)
-    .StopEvents = Array(&quot;ball_ended&quot;)
-End With
+    With mode_base
+        .StartEvents = Array(&quot;ball_started&quot;)
+        .StopEvents = Array(&quot;ball_ended&quot;) 
+    End With
+End Sub
 </code></pre>
 <p>The mode above will start every time a new ball is started and it will end when a ball ends.</p>
 <h4 id="ball-save-config">Ball Save Config</h4>
-<pre><code>Dim ball_save
-Set ball_save = (new BallSave)(&quot;base&quot;, mode_ballsave)
-
-With ball_save
-    .EnableEvents = Array(&quot;mode_ballsave_started&quot;)
+<pre><code>With mode_base.BallSaves(&quot;base&quot;)
+    .EnableEvents = Array(&quot;mode_base_started&quot;)
     .TimerStartEvents = Array(&quot;balldevice_plunger_ball_eject_success&quot;)
     .ActiveTime = 15
     .HurryUpTime = 5
@@ -1278,6 +1316,7 @@ With ball_save
     .BallsToSave = -1
     .AutoLaunch = True
 End With
+
 </code></pre>
 <p>As you can see from the settings above the ball save will be active for 15 seconds once the ball has successfully been ejected from the plunger lane, it has a grace period of 3 seconds meaning that it will actually be active for 18 seconds in total and it will save an unlimited about of balls as long as it is active.</p>
 <h4 id="update-plunger-config">Update Plunger config</h4>
@@ -1291,6 +1330,25 @@ End With
 End With
 </code></pre>
 <p>Above we have also changed the <strong>EjectTimeout</strong> for <strong>EjectTargets</strong>. As we have a gate at the end of our plunger lane, we can use this to determine if our ball made it out of the plunger lane successfully rather than a timeout.</p>
+<h2 id="enabling-the-mode">Enabling the Mode</h2>
+<p>Finally we need to enable this mode in our game by calling the <code>CreateBaseMode</code> sub in our <code>CongifureGlfDevices</code> Sub.</p>
+<pre><code>Sub ConfigureGlfDevices
+    Dim ball_device_plunger
+    Set ball_device_plunger = (new BallDevice)(&quot;plunger&quot;)
+
+    With ball_device_plunger
+        .BallSwitches = Array(&quot;sw01&quot;)
+        .EjectTimeout = 2
+        .MechcanicalEject = True
+        .DefaultDevice = True
+    End With
+
+    CreateBaseMode() '&lt;---Add this to enable the mode
+
+    'Other device config....
+End Sub
+</code></pre>
+<p>```</p>
 
 
 

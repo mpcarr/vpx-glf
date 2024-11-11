@@ -605,6 +605,27 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-shows/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shows
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1212,16 +1233,20 @@ It is the default ball device that is used to get balls onto the playfield.</p>
 <p><img alt="trough1" src="../../images/plunger1.png" /></p>
 <p>In the example file we have named the switch <strong>sw01</strong>.</p>
 <h3 id="configuration">Configuration</h3>
-<p>To configure your plunger device add the code below to your table script.</p>
-<pre><code>Dim ball_device_plunger
-Set ball_device_plunger = (new BallDevice)(&quot;plunger&quot;)
+<p>To configure your plunger device add the code below to your Configure Glf Devices Sub.</p>
+<pre><code>Sub ConfigureGlfDevices
+    Dim ball_device_plunger
+    Set ball_device_plunger = (new BallDevice)(&quot;plunger&quot;)
 
-With ball_device_plunger
-    .BallSwitches = Array(&quot;sw01&quot;)
-    .EjectTimeout = 2
-    .MechcanicalEject = True
-    .DefaultDevice = True
-End With
+    With ball_device_plunger
+        .BallSwitches = Array(&quot;sw01&quot;)
+        .EjectTimeout = 2
+        .MechcanicalEject = True
+        .DefaultDevice = True
+    End With
+
+    'Other device config....
+End Sub
 </code></pre>
 <p>The above configuration sets up the plunger as a mechcanical plunger, meaning the ball won't automatically fire out of the plunger lane, you will have to pull and release the plunger to fire it. We have also set the ball device as the default device (this is the ball device which recieves a ball from the trough). The eject timeout setting tells the device how long to wait until deeming the ball successfully exited the device, e.g. If the ball didn't reach the end of the plunger lane and fell back within 2 seconds, the ball would not have exited successfully.</p>
 

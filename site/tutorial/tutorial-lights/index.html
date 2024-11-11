@@ -14,7 +14,7 @@
         <link rel="prev" href="../tutorial-ballsave/">
       
       
-        <link rel="next" href="../../features/">
+        <link rel="next" href="../tutorial-shows/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
@@ -585,38 +585,14 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Light Player Configuration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#show-player-config" class="md-nav__link">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#light-tags" class="md-nav__link">
     <span class="md-ellipsis">
-      Show Player Config
+      Light Tags
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#show-player" class="md-nav__link">
-    <span class="md-ellipsis">
-      Show Player
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#show-player-items" class="md-nav__link">
-    <span class="md-ellipsis">
-      Show Player Items
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -624,6 +600,27 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-shows/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shows
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -1199,38 +1196,14 @@
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Light Player Configuration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#show-player-config" class="md-nav__link">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#light-tags" class="md-nav__link">
     <span class="md-ellipsis">
-      Show Player Config
+      Light Tags
     </span>
   </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#show-player" class="md-nav__link">
-    <span class="md-ellipsis">
-      Show Player
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#show-player-items" class="md-nav__link">
-    <span class="md-ellipsis">
-      Show Player Items
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1250,82 +1223,32 @@
 
 
 <h1 id="tutorial-lights">Tutorial - Lights</h1>
-<p>Now that we have a basic game life cycle, we can introduce some lights management to our table. We are going to setup a light player for the GI so that it turns on when the ball starts and off when the ball ends. And we will setup a show player to light a ball save insert.</p>
+<p>Now that we have a basic game life cycle, we can introduce some lights management to our table. We are going to setup a light player for the GI so that it turns on when the ball starts and off when the ball ends.</p>
+<p>The light player is used to turn lights on and off when events happen. It inherits the priority of the mode its assigned to. For more information check out the <a href="/vpx-gle-framework/light-player">Light Player</a> command reference</p>
 <p><img alt="lights" src="../../images/tutorial-lights.gif" /></p>
 <h3 id="download-the-vpx-file">Download the VPX file</h3>
 <p><a href="https://github.com/mpcarr/vpx-glf/raw/main/tutorial/glf_tutorial_lights.vpx">Tutorial - Lights VPX File</a></p>
 <h3 id="light-player-configuration">Light Player Configuration</h3>
 <p>For the GI add the configuration for a light player.</p>
-<pre><code>lightCtrl.AddLightTags l100, &quot;gi&quot;
-lightCtrl.AddLightTags l101, &quot;gi&quot;
-lightCtrl.AddLightTags l102, &quot;gi&quot;
-lightCtrl.AddLightTags l103, &quot;gi&quot;
-
-Dim light_player_base
-Set light_player_base = (new LightPlayer)(&quot;base&quot;, mode_base)
-
-light_player_base.Add &quot;mode_base_started&quot;, Array(&quot;gi|FF0000&quot;)
+<pre><code>mode_base.LightPlayer.Add &quot;mode_base_started&quot;, _
+Array( _
+    &quot;l00|FF0000&quot;, _
+    &quot;l01|FF0000&quot;, _
+    &quot;l02|FF0000&quot;, _
+    &quot;l03|FF0000&quot; _
+    )
 </code></pre>
-<p>The light player runs under our base mode and listens for the mode started event. When the mode starts, the lights tagged as <strong>gi</strong> will be set to Red. When the mode ends, the lights will go out.</p>
-<h4 id="show-player-config">Show Player Config</h4>
-<p>Next we would like our ball save to flash an insert whilst it's running. Add the configuration for the show player</p>
-<pre><code>Dim FlashColor
-FlashColor = Array( _
-    Array(&quot;(lights)|100|(color)&quot;), _
-    Array(&quot;(lights)|0|(color)&quot;) _
-)
+<p>This light player will now listen for the event <strong>mode_base_started</strong> and then turn on lights l100, l101, l102, l103. It will also change the color to red.</p>
+<h3 id="light-tags">Light Tags</h3>
+<p>The goal of our light player here is to turn on the GI. We can make this easier by giving our lights tags and then using the tag in the light player.</p>
+<pre><code>lightCtrl.AddLightTags l100, &quot;gi, leftsling&quot;
+lightCtrl.AddLightTags l101, &quot;gi, leftsling&quot;
+lightCtrl.AddLightTags l102, &quot;gi, rightsling&quot;
+lightCtrl.AddLightTags l103, &quot;gi, rightsling&quot;
 </code></pre>
-<p>First we define a show called FlashColor. The show contains two steps, lets breakdown whats happening.</p>
-<ul>
-<li>(lights)|100|(color)<ul>
-<li>(lights) - A placeholder token for our lights which we will define later</li>
-<li>100 - The brightness of the light</li>
-<li>(color) - A placeholder token for the color of the lights</li>
-</ul>
-</li>
-</ul>
-<h4 id="show-player">Show Player</h4>
-<p>We can now define our ShowPlayer and ShowPlayerItems. This is where we define the properties of the show</p>
-<pre><code>Dim show_player_base
-Set show_player_base = (new ShowPlayer)(&quot;base&quot;, mode_base)
+<p>Now we can use the tag <strong>gi</strong> in our light player like so.</p>
+<pre><code>mode_base.LightPlayer.Add &quot;mode_base_started&quot;, Array(&quot;gi|FF0000&quot;)
 </code></pre>
-<h4 id="show-player-items">Show Player Items</h4>
-<pre><code>Dim show_ball_save_active
-Set show_ball_save_active = (new ShowPlayerItem)()
-With show_ball_save_active
-    .Key = &quot;ball_save&quot;
-    .Show = FlashColor
-    .Loops = -1
-    .Speed = 1
-End With
-show_ball_save_active.AddToken &quot;lights&quot;, &quot;l01&quot;
-show_ball_save_active.AddToken &quot;color&quot;, &quot;00ff00&quot;
-</code></pre>
-<p>We create a show item with the key of <strong>ball_save</strong>, it should run the show <strong>FlashColor</strong>, loop until we tell it to stop and run at the default speed.
-You can see we also added two tokens, one for <strong>lights</strong> and one for <strong>color</strong>. These are the tokens needed for the FlashColor show. </p>
-<pre><code>show_player_base.Add &quot;ball_saves_base_timer_start&quot;, show_ball_save_active
-</code></pre>
-<p>Above we add the show player item to the show player. It will start to play when the event <strong>ball_saves_base_timer_start</strong> is emitted.</p>
-<p>We now would like our light to blink faster when the ball save is in it's hurry up state. Lets define another show player item for that</p>
-<pre><code>Dim show_ball_save_hurry
-Set show_ball_save_hurry = (new ShowPlayerItem)()
-With show_ball_save_hurry
-    .Key = &quot;ball_save&quot;
-    .Show = FlashColor
-    .Loops = -1
-    .Speed = 2
-End With
-show_ball_save_hurry.AddToken &quot;lights&quot;, &quot;l01&quot;
-show_ball_save_hurry.AddToken &quot;color&quot;, &quot;00ff00&quot;
-</code></pre>
-<p>Similar to the last item, however this one runs at twice the default speed. We could here also change the color of the light if we wanted by adjusting the color token.</p>
-<pre><code>show_player_base.Add &quot;ball_saves_base_hurry_up_time&quot;, show_ball_save_hurry
-</code></pre>
-<p>We add this item to the show player for the ball saves hurry up event.</p>
-<p>Finally, we want to turn the light off when the ball save enters it's grace period.</p>
-<pre><code>show_player_base.Add &quot;ball_saves_base_grace_period&quot;, &quot;ball_save.stop&quot;
-</code></pre>
-<p>We can just add a new item entry directly to the show player in the format <strong>key.action</strong></p>
 
 
 
