@@ -23,7 +23,7 @@ To configure your plunger device add the code below to your Configure Glf Device
 ```
 Sub ConfigureGlfDevices
     Dim ball_device_plunger
-    Set ball_device_plunger = (new BallDevice)("plunger")
+    Set ball_device_plunger = (new GlfBallDevice)("plunger")
 
     With ball_device_plunger
         .BallSwitches = Array("sw01")
