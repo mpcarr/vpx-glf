@@ -13,10 +13,8 @@ To setup your trough we need to create some blocker walls and trough kickers aro
 
 ![trough1](../images/tutorial-trough1.png)
 
-The kicker switches need to named **swTrough1** - **swTrough8** with the **swTrough1** switch being closest to the plunger lane and **swTrough8** being the ball drain kicker.
+The kicker switches need to named **swTrough1** - **swTrough7** plus a **Drain** kicker. **swTrough1** switch being closest to the plunger lane and **Drain** being the kicker that collects the ball from the playfield.
 
 ### Configuration
 
-The default settings for the trough ia a 6 ball setup. To change this there will be a table option automatically added by GLF. Press F12 to open the VPX options menu and navigate to the table options. You will see a setting for trough capacity. You can change this here whilst a game is not in progress.
-
-![trough2](../images/tutorial-trough2.png)
+Include enough kickers to cover your games ball capacity. e.g. if your game takes 5 balls make swTrough1 - swTrough5 + Drain.

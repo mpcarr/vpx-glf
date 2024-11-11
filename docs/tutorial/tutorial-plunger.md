@@ -18,18 +18,22 @@ In the example file we have named the switch **sw01**.
 
 ### Configuration
 
-To configure your plunger device add the code below to your table script.
+To configure your plunger device add the code below to your Configure Glf Devices Sub.
 
 ```
-Dim ball_device_plunger
-Set ball_device_plunger = (new BallDevice)("plunger")
+Sub ConfigureGlfDevices
+    Dim ball_device_plunger
+    Set ball_device_plunger = (new BallDevice)("plunger")
 
-With ball_device_plunger
-    .BallSwitches = Array("sw01")
-    .EjectTimeout = 2
-    .MechcanicalEject = True
-    .DefaultDevice = True
-End With
+    With ball_device_plunger
+        .BallSwitches = Array("sw01")
+        .EjectTimeout = 2
+        .MechcanicalEject = True
+        .DefaultDevice = True
+    End With
+
+    'Other device config....
+End Sub
 ```
 
 The above configuration sets up the plunger as a mechcanical plunger, meaning the ball won't automatically fire out of the plunger lane, you will have to pull and release the plunger to fire it. We have also set the ball device as the default device (this is the ball device which recieves a ball from the trough). The eject timeout setting tells the device how long to wait until deeming the ball successfully exited the device, e.g. If the ball didn't reach the end of the plunger lane and fell back within 2 seconds, the ball would not have exited successfully.

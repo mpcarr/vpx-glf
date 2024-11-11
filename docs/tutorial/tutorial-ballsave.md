@@ -12,13 +12,15 @@ To configure your ball save we need a mode for it live under. Create the followi
 #### Mode Config
 
 ```
-Dim mode_base
-Set mode_base = (new Mode)("base", 1000)
+Sub CreateBaseMode
+    Dim mode_base
+    Set mode_base = (new Mode)("base", 1000)
 
-With mode_base
-    .StartEvents = Array("ball_started")
-    .StopEvents = Array("ball_ended") 
-End With
+    With mode_base
+        .StartEvents = Array("ball_started")
+        .StopEvents = Array("ball_ended") 
+    End With
+End Sub
 ```
 
 The mode above will start every time a new ball is started and it will end when a ball ends.
@@ -56,3 +58,25 @@ End With
 
 Above we have also changed the **EjectTimeout** for **EjectTargets**. As we have a gate at the end of our plunger lane, we can use this to determine if our ball made it out of the plunger lane successfully rather than a timeout.
 
+## Enabling the Mode
+
+Finally we need to enable this mode in our game by calling the ```CreateBaseMode``` sub in our ```CongifureGlfDevices``` Sub.
+
+```
+Sub ConfigureGlfDevices
+    Dim ball_device_plunger
+    Set ball_device_plunger = (new BallDevice)("plunger")
+
+    With ball_device_plunger
+        .BallSwitches = Array("sw01")
+        .EjectTimeout = 2
+        .MechcanicalEject = True
+        .DefaultDevice = True
+    End With
+
+    CreateBaseMode() '<---Add this to enable the mode
+    
+    'Other device config....
+End Sub
+```
+```

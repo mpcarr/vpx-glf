@@ -10,7 +10,7 @@ The GLF requires a few global settings to function correctly.
 
 #### GLF Game Timer
 
-Add a timer object to your vpx table called Glf_GameTimer. Set it to Enabled with an Interval of -1ms.
+Add a timer object added to your vpx table called Glf_GameTimer. Set it to Enabled with an Interval of -1ms.
 
 #### GLF Table Collection
 
@@ -36,17 +36,28 @@ Dim tableheight: tableheight = Table1.height
 
 ```
 
+## Configure Devices
+
+You'll need an entry point to configure your devices and enable modes. Create a sub called ```ConfigureGlfDevices```
+
+```
+Sub ConfigureGlfDevices
+    'Device confguration goes here.
+End Sub
+```
+
 ## Adding Hooks into GLF
 
 Once the script has been added, you need to add these calls into to your table event subs.
 
 #### Table Init
 
-Inside ```Table1_Init``` add ```Glf_Init()```
+Inside ```Table1_Init``` add your ```ConfigureGlfDevices``` sub call and ```Glf_Init()```
 
 **Example**
 ```
 Sub Table1_Init()
+    ConfigureGlfDevices()
 	Glf_Init()
 End Sub
 ```
@@ -94,3 +105,4 @@ Sub Table1_OptionEvent(ByVal eventId)
 End Sub
 
 ```
+
