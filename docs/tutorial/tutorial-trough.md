@@ -4,8 +4,6 @@ The trough is special device that collects balls from the playfield when they dr
 
 ![trough1](../images/trough.gif)
 
-### Download the VPX file
-[Tutorial 1 - Trough VPX File](https://github.com/mpcarr/vpx-glf/raw/main/tutorial/glf_tutorial_trough.vpx)
 
 ### Setup
 

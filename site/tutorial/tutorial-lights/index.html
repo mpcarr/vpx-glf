@@ -471,15 +471,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#download-the-vpx-file" class="md-nav__link">
-    <span class="md-ellipsis">
-      Download the VPX file
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#light-tags" class="md-nav__link">
     <span class="md-ellipsis">
       Light Tags
@@ -579,15 +570,6 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#download-the-vpx-file" class="md-nav__link">
-    <span class="md-ellipsis">
-      Download the VPX file
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#light-tags" class="md-nav__link">
     <span class="md-ellipsis">
       Light Tags
@@ -633,8 +615,6 @@
 <p>Now that we have a basic game life cycle, we can introduce some lights management to our table. We are going to setup a light player for the GI so that it turns on when the ball starts and off when the ball ends.</p>
 <p>The light player is used to turn lights on and off when events happen. It inherits the priority of the mode its assigned to. For more information check out the <a href="/vpx-gle-framework/light-player">Light Player</a> command reference</p>
 <p><img alt="lights" src="../../images/tutorial-lights.gif" /></p>
-<h3 id="download-the-vpx-file">Download the VPX file</h3>
-<p><a href="https://github.com/mpcarr/vpx-glf/raw/main/tutorial/glf_tutorial_lights.vpx">Tutorial - Lights VPX File</a></p>
 <h3 id="light-tags">Light Tags</h3>
 <p>Lights can be grouped together using tags. This makes it easy to change the state of many lights all at the same time. In this example we will assign all our GI (General Illumination) lights with the tag <em>GI</em>.</p>
 <p>To do this in the vpx editor we are going to borrow the BlinkPattern property of the light object to hold our tag names. Select all of your GI lights, and under BlinkPattern type <code>GI</code>. You can add more tags to a light using a csv format, for example <code>GI,SLING_GI</code></p>

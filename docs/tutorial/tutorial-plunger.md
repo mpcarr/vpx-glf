@@ -5,9 +5,6 @@ It is the default ball device that is used to get balls onto the playfield.
 
 ![plunger1](../images/plunger.gif)
 
-### Download the VPX file
-[Tutorial - Plunger VPX File](https://github.com/mpcarr/vpx-glf/raw/main/tutorial/glf_tutorial_plunger.vpx)
-
 ### Setup
 
 To setup your plunger, you'll need a switch that is positioned so that the ball is resting on it whilst in the plunger lane.

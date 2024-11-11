@@ -2,9 +2,6 @@
 
 Lets add a ball save to our table. A ball save is a logic block that monitors if the balls drains while it is active. If it does, the ball will not end and a new ball will be released from the trough.
 
-### Download the VPX file
-[Tutorial - Ball Save VPX File](https://github.com/mpcarr/vpx-glf/raw/main/tutorial/glf_tutorial_ballsave.vpx)
-
 ### Configuration
 
 To configure your ball save we need a mode for it live under. Create the following config to create a mode and a ball save logic block

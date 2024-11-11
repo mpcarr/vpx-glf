@@ -6,8 +6,6 @@ The light player is used to turn lights on and off when events happen. It inheri
 
 ![lights](../images/tutorial-lights.gif)
 
-### Download the VPX file
-[Tutorial - Lights VPX File](https://github.com/mpcarr/vpx-glf/raw/main/tutorial/glf_tutorial_lights.vpx)
 
 ### Light Tags
 
