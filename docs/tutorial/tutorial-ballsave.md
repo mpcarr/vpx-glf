@@ -9,35 +9,20 @@ Lets add a ball save to our table. A ball save is a logic block that monitors if
 
 To configure your ball save we need a mode for it live under. Create the following config to create a mode and a ball save logic block
 
-#### Mode Config
-
-```
-Sub CreateBaseMode
-    Dim mode_base
-    Set mode_base = (new Mode)("base", 1000)
-
-    With mode_base
-        .StartEvents = Array("ball_started")
-        .StopEvents = Array("ball_ended") 
-    End With
-End Sub
-```
-
-The mode above will start every time a new ball is started and it will end when a ball ends.
-
 #### Ball Save Config
 
 ```
-With mode_base.BallSaves("base")
-    .EnableEvents = Array("mode_base_started")
-    .TimerStartEvents = Array("balldevice_plunger_ball_eject_success")
-    .ActiveTime = 15
-    .HurryUpTime = 5
-    .GracePeriod = 3
-    .BallsToSave = -1
-    .AutoLaunch = True
+With CreateGlfMode("base", 1000)
+    With BallSaves("base")
+        .EnableEvents = Array("mode_base_started")
+        .TimerStartEvents = Array("balldevice_plunger_ball_eject_success")
+        .ActiveTime = 15
+        .HurryUpTime = 5
+        .GracePeriod = 3
+        .BallsToSave = -1
+        .AutoLaunch = True
+    End With
 End With
-
 ```
 
 As you can see from the settings above the ball save will be active for 15 seconds once the ball has successfully been ejected from the plunger lane, it has a grace period of 3 seconds meaning that it will actually be active for 18 seconds in total and it will save an unlimited about of balls as long as it is active.
