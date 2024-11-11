@@ -18,3 +18,8 @@ The kicker switches need to named **swTrough1** - **swTrough7** plus a **Drain**
 ### Configuration
 
 Include enough kickers to cover your games ball capacity. e.g. if your game takes 5 balls make swTrough1 - swTrough5 + Drain.
+
+
+## Next Steps
+
+[Setting up your plunger](../tutorial-plunger/)
