@@ -10,7 +10,7 @@ Below is an image of Cyber Race pinball. Apart from the trough and plunger it ha
 
 ### Setup
 
-A ball device will need a switch to dermine when a ball has entered and some way of holding the ball physically. There are many ways to do this in VPX such as using a kicker object or building an enclosure with walls. 
+A ball device will need a switch to determine when a ball has entered and some way of holding the ball physically. There are many ways to do this in VPX such as using a kicker object or building an enclosure with walls. 
 
 ### Configuration
 

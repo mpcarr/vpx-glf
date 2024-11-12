@@ -32,3 +32,7 @@ End Sub
 ```
 
 The above configuration sets up the plunger as a mechcanical plunger, meaning the ball won't automatically fire out of the plunger lane, you will have to pull and release the plunger to fire it. We have also set the ball device as the default device (this is the ball device which recieves a ball from the trough). The eject timeout setting tells the device how long to wait until deeming the ball successfully exited the device, e.g. If the ball didn't reach the end of the plunger lane and fell back within 2 seconds, the ball would not have exited successfully.
+
+## Next Steps
+
+[Setting up your lights](../tutorial-lights/)

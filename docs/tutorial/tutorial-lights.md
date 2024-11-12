@@ -61,3 +61,7 @@ We now need to include this mode in our game. To do that, in your ConfigureGlfDe
         'Other device config....
     End Sub
 ```
+
+## Next Steps
+
+[Setting up your ball devices](../tutorial-ball-devices/)

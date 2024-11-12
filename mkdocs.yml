@@ -6,8 +6,8 @@ nav:
     - 'Tutorial':
       - 'Trough': 'tutorial/tutorial-trough.md'
       - 'Plunger': 'tutorial/tutorial-plunger.md'
-      - 'Ball Devices': 'tutorial/tutorial-ball-devices.md'
       - 'Lights': 'tutorial/tutorial-lights.md'
+      - 'Ball Devices': 'tutorial/tutorial-ball-devices.md'
       #- 'Shows': 'tutorial/tutorial-shows.md'
   #- 'Features': features.md
   - 'Game Logic':
