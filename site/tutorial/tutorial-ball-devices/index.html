@@ -8,24 +8,28 @@
       
       
       
-        <link rel="canonical" href="https://mpcarr.github.io/vpx-gle-framework/multiball-locks/">
+        <link rel="canonical" href="https://mpcarr.github.io/vpx-gle-framework/tutorial/tutorial-ball-devices/">
       
       
+        <link rel="prev" href="../tutorial-plunger/">
       
       
-      <link rel="icon" href="../assets/images/favicon.png">
+        <link rel="next" href="../tutorial-lights/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.25">
     
     
       
-        <title>Multiball Locks - VPX Game Logic Framework</title>
+        <title>Ball Devices - VPX Game Logic Framework</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.6543a935.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.6543a935.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -44,9 +48,9 @@
       
     
     
-      <link rel="stylesheet" href="../stylesheets/extra.css">
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -72,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#multiball-locks" class="md-skip">
+        <a href="#tutorial-ball-devices" class="md-skip">
           Skip to content
         </a>
       
@@ -86,7 +90,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="VPX Game Logic Framework" class="md-header__button md-logo" aria-label="VPX Game Logic Framework" data-md-component="logo">
+    <a href="../.." title="VPX Game Logic Framework" class="md-header__button md-logo" aria-label="VPX Game Logic Framework" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -106,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Multiball Locks
+              Ball Devices
             
           </span>
         </div>
@@ -199,11 +203,13 @@
         
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../installing/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../installing/" class="md-tabs__link">
           
   
   Getting Started
@@ -227,7 +233,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../ball-device/" class="md-tabs__link">
+        <a href="../../ball-device/" class="md-tabs__link">
           
   
   Game Logic
@@ -246,7 +252,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../about/" class="md-tabs__link">
+      <a href="../../about/" class="md-tabs__link">
         
   
     
@@ -280,7 +286,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="VPX Game Logic Framework" class="md-nav__button md-logo" aria-label="VPX Game Logic Framework" data-md-component="logo">
+    <a href="../.." title="VPX Game Logic Framework" class="md-nav__button md-logo" aria-label="VPX Game Logic Framework" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -295,23 +301,28 @@
       
   
   
+    
   
   
+  
     
     
     
-      
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
         
           
-          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
             
   
   <span class="md-ellipsis">
@@ -322,7 +333,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_1">
             <span class="md-nav__icon md-icon"></span>
             Getting Started
@@ -336,7 +347,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../installing/" class="md-nav__link">
+      <a href="../../installing/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -354,6 +365,8 @@
                 
   
   
+    
+  
   
   
     
@@ -363,11 +376,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" checked>
         
           
           <label class="md-nav__link" for="__nav_1_2" id="__nav_1_2_label" tabindex="0">
@@ -381,7 +394,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_1_2">
             <span class="md-nav__icon md-icon"></span>
             Tutorial
@@ -395,7 +408,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../tutorial/tutorial-trough/" class="md-nav__link">
+      <a href="../tutorial-trough/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -416,7 +429,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../tutorial/tutorial-plunger/" class="md-nav__link">
+      <a href="../tutorial-plunger/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -434,10 +447,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../tutorial/tutorial-ball-devices/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Ball Devices
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -446,6 +479,55 @@
   
 
       </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Setup
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-direction-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Direction Configuration
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -458,7 +540,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../tutorial/tutorial-lights/" class="md-nav__link">
+      <a href="../tutorial-lights/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -570,7 +652,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ball-device/" class="md-nav__link">
+      <a href="../../ball-device/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -606,7 +688,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../about/" class="md-nav__link">
+      <a href="../../about/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -648,9 +730,27 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#example" class="md-nav__link">
+  <a href="#setup" class="md-nav__link">
     <span class="md-ellipsis">
-      Example
+      Setup
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-direction-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Direction Configuration
     </span>
   </a>
   
@@ -671,21 +771,92 @@
                   
 
 
-<h1 id="multiball-locks">Multiball Locks</h1>
-<p>This command tracks balls locked for a multiball. It is used with the multiball command to start multiballs.</p>
-<h2 id="example">Example</h2>
-<pre><code>Dim waterfall_mb_locks
-Set waterfall_mb_locks = (new MultiballLocks)(&quot;waterfall&quot;, mode_waterfall_mb) 
+<h1 id="tutorial-ball-devices">Tutorial - Ball Devices</h1>
+<p>Ball devices are anything in your game that capture balls from the playfield. These can be scoops, vuks (vertical up kickers), troughs, plungers, multiball locks e.t.c. </p>
+<p><a href="../../ball-device">See Ball Device Config Reference</a></p>
+<p>Below is an image of Cyber Race pinball. Apart from the trough and plunger it has four circled ball devices. There are three vuks and one scoop. All of these devices collect, hold balls and release them.</p>
+<p><img alt="cyberrace-balldevices" src="../../images/cyberrace-balldevices.png" /></p>
+<h3 id="setup">Setup</h3>
+<p>A ball device will need a switch to dermine when a ball has entered and some way of holding the ball physically. There are many ways to do this in VPX such as using a kicker object or building an enclosure with walls. </p>
+<h3 id="configuration">Configuration</h3>
+<p>To configure your device add the config below to your Configure Glf Devices Sub.</p>
+<pre><code>Sub ConfigureGlfDevices
+    Dim ball_device_scoop
+    Set ball_device_scoop = (new GlfBallDevice)(&quot;scoop&quot;)
 
-With waterfall_mb_locks
-    .EnableEvents = Array(&quot;enable_waterfall&quot;)
-    .DisableEvents = Array(&quot;disable_waterfall&quot;)
-    .BallsToLock = 3
-    .LockEvents = Array(&quot;balldevice_bd_waterfall_vuk_ball_eject_success&quot;)
-    .ResetEvents = Array(&quot;multiball_waterfall_started&quot;)
-End With
+    With ball_device_scoop
+        .BallSwitches = Array(&quot;sw04&quot;)
+        .EjectTimeout = 2
+        .EjectStrength = 100
+        .EjectAngle = 0
+        .EjectPitch = 90
+    End With
+
+    'Other device config....
+End Sub
 </code></pre>
-<p>In the above example we defined a multiball lock for the waterfall multiball. This is a three ball multiball. When the lock is enabled and the ball device waterfall_vuk successfully ejects a ball, it will count that ball as locked. This could be a physical table locked ball, or a virutal locked ball.</p>
+<p>The above configuration sets up the scoop device with a switch called <strong>sw04</strong>. When the ball enters the scoop and the game is expecting the ball to enter, the ball will be held until released by the system. Once released it will be ejected by kicking the ball stright up. The scoop should have a physical wall above it to direct the ball back into play.</p>
+<h3 id="example-direction-configuration">Example Direction Configuration</h3>
+<table>
+<thead>
+<tr>
+<th><strong>Direction</strong></th>
+<th><strong>Angle (degrees)</strong></th>
+<th><strong>Pitch (degrees)</strong></th>
+<th><strong>Notes</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Forward</td>
+<td>0</td>
+<td>0</td>
+<td>Straight ahead, flat.</td>
+</tr>
+<tr>
+<td>Right</td>
+<td>90</td>
+<td>0</td>
+<td>Flat, to the right.</td>
+</tr>
+<tr>
+<td>Backward</td>
+<td>180</td>
+<td>0</td>
+<td>Straight back, flat.</td>
+</tr>
+<tr>
+<td>Left</td>
+<td>270</td>
+<td>0</td>
+<td>Flat, to the left.</td>
+</tr>
+<tr>
+<td>Upward</td>
+<td>Any</td>
+<td>90</td>
+<td>Vertical or diagonal upward.</td>
+</tr>
+<tr>
+<td>Downward</td>
+<td>Any</td>
+<td>-90</td>
+<td>Vertical or diagonal downward.</td>
+</tr>
+<tr>
+<td>Diagonal Up-Right</td>
+<td>45</td>
+<td>Positive (30)</td>
+<td>Combines rightward and upward.</td>
+</tr>
+<tr>
+<td>Diagonal Down-Left</td>
+<td>225</td>
+<td>Negative (-30)</td>
+<td>Combines leftward and downward.</td>
+</tr>
+</tbody>
+</table>
 
 
 
@@ -732,10 +903,10 @@ End With
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "navigation.instant", "navigation.tabs"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "navigation.instant", "navigation.tabs"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.081f42fc.min.js"></script>
+      <script src="../../assets/javascripts/bundle.081f42fc.min.js"></script>
       
     
   </body>
