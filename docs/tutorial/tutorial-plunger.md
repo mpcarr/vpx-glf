@@ -3,8 +3,6 @@
 The plunger is a ball device which holds a ball until either the plunger is pulled back and released or a button is pressed to launch the ball. 
 It is the default ball device that is used to get balls onto the playfield.
 
-![plunger1](../images/plunger.gif)
-
 ### Setup
 
 To setup your plunger, you'll need a switch that is positioned so that the ball is resting on it whilst in the plunger lane.
