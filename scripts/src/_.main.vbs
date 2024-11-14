@@ -71,6 +71,20 @@ Public Sub Glf_Init()
 	Next
 	ExecuteGlobal switchHitSubs
 
+	Dim slingshot, slingshotHitSubs
+	slingshotHitSubs = ""
+	For Each slingshot in Glf_Slingshots
+		slingshotHitSubs = slingshotHitSubs & "Sub " & slingshot.Name & "_Slingshot() : DispatchPinEvent """ & slingshot.Name & "_active"", ActiveBall : End Sub" & vbCrLf
+	Next
+	ExecuteGlobal slingshotHitSubs
+
+	Dim spinner, spinnerHitSubs
+	spinnerHitSubs = ""
+	For Each spinner in Glf_Spinners
+		spinnerHitSubs = spinnerHitSubs & "Sub " & spinner.Name & "_Spin() : DispatchPinEvent """ & spinner.Name & "_active"", ActiveBall : End Sub" & vbCrLf
+	Next
+	ExecuteGlobal spinnerHitSubs
+
 	If glf_debugEnabled = True Then
 
 		' Calculate the scale factor

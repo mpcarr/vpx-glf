@@ -66,8 +66,8 @@ Function DispatchQueuePinEvent(e, kwargs)
     For i=0 to UBound(glf_pinEventsOrder(e))
         k = glf_pinEventsOrder(e)(i)
         'glf_debugLog.WriteToLog "DispatchQueuePinEvent"&e, "key: " & k(1) & ", priority: " & k(0)
-        msgbox "DispatchQueuePinEvent: " & e & " , key: " & k(1) & ", priority: " & k(0)
-        msgbox handlers(k(1))(0)
+        'msgbox "DispatchQueuePinEvent: " & e & " , key: " & k(1) & ", priority: " & k(0)
+        'msgbox handlers(k(1))(0)
         'Call the handlers.
         'The handlers might return a waitfor command.
         'If NO wait for command, continue calling handlers.

@@ -71,6 +71,20 @@ Public Sub Glf_Init()
 	Next
 	ExecuteGlobal switchHitSubs
 
+	Dim slingshot, slingshotHitSubs
+	slingshotHitSubs = ""
+	For Each slingshot in Glf_Slingshots
+		slingshotHitSubs = slingshotHitSubs & "Sub " & slingshot.Name & "_Slingshot() : DispatchPinEvent """ & slingshot.Name & "_active"", ActiveBall : End Sub" & vbCrLf
+	Next
+	ExecuteGlobal slingshotHitSubs
+
+	Dim spinner, spinnerHitSubs
+	spinnerHitSubs = ""
+	For Each spinner in Glf_Spinners
+		spinnerHitSubs = spinnerHitSubs & "Sub " & spinner.Name & "_Spin() : DispatchPinEvent """ & spinner.Name & "_active"", ActiveBall : End Sub" & vbCrLf
+	Next
+	ExecuteGlobal spinnerHitSubs
+
 	If glf_debugEnabled = True Then
 
 		' Calculate the scale factor
@@ -5945,8 +5959,8 @@ Class GlfBallDevice
 
     Public Property Let EjectCallback(value) : m_eject_callback = value : End Property
     
-    Public Property Let EjectAngle(value) : m_eject_angle = glf_PI * (0 - 90) / 180 : End Property
-    Public Property Let EjectPitch(value) : m_eject_pitch = glf_PI * (0 - 90) / 180 : End Property
+    Public Property Let EjectAngle(value) : m_eject_angle = glf_PI * value / 180 : End Property
+    Public Property Let EjectPitch(value) : m_eject_pitch = glf_PI * value / 180 : End Property
     Public Property Let EjectStrength(value) : m_eject_strength = value : End Property
     
     Public Property Let EjectTimeout(value) : m_eject_timeout = value * 1000 : End Property
@@ -5964,12 +5978,9 @@ Class GlfBallDevice
             AddPinEventListener evt & "_active", m_name & "_eject_target", "BallDeviceEventHandler", 1000, Array("eject_timeout", Me)
         Next
     End Property
-    Public Property Let PlayerControlledEjectEvents(value)
+    Public Property Let PlayerControlledEjectEvent(value)
         m_player_controlled_eject_event = value
-        Dim evt
-        For Each evt in m_player_controlled_eject_event
-            AddPinEventListener evt, m_name & "_eject_attempt", "BallDeviceEventHandler", 1000, Array("ball_eject", Me)
-        Next
+        AddPinEventListener m_player_controlled_eject_event, m_name & "_eject_attempt", "BallDeviceEventHandler", 1000, Array("ball_eject", Me)
     End Property
     Public Property Let BallSwitches(value)
         m_ball_switches = value
@@ -7013,8 +7024,8 @@ Function DispatchQueuePinEvent(e, kwargs)
     For i=0 to UBound(glf_pinEventsOrder(e))
         k = glf_pinEventsOrder(e)(i)
         'glf_debugLog.WriteToLog "DispatchQueuePinEvent"&e, "key: " & k(1) & ", priority: " & k(0)
-        msgbox "DispatchQueuePinEvent: " & e & " , key: " & k(1) & ", priority: " & k(0)
-        msgbox handlers(k(1))(0)
+        'msgbox "DispatchQueuePinEvent: " & e & " , key: " & k(1) & ", priority: " & k(0)
+        'msgbox handlers(k(1))(0)
         'Call the handlers.
         'The handlers might return a waitfor command.
         'If NO wait for command, continue calling handlers.
