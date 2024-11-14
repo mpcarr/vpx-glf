@@ -113,6 +113,7 @@ Function Glf_Drain(args)
         Exit Function
     End If
     
+    DispatchPinEvent GLF_BALL_WILL_END, Null
     DispatchPinEvent GLF_BALL_ENDING, Null
     DispatchPinEvent GLF_BALL_ENDED, Null
     SetPlayerState GLF_CURRENT_BALL, GetPlayerState(GLF_CURRENT_BALL) + 1

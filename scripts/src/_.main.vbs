@@ -1275,6 +1275,7 @@ End With
 Const GLF_GAME_START = "game_start"
 Const GLF_GAME_STARTED = "game_started"
 Const GLF_GAME_OVER = "game_ended"
+Const GLF_BALL_WILL_END = "ball_will_end"
 Const GLF_BALL_ENDING = "ball_ending"
 Const GLF_BALL_ENDED = "ball_ended"
 Const GLF_NEXT_PLAYER = "next_player"
