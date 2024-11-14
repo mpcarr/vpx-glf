@@ -229,7 +229,7 @@ Function GlfShowStepHandler(args)
         LightPlayerCallbackHandler running_show.Key, Array(cached_show_seq(running_show.CurrentStep)), running_show.ShowName, running_show.Priority + running_show.ShowSettings.Priority
     End If
     If nextStep.Duration = -1 Then
-        glf_debugLog.WriteToLog "Running Show", "HOLD"
+        'glf_debugLog.WriteToLog "Running Show", "HOLD"
         Exit Function
     End If
     running_show.CurrentStep = running_show.CurrentStep + 1
@@ -242,7 +242,7 @@ Function GlfShowStepHandler(args)
     End If
     If running_show.CurrentStep > running_show.TotalSteps Then
         'End of Show
-        glf_debugLog.WriteToLog "Running Show", "END OF SHOW"
+        'glf_debugLog.WriteToLog "Running Show", "END OF SHOW"
         If running_show.ShowSettings.Loops = -1 Or running_show.ShowSettings.Loops > 1 Then
             If running_show.ShowSettings.Loops > 1 Then
                 running_show.ShowSettings.Loops = running_show.ShowSettings.Loops - 1

@@ -1,4 +1,9 @@
 
+Function CreateGlfFlipper(name)
+	Dim flipper : Set flipper = (new GlfFlipper)(name)
+	Set CreateGlfFlipper = flipper
+End Function
+
 Class GlfFlipper
 
     Private m_name
@@ -45,6 +50,7 @@ Class GlfFlipper
         m_enabled = False
         m_switches = Array()
         m_debug = False
+        glf_flippers.Add name, Me
         Set Init = Me
 	End Function
 

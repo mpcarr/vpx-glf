@@ -26,6 +26,7 @@ Dim glf_modes : Set glf_modes = CreateObject("Scripting.Dictionary")
 Dim glf_timers : Set glf_timers = CreateObject("Scripting.Dictionary")
 
 Dim glf_ball_devices : Set glf_ball_devices = CreateObject("Scripting.Dictionary")
+Dim glf_flippers : Set glf_flippers = CreateObject("Scripting.Dictionary")
 Dim glf_ball_holds : Set glf_ball_holds = CreateObject("Scripting.Dictionary")
 Dim glf_segment_displays : Set glf_segment_displays = CreateObject("Scripting.Dictionary")
 
@@ -295,6 +296,14 @@ Public Sub Glf_KeyDown(ByVal keycode)
 		If KeyCode = RightMagnaSave Then
 			DispatchPinEvent "s_right_magna_key_active", Null
 		End If
+
+		If KeyCode = StagedRightFlipperKey Then
+			DispatchPinEvent "s_right_staged_flipper_key_active", Null
+		End If
+
+		If KeyCode = StagedLeftFlipperKey Then
+			DispatchPinEvent "s_left_staged_flipper_key_active", Null
+		End If
 		
 		
 		If keycode = StartGameKey Then
@@ -315,7 +324,6 @@ End Sub
 Public Sub Glf_KeyUp(ByVal keycode)
 	If glf_gameStarted = True Then
 		If KeyCode = PlungerKey Then
-			Plunger.Fire
 			DispatchPinEvent "s_plunger_key_inactive", Null
 		End If
 
@@ -338,6 +346,15 @@ Public Sub Glf_KeyUp(ByVal keycode)
 		If KeyCode = RightMagnaSave Then
 			DispatchPinEvent "s_right_magna_key_inactive", Null
 		End If
+
+		If KeyCode = StagedRightFlipperKey Then
+			DispatchPinEvent "s_right_staged_flipper_key_inactive", Null
+		End If
+
+		If KeyCode = StagedLeftFlipperKey Then
+			DispatchPinEvent "s_left_staged_flipper_key_inactive", Null
+		End If
+		
 	End If
 End Sub
 

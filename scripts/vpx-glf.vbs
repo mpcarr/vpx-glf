@@ -26,6 +26,7 @@ Dim glf_modes : Set glf_modes = CreateObject("Scripting.Dictionary")
 Dim glf_timers : Set glf_timers = CreateObject("Scripting.Dictionary")
 
 Dim glf_ball_devices : Set glf_ball_devices = CreateObject("Scripting.Dictionary")
+Dim glf_flippers : Set glf_flippers = CreateObject("Scripting.Dictionary")
 Dim glf_ball_holds : Set glf_ball_holds = CreateObject("Scripting.Dictionary")
 Dim glf_segment_displays : Set glf_segment_displays = CreateObject("Scripting.Dictionary")
 
@@ -295,6 +296,14 @@ Public Sub Glf_KeyDown(ByVal keycode)
 		If KeyCode = RightMagnaSave Then
 			DispatchPinEvent "s_right_magna_key_active", Null
 		End If
+
+		If KeyCode = StagedRightFlipperKey Then
+			DispatchPinEvent "s_right_staged_flipper_key_active", Null
+		End If
+
+		If KeyCode = StagedLeftFlipperKey Then
+			DispatchPinEvent "s_left_staged_flipper_key_active", Null
+		End If
 		
 		
 		If keycode = StartGameKey Then
@@ -315,7 +324,6 @@ End Sub
 Public Sub Glf_KeyUp(ByVal keycode)
 	If glf_gameStarted = True Then
 		If KeyCode = PlungerKey Then
-			Plunger.Fire
 			DispatchPinEvent "s_plunger_key_inactive", Null
 		End If
 
@@ -338,6 +346,15 @@ Public Sub Glf_KeyUp(ByVal keycode)
 		If KeyCode = RightMagnaSave Then
 			DispatchPinEvent "s_right_magna_key_inactive", Null
 		End If
+
+		If KeyCode = StagedRightFlipperKey Then
+			DispatchPinEvent "s_right_staged_flipper_key_inactive", Null
+		End If
+
+		If KeyCode = StagedLeftFlipperKey Then
+			DispatchPinEvent "s_left_staged_flipper_key_inactive", Null
+		End If
+		
 	End If
 End Sub
 
@@ -5120,7 +5137,7 @@ Function GlfShowStepHandler(args)
         LightPlayerCallbackHandler running_show.Key, Array(cached_show_seq(running_show.CurrentStep)), running_show.ShowName, running_show.Priority + running_show.ShowSettings.Priority
     End If
     If nextStep.Duration = -1 Then
-        glf_debugLog.WriteToLog "Running Show", "HOLD"
+        'glf_debugLog.WriteToLog "Running Show", "HOLD"
         Exit Function
     End If
     running_show.CurrentStep = running_show.CurrentStep + 1
@@ -5133,7 +5150,7 @@ Function GlfShowStepHandler(args)
     End If
     If running_show.CurrentStep > running_show.TotalSteps Then
         'End of Show
-        glf_debugLog.WriteToLog "Running Show", "END OF SHOW"
+        'glf_debugLog.WriteToLog "Running Show", "END OF SHOW"
         If running_show.ShowSettings.Loops = -1 Or running_show.ShowSettings.Loops > 1 Then
             If running_show.ShowSettings.Loops > 1 Then
                 running_show.ShowSettings.Loops = running_show.ShowSettings.Loops - 1
@@ -5941,6 +5958,11 @@ Sub DelayTick()
         End If
     Next
 End Sub
+Function CreateGlfBallDevice(name)
+	Dim device : Set device = (new GlfBallDevice)(name)
+	Set CreateGlfBallDevice = device
+End Function
+
 Class GlfBallDevice
 
     Private m_name
@@ -6304,6 +6326,11 @@ Function DropTargetEventHandler(args)
     DropTargetEventHandler = kwargs
 End Function
 
+Function CreateGlfFlipper(name)
+	Dim flipper : Set flipper = (new GlfFlipper)(name)
+	Set CreateGlfFlipper = flipper
+End Function
+
 Class GlfFlipper
 
     Private m_name
@@ -6350,6 +6377,7 @@ Class GlfFlipper
         m_enabled = False
         m_switches = Array()
         m_debug = False
+        glf_flippers.Add name, Me
         Set Init = Me
 	End Function
 

@@ -1,3 +1,8 @@
+Function CreateGlfBallDevice(name)
+	Dim device : Set device = (new GlfBallDevice)(name)
+	Set CreateGlfBallDevice = device
+End Function
+
 Class GlfBallDevice
 
     Private m_name
