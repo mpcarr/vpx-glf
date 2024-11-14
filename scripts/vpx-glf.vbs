@@ -287,6 +287,15 @@ Public Sub Glf_KeyDown(ByVal keycode)
 		If KeyCode = PlungerKey Then
 			DispatchPinEvent "s_plunger_key_active", Null
 		End If
+
+		If KeyCode = LeftMagnaSave Then
+			DispatchPinEvent "s_left_magna_key_active", Null
+		End If
+
+		If KeyCode = RightMagnaSave Then
+			DispatchPinEvent "s_right_magna_key_active", Null
+		End If
+		
 		
 		If keycode = StartGameKey Then
 			If glf_canAddPlayers = True Then
@@ -320,6 +329,14 @@ Public Sub Glf_KeyUp(ByVal keycode)
 
 		If keycode = LockbarKey Then
 			DispatchPinEvent "s_lockbar_key_inactive", Null
+		End If
+
+		If KeyCode = LeftMagnaSave Then
+			DispatchPinEvent "s_left_magna_key_inactive", Null
+		End If
+
+		If KeyCode = RightMagnaSave Then
+			DispatchPinEvent "s_right_magna_key_inactive", Null
 		End If
 	End If
 End Sub
@@ -6296,13 +6313,13 @@ Class GlfFlipper
     Private m_switches
     Private m_debug
 
-    Public Property Let Switches(value)
+    Public Property Let Switch(value)
         m_switches = value
     End Property
 
     Public Property Let EnableEvents(value)
         Dim evt
-        If Not IsNull(m_enable_events) Then
+        If IsArray(m_enable_events) Then
             For Each evt in m_enable_events
                 RemovePinEventListener evt, m_name & "_enable"
             Next
@@ -6314,7 +6331,7 @@ Class GlfFlipper
     End Property
     Public Property Let DisableEvents(value)
         Dim evt
-        If Not IsNull(m_disable_events) Then
+        If IsArray(m_disable_events) Then
             For Each evt in m_enable_events
                 RemovePinEventListener evt, m_name & "_disable"
             Next
@@ -6328,8 +6345,8 @@ Class GlfFlipper
 
 	Public default Function init(name)
         m_name = "flipper_" & name
-        Me.EnableEvents Array("ball_started")
-        Me.DisableEvents Array("ball_will_end", "service_mode_entered")
+        EnableEvents = Array("ball_started")
+        DisableEvents = Array("ball_will_end", "service_mode_entered")
         m_enabled = False
         m_switches = Array()
         m_debug = False
@@ -6342,7 +6359,7 @@ Class GlfFlipper
         Dim evt
         For Each evt in m_switches
             AddPinEventListener evt & "_active", m_name & "_active", "FlipperEventHandler", 1000, Array("activate", Me)
-            AddPinEventListener evt & "_active", m_name & "_active", "FlipperEventHandler", 1000, Array("deactivate", Me)
+            AddPinEventListener evt & "_inactive", m_name & "_inactive", "FlipperEventHandler", 1000, Array("deactivate", Me)
         Next
     End Sub
 
@@ -6925,6 +6942,7 @@ Function Glf_ReleaseBall(args)
     End If
     glf_debugLog.WriteToLog "Release Ball", "swTrough1: " & swTrough1.BallCntOver
     swTrough1.kick 90, 10
+    DispatchPinEvent "trough_eject", Null
     glf_debugLog.WriteToLog "Release Ball", "Just Kicked"
     glf_BIP = glf_BIP + 1
 End Function

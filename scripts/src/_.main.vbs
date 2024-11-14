@@ -287,6 +287,15 @@ Public Sub Glf_KeyDown(ByVal keycode)
 		If KeyCode = PlungerKey Then
 			DispatchPinEvent "s_plunger_key_active", Null
 		End If
+
+		If KeyCode = LeftMagnaSave Then
+			DispatchPinEvent "s_left_magna_key_active", Null
+		End If
+
+		If KeyCode = RightMagnaSave Then
+			DispatchPinEvent "s_right_magna_key_active", Null
+		End If
+		
 		
 		If keycode = StartGameKey Then
 			If glf_canAddPlayers = True Then
@@ -320,6 +329,14 @@ Public Sub Glf_KeyUp(ByVal keycode)
 
 		If keycode = LockbarKey Then
 			DispatchPinEvent "s_lockbar_key_inactive", Null
+		End If
+
+		If KeyCode = LeftMagnaSave Then
+			DispatchPinEvent "s_left_magna_key_inactive", Null
+		End If
+
+		If KeyCode = RightMagnaSave Then
+			DispatchPinEvent "s_right_magna_key_inactive", Null
 		End If
 	End If
 End Sub

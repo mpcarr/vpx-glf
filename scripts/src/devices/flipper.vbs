@@ -8,13 +8,13 @@ Class GlfFlipper
     Private m_switches
     Private m_debug
 
-    Public Property Let Switches(value)
+    Public Property Let Switch(value)
         m_switches = value
     End Property
 
     Public Property Let EnableEvents(value)
         Dim evt
-        If Not IsNull(m_enable_events) Then
+        If IsArray(m_enable_events) Then
             For Each evt in m_enable_events
                 RemovePinEventListener evt, m_name & "_enable"
             Next
@@ -26,7 +26,7 @@ Class GlfFlipper
     End Property
     Public Property Let DisableEvents(value)
         Dim evt
-        If Not IsNull(m_disable_events) Then
+        If IsArray(m_disable_events) Then
             For Each evt in m_enable_events
                 RemovePinEventListener evt, m_name & "_disable"
             Next
@@ -40,8 +40,8 @@ Class GlfFlipper
 
 	Public default Function init(name)
         m_name = "flipper_" & name
-        Me.EnableEvents Array("ball_started")
-        Me.DisableEvents Array("ball_will_end", "service_mode_entered")
+        EnableEvents = Array("ball_started")
+        DisableEvents = Array("ball_will_end", "service_mode_entered")
         m_enabled = False
         m_switches = Array()
         m_debug = False
@@ -54,7 +54,7 @@ Class GlfFlipper
         Dim evt
         For Each evt in m_switches
             AddPinEventListener evt & "_active", m_name & "_active", "FlipperEventHandler", 1000, Array("activate", Me)
-            AddPinEventListener evt & "_active", m_name & "_active", "FlipperEventHandler", 1000, Array("deactivate", Me)
+            AddPinEventListener evt & "_inactive", m_name & "_inactive", "FlipperEventHandler", 1000, Array("deactivate", Me)
         Next
     End Sub
 
