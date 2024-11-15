@@ -6107,7 +6107,7 @@ Class GlfBallDevice
         If m_eject_strength > 0 Then
             If Not IsNull(m_balls(0)) Then
                 m_balls(0).VelX = m_eject_strength * Cos(m_eject_pitch) * Sin(m_eject_angle)
-                m_balls(0).VelY = m_eject_strength * Cos(m_eject_pitch) * Cos(m_eject_angle)
+                m_balls(0).VelY = m_eject_strength * Cos(m_eject_pitch) * Cos(m_eject_angle) * (-1)
                 m_balls(0).VelZ = m_eject_strength * Sin(m_eject_pitch)
                 Log "VelX: " &  m_balls(0).VelX & ", VelY: " &  m_balls(0).VelY & ", VelZ: " &  m_balls(0).VelZ
             End If
