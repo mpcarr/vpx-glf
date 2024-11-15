@@ -1,6 +1,6 @@
 Function CreateGlfDiverter(name)
 	Dim diverter : Set diverter = (new GlfDiverter)(name)
-	Set CreateGlfDiverter = device
+	Set CreateGlfDiverter = diverter
 End Function
 
 Class GlfDiverter
