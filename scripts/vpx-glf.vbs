@@ -447,6 +447,7 @@ End Function
 Public Function Glf_ParseInput(value, isTime)
 	Dim templateCode : templateCode = ""
 	Dim tmp: tmp = value
+	Dim isVariable, parts
     Select Case VarType(value)
         Case 8 ' vbString
 			tmp = Glf_ReplaceCurrentPlayerAttributes(tmp)
@@ -457,6 +458,14 @@ Public Function Glf_ParseInput(value, isTime)
 				templateCode = templateCode & vbTab & Glf_ConvertIf(tmp, "Glf_" & glf_FuncCount) & vbCrLf
 				templateCode = templateCode & "End Function"
 			Else
+				isVariable = Glf_IsCondition(tmp)
+				If Not IsNull(isVariable) Then
+					'The input needs formatting
+					parts = Split(isVariable, ":")
+					If UBound(parts) = 1 Then
+						tmp = "Glf_FormatValue(" & parts(0) & ", """ & parts(1) & """)"
+					End If
+				End If
 				templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
 				templateCode = templateCode & vbTab & "Glf_" & glf_FuncCount & " = " & tmp & vbCrLf
 				templateCode = templateCode & "End Function"
@@ -466,6 +475,14 @@ Public Function Glf_ParseInput(value, isTime)
 			If isTime Then
 				templateCode = templateCode & vbTab & "Glf_" & glf_FuncCount & " = " & tmp * 1000 & vbCrLf
 			Else
+				isVariable = Glf_IsCondition(tmp)
+				If Not IsNull(isVariable) Then
+					'The input needs formatting
+					parts = Split(isVariable, ":")
+					If UBound(parts) = 1 Then
+						tmp = "Glf_FormatValue(" & parts(0) & ", """ & parts(1) & """)"
+					End If
+				End If
 				templateCode = templateCode & vbTab & "Glf_" & glf_FuncCount & " = " & tmp & vbCrLf
 			End If
 			templateCode = templateCode & "End Function"
@@ -523,13 +540,30 @@ Function Glf_ReplaceDeviceAttributes(inputString)
 End Function
 
 Function Glf_ConvertIf(value, retName)
-    Dim parts, condition, truePart, falsePart
+    Dim parts, condition, truePart, falsePart, isVariable
     parts = Split(value, " if ")
     truePart = Trim(parts(0))
     Dim conditionAndFalsePart
     conditionAndFalsePart = Split(parts(1), " else ")
     condition = Trim(conditionAndFalsePart(0))
     falsePart = Trim(conditionAndFalsePart(1))
+	isVariable = Glf_IsCondition(truePart)
+	If Not IsNull(isVariable) Then
+		'The input needs formatting
+		parts = Split(isVariable, ":")
+		If UBound(parts) = 1 Then
+			truePart = "Glf_FormatValue(" & parts(0) & ", """ & parts(1) & """)"
+		End If
+	End If
+	isVariable = Glf_IsCondition(falsePartPart)
+	If Not IsNull(isVariable) Then
+		'The input needs formatting
+		parts = Split(isVariable, ":")
+		If UBound(parts) = 1 Then
+			falsePart = "Glf_FormatValue(" & parts(0) & ", """ & parts(1) & """)"
+		End If
+	End If
+
     Dim vbscriptIfStatement
     vbscriptIfStatement = "If " & condition & " Then" & vbCrLf & _
                           "    "&retName&" = " & truePart & vbCrLf & _
@@ -544,6 +578,49 @@ Function Glf_ConvertCondition(value, retName)
 	value = Replace(value, "!=", "<>")
 	value = Replace(value, "&&", "And")
 	Glf_ConvertCondition = "    "&retName&" = " & value
+End Function
+
+Function Glf_FormatValue(value, formatString)
+    Dim padChar, width, result, align
+
+    ' Default values
+    padChar = " " ' Default padding character is space
+    align = ">"   ' Default alignment is right
+    width = 0     ' Default width is 0 (no padding)
+
+    If Len(formatString) >= 2 Then
+        padChar = Mid(formatString, 1, 1)
+        align = Mid(formatString, 2, 1)
+        width = CInt(Mid(formatString, 3))
+    End If
+
+    Select Case align
+        Case ">" ' Right-align with padding
+            If Len(value) < width Then
+                result = String(width - Len(value), padChar) & value
+            Else
+                result = value
+            End If
+        Case "<" ' Left-align with padding
+            If Len(value) < width Then
+                result = value & String(width - Len(value), padChar)
+            Else
+                result = value
+            End If
+        Case "^" ' Center-align with padding
+            Dim leftPad, rightPad
+            If Len(value) < width Then
+                leftPad = (width - Len(value)) \ 2
+                rightPad = width - Len(value) - leftPad
+                result = String(leftPad, padChar) & value & String(rightPad, padChar)
+            Else
+                result = value
+            End If
+        Case Else ' Default: Return value as is
+            result = value
+    End Select
+
+    Glf_FormatValue = result
 End Function
 
 
@@ -6532,7 +6609,11 @@ Class GlfLightSegmentDisplay
             If text <> m_display_state Then
                 m_display_state = text
                 'Set text to lights.
-                text = Right(text, m_size)
+                If text="" Then
+                    text = Glf_FormatValue(text, " >" & CStr(m_size))
+                Else
+                    text = Right(text, m_size)
+                End If
                 If text <> m_current_text Then
                     m_current_text = text
                     UpdateText()
@@ -6678,9 +6759,9 @@ FOURTEEN_SEGMENTS.Add 51, (New FourteenSegments)(0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0
 FOURTEEN_SEGMENTS.Add 52, (New FourteenSegments)(0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, "4")
 FOURTEEN_SEGMENTS.Add 53, (New FourteenSegments)(0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 1, "5")
 FOURTEEN_SEGMENTS.Add 54, (New FourteenSegments)(0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 1, "6")
-FOURTEEN_SEGMENTS.Add 55, (New FourteenSegments)(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, "7")
+FOURTEEN_SEGMENTS.Add 55, (New FourteenSegments)(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, "7")
 FOURTEEN_SEGMENTS.Add 56, (New FourteenSegments)(0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, "8")
-FOURTEEN_SEGMENTS.Add 57, (New FourteenSegments)(0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, "9")
+FOURTEEN_SEGMENTS.Add 57, (New FourteenSegments)(0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, "9")
 FOURTEEN_SEGMENTS.Add 58, (New FourteenSegments)(0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, ":")
 FOURTEEN_SEGMENTS.Add 59, (New FourteenSegments)(0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, ";")
 FOURTEEN_SEGMENTS.Add 60, (New FourteenSegments)(0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, "<")
