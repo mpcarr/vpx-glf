@@ -6394,6 +6394,7 @@ Class GlfFlipper
     Public Sub Disable()
         Log "Disabling"
         m_enabled = False
+        Deactivate()
         Dim evt
         For Each evt in m_switches
             RemovePinEventListener evt & "_active", m_name & "_active"
