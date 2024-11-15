@@ -1,3 +1,8 @@
+Function CreateGlfLightSegmentDisplay(name)
+	Dim segment_display : Set segment_display = (new GlfLightSegmentDisplay)(name)
+	Set CreateGlfLightSegmentDisplay = segment_display
+End Function
+
 Class GlfLightSegmentDisplay
 
     private m_flash_on

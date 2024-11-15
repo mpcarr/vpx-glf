@@ -5972,8 +5972,10 @@ Class GlfBallDevice
     Private m_balls
     Private m_balls_in_device
     Private m_eject_angle
+    Private m_eject_angle_rnd
     Private m_eject_pitch
     Private m_eject_strength
+    Private m_eject_strength_rnd
     Private m_default_device
     Private m_eject_callback
     Private m_eject_all_events
@@ -6000,8 +6002,10 @@ Class GlfBallDevice
     Public Property Let EjectCallback(value) : m_eject_callback = value : End Property
     
     Public Property Let EjectAngle(value) : m_eject_angle = glf_PI * value / 180 : End Property
+    Public Property Let EjectAngleRand(value) : m_eject_angle_rnd = glf_PI * value / 180 : End Property
     Public Property Let EjectPitch(value) : m_eject_pitch = glf_PI * value / 180 : End Property
     Public Property Let EjectStrength(value) : m_eject_strength = value : End Property
+    Public Property Let EjectStrengthRand(value) : m_eject_strength_rnd = value : End Property
     
     Public Property Let EjectTimeout(value) : m_eject_timeout = value * 1000 : End Property
     Public Property Let EjectAllEvents(value)
@@ -6045,7 +6049,9 @@ Class GlfBallDevice
         m_default_device = False
         m_eject_pitch = 0
         m_eject_angle = 0
+        m_eject_angle_rnd = 0
         m_eject_strength = 0
+        m_eject_strength_rnd = 0
         m_ejecting = False
         m_eject_callback = Null
         m_ejecting_all = False
@@ -6106,9 +6112,9 @@ Class GlfBallDevice
         m_ejecting = True
         If m_eject_strength > 0 Then
             If Not IsNull(m_balls(0)) Then
-                m_balls(0).VelX = m_eject_strength * Cos(m_eject_pitch) * Sin(m_eject_angle)
-                m_balls(0).VelY = m_eject_strength * Cos(m_eject_pitch) * Cos(m_eject_angle) * (-1)
-                m_balls(0).VelZ = m_eject_strength * Sin(m_eject_pitch)
+                m_balls(0).VelX = (m_eject_strength + m_eject_strength_rnd*2*(rnd-0.5)) * Cos(m_eject_pitch) * Sin(m_eject_angle + m_eject_angle_rnd*2*(rnd-0.5))
+                m_balls(0).VelY = (m_eject_strength + m_eject_strength_rnd*2*(rnd-0.5)) * Cos(m_eject_pitch) * Cos(m_eject_angle + m_eject_angle_rnd*2*(rnd-0.5)) * (-1)
+                m_balls(0).VelZ = (m_eject_strength + m_eject_strength_rnd*2*(rnd-0.5)) * Sin(m_eject_pitch)
                 Log "VelX: " &  m_balls(0).VelX & ", VelY: " &  m_balls(0).VelY & ", VelZ: " &  m_balls(0).VelZ
             End If
         End If
@@ -6435,6 +6441,11 @@ Function FlipperEventHandler(args)
     End Select
     FlipperEventHandler = kwargs
 End Function
+Function CreateGlfLightSegmentDisplay(name)
+	Dim segment_display : Set segment_display = (new GlfLightSegmentDisplay)(name)
+	Set CreateGlfLightSegmentDisplay = segment_display
+End Function
+
 Class GlfLightSegmentDisplay
 
     private m_flash_on
