@@ -1,3 +1,7 @@
+Function CreateGlfDiverter(name)
+	Dim diverter : Set diverter = (new GlfDiverter)(name)
+	Set CreateGlfDiverter = device
+End Function
 
 Class GlfDiverter
 
@@ -12,30 +16,45 @@ Class GlfDiverter
     Private m_debug
 
     Public Property Let ActionCallback(value) : m_action_cb = value : End Property
-    Public Property Let EnableEvents(value) : m_enable_events = value : End Property
-    Public Property Let DisableEvents(value) : m_disable_events = value : End Property
+    Public Property Let EnableEvents(value)
+        Dim evt
+        If IsArray(m_enable_events) Then
+            For Each evt in m_enable_events
+                RemovePinEventListener evt, m_name & "_enable"
+            Next
+        End If
+        m_enable_events = value
+        For Each evt in m_enable_events
+            AddPinEventListener evt, m_name & "_enable", "DiverterEventHandler", 1000, Array("enable", Me)
+        Next
+    End Property
+    Public Property Let DisableEvents(value)
+        Dim evt
+        If IsArray(m_disable_events) Then
+            For Each evt in m_enable_events
+                RemovePinEventListener evt, m_name & "_disable"
+            Next
+        End If
+        m_disable_events = value
+        For Each evt in m_disable_events
+            AddPinEventListener evt, m_name & "_disable", "DiverterEventHandler", 1000, Array("disable", Me)
+        Next
+    End Property
     Public Property Let ActivateEvents(value) : m_activate_events = value : End Property
     Public Property Let DeactivateEvents(value) : m_deactivate_events = value : End Property
     Public Property Let ActivationTime(value) : m_activation_time = value : End Property
     Public Property Let ActivationSwitches(value) : m_activation_switches = value : End Property
     Public Property Let Debug(value) : m_debug = value : End Property
 
-	Public default Function init(name, enable_events, disable_events)
+	Public default Function init(name)
         m_name = "diverter_" & name
-        m_enable_events = enable_events
-        m_disable_events = disable_events
+        m_enable_events = Array()
+        m_disable_events = Array()
         m_activate_events = Array()
         m_deactivate_events = Array()
         m_activation_switches = Array()
         m_activation_time = 0
         m_debug = False
-        Dim evt
-        For Each evt in m_enable_events
-            AddPinEventListener evt, m_name & "_enable", "DiverterEventHandler", 1000, Array("enable", Me)
-        Next
-        For Each evt in m_disable_events
-            AddPinEventListener evt, m_name & "_disable", "DiverterEventHandler", 1000, Array("disable", Me)
-        Next
         Set Init = Me
 	End Function
 
