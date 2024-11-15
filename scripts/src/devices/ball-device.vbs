@@ -20,7 +20,7 @@ Class GlfBallDevice
     Private m_balls_to_eject
     Private m_ejecting_all
     Private m_ejecting
-    Private m_mechcanical_eject
+    Private m_mechanical_eject
     Private m_eject_targets
     Private m_debug
 
@@ -72,7 +72,7 @@ Class GlfBallDevice
             AddPinEventListener m_ball_switches(x)&"_inactive", m_name & "_ball_exiting", "BallDeviceEventHandler", 1000, Array("ball_exiting", Me, x)
         Next
     End Property
-    Public Property Let MechcanicalEject(value) : m_mechcanical_eject = value : End Property
+    Public Property Let MechanicalEject(value) : m_mechanical_eject = value : End Property
     Public Property Let Debug(value) : m_debug = value : End Property
         
 	Public default Function init(name)
@@ -91,7 +91,7 @@ Class GlfBallDevice
         m_ejecting_all = False
         m_balls_to_eject = 0
         m_balls_in_device = 0
-        m_mechcanical_eject = False
+        m_mechanical_eject = False
         m_eject_timeout = 1000
         glf_ball_devices.Add name, Me
 	    Set Init = Me
@@ -115,7 +115,7 @@ Class GlfBallDevice
         m_balls(switch) = Null
         m_balls_in_device = m_balls_in_device - 1
         DispatchPinEvent m_name & "_ball_exiting", Null
-        If m_mechcanical_eject = True And m_eject_timeout > 0 Then
+        If m_mechanical_eject = True And m_eject_timeout > 0 Then
             SetDelay m_name & "_eject_timeout", "BallDeviceEventHandler", Array(Array("eject_timeout", Me), ball), m_eject_timeout
         End If
         Log "Ball Exiting"
