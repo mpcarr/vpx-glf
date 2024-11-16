@@ -6107,7 +6107,7 @@ Class GlfBallDevice
     End Property
     Public Property Let BallSwitches(value)
         m_ball_switches = value
-        ReDim mballs(Ubound(m_ball_switches))
+        ReDim m_balls(Ubound(m_ball_switches))
         Dim x
         For x=0 to UBound(m_ball_switches)
             m_balls(x) = Null
