@@ -28,6 +28,7 @@ Dim glf_timers : Set glf_timers = CreateObject("Scripting.Dictionary")
 Dim glf_ball_devices : Set glf_ball_devices = CreateObject("Scripting.Dictionary")
 Dim glf_flippers : Set glf_flippers = CreateObject("Scripting.Dictionary")
 Dim glf_ball_holds : Set glf_ball_holds = CreateObject("Scripting.Dictionary")
+Dim glf_magnets : Set glf_magnets = CreateObject("Scripting.Dictionary")
 Dim glf_segment_displays : Set glf_segment_displays = CreateObject("Scripting.Dictionary")
 
 
@@ -444,7 +445,7 @@ Public Function Glf_SetLight(light, color)
 	Next
 End Function
 
-Public Function Glf_ParseInput(value, isTime)
+Public Function Glf_ParseInput(value)
 	Dim templateCode : templateCode = ""
 	Dim tmp: tmp = value
 	Dim isVariable, parts
@@ -471,20 +472,16 @@ Public Function Glf_ParseInput(value, isTime)
 				templateCode = templateCode & "End Function"
 			End IF
         Case Else
-			templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
-			If isTime Then
-				templateCode = templateCode & vbTab & "Glf_" & glf_FuncCount & " = " & tmp * 1000 & vbCrLf
-			Else
-				isVariable = Glf_IsCondition(tmp)
-				If Not IsNull(isVariable) Then
-					'The input needs formatting
-					parts = Split(isVariable, ":")
-					If UBound(parts) = 1 Then
-						tmp = "Glf_FormatValue(" & parts(0) & ", """ & parts(1) & """)"
-					End If
+			templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf			
+			isVariable = Glf_IsCondition(tmp)
+			If Not IsNull(isVariable) Then
+				'The input needs formatting
+				parts = Split(isVariable, ":")
+				If UBound(parts) = 1 Then
+					tmp = "Glf_FormatValue(" & parts(0) & ", """ & parts(1) & """)"
 				End If
-				templateCode = templateCode & vbTab & "Glf_" & glf_FuncCount & " = " & tmp & vbCrLf
 			End If
+			templateCode = templateCode & vbTab & "Glf_" & glf_FuncCount & " = " & tmp & vbCrLf
 			templateCode = templateCode & "End Function"
     End Select
 	'msgbox templateCode
@@ -937,6 +934,10 @@ Function Glf_IsInArray(value, arr)
     Next
 End Function
 
+Function CreateGlfInput(value)
+	Set CreateGlfInput = (new GlfInput)(value)
+End Function
+
 Class GlfInput
 	Private m_raw, m_value, m_isGetRef
   
@@ -950,9 +951,9 @@ Class GlfInput
 
     Public Property Get Raw() : Raw = m_raw : End Property
 
-	Public default Function init(input, isTime)
+	Public default Function init(input)
         m_raw = input
-        Dim parsedInput : parsedInput = Glf_ParseInput(input, isTime)
+        Dim parsedInput : parsedInput = Glf_ParseInput(input)
         m_value = parsedInput(0)
         m_isGetRef = parsedInput(2)
 	    Set Init = Me

@@ -104,9 +104,9 @@ Class GlfVariablePlayerItem
     Public Property Get Block(): Block = m_block End Property
     Public Property Let Block(input): m_block = input End Property
 
-	Public Property Let Float(input): m_float = Glf_ParseInput(input, False): m_type = "float" : End Property
+	Public Property Let Float(input): m_float = Glf_ParseInput(input): m_type = "float" : End Property
   
-	Public Property Let Int(input): m_int = Glf_ParseInput(input, False): m_type = "int" : End Property
+	Public Property Let Int(input): m_int = Glf_ParseInput(input): m_type = "int" : End Property
   
 	Public Property Let String(input): m_string = input: m_type = "string" : End Property
 

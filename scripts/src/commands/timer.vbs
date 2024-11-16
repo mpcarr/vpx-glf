@@ -349,7 +349,7 @@ Class GlfTimerControlEvent
         Value = m_value
     End Property
     Public Property Let Value(input)
-        m_value = Glf_ParseInput(input, True)
+        m_value = Glf_ParseInput(input)
     End Property
 
 	Public default Function init()

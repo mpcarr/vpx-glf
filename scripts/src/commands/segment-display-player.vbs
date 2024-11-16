@@ -99,7 +99,7 @@ Class GlfSegmentPlayerEventItem
         End If
     End Property
     Public Property Let Text(input) 
-        Set m_text = (new GlfInput)(input, False)
+        Set m_text = (new GlfInput)(input)
     End Property
 
     Public Property Get Priority() : Priority = m_priority : End Property

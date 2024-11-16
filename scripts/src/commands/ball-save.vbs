@@ -19,9 +19,9 @@ Class BallSave
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get AutoLaunch(): AutoLaunch = m_auto_launch: End Property
-    Public Property Let ActiveTime(value) : m_active_time = Glf_ParseInput(value, True) : End Property
-    Public Property Let GracePeriod(value) : m_grace_period = Glf_ParseInput(value, True) : End Property
-    Public Property Let HurryUpTime(value) : m_hurry_up_time = Glf_ParseInput(value, True) : End Property
+    Public Property Let ActiveTime(value) : m_active_time = Glf_ParseInput(value) : End Property
+    Public Property Let GracePeriod(value) : m_grace_period = Glf_ParseInput(value) : End Property
+    Public Property Let HurryUpTime(value) : m_hurry_up_time = Glf_ParseInput(value) : End Property
     Public Property Let EnableEvents(value)
         Dim x
         For x=0 to UBound(value)

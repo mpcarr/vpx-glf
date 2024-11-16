@@ -11,12 +11,13 @@ Class GlfFlipper
     Private m_disable_events
     Private m_enabled
     Private m_switches
+    Private m_action_cb
     Private m_debug
 
     Public Property Let Switch(value)
         m_switches = value
     End Property
-
+    Public Property Let ActionCallback(value) : m_action_cb = value : End Property
     Public Property Let EnableEvents(value)
         Dim evt
         If IsArray(m_enable_events) Then
@@ -48,6 +49,7 @@ Class GlfFlipper
         EnableEvents = Array("ball_started")
         DisableEvents = Array("ball_will_end", "service_mode_entered")
         m_enabled = False
+        m_action_cb = Empty
         m_switches = Array()
         m_debug = False
         glf_flippers.Add name, Me
@@ -77,11 +79,17 @@ Class GlfFlipper
 
     Public Sub Activate()
         Log "Activating"
+        If Not IsEmpty(m_action_cb) Then
+            GetRef(m_action_cb)(1)
+        End If
         DispatchPinEvent m_name & "_activate", Null
     End Sub
 
     Public Sub Deactivate()
         Log "Activating"
+        If Not IsEmpty(m_action_cb) Then
+            GetRef(m_action_cb)(0)
+        End If
         DispatchPinEvent m_name & "_deactivate", Null
     End Sub
 
