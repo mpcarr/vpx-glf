@@ -7153,7 +7153,7 @@ Class GlfMagnet
         m_active = False
         m_release_in_progress = True
         Log "Releasing Ball"
-        DispatchPinEvent m_name & "releasing_ball"
+        DispatchPinEvent m_name & "releasing_ball", Null
         GetRef(m_action_cb)(0)
         SetDelay m_name & "_release_done", "MagnetEventHandler" , Array(Array("release_done", Me),Null), m_release_time.Value
     End Sub
