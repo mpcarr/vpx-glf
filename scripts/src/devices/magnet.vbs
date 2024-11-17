@@ -102,7 +102,7 @@ Class GlfMagnet
         Log "Disabling"
         Dim evt
         For Each evt in m_fling_ball_events
-            RemovePinEventListener evt, m_name & "_flip"
+            RemovePinEventListener evt, m_name & "_fling"
         Next
         For Each evt in m_grab_ball_events
             RemovePinEventListener evt, m_name & "_grab"
