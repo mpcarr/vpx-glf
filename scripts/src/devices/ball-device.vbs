@@ -49,7 +49,7 @@ Class GlfBallDevice
     Public Property Let EjectStrengthRand(value) : m_eject_strength_rnd = value : End Property
     Public Property Let EjectDeltaZ(value) : m_eject_deltaz = value : End Property
     
-    Public Property Let EjectTimeout(value) : m_eject_timeout = value * 1000 : End Property
+    Public Property Let EjectTimeout(value) : m_eject_timeout = value : End Property
     Public Property Let EjectAllEvents(value)
         m_eject_all_events = value
         Dim evt
