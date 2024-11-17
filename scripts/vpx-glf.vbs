@@ -6454,6 +6454,7 @@ Class GlfDroptarget
 			AddPinEventListener evt, m_name & "_reset", "DroptargetEventHandler", 1000, Array("reset", Me)
 		Next
 	End Property
+    Public Property Let Debug(value) : m_debug = value : End Property
 
 	Public default Function init(name)
         m_name = "drop_target_" & name
