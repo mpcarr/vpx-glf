@@ -16,19 +16,6 @@ Class GlfBallHold
     Private m_release_one_events
     Private m_release_one_if_full_events
 
-    Private m_control_events
-    Private m_running
-    Private m_ticks
-    Private m_ticks_remaining
-    Private m_start_value
-    Private m_end_value
-    Private m_direction
-    Private m_tick_interval
-    Private m_starting_tick_interval
-    Private m_max_value
-    Private restart_on_complete
-    Private m_start_running
-
     Public Property Get Name() : Name = m_name : End Property
 
     Public Property Let EnableEvents(value) : m_base_device.EnableEvents = value : End Property
