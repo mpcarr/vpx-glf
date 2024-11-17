@@ -80,10 +80,6 @@ Class GlfDroptarget
 		m_action_cb = Empty
 		KnockdownEventsEvents = Array()
 		ResetEventsEvents = Array()
-
-
-		
-		
 		m_debug = False
         glf_droptargets.Add name, Me
         Set Init = Me

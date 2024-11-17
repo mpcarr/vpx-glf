@@ -30,7 +30,7 @@ Dim glf_flippers : Set glf_flippers = CreateObject("Scripting.Dictionary")
 Dim glf_ball_holds : Set glf_ball_holds = CreateObject("Scripting.Dictionary")
 Dim glf_magnets : Set glf_magnets = CreateObject("Scripting.Dictionary")
 Dim glf_segment_displays : Set glf_segment_displays = CreateObject("Scripting.Dictionary")
-
+Dim glf_droptargets : Set glf_droptargets = CreateObject("Scripting.Dictionary")
 
 Dim bcpController : bcpController = Null
 Dim useBCP : useBCP = False
@@ -6463,10 +6463,6 @@ Class GlfDroptarget
 		m_action_cb = Empty
 		KnockdownEventsEvents = Array()
 		ResetEventsEvents = Array()
-
-
-		
-		
 		m_debug = False
         glf_droptargets.Add name, Me
         Set Init = Me

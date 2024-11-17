@@ -30,7 +30,7 @@ Dim glf_flippers : Set glf_flippers = CreateObject("Scripting.Dictionary")
 Dim glf_ball_holds : Set glf_ball_holds = CreateObject("Scripting.Dictionary")
 Dim glf_magnets : Set glf_magnets = CreateObject("Scripting.Dictionary")
 Dim glf_segment_displays : Set glf_segment_displays = CreateObject("Scripting.Dictionary")
-
+Dim glf_droptargets : Set glf_droptargets = CreateObject("Scripting.Dictionary")
 
 Dim bcpController : bcpController = Null
 Dim useBCP : useBCP = False
