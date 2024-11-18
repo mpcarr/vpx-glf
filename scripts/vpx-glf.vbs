@@ -6478,12 +6478,12 @@ Class GlfDroptarget
 
     Public Sub Up()
         m_complete = 0
-        DispatchPinEvent name & "_up", Null
+        DispatchPinEvent m_name & "_up", Null
     End Sub
 
 	Public Sub Down()
         m_complete = 1
-        DispatchPinEvent name & "_down", Null
+        DispatchPinEvent m_name & "_down", Null
     End Sub
 
 	Public Sub EnableKeepup()
