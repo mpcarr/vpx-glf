@@ -205,6 +205,6 @@ Function BallDeviceEventHandler(args)
         Case "eject_timeout"
             ballDevice.BallExitSuccess ball
         Case "eject_enable_complete"
-            ballDevice.EjectEnableComplete ball
+            ballDevice.EjectEnableComplete
     End Select
 End Function
