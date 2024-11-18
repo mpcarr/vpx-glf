@@ -6098,7 +6098,8 @@ Class GlfBallDevice
     Public Property Get Balls(): Balls = m_balls_in_device : End Property
 
     Public Property Let EjectCallback(value) : m_eject_callback = value : End Property
-    
+    Public Property Let EjectEnableTime(value) : m_eject_enable_time = value : End Property
+        eject_coil_enable_time
     Public Property Let EjectTimeout(value) : m_eject_timeout = value : End Property
     Public Property Let EjectAllEvents(value)
         m_eject_all_events = value
@@ -6148,6 +6149,7 @@ Class GlfBallDevice
         m_balls_in_device = 0
         m_mechanical_eject = False
         m_eject_timeout = 1000
+        m_eject_enable_time = 0
         glf_ball_devices.Add name, Me
 	    Set Init = Me
 	End Function
@@ -6202,6 +6204,15 @@ Class GlfBallDevice
         
         If Not IsNull(m_eject_callback) Then
             GetRef(m_eject_callback)(m_balls(0))
+            If m_eject_enable_time > 0 Then
+                SetDelay m_name & "_eject_enable_time", "BallDeviceEventHandler", Array(Array("eject_enable_complete", Me), m_balls(0)), m_eject_enable_time
+            End If
+        End If
+    End Sub
+
+    Public Sub EjectEnableComplete
+        If Not IsNull(m_eject_callback) Then
+            GetRef(m_eject_callback)(Null)
         End If
     End Sub
 
@@ -6249,6 +6260,8 @@ Function BallDeviceEventHandler(args)
             End If
         Case "eject_timeout"
             ballDevice.BallExitSuccess ball
+        Case "eject_enable_complete"
+            ballDevice.EjectEnableComplete ball
     End Select
 End Function
 Function CreateGlfDiverter(name)
