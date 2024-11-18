@@ -6099,7 +6099,7 @@ Class GlfBallDevice
 
     Public Property Let EjectCallback(value) : m_eject_callback = value : End Property
     Public Property Let EjectEnableTime(value) : m_eject_enable_time = value : End Property
-        eject_coil_enable_time
+        
     Public Property Let EjectTimeout(value) : m_eject_timeout = value : End Property
     Public Property Let EjectAllEvents(value)
         m_eject_all_events = value
