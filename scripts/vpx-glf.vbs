@@ -6450,11 +6450,11 @@ Class GlfDroptarget
 	Public default Function init(name)
         m_name = "drop_target_" & name
 		m_switch = Empty
-        EnableKeepUpEventsEnableEvents = Array()
-        DisableKeepUpEventsEnableEvents = Array()
+        EnableKeepUpEvents = Array()
+        DisableKeepUpEvents = Array()
 		m_action_cb = Empty
-		KnockdownEventsEvents = Array()
-		ResetEventsEvents = Array()
+		KnockdownEvents = Array()
+		ResetEvents = Array()
 		m_debug = False
         glf_droptargets.Add name, Me
         Set Init = Me
@@ -6462,7 +6462,7 @@ Class GlfDroptarget
 
     Public Sub UpdateStateFromSwitch(is_complete)
 
-		Log "Drop target " & m_name & " switch " & m_switch & " has active value " & isComplete & " compared to drop complete " & m_complete
+		Log "Drop target " & m_name & " switch " & m_switch & " has active value " & is_complete & " compared to drop complete " & m_complete
 
 		If is_complete <> m_complete Then
 			If is_complete = True Then
@@ -6471,7 +6471,7 @@ Class GlfDroptarget
 				Up()
 			End	If
 		End If
-		UpdateBanks()
+		'UpdateBanks()
     End Sub
 
     Public Sub Up()
@@ -6481,7 +6481,7 @@ Class GlfDroptarget
 
 	Public Sub Down()
         m_complete = True
-        DispatchPinEvent name & "_up", Null
+        DispatchPinEvent name & "_down", Null
     End Sub
 
 	Public Sub EnableKeepup()
