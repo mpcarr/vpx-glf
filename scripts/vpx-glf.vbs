@@ -6386,6 +6386,7 @@ Class GlfDroptarget
 	Private m_action_cb
 	Private m_knockdown_events
 	Private m_reset_events
+    Private m_complete
 
     
     Private m_debug
@@ -6455,6 +6456,7 @@ Class GlfDroptarget
 		m_action_cb = Empty
 		KnockdownEvents = Array()
 		ResetEvents = Array()
+        m_complete = 0
 		m_debug = False
         glf_droptargets.Add name, Me
         Set Init = Me
@@ -6465,7 +6467,7 @@ Class GlfDroptarget
 		Log "Drop target " & m_name & " switch " & m_switch & " has active value " & is_complete & " compared to drop complete " & m_complete
 
 		If is_complete <> m_complete Then
-			If is_complete = True Then
+			If is_complete = 1 Then
 				Down()
 			Else
 				Up()
@@ -6475,12 +6477,12 @@ Class GlfDroptarget
     End Sub
 
     Public Sub Up()
-        m_complete = False
+        m_complete = 0
         DispatchPinEvent name & "_up", Null
     End Sub
 
 	Public Sub Down()
-        m_complete = True
+        m_complete = 1
         DispatchPinEvent name & "_down", Null
     End Sub
 
@@ -6497,13 +6499,13 @@ Class GlfDroptarget
     End Sub
 
 	Public Sub Knockdown()
-        If Not IsEmpty(m_action_cb) And m_complete = False Then
+        If Not IsEmpty(m_action_cb) And m_complete = 0 Then
             GetRef(m_action_cb)(1)
 		End If
     End Sub
 
 	Public Sub Reset()
-        If Not IsEmpty(m_action_cb) And m_complete = True Then
+        If Not IsEmpty(m_action_cb) And m_complete = 1 Then
             GetRef(m_action_cb)(0)
 		End If
     End Sub
