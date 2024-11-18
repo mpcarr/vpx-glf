@@ -52,7 +52,7 @@ Class GlfMultiballLocks
 
     Public Sub Enable()
         m_base_device.Log "Enabling"
-        AddPinEventListener "balldevice_" & m_lock_device & "_ball_enter", m_mode & "_" & name & "_lock", "MultiballLocksHandler", m_priority, Array("lock", me, device)
+        AddPinEventListener "balldevice_" & m_lock_device & "_ball_enter", m_mode & "_" & name & "_lock", "MultiballLocksHandler", m_priority, Array("lock", me, m_lock_device)
         Dim evt
         For Each evt in m_lock_events
             AddPinEventListener evt, m_name & "_ball_locked", "MultiballLocksHandler", m_priority, Array("lock", Me, Null)
