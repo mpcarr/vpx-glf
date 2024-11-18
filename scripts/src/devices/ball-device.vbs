@@ -23,6 +23,12 @@ Class GlfBallDevice
     Private m_debug
 
     Public Property Get Name(): Name = m_name : End Property
+    Public Property Get GetValue(value)
+        Select Case value
+            Case "balls":
+                GetValue = m_balls_in_device
+        End Select
+    End Property
     Public Property Let DefaultDevice(value)
         m_default_device = value
         If m_default_device = True Then
@@ -67,6 +73,8 @@ Class GlfBallDevice
         Next
     End Property
     Public Property Let MechanicalEject(value) : m_mechanical_eject = value : End Property
+
+
     Public Property Let Debug(value) : m_debug = value : End Property
         
 	Public default Function init(name)
