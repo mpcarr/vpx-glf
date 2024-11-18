@@ -3379,7 +3379,7 @@ Function MultiballLocksHandler(args)
             multiball.Reset
         Case "queue_release"
             If glf_plunger.HasBall = False And ballInReleasePostion = True Then
-                ReleaseBall(Null)
+                Glf_ReleaseBall(Null)
                 SetDelay multiball.Name&"_auto_launch", "MultiballLocksHandler" , Array(Array("auto_launch", multiball),Null), 500
             Else
                 SetDelay multiball.Name&"_queued_release", "MultiballLocksHandler" , Array(Array("queue_release", multiball), Null), 1000
