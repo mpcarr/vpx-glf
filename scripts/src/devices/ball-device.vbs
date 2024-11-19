@@ -101,7 +101,7 @@ Class GlfBallDevice
 	    Set Init = Me
 	End Function
 
-    Public Sub BallEntering(ball switch)
+    Public Sub BallEntering(ball, switch)
         Log "Ball Entering" 
         SetDelay m_name & "_" & switch & "_ball_enter", "BallDeviceEventHandler", Array(Array("ball_enter", Me, switch), ball), m_entrance_count_delay
     End Sub
