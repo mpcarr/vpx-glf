@@ -552,7 +552,7 @@ Function Glf_ConvertIf(value, retName)
 			truePart = "Glf_FormatValue(" & parts(0) & ", """ & parts(1) & """)"
 		End If
 	End If
-	isVariable = Glf_IsCondition(falsePartPart)
+	isVariable = Glf_IsCondition(falsePart)
 	If Not IsNull(isVariable) Then
 		'The input needs formatting
 		parts = Split(isVariable, ":")
