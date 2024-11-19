@@ -6287,7 +6287,19 @@ Class GlfDiverter
     Private m_disable_events
     Private m_activation_switches
     Private m_action_cb
+    Private m_enabled
+    Private m_active
     Private m_debug
+
+    Public Property Get Name(): Name = m_name : End Property
+    Public Property Get GetValue(value)
+        Select Case value
+            Case "enabled":
+                GetValue = m_enabled
+            Case "active":
+                GetValue = m_active
+        End Select
+    End Property
 
     Public Property Let ActionCallback(value) : m_action_cb = value : End Property
     Public Property Let EnableEvents(value)
@@ -6329,11 +6341,14 @@ Class GlfDiverter
         m_activation_switches = Array()
         Set m_activation_time = CreateGlfInput(0)
         m_debug = False
+        m_enabled = False
+        m_active = False
         Set Init = Me
 	End Function
 
     Public Sub Enable()
         Log "Enabling"
+        m_enabled = True
         Dim evt
         For Each evt in m_activate_events
             AddPinEventListener evt, m_name & "_activate", "DiverterEventHandler", 1000, Array("activate", Me)
@@ -6348,6 +6363,7 @@ Class GlfDiverter
 
     Public Sub Disable()
         Log "Disabling"
+        m_enabled = False
         Dim evt
         For Each evt in m_activate_events
             RemovePinEventListener evt, m_name & "_activate"
@@ -6364,6 +6380,7 @@ Class GlfDiverter
 
     Public Sub Activate()
         Log "Activating"
+        m_active = True
         GetRef(m_action_cb)(1)
         If m_activation_time.Value > 0 Then
             SetDelay m_name & "_deactivate", "DiverterEventHandler", Array(Array("deactivate", Me), Null), m_activation_time.Value
@@ -6373,6 +6390,7 @@ Class GlfDiverter
 
     Public Sub Deactivate()
         Log "Deactivating"
+        m_active = False
         RemoveDelay m_name & "_deactivate"
         GetRef(m_action_cb)(0)
         DispatchPinEvent m_name & "_deactivating", Null
