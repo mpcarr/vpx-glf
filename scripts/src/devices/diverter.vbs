@@ -69,6 +69,7 @@ Class GlfDiverter
         m_debug = False
         m_enabled = False
         m_active = False
+        glf_diverters.Add Me
         Set Init = Me
 	End Function
 
