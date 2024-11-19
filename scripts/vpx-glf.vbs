@@ -6076,6 +6076,7 @@ Class GlfBallDevice
     Private m_ejecting
     Private m_mechanical_eject
     Private m_eject_targets
+    Private m_entrance_count_delay
     Private m_debug
 
     Public Property Get Name(): Name = m_name : End Property
@@ -6101,6 +6102,7 @@ Class GlfBallDevice
     Public Property Let EjectEnableTime(value) : m_eject_enable_time = value : End Property
         
     Public Property Let EjectTimeout(value) : m_eject_timeout = value : End Property
+    Public Property Let EntranceCountDelay(value) : m_entrance_count_delay = value : End Property
     Public Property Let EjectAllEvents(value)
         m_eject_all_events = value
         Dim evt
@@ -6150,13 +6152,18 @@ Class GlfBallDevice
         m_mechanical_eject = False
         m_eject_timeout = 1000
         m_eject_enable_time = 0
+        m_entrance_count_delay = 500
         glf_ball_devices.Add name, Me
 	    Set Init = Me
 	End Function
 
+    Public Sub BallEntering(ball switch)
+        Log "Ball Entering" 
+        SetDelay m_name & "_" & switch & "_ball_enter", "BallDeviceEventHandler", Array(Array("ball_enter", Me, switch), ball), m_entrance_count_delay
+    End Sub
+
     Public Sub BallEnter(ball, switch)
         RemoveDelay m_name & "_eject_timeout"
-        'SoundSaucerLockAtBall ball
         Set m_balls(switch) = ball
         m_balls_in_device = m_balls_in_device + 1
         Log "Ball Entered" 
@@ -6169,6 +6176,7 @@ Class GlfBallDevice
     End Sub
 
     Public Sub BallExiting(ball, switch)
+        RemoveDelay m_name & "_" & switch & "_ball_enter"
         m_balls(switch) = Null
         m_balls_in_device = m_balls_in_device - 1
         DispatchPinEvent m_name & "_ball_exiting", Null
@@ -6245,7 +6253,7 @@ Function BallDeviceEventHandler(args)
     Select Case evt
         Case "ball_entering"
             switch = ownProps(2)
-            SetDelay ballDevice.Name & "_" & switch & "_ball_enter", "BallDeviceEventHandler", Array(Array("ball_enter", ballDevice, switch), ball), 500
+            ballDevice.BallEntering ball, switch
         Case "ball_enter"
             switch = ownProps(2)
             ballDevice.BallEnter ball, switch
