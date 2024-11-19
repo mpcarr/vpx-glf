@@ -69,7 +69,7 @@ Class GlfDiverter
         m_debug = False
         m_enabled = False
         m_active = False
-        glf_diverters.Add Me
+        glf_diverters.Add name, Me
         Set Init = Me
 	End Function
 
