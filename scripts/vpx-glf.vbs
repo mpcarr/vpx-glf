@@ -3866,6 +3866,8 @@ Class GlfShotGroup
             m_rotate_right_events.Add newEvent.Name, newEvent
         Next
     End Property
+    Public Property Let EnableEvents(value) : m_base_device.EnableEvents = value : End Property
+    Public Property Let DisableEvents(value) : m_base_device.DisableEvents = value : End Property
  
 	Public default Function init(name, mode)
         m_name = name
