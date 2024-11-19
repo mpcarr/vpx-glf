@@ -6209,11 +6209,12 @@ Class GlfBallDevice
     End Sub
 
     Public Sub Eject
-        Log "Ejecting."
-        SetDelay m_name & "_eject_timeout", "BallDeviceEventHandler", Array(Array("eject_timeout", Me), m_balls(0)), m_eject_timeout
-        m_ejecting = True
         
         If Not IsNull(m_eject_callback) Then
+            Log "Ejecting."
+            SetDelay m_name & "_eject_timeout", "BallDeviceEventHandler", Array(Array("eject_timeout", Me), m_balls(0)), m_eject_timeout
+            m_ejecting = True
+        
             GetRef(m_eject_callback)(m_balls(0))
             If m_eject_enable_time > 0 Then
                 SetDelay m_name & "_eject_enable_time", "BallDeviceEventHandler", Array(Array("eject_enable_complete", Me), m_balls(0)), m_eject_enable_time
