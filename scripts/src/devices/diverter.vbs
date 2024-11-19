@@ -42,7 +42,7 @@ Class GlfDiverter
     End Property
     Public Property Let ActivateEvents(value) : m_activate_events = value : End Property
     Public Property Let DeactivateEvents(value) : m_deactivate_events = value : End Property
-    Public Property Let ActivationTime(value) : m_activation_time = value : End Property
+    Public Property Let ActivationTime(value) : Set m_activation_time = CreateGlfInput(value) : End Property
     Public Property Let ActivationSwitches(value) : m_activation_switches = value : End Property
     Public Property Let Debug(value) : m_debug = value : End Property
 
@@ -53,7 +53,7 @@ Class GlfDiverter
         m_activate_events = Array()
         m_deactivate_events = Array()
         m_activation_switches = Array()
-        m_activation_time = 0
+        Set m_activation_time = CreateGlfInput(0)
         m_debug = False
         Set Init = Me
 	End Function
@@ -91,8 +91,8 @@ Class GlfDiverter
     Public Sub Activate()
         Log "Activating"
         GetRef(m_action_cb)(1)
-        If m_activation_time > 0 Then
-            SetDelay m_name & "_deactivate", "DiverterEventHandler", Array(Array("deactivate", Me), Null), m_activation_time
+        If m_activation_time.Value > 0 Then
+            SetDelay m_name & "_deactivate", "DiverterEventHandler", Array(Array("deactivate", Me), Null), m_activation_time.Value
         End If
         DispatchPinEvent m_name & "_activating", Null
     End Sub
