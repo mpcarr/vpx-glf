@@ -109,7 +109,7 @@ Class GlfShot
 	End Function
 
     Public Sub Activate()
-        If IsNull(GetPlayerState(m_player_var_name)) Then
+        If GetPlayerState(m_player_var_name) = False Then
             m_state = 0
             If m_persist Then
                 SetPlayerState m_player_var_name, 0

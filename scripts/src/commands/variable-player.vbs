@@ -96,7 +96,7 @@ Class GlfVariablePlayerEvent
 End Class
 
 Class GlfVariablePlayerItem
-	Private m_block, m_show, m_flaot, m_int, m_string, m_player, m_action, m_type
+	Private m_block, m_show, m_float, m_int, m_string, m_player, m_action, m_type
   
 	Public Property Get Action(): Action = m_action: End Property
     Public Property Let Action(input): m_action = input: End Property

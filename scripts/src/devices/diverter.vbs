@@ -131,7 +131,12 @@ Class GlfDiverter
 End Class
 
 Function DiverterEventHandler(args)
-    Dim ownProps, kwargs : ownProps = args(0) : kwargs = args(1) 
+    Dim ownProps, kwargs : ownProps = args(0)
+    If IsObject(args(1)) Then
+        Set kwargs = args(1)
+    Else
+        kwargs = args(1) 
+    End If
     Dim evt : evt = ownProps(0)
     Dim diverter : Set diverter = ownProps(1)
     Select Case evt
@@ -144,5 +149,9 @@ Function DiverterEventHandler(args)
         Case "deactivate"
             diverter.Deactivate
     End Select
-    DiverterEventHandler = kwargs
+    If IsObject(args(1)) Then
+        Set DiverterEventHandler = kwargs
+    Else
+        DiverterEventHandler = kwargs
+    End If
 End Function

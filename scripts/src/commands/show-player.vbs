@@ -115,7 +115,12 @@ Class GlfShowPlayerItem
             Set Show = m_show
         End If
     End Property
-	Public Property Let Show(input): Set m_show = input: End Property
+	Public Property Let Show(input)
+        'msgbox "input:" & input
+        If glf_shows.Exists(input) Then
+            Set m_show = glf_shows(input)
+        End If
+    End Property
   
 	Public Property Get Loops(): Loops = m_loops: End Property
 	Public Property Let Loops(input): m_loops = input: End Property

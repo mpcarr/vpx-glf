@@ -25,6 +25,7 @@ Dim glf_lightNames : Set glf_lightNames = CreateObject("Scripting.Dictionary")
 Dim glf_modes : Set glf_modes = CreateObject("Scripting.Dictionary")
 Dim glf_timers : Set glf_timers = CreateObject("Scripting.Dictionary")
 
+
 Dim glf_ball_devices : Set glf_ball_devices = CreateObject("Scripting.Dictionary")
 Dim glf_diverters : Set glf_diverters = CreateObject("Scripting.Dictionary")
 Dim glf_flippers : Set glf_flippers = CreateObject("Scripting.Dictionary")
@@ -32,6 +33,11 @@ Dim glf_ball_holds : Set glf_ball_holds = CreateObject("Scripting.Dictionary")
 Dim glf_magnets : Set glf_magnets = CreateObject("Scripting.Dictionary")
 Dim glf_segment_displays : Set glf_segment_displays = CreateObject("Scripting.Dictionary")
 Dim glf_droptargets : Set glf_droptargets = CreateObject("Scripting.Dictionary")
+Dim glf_multiball_locks : Set glf_multiball_locks = CreateObject("Scripting.Dictionary")
+Dim glf_multiballs : Set glf_multiballs = CreateObject("Scripting.Dictionary")
+Dim glf_shows : Set glf_shows = CreateObject("Scripting.Dictionary")
+
+
 
 Dim bcpController : bcpController = Null
 Dim useBCP : useBCP = False
@@ -39,6 +45,7 @@ Dim bcpPort : bcpPort = 5050
 Dim bcpExeName : bcpExeName = ""
 Dim glf_BIP : glf_BIP = 0
 Dim glf_FuncCount : glf_FuncCount = 0
+Dim glf_SeqCount : glf_SeqCount = 0
 
 Dim glf_ballsPerGame : glf_ballsPerGame = 3
 Dim glf_troughSize : glf_troughSize = tnob
@@ -95,6 +102,11 @@ Public Sub Glf_Init()
 		scaleFactor = 1080 / tableheight
 
 		Dim light
+		Dim switchNumber : switchNumber = 1
+		Dim lightsNumber : lightsNumber = 1
+		Dim switchesYaml : switchesYaml = "#config_version=6" & vbCrLf & vbCrLf
+		Dim lightsYaml : lightsYaml = "#config_version=6" & vbCrLf & vbCrLf
+		lightsYaml = lightsYaml + "lights:" & vbCrLf
 		Dim monitorYaml : monitorYaml = "light:" & vbCrLf
 		Dim godotLightScene : godotLightScene = ""
 		For Each light in glf_lights
@@ -103,6 +115,12 @@ Public Sub Glf_Init()
 			monitorYaml = monitorYaml + "    x: "& light.x/tablewidth & vbCrLf
 			monitorYaml = monitorYaml + "    y: "& light.y/tableheight & vbCrLf
 
+			lightsYaml = lightsYaml + "  " & light.name & ":"&vbCrLf
+			lightsYaml = lightsYaml + "    number: " & lightsNumber & vbCrLf
+			lightsYaml = lightsYaml + "    subtype: led" & vbCrLf
+			lightsYaml = lightsYaml + "    type: rgb" & vbCrLf
+			lightsYaml = lightsYaml + "    tags: " & light.BlinkPattern & vbCrLf
+			lightsNumber = lightsNumber + 1
 
 			godotLightScene = godotLightScene + "[node name="""&light.name&""" type=""Sprite2D"" parent=""lights""]" & vbCrLf
 			godotLightScene = godotLightScene + "position = Vector2("&light.x*scaleFactor&", "&light.y*scaleFactor&")" & vbCrLf
@@ -113,12 +131,40 @@ Public Sub Glf_Init()
 
 		monitorYaml = monitorYaml + vbCrLf
 		monitorYaml = monitorYaml + "switch:" & vbCrLf
+		switchesYaml = switchesYaml + "switches:" & vbCrLf
+		
 		For Each switch in glf_switches
 			monitorYaml = monitorYaml + "  " & switch.name & ":"&vbCrLf
 			monitorYaml = monitorYaml + "    shape: RECTANGLE" & vbCrLf
 			monitorYaml = monitorYaml + "    size: 0.06" & vbCrLf
 			monitorYaml = monitorYaml + "    x: "& switch.x/tablewidth & vbCrLf
 			monitorYaml = monitorYaml + "    y: "& switch.y/tableheight & vbCrLf
+			switchesYaml = switchesYaml + "  " & switch.name & ":"&vbCrLf
+			switchesYaml = switchesYaml + "    number: " & switchNumber & vbCrLf
+			switchesYaml = switchesYaml + "    tags: " & vbCrLf
+			switchNumber = switchNumber + 1
+		Next
+		For Each switch in glf_spinners
+			monitorYaml = monitorYaml + "  " & switch.name & ":"&vbCrLf
+			monitorYaml = monitorYaml + "    shape: RECTANGLE" & vbCrLf
+			monitorYaml = monitorYaml + "    size: 0.06" & vbCrLf
+			monitorYaml = monitorYaml + "    x: "& switch.x/tablewidth & vbCrLf
+			monitorYaml = monitorYaml + "    y: "& switch.y/tableheight & vbCrLf
+			switchesYaml = switchesYaml + "  " & switch.name & ":"&vbCrLf
+			switchesYaml = switchesYaml + "    number: " & switchNumber & vbCrLf
+			switchesYaml = switchesYaml + "    tags: " & vbCrLf
+			switchNumber = switchNumber + 1
+		Next
+		For Each switch in glf_slingshots
+			monitorYaml = monitorYaml + "  " & switch.name & ":"&vbCrLf
+			monitorYaml = monitorYaml + "    shape: RECTANGLE" & vbCrLf
+			monitorYaml = monitorYaml + "    size: 0.06" & vbCrLf
+			monitorYaml = monitorYaml + "    x: "& switch.BlendDisableLighting & vbCrLf
+			monitorYaml = monitorYaml + "    y: "& 1-switch.BlendDisableLightingFromBelow & vbCrLf
+			switchesYaml = switchesYaml + "  " & switch.name & ":"&vbCrLf
+			switchesYaml = switchesYaml + "    number: " & switchNumber & vbCrLf
+			switchesYaml = switchesYaml + "    tags: " & vbCrLf
+			switchNumber = switchNumber + 1
 		Next
 		Dim troughCount
 		For troughCount=1 to tnob
@@ -127,24 +173,47 @@ Public Sub Glf_Init()
 			monitorYaml = monitorYaml + "    size: 0.06" & vbCrLf
 			monitorYaml = monitorYaml + "    x: "& Eval("swTrough"&troughCount).x/tablewidth & vbCrLf
 			monitorYaml = monitorYaml + "    y: "& Eval("swTrough"&troughCount).y/tableheight & vbCrLf
+			switchesYaml = switchesYaml + "  s_trough" & troughCount & ":"&vbCrLf
+			switchesYaml = switchesYaml + "    number: " & switchNumber & vbCrLf
+			switchesYaml = switchesYaml + "    tags: " & vbCrLf
+			switchNumber = switchNumber + 1
 		Next
+		switchesYaml = switchesYaml + "  s_trough_jam" & ":"&vbCrLf
+		switchesYaml = switchesYaml + "    number: " & switchNumber & vbCrLf
+		switchesYaml = switchesYaml + "    tags: " & vbCrLf
+		switchNumber = switchNumber + 1
+
 		monitorYaml = monitorYaml + "  s_start:"&vbCrLf
 		monitorYaml = monitorYaml + "    size: 0.06" & vbCrLf
 		monitorYaml = monitorYaml + "    x: 0.95" & vbCrLf
 		monitorYaml = monitorYaml + "    y: 0.95" & vbCrLf
+		switchesYaml = switchesYaml + "  s_start:"&vbCrLf
+		switchesYaml = switchesYaml + "    number: " & switchNumber & vbCrLf
+		switchesYaml = switchesYaml + "    tags: start" & vbCrLf
+		switchNumber = switchNumber + 1
 
 
-		Dim fso, modesFolder, TxtFileStream, monitorFolder
+		Dim fso, modesFolder, TxtFileStream, monitorFolder, configFolder
 		Set fso = CreateObject("Scripting.FileSystemObject")
 		monitorFolder = "glf_mpf\monitor\"
+		configFolder = "glf_mpf\config\"
 		If Not fso.FolderExists("glf_mpf") Then
 			fso.CreateFolder "glf_mpf"
 		End If
 		If Not fso.FolderExists("glf_mpf\monitor") Then
 			fso.CreateFolder "glf_mpf\monitor"
 		End If
+		If Not fso.FolderExists("glf_mpf\config") Then
+			fso.CreateFolder "glf_mpf\config"
+		End If
 		Set TxtFileStream = fso.OpenTextFile(monitorFolder & "\monitor.yaml", 2, True)
 		TxtFileStream.WriteLine monitorYaml
+		TxtFileStream.Close
+		Set TxtFileStream = fso.OpenTextFile(configFolder & "\switches.yaml", 2, True)
+		TxtFileStream.WriteLine switchesYaml
+		TxtFileStream.Close
+		Set TxtFileStream = fso.OpenTextFile(configFolder & "\lights.yaml", 2, True)
+		TxtFileStream.WriteLine lightsYaml
 		TxtFileStream.Close
 		Set TxtFileStream = fso.OpenTextFile(monitorFolder & "\gotdotlights.txt", 2, True)
 		TxtFileStream.WriteLine godotLightScene
@@ -494,20 +563,30 @@ End Function
 
 Public Function Glf_ParseEventInput(value)
 	Dim templateCode : templateCode = ""
+	Dim parts : parts = Split(value, ":")
+	Dim event_delay : event_delay = 0
+	If UBound(parts) = 1 Then
+		value = parts(0)
+		event_delay= parts(1)
+	End If
+
+
 	Dim condition : condition = Glf_IsCondition(value)
 	If IsNull(condition) Then
-		Glf_ParseEventInput = Array(value, value, Null)
+		Glf_ParseEventInput = Array(value, value, Null, event_delay)
 	Else
 		dim conditionReplaced : conditionReplaced = Glf_ReplaceCurrentPlayerAttributes(condition)
 		conditionReplaced = Glf_ReplaceDeviceAttributes(conditionReplaced)
 		templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
+		templateCode = templateCode & vbTab & "On Error Resume Next" & vbCrLf
 		templateCode = templateCode & vbTab & Glf_ConvertCondition(conditionReplaced, "Glf_" & glf_FuncCount) & vbCrLf
+		templateCode = templateCode & vbTab & "If Err Then Glf_" & glf_FuncCount & " = False" & vbCrLf
 		templateCode = templateCode & "End Function"
 		'msgbox templateCode
 		ExecuteGlobal templateCode
 		Dim funcRef : funcRef = "Glf_" & glf_FuncCount
 		glf_FuncCount = glf_FuncCount + 1
-		Glf_ParseEventInput = Array(Replace(value, "{"&condition&"}", funcRef) ,Replace(value, "{"&condition&"}", ""), funcRef)
+		Glf_ParseEventInput = Array(Replace(value, "{"&condition&"}", funcRef) ,Replace(value, "{"&condition&"}", ""), funcRef, event_delay)
 	End If
 End Function
 
@@ -807,7 +886,7 @@ Function Glf_ConvertShow(show, tokens)
 					tagLights = glf_lightTags(lightParts(0)).Keys()
 					For Each tagLight in tagLights
 						If UBound(lightParts) >=1 Then
-							seqArray(x) = tagLight & "|"&lightParts(1)&"|"&lightColor
+							seqArray(x) = tagLight & "|"&lightParts(1)&"|" & AdjustHexColor(lightColor, lightParts(1))
 						Else
 							seqArray(x) = tagLight & "|"&lightParts(1)
 						End If
@@ -819,7 +898,7 @@ Function Glf_ConvertShow(show, tokens)
 				Else
 					If IsNull(token) Then
 						If UBound(lightParts) >= 1 Then
-							seqArray(x) = lightParts(0) & "|"&lightParts(1)&"|"&lightColor
+							seqArray(x) = lightParts(0) & "|"&lightParts(1)&"|"&AdjustHexColor(lightColor, lightParts(1))
 						Else
 							seqArray(x) = lightParts(0) & "|"&lightParts(1)
 						End If
@@ -834,7 +913,7 @@ Function Glf_ConvertShow(show, tokens)
 							tagLights = glf_lightTags(tokens(token)).Keys()
 							For Each tagLight in tagLights
 								If UBound(lightParts) >=1 Then
-									seqArray(x) = tagLight & "|"&lightParts(1)&"|"&lightColor
+									seqArray(x) = tagLight & "|"&lightParts(1)&"|"&AdjustHexColor(lightColor, lightParts(1))
 								Else
 									seqArray(x) = tagLight & "|"&lightParts(1)
 								End If
@@ -845,7 +924,7 @@ Function Glf_ConvertShow(show, tokens)
 							Next
 						Else
 							If UBound(lightParts) >= 1 Then
-								seqArray(x) = tokens(token) & "|"&lightParts(1)&"|"&lightColor
+								seqArray(x) = tokens(token) & "|"&lightParts(1)&"|"&AdjustHexColor(lightColor, lightParts(1))
 							Else
 								seqArray(x) = tokens(token) & "|"&lightParts(1)
 							End If
@@ -966,22 +1045,26 @@ End Class
 '*****   GLF Shows 		                           ****
 '******************************************************
 
-Dim glf_ShowOn : Set glf_ShowOn = (new GlfShow)("on")
-With glf_ShowOn
+Function CreateGlfShow(name)
+	Dim show : Set show = (new GlfShow)(name)
+	'msgbox name
+	glf_shows.Add name, show
+	Set CreateGlfShow = show
+End Function
+
+With CreateGlfShow("on")
 	With .AddStep(Null, Null, -1)
 		.Lights = Array("(lights)|100")
 	End With
 End With
 
-Dim glf_ShowOff : Set glf_ShowOff = (new GlfShow)("off")
-With glf_ShowOff
+With CreateGlfShow("off")
 	With .AddStep(Null, Null, -1)
 		.Lights = Array("(lights)|100|000000")
 	End With
 End With
 
-Dim glf_ShowFlash : Set glf_ShowFlash = (new GlfShow)("flash")
-With glf_ShowFlash
+With CreateGlfShow("flash")
 	With .AddStep(Null, Null, 1)
 		.Lights = Array("(lights)|100")
 	End With
@@ -990,8 +1073,7 @@ With glf_ShowFlash
 	End With
 End With
 
-Dim glf_ShowFlashColor : Set glf_ShowFlashColor = (new GlfShow)("flash_color")
-With glf_ShowFlashColor
+With CreateGlfShow("flash_color")
 	With .AddStep(Null, Null, 1)
 		.Lights = Array("(lights)|100|(color)")
 	End With
@@ -1000,385 +1082,70 @@ With glf_ShowFlashColor
 	End With
 End With
 
-Dim glf_ShowOnColor : Set glf_ShowOnColor = (new GlfShow)("led_color")
-With glf_ShowOnColor
+With CreateGlfShow("led_color")
 	With .AddStep(Null, Null, -1)
 		.Lights = Array("(lights)|100|(color)")
 	End With
 End With
-
-Dim glf_Showtest : Set glf_Showtest = (new GlfShow)("test")
-With glf_Showtest
-	With .AddStep(0.00000, Null, Null)
-		.Lights = Array("l142|100|000000","l143|100|000000","l141|100|000000","l140|100|00c737","l79|100|000000","l78|100|000000","l77|100|000000","l76|100|00d628","l75|100|00d628","l74|100|00d628","l73|100|00d32b","l72|100|000000","l71|100|000000","l70|100|000000","l69|100|000000","l44|100|000000","l11|100|000000","l12|100|000000","l13|100|000000","l14|100|000000","l15|100|000000","l05|100|000000","l07|100|000000","l08|100|000000","l09|100|000000","l10|100|000000","l06|100|000000","l04|100|000000","l03|100|000000","l02|100|000000","l01|100|000000","l16|100|000000","l23|100|000000","l63|100|000000","l53|100|000000","l68|100|00eb13","l67|100|00df1f","l66|100|00d727","l35|100|000000","l62|100|000000","l34|100|000000","l92|100|000000","l60|100|000000","l61|100|000000","l19|100|000000","l18|100|000000","l17|100|000000","l49|100|000000","l59|100|000000","l65|100|000000","l33|100|000000","l32|100|000000","l31|100|000000","l30|100|000000","l29|100|000000","l41|100|000000","l40|100|000000","l39|100|000000","l38|100|000000","l37|100|000000","l28|100|000000","l27|100|000000","l26|100|000000","l25|100|000000","l24|100|000000","l45|100|000000","l43|100|000000","l50|100|000000","l51|100|000000","l52|100|000000","l21|100|000000","l22|100|000000","l20|100|000000","l58|100|000000","l57|100|000000","l56|100|000000","l55|100|000000","l54|100|000000","l48|100|000000","l46|100|000000","l47|100|000000","l64|100|000000","l42|100|000000","l84|100|000000","l83|100|000000","l82|100|000000","l81|100|000000","l80|100|000000",_
-			"l95|100|000000","l139|100|000000","l137|100|000000","l135|100|000000","l136|100|000000","l145|100|000000","l134|100|000000","l133|100|000000","l131|100|000000","l130|100|000000","l129|100|000000","l128|100|000000","l127|100|000000","l126|100|000000","l125|100|000000","l124|100|000000","l123|100|000000","l122|100|00ea14","l121|100|000000","l120|100|000000","l119|100|000000","l116|100|000000","l115|100|00ad50","l114|100|000000","l113|100|00d12d","l112|100|000000","l111|100|000000","l110|100|000000","l109|100|000000","l108|100|000000","l107|100|000000","l106|100|000000","l105|100|000000","l104|100|000000","l103|100|000000","l102|100|000000","l101|100|000000","l100|100|000000","l118|100|000000","l117|100|000000","l132|100|000000","l94|100|000000","l97|100|000000","l93|100|000000","l98|100|000000")
-	End With
-	With .AddStep(0.03333, Null, Null)
-		.Lights = Array("l140|100|00c33b","l76|100|00d22c","l75|100|00d22c","l74|100|00d22c","l73|100|00cf2f","l68|100|00e717","l67|100|00db23","l66|100|00d32b","l130|100|00fd02","l122|100|00e618","l115|100|00a955","l113|100|00cd31","l97|100|00fd02")
-	End With
-	With .AddStep(0.06667, Null, Null)
-		.Lights = Array("l140|100|00b945","l76|100|00c737","l75|100|00c737","l74|100|00c737","l73|100|00c539","l68|100|00dc22","l67|100|00d12d","l66|100|00c836","l131|100|00fa04","l130|100|00f20c","l122|100|00db23","l115|100|009e60","l113|100|00c23c","l97|100|00f20c")
-	End With
-	With .AddStep(0.10000, Null, Null)
-		.Lights = Array("l140|100|00a955","l76|100|00b846","l75|100|00b846","l74|100|00b846","l73|100|00b549","l68|100|00cd31","l67|100|00c13d","l66|100|00b945","l131|100|00ea14","l130|100|00e21c","l129|100|00ff00","l127|100|00f509","l123|100|00f10c","l122|100|00cc32","l115|100|008e70","l113|100|00b34b","l97|100|00e21c")
-	End With
-	With .AddStep(0.13333, Null, Null)
-		.Lights = Array("l140|100|009569","l76|100|00a35b","l75|100|00a35b","l74|100|00a35b","l73|100|00a15d","l68|100|00b944","l67|100|00ae50","l66|100|00a45a","l131|100|00d727","l130|100|00cf2f","l129|100|00ec12","l127|100|00e21c","l123|100|00de20","l122|100|00b846","l115|100|007b83","l113|100|009f5f","l97|100|00cf2f")
-	End With
-	With .AddStep(0.16667, Null, Null)
-		.Lights = Array("l140|100|007f7f","l76|100|008d71","l75|100|008d71","l74|100|008d71","l73|100|008a74","l68|100|00a25c","l67|100|009668","l66|100|008e70","l139|100|00f10d","l131|100|00c03d","l130|100|00b846","l129|100|00d628","l127|100|00cb33","l123|100|00c836","l122|100|00a15d","l116|100|00ef0f","l115|100|006599","l114|100|00ea14","l113|100|008876","l97|100|00b846")
-	End With
-	With .AddStep(0.20000, Null, Null)
-		.Lights = Array("l141|100|00fc03","l140|100|006698","l76|100|00748a","l75|100|00748a","l74|100|00748a","l73|100|00718d","l68|100|008975","l67|100|007d81","l66|100|007589","l139|100|00d826","l135|100|00ea14","l131|100|00a757","l130|100|009e60","l129|100|00bd41","l127|100|00b24c","l123|100|00af4f","l122|100|008876","l116|100|00d628","l115|100|004bb3","l114|100|00d12d","l113|100|006f8f","l97|100|009e60")
-	End With
-	With .AddStep(0.23333, Null, Null)
-		.Lights = Array("l141|100|00e01e","l140|100|0049b4","l77|100|00f608","l76|100|0059a5","l75|100|0059a5","l74|100|0059a5","l73|100|0056a8","l68|100|006e90","l67|100|00629c","l66|100|005aa4","l139|100|00bd41","l135|100|00cf2f","l131|100|008b72","l130|100|00837b","l129|100|00a15d","l127|100|009668","l123|100|00936b","l122|100|006d91","l121|100|00fc02","l116|100|00bb43","l115|100|0030ce","l114|100|00b648","l113|100|0054aa","l97|100|00837b")
-	End With
-	With .AddStep(0.26667, Null, Null)
-		.Lights = Array("l141|100|00c43a","l140|100|002dd1","l79|100|00e31a","l77|100|00d925","l76|100|003bc3","l75|100|003bc3","l74|100|003bc3","l73|100|0039c5","l68|100|0050ae","l67|100|0044ba","l66|100|003cc2","l139|100|009f5f","l135|100|00b24c","l131|100|006f8f","l130|100|006698","l129|100|00847a","l127|100|007985","l123|100|007688","l122|100|004faf","l121|100|00df1f","l116|100|009d61","l115|100|0013eb","l114|100|009866","l113|100|0036c8","l132|100|00ff00","l97|100|006698")
-	End With
-	With .AddStep(0.30000, Null, Null)
-		.Lights = Array("l141|100|00a45a","l140|100|000fef","l79|100|00c539","l77|100|00bb43","l76|100|001de1","l75|100|001de1","l74|100|001de1","l73|100|001ae4","l23|100|00f30b","l68|100|0032cc","l67|100|0026d8","l66|100|001ee0","l139|100|00817d","l135|100|00936b","l131|100|0050ae","l130|100|0047b7","l129|100|006698","l127|100|005ba3","l123|100|0058a6","l122|100|0031cd","l121|100|00c13d","l116|100|007f7f","l115|100|000000","l114|100|007a84","l113|100|0018e6","l112|100|00ee10","l132|100|00e01d","l97|100|0047b7")
-	End With
-	With .AddStep(0.33333, Null, Null)
-		.Lights = Array("l141|100|008579","l140|100|000000","l79|100|00a559","l77|100|009a63","l76|100|000000","l75|100|000000","l74|100|000000","l73|100|000000","l23|100|00d42a","l68|100|0013eb","l67|100|0007f7","l66|100|0000ff","l61|100|00e717","l139|100|00629c","l135|100|00738a","l131|100|0030ce","l130|100|0028d6","l129|100|0046b8","l127|100|003bc3","l124|100|00f30b","l123|100|0037c6","l122|100|0012ec","l121|100|00a05e","l116|100|005f9f","l114|100|005ba3","l113|100|000000","l112|100|00ce30","l111|100|00ee10","l132|100|00c13d","l94|100|00e11d","l97|100|0028d6")
-	End With
-	With .AddStep(0.36667, Null, Null)
-		.Lights = Array("l141|100|006599","l79|100|008579","l78|100|00e816","l77|100|007a84","l23|100|00b44a","l68|100|000000","l67|100|000000","l66|100|000000","l61|100|00c737","l17|100|00f10c","l139|100|0041bd","l135|100|0053ab","l131|100|0010ee","l130|100|0008f6","l129|100|0025d8","l127|100|001be3","l124|100|00d32b","l123|100|0017e7","l122|100|000000","l121|100|00807e","l116|100|003ec0","l114|100|003ac4","l112|100|00ae50","l111|100|00ce30","l132|100|00a05e","l94|100|00c13d","l97|100|0008f6")
-	End With
-	With .AddStep(0.40000, Null, Null)
-		.Lights = Array("l141|100|0043bb","l79|100|00649a","l78|100|00c737","l77|100|005aa4","l72|100|00ea14","l23|100|00926c","l61|100|00a559","l18|100|00f10d","l17|100|00d12d","l139|100|0020de","l135|100|0032cc","l131|100|000000","l130|100|000000","l129|100|0005f9","l127|100|000000","l124|100|00b24c","l123|100|000000","l121|100|00609e","l116|100|001ee0","l114|100|0019e5","l112|100|008c72","l111|100|00ad51","l132|100|007f7f","l94|100|009f5f","l97|100|000000")
-	End With
-	With .AddStep(0.43333, Null, Null)
-		.Lights = Array("l141|100|0022dc","l79|100|0042bc","l78|100|00a559","l77|100|0037c7","l72|100|00c836","l71|100|00e816","l23|100|00718d","l61|100|00847a","l19|100|00f00e","l18|100|00cf2f","l17|100|00af4f","l139|100|0000ff","l135|100|0010ee","l129|100|000000","l124|100|00906e","l121|100|003dc1","l116|100|000000","l114|100|000000","l112|100|006b93","l111|100|008b73","l132|100|005ea0","l94|100|007e80")
-	End With
-	With .AddStep(0.46667, Null, Null)
-		.Lights = Array("l141|100|0000fe","l79|100|0020de","l78|100|00837b","l77|100|0016e8","l72|100|00a658","l71|100|00c737","l70|100|00e21c","l69|100|00fc02","l23|100|004eaf","l61|100|00629c","l19|100|00cf2f","l18|100|00ae50","l17|100|008d71","l139|100|000000","l135|100|000000","l125|100|00f905","l124|100|006e90","l121|100|001ce2","l112|100|0049b5","l111|100|006995","l132|100|003cc2","l94|100|005ca1")
-	End With
-	With .AddStep(0.50000, Null, Null)
-		.Lights = Array("l141|100|000000","l79|100|0000ff","l78|100|00629c","l77|100|000000","l72|100|00847a","l71|100|00a45a","l70|100|00c03e","l69|100|00da24","l23|100|002dd1","l62|100|00e519","l61|100|0040be","l19|100|00ad51","l18|100|008b73","l17|100|006b93","l46|100|00f806","l137|100|00ed11","l125|100|00d826","l124|100|004bb2","l121|100|000000","l112|100|0027d7","l111|100|0047b7","l132|100|001ae4","l94|100|003ac4")
-	End With
-	With .AddStep(0.53333, Null, Null)
-		.Lights = Array("l79|100|000000","l78|100|003fbf","l72|100|00629c","l71|100|00827c","l70|100|009d61","l69|100|00b846","l23|100|000bf3","l35|100|00eb13","l62|100|00c33b","l34|100|00e915","l61|100|001ee0","l19|100|008a74","l18|100|006995","l17|100|0048b5","l46|100|00d628","l47|100|00f707","l137|100|00cb33","l125|100|00b648","l124|100|002ad4","l112|100|0005f9","l111|100|0025d9","l132|100|000000","l94|100|0018e6")
-	End With
-	With .AddStep(0.56667, Null, Null)
-		.Lights = Array("l78|100|001ee0","l72|100|0040be","l71|100|00619d","l70|100|007c82","l69|100|009668","l23|100|000000","l63|100|00f30b","l35|100|00ca34","l62|100|00a05e","l34|100|00c737","l61|100|000000","l19|100|006995","l18|100|0047b7","l17|100|0027d7","l30|100|00ff00","l26|100|00fd02","l25|100|00e01e","l46|100|00b44a","l47|100|00d529","l64|100|00f905","l137|100|00aa54","l128|100|00f30b","l126|100|00eb13","l125|100|00936b","l124|100|0008f6","l112|100|000000","l111|100|0004fb","l94|100|000000")
-	End With
-	With .AddStep(0.60000, Null, Null)
-		.Lights = Array("l143|100|00f30b","l78|100|000000","l72|100|001fdf","l71|100|003fbf","l70|100|005ba3","l69|100|007589","l63|100|00d22c","l35|100|00a856","l62|100|007f7f","l34|100|00a559","l92|100|00e915","l19|100|0047b7","l18|100|0026d8","l17|100|0006f8","l31|100|00f608","l30|100|00de20","l28|100|00fd02","l26|100|00db23","l25|100|00bf3f","l46|100|00926c","l47|100|00b44a","l64|100|00d826","l95|100|00ff00","l137|100|008876","l128|100|00d22c","l126|100|00ca34","l125|100|00728c","l124|100|000000","l120|100|00fd02","l111|100|000000")
-	End With
-	With .AddStep(0.63333, Null, Null)
-		.Lights = Array("l142|100|00e41a","l143|100|00d22c","l72|100|0000ff","l71|100|001ee0","l70|100|0039c5","l69|100|0054aa","l63|100|00b14d","l35|100|008777","l62|100|005f9f","l34|100|008479","l92|100|00c935","l60|100|00e519","l19|100|0026d8","l18|100|0005f9","l17|100|000000","l33|100|00f905","l32|100|00ff00","l31|100|00d628","l30|100|00bd41","l28|100|00dc22","l27|100|00e01e","l26|100|00bb43","l25|100|009d61","l46|100|00728c","l47|100|00936b","l64|100|00b747","l95|100|00df1f","l137|100|006797","l128|100|00b14d","l126|100|00a955","l125|100|0051ad","l120|100|00dc22","l110|100|00f707")
-	End With
-	With .AddStep(0.66667, Null, Null)
-		.Lights = Array("l142|100|00c43a","l143|100|00b24c","l72|100|000000","l71|100|0000ff","l70|100|0019e5","l69|100|0033cb","l63|100|00906e","l35|100|006797","l62|100|003ec0","l34|100|006599","l92|100|00a955","l60|100|00c539","l19|100|0006f8","l18|100|000000","l33|100|00d925","l32|100|00de20","l31|100|00b648","l30|100|009c62","l41|100|00fe01","l40|100|00f707","l39|100|00f00e","l38|100|00ea14","l37|100|00e41a","l28|100|00bc42","l27|100|00c13d","l26|100|009a64","l25|100|007d80","l46|100|0051ad","l47|100|00738b","l64|100|009668","l95|100|00bf3f","l137|100|0046b8","l128|100|00906e","l126|100|008876","l125|100|0031cd","l120|100|00bc42","l110|100|00d727")
-	End With
-	With .AddStep(0.70000, Null, Null)
-		.Lights = Array("l142|100|00a45a","l143|100|00926b","l71|100|000000","l70|100|000000","l69|100|0014ea","l63|100|00718d","l35|100|0047b7","l62|100|001fdf","l34|100|0045b9","l92|100|008975","l60|100|00a558","l19|100|000000","l49|100|00fa04","l65|100|00f40a","l33|100|00ba43","l32|100|00bf3f","l31|100|009668","l30|100|007d81","l41|100|00de20","l40|100|00d826","l39|100|00d12d","l38|100|00cb33","l37|100|00c539","l28|100|009c62","l27|100|00a15d","l26|100|007b83","l25|100|005f9f","l46|100|0032cc","l47|100|0054aa","l64|100|007787","l95|100|009f5e","l137|100|0027d7","l128|100|00718d","l126|100|006995","l125|100|0012ec","l120|100|009c62","l119|100|00f40a","l110|100|00b846","l109|100|00ff00","l98|100|00f10d")
-	End With
-	With .AddStep(0.73333, Null, Null)
-		.Lights = Array("l142|100|008677","l143|100|007589","l69|100|000000","l63|100|0053ab","l35|100|0029d5","l62|100|0001fd","l34|100|0027d7","l92|100|006b93","l60|100|008876","l49|100|00dd21","l65|100|00d727","l33|100|009c62","l32|100|00a05e","l31|100|007886","l30|100|00609e","l41|100|00c03e","l40|100|00ba44","l39|100|00b34b","l38|100|00ad51","l37|100|00a757","l28|100|007e80","l27|100|00837b","l26|100|005da1","l25|100|0040be","l46|100|0014ea","l47|100|0035c9","l64|100|005aa4","l95|100|00827c","l137|100|0009f4","l128|100|0053ab","l126|100|004ab4","l125|100|000000","l120|100|007e80","l119|100|00d727","l110|100|009965","l109|100|00e01e","l93|100|00ed11","l98|100|00d32b")
-	End With
-	With .AddStep(0.76667, Null, Null)
-		.Lights = Array("l142|100|006a94","l143|100|0058a5","l63|100|0036c8","l35|100|000df1","l62|100|000000","l34|100|000bf3","l92|100|004eb0","l60|100|006b93","l49|100|00c03e","l59|100|00ff00","l65|100|00ba44","l33|100|007f7f","l32|100|00847a","l31|100|005ca2","l30|100|0042bc","l41|100|00a35b","l40|100|009d61","l39|100|009668","l38|100|00906e","l37|100|008a74","l28|100|00629c","l27|100|006797","l26|100|0040be","l25|100|0023da","l46|100|000000","l47|100|0019e5","l64|100|003cc2","l95|100|006598","l137|100|000000","l128|100|0036c8","l126|100|002ed0","l120|100|00629c","l119|100|00ba44","l110|100|007d81","l109|100|00c43a","l117|100|00ff00","l93|100|00d12d","l98|100|00b747")
-	End With
-	With .AddStep(0.80000, Null, Null)
-		.Lights = Array("l142|100|004faf","l143|100|003dc1","l06|100|00fe01","l04|100|00f806","l03|100|00f40a","l02|100|00f00e","l01|100|00ea14","l63|100|001ce2","l35|100|000000","l34|100|000000","l92|100|0034ca","l60|100|0050ae","l49|100|00a559","l59|100|00e31b","l65|100|009f5f","l33|100|006599","l32|100|006a94","l31|100|0040bd","l30|100|0028d6","l41|100|008876","l40|100|00827b","l39|100|007b83","l38|100|007588","l37|100|00708e","l28|100|0046b8","l27|100|004bb3","l26|100|0025d9","l25|100|0009f5","l48|100|00f608","l47|100|0000ff","l64|100|0022dc","l95|100|004ab4","l128|100|001ce2","l126|100|0014ea","l120|100|0046b8","l119|100|009f5f","l110|100|00639b","l109|100|00a955","l117|100|00e31b","l93|100|00b648","l98|100|009b63")
-	End With
-	With .AddStep(0.83333, Null, Null)
-		.Lights = Array("l142|100|0036c8","l143|100|0025d9","l05|100|00f40a","l07|100|00f905","l08|100|00ff00","l06|100|00e519","l04|100|00e01e","l03|100|00db23","l02|100|00d826","l01|100|00d22c","l63|100|0004fa","l92|100|001be3","l60|100|0038c6","l49|100|008c71","l59|100|00cb33","l65|100|008777","l33|100|004cb2","l32|100|0050ad","l31|100|0028d6","l30|100|000fef","l41|100|00708e","l40|100|006a94","l39|100|00639b","l38|100|005da1","l37|100|0057a7","l28|100|002ed0","l27|100|0033cb","l26|100|000df1","l25|100|000000","l48|100|00de20","l47|100|000000","l64|100|000af4","l95|100|0032cc","l128|100|0004fa","l126|100|000000","l120|100|002ed0","l119|100|008777","l110|100|0049b5","l109|100|00906e","l117|100|00cb33","l93|100|009d61","l98|100|00837b")
-	End With
-	With .AddStep(0.86667, Null, Null)
-		.Lights = Array("l142|100|0021dd","l143|100|000fef","l05|100|00df1f","l07|100|00e31b","l08|100|00e915","l09|100|00ed11","l10|100|00f10c","l06|100|00cf2f","l04|100|00ca33","l03|100|00c638","l02|100|00c23c","l01|100|00bc42","l63|100|000000","l92|100|0006f8","l60|100|0022dc","l49|100|007787","l59|100|00b549","l65|100|00718d","l33|100|0036c8","l32|100|003bc3","l31|100|0013eb","l30|100|000000","l41|100|005aa3","l40|100|0054aa","l39|100|004cb1","l38|100|0047b7","l37|100|0041bd","l28|100|0018e5","l27|100|001de1","l26|100|000000","l24|100|00f30b","l48|100|00c836","l64|100|000000","l95|100|001ce2","l128|100|000000","l120|100|0018e5","l119|100|00718d","l110|100|0034ca","l109|100|007a84","l118|100|00f509","l117|100|00b549","l93|100|008777","l98|100|006d91")
-	End With
-	With .AddStep(0.90000, Null, Null)
-		.Lights = Array("l142|100|000eef","l143|100|000000","l11|100|00f00e","l12|100|00f40a","l13|100|00f806","l14|100|00fd01","l05|100|00cc32","l07|100|00d12d","l08|100|00d727","l09|100|00da23","l10|100|00df1f","l06|100|00bd41","l04|100|00b846","l03|100|00b34a","l02|100|00b04e","l01|100|00aa54","l92|100|000000","l60|100|0010ee","l49|100|006499","l59|100|00a25c","l65|100|005f9f","l33|100|0024da","l32|100|0028d5","l31|100|0000ff","l29|100|00ff00","l41|100|0047b7","l40|100|0041bd","l39|100|003ac4","l38|100|0034ca","l37|100|002ed0","l28|100|0006f8","l27|100|000bf3","l24|100|00e01e","l48|100|00b648","l95|100|000af4","l120|100|0006f8","l119|100|005f9f","l110|100|0021dd","l109|100|006896","l108|100|00f806","l118|100|00e31b","l117|100|00a25c","l93|100|007589","l98|100|005ba3")
-	End With
-	With .AddStep(0.93333, Null, Null)
-		.Lights = Array("l142|100|0000ff","l11|100|00e21c","l12|100|00e618","l13|100|00ea14","l14|100|00ef0f","l15|100|00f30b","l05|100|00be40","l07|100|00c33b","l08|100|00c935","l09|100|00cc32","l10|100|00d12d","l06|100|00af4f","l04|100|00aa54","l03|100|00a45a","l02|100|00a15d","l01|100|009b63","l60|100|0001fd","l49|100|0056a8","l59|100|00946a","l65|100|004faf","l33|100|0016e8","l32|100|001ae4","l31|100|000000","l29|100|00f10d","l41|100|0039c5","l40|100|0033cb","l39|100|002cd2","l38|100|0026d8","l37|100|0020de","l28|100|000000","l27|100|000000","l24|100|00d22c","l48|100|00a757","l95|100|000000","l120|100|000000","l119|100|004faf","l110|100|0013eb","l109|100|005aa4","l108|100|00ea14","l118|100|00d529","l117|100|00946a","l93|100|006797","l98|100|004cb2")
-	End With
-	With .AddStep(0.96667, Null, Null)
-		.Lights = Array("l142|100|000000","l11|100|00d925","l12|100|00de20","l13|100|00e11d","l14|100|00e618","l15|100|00eb13","l05|100|00b549","l07|100|00ba44","l08|100|00c03e","l09|100|00c43a","l10|100|00c836","l06|100|00a559","l04|100|00a05e","l03|100|009c62","l02|100|009866","l01|100|00926c","l60|100|000000","l49|100|004db1","l59|100|008b73","l65|100|0047b7","l33|100|000df1","l32|100|0012ec","l29|100|00e816","l41|100|0030ce","l40|100|002ad4","l39|100|0023db","l38|100|001de1","l37|100|0017e6","l24|100|00c934","l48|100|009e60","l119|100|0047b7","l110|100|000af3","l109|100|0050ae","l108|100|00e11d","l118|100|00cc32","l117|100|008b73","l93|100|005ea0","l98|100|0043bb")
-	End With
-	With .AddStep(1.00000, Null, Null)
-		.Lights = Array("l11|100|00d727","l12|100|00dc22","l13|100|00df1f","l14|100|00e41a","l15|100|00e915","l05|100|00b44a","l07|100|00b846","l08|100|00be40","l09|100|00c23c","l10|100|00c638","l06|100|00a35b","l04|100|009e60","l03|100|009a64","l02|100|009668","l01|100|00906e","l49|100|004ab4","l59|100|008975","l65|100|0045b9","l33|100|000bf3","l32|100|0010ee","l29|100|00e618","l41|100|002ed0","l40|100|0028d6","l39|100|0021dd","l38|100|001be3","l37|100|0015e9","l24|100|00c737","l48|100|009c62","l119|100|0045b9","l110|100|0008f6","l109|100|004eb0","l108|100|00df1f","l118|100|00ca34","l117|100|008975","l93|100|005ca2","l98|100|0041bd")
-	End With
-	With .AddStep(1.03333, Null, Null)
-		.Lights = Array("l11|100|00db23","l12|100|00df1f","l13|100|00e21c","l14|100|00e618","l15|100|00ea14","l05|100|00b747","l07|100|00bb43","l08|100|00c13d","l09|100|00c33a","l10|100|00c836","l06|100|00a45a","l04|100|00a05e","l03|100|009c62","l02|100|009965","l01|100|00946a","l49|100|0047b7","l59|100|008579","l65|100|0048b6","l33|100|000fef","l29|100|00e21c","l40|100|0027d6","l39|100|0020de","l38|100|0019e5","l37|100|0012ec","l24|100|00c33b","l48|100|009767","l119|100|004bb3","l110|100|0002fd","l109|100|0049b4","l108|100|00d826","l118|100|00cf2f","l117|100|008e70","l93|100|005ea0","l98|100|003fbf")
-	End With
-	With .AddStep(1.06667, Null, Null)
-		.Lights = Array("l142|100|0006f8","l11|100|00e21c","l12|100|00e519","l13|100|00e717","l14|100|00ea14","l15|100|00ec12","l05|100|00be40","l07|100|00c13d","l08|100|00c539","l09|100|00c737","l10|100|00ca34","l06|100|00a657","l04|100|00a35b","l03|100|00a05e","l02|100|009f5f","l01|100|009b63","l49|100|0041bd","l59|100|007d80","l65|100|004db0","l33|100|0016e8","l32|100|0012ec","l29|100|00da24","l40|100|0026d8","l39|100|001de1","l38|100|0014ea","l37|100|000cf2","l24|100|00bb43","l48|100|008e70","l120|100|0000ff","l119|100|0057a7","l110|100|000000","l109|100|0041bd","l108|100|00cb33","l118|100|00d727","l117|100|009668","l93|100|00619d","l98|100|003bc3")
-	End With
-	With .AddStep(1.10000, Null, Null)
-		.Lights = Array("l142|100|0015e9","l11|100|00eb13","l12|100|00ed11","l13|100|00ed11","l14|100|00ee10","l15|100|00ef0f","l05|100|00c737","l07|100|00c935","l08|100|00cb33","l09|100|00cb33","l10|100|00cd31","l06|100|00aa54","l04|100|00a856","l03|100|00a658","l02|100|00a657","l01|100|00a45a","l49|100|0039c5","l59|100|00738a","l65|100|0056a8","l33|100|0020de","l32|100|0014ea","l29|100|00d02e","l41|100|002ecf","l40|100|0024da","l39|100|0019e5","l38|100|000fef","l37|100|0005f9","l28|100|0004fa","l24|100|00b04e","l48|100|00837b","l81|100|00ff00","l80|100|00f707","l120|100|000fef","l119|100|006598","l109|100|0036c8","l108|100|00ba44","l118|100|00e31b","l117|100|00a15d","l93|100|006698","l98|100|0037c7")
-	End With
-	With .AddStep(1.13333, Null, Null)
-		.Lights = Array("l142|100|0027d7","l11|100|00f608","l12|100|00f509","l13|100|00f30a","l14|100|00f30b","l15|100|00f20c","l05|100|00d22c","l07|100|00d12d","l08|100|00d22c","l09|100|00d02e","l10|100|00cf2f","l06|100|00ad51","l04|100|00ad51","l03|100|00ae50","l02|100|00b04e","l01|100|00b04e","l49|100|0030ce","l59|100|006896","l65|100|00609e","l33|100|002cd1","l32|100|0018e6","l29|100|00c23c","l41|100|002fcf","l40|100|0023db","l39|100|0015e9","l38|100|0009f5","l37|100|000000","l28|100|0012ec","l24|100|00a15d","l43|100|00f806","l48|100|00748a","l42|100|00ee10","l81|100|00f707","l80|100|00eb13","l136|100|00f509","l120|100|0023db","l119|100|007787","l109|100|0029d5","l108|100|00a35b","l118|100|00f00e","l117|100|00b04e","l93|100|006b93","l98|100|0031cc")
-	End With
-	With .AddStep(1.16667, Null, Null)
-		.Lights = Array("l142|100|003cc2","l11|100|000000","l12|100|00ff00","l13|100|00fa04","l14|100|00f707","l15|100|00f409","l05|100|00dd21","l07|100|00db23","l08|100|00d925","l09|100|00d529","l10|100|00d22c","l06|100|00b04e","l04|100|00b24c","l03|100|00b549","l02|100|00b945","l01|100|00bb42","l63|100|0000ff","l92|100|0004fa","l49|100|0026d8","l59|100|005aa4","l65|100|006b93","l33|100|003bc3","l32|100|001de1","l29|100|00b34b","l41|100|0031cd","l40|100|0022dc","l39|100|0012ec","l38|100|0003fb","l28|100|0022dc","l27|100|0003fb","l24|100|00916d","l43|100|00e21c","l48|100|006599","l42|100|00d42a","l82|100|00fe01","l81|100|00ec11","l80|100|00dc22","l136|100|00e31b","l120|100|0039c4","l119|100|008c72","l109|100|001be3","l108|100|008b73","l118|100|00ff00","l117|100|00be40","l93|100|00718d","l98|100|002cd2")
-	End With
-	With .AddStep(1.20000, Null, Null)
-		.Lights = Array("l142|100|0055a9","l12|100|000000","l13|100|000000","l14|100|00fc03","l15|100|00f608","l05|100|00e915","l07|100|00e41a","l08|100|00e01e","l09|100|00d924","l10|100|00d42a","l06|100|00b24c","l04|100|00b747","l03|100|00bc42","l02|100|00c33b","l01|100|00c836","l63|100|0015e9","l92|100|0014ea","l49|100|001ce2","l59|100|004bb3","l65|100|007787","l33|100|004cb2","l32|100|0022db","l29|100|00a05d","l41|100|0033cb","l39|100|000fef","l38|100|000000","l28|100|0035c9","l27|100|000bf3","l24|100|00807e","l43|100|00ca34","l50|100|00ff00","l48|100|0053ab","l42|100|00b846","l82|100|00f508","l81|100|00e01e","l80|100|00cb33","l136|100|00ce30","l120|100|0054aa","l119|100|00a25c","l109|100|000df1","l108|100|00708e","l118|100|000000","l117|100|00ce30","l93|100|007886","l98|100|0027d7")
-	End With
-	With .AddStep(1.23333, Null, Null)
-		.Lights = Array("l142|100|006f8f","l14|100|00ff00","l15|100|00f707","l05|100|00f40a","l07|100|00ed11","l08|100|00e618","l09|100|00dd20","l10|100|00d628","l06|100|00b549","l04|100|00bc42","l03|100|00c43a","l02|100|00cd31","l01|100|00d42a","l63|100|002dd1","l92|100|0026d8","l49|100|0012ec","l59|100|003cc2","l65|100|008479","l33|100|005f9f","l32|100|002ad4","l29|100|008e70","l41|100|0036c8","l39|100|000df1","l28|100|0049b5","l27|100|0015e9","l24|100|006e90","l43|100|00af4f","l50|100|00ec12","l48|100|0040bd","l42|100|009866","l82|100|00ec12","l81|100|00d22c","l80|100|00b846","l136|100|00b747","l120|100|00708e","l119|100|00ba44","l109|100|0000ff","l108|100|0054aa","l107|100|00ec12","l117|100|00dd20","l93|100|00807e","l98|100|0022dc")
-	End With
-	With .AddStep(1.26667, Null, Null)
-		.Lights = Array("l142|100|008b73","l14|100|000000","l15|100|00f608","l05|100|00ff00","l07|100|00f509","l08|100|00ec12","l09|100|00e11d","l06|100|00b747","l04|100|00c03e","l03|100|00cb33","l02|100|00d727","l01|100|00e11d","l63|100|0048b6","l92|100|0039c5","l49|100|0009f5","l59|100|002ed0","l65|100|00926c","l33|100|00738b","l32|100|0032cc","l29|100|007a84","l41|100|003ac4","l40|100|0024da","l39|100|000cf2","l28|100|00619d","l27|100|0020de","l24|100|005aa4","l43|100|00926c","l50|100|00d628","l51|100|00f509","l48|100|002ed0","l64|100|0008f6","l42|100|007787","l83|100|00ff00","l82|100|00e11d","l81|100|00c23c","l80|100|00a35b","l136|100|009e60","l120|100|008d71","l119|100|00d22c","l109|100|000000","l108|100|0035c8","l107|100|00cf2f","l106|100|00ff00","l117|100|00ed11","l93|100|008876","l98|100|001fdf")
-	End With
-	With .AddStep(1.30000, Null, Null)
-		.Lights = Array("l142|100|00a757","l69|100|0006f8","l15|100|00f40a","l05|100|000000","l07|100|00fd02","l08|100|00f00e","l09|100|00e31b","l06|100|00b846","l04|100|00c43a","l03|100|00d12d","l02|100|00df1f","l01|100|00ec12","l63|100|006599","l35|100|0002fd","l92|100|004faf","l49|100|0001fe","l59|100|001fdf","l65|100|00a05e","l33|100|008876","l32|100|003cc2","l29|100|006599","l41|100|003fbf","l40|100|0027d7","l28|100|007886","l27|100|002dd1","l24|100|0046b8","l43|100|00748a","l50|100|00be40","l51|100|00e21c","l52|100|00f20c","l48|100|001ce1","l64|100|001ae4","l42|100|0055a9","l83|100|00f707","l82|100|00d529","l81|100|00b04e","l80|100|008d71","l136|100|00847a","l120|100|00ad51","l119|100|00ea14","l108|100|0018e6","l107|100|00b04e","l106|100|00de20","l117|100|00fc02","l93|100|00906e","l98|100|001ce2")
-	End With
-	With .AddStep(1.33333, Null, Null)
-		.Lights = Array("l142|100|00c539","l70|100|0021dd","l69|100|0028d6","l14|100|00ff00","l15|100|00f00e","l07|100|000000","l08|100|00f40a","l09|100|00e41a","l10|100|00d42a","l06|100|00b945","l04|100|00c737","l03|100|00d627","l02|100|00e717","l01|100|00f707","l63|100|00827c","l35|100|001ae4","l92|100|006698","l49|100|000000","l59|100|0012ec","l65|100|00b04e","l33|100|009d61","l32|100|0047b7","l31|100|0002fd","l29|100|004faf","l41|100|0045b9","l40|100|002bd3","l39|100|000ef0","l28|100|00916d","l27|100|003bc3","l24|100|0032cc","l43|100|0055a9","l50|100|00a35b","l51|100|00cd31","l52|100|00d727","l48|100|000bf3","l64|100|002dd1","l42|100|0032cc","l83|100|00ed11","l82|100|00c737","l81|100|009d61","l80|100|007688","l136|100|006995","l120|100|00cb33","l119|100|000000","l108|100|000000","l107|100|008f6f","l106|100|00bb43","l117|100|000000","l93|100|009866","l98|100|001ae4")
-	End With
-	With .AddStep(1.36667, Null, Null)
-		.Lights = Array("l142|100|00e11d","l70|100|0048b6","l69|100|004cb2","l14|100|00fc02","l15|100|00ea14","l08|100|00f509","l09|100|00e31b","l10|100|00d22c","l04|100|00c934","l03|100|00db23","l02|100|00ee10","l01|100|00ff00","l63|100|00a05e","l53|100|00f00e","l35|100|0034c9","l92|100|007e80","l59|100|0005f9","l65|100|00bd40","l33|100|00b34b","l32|100|0054aa","l31|100|000df1","l29|100|003ac4","l41|100|004cb2","l40|100|0030ce","l39|100|0012ec","l28|100|00aa53","l27|100|004bb3","l24|100|001fdf","l43|100|0035c9","l50|100|008876","l51|100|00b648","l52|100|00bb43","l20|100|00f608","l56|100|00f806","l54|100|00f30b","l48|100|000000","l64|100|0041bd","l42|100|000fef","l83|100|00e21c","l82|100|00b746","l81|100|008975","l80|100|005f9f","l136|100|004db1","l120|100|00ea14","l107|100|006d91","l106|100|009569","l93|100|00a05e")
-	End With
-	With .AddStep(1.40000, Null, Null)
-		.Lights = Array("l142|100|00fe01","l70|100|00728c","l69|100|00728c","l14|100|00f707","l15|100|00e31b","l09|100|00e11d","l10|100|00ce30","l06|100|00b846","l04|100|00cb33","l03|100|00de20","l02|100|00f30b","l01|100|000000","l63|100|00bf3f","l53|100|00d628","l35|100|0050ad","l62|100|000bf3","l34|100|0012ec","l92|100|009668","l59|100|000000","l65|100|00cb33","l33|100|00c836","l32|100|00619d","l31|100|001ae4","l29|100|0025d9","l41|100|0055a9","l40|100|0036c8","l39|100|0017e7","l28|100|00c33b","l27|100|005da1","l24|100|000df1","l43|100|0016e8","l50|100|006d91","l51|100|009e60","l52|100|009c62","l20|100|00e31a","l57|100|00f806","l56|100|00d42a","l55|100|00f904","l54|100|00d42a","l64|100|0058a5","l42|100|000000","l83|100|00d529","l82|100|00a658","l81|100|007589","l80|100|0047b7","l136|100|0031cc","l120|100|000000","l107|100|004ab4","l106|100|00708e","l93|100|00a955","l98|100|001be3")
-	End With
-	With .AddStep(1.43333, Null, Null)
-		.Lights = Array("l142|100|000000","l70|100|009c62","l69|100|009866","l14|100|00f00e","l15|100|00db23","l08|100|00f40a","l09|100|00de20","l10|100|00c935","l06|100|00b648","l03|100|00e01e","l02|100|00f707","l63|100|00dd21","l53|100|00ba44","l35|100|006e90","l62|100|002ad4","l34|100|002cd2","l92|100|00af4f","l65|100|00d727","l33|100|00dc22","l32|100|006f8f","l31|100|0029d4","l29|100|0012ec","l41|100|005ea0","l40|100|003ec0","l39|100|001ee0","l38|100|0000ff","l28|100|00db23","l27|100|006e90","l26|100|000fef","l24|100|000000","l43|100|000000","l50|100|0050ae","l51|100|008579","l52|100|007d81","l22|100|00f707","l20|100|00cf2f","l58|100|00fd02","l57|100|00d529","l56|100|00ae50","l55|100|00db23","l54|100|00b34b","l64|100|006f8f","l84|100|00f905","l83|100|00c638","l82|100|009569","l81|100|00619d","l80|100|0030ce","l136|100|0017e7","l107|100|0029d5","l106|100|0049b5","l93|100|00b04e","l98|100|001de0")
-	End With
-	With .AddStep(1.46667, Null, Null)
-		.Lights = Array("l70|100|00c638","l69|100|00bf3f","l13|100|00ff00","l14|100|00e717","l15|100|00d02d","l08|100|00f00e","l09|100|00d925","l10|100|00c23c","l06|100|00b44a","l04|100|00ca34","l02|100|00f905","l63|100|00fa04","l53|100|009c62","l35|100|008c72","l62|100|004ab4","l34|100|0047b7","l92|100|00c638","l60|100|0002fc","l65|100|00e21c","l33|100|00ef0f","l32|100|007d81","l31|100|003ac4","l29|100|0000ff","l41|100|006797","l40|100|0047b7","l39|100|0026d8","l38|100|0007f7","l28|100|00f20c","l27|100|00807e","l26|100|0022dc","l50|100|0035c9","l51|100|006c92","l52|100|005ea0","l21|100|00ef0f","l22|100|00dd21","l20|100|00b945","l58|100|00d826","l57|100|00af4f","l56|100|008678","l55|100|00bb43","l54|100|00906e","l47|100|0001fd","l64|100|008777","l84|100|00eb13","l83|100|00b648","l82|100|00837b","l81|100|004cb2","l80|100|001be3","l136|100|0000ff","l107|100|0008f6","l106|100|0024da","l93|100|00b747","l98|100|0022dc")
-	End With
-	With .AddStep(1.50000, Null, Null)
-		.Lights = Array("l71|100|00fa04","l70|100|00ef0f","l69|100|00e419","l13|100|00f509","l14|100|00dd21","l15|100|00c539","l08|100|00eb13","l09|100|00d32b","l10|100|00bb43","l06|100|00b14d","l04|100|00c737","l03|100|00df1f","l63|100|000000","l53|100|007e7f","l35|100|00ab53","l62|100|006c92","l34|100|00649a","l92|100|00dd21","l60|100|0011ed","l19|100|0020de","l18|100|001ce2","l65|100|00ec12","l33|100|000000","l32|100|008b73","l31|100|004cb2","l29|100|000000","l41|100|00718d","l40|100|0050ad","l39|100|0030ce","l38|100|0011ed","l28|100|000000","l27|100|00926c","l26|100|0036c7","l50|100|001be3","l51|100|0052ab","l52|100|003ec0","l21|100|00d925","l22|100|00c23c","l20|100|00a15d","l58|100|00b34b","l57|100|008876","l56|100|005f9f","l55|100|009866","l54|100|006e90","l47|100|001ae4","l64|100|009e60","l84|100|00db23","l83|100|00a459","l82|100|00718d","l81|100|0039c5","l80|100|0006f8","l136|100|000000","l145|100|00ff00","l107|100|000000","l106|100|0000ff","l93|100|00bd41","l98|100|0027d7")
-	End With
-	With .AddStep(1.53333, Null, Null)
-		.Lights = Array("l71|100|000000","l70|100|000000","l69|100|000000","l13|100|00ea14","l14|100|00d12d","l15|100|00b945","l07|100|00fe01","l08|100|00e41a","l09|100|00cb33","l10|100|00b24b","l06|100|00ac51","l04|100|00c43a","l03|100|00dd21","l02|100|00f707","l53|100|00619d","l35|100|00c836","l62|100|008e70","l34|100|00817d","l92|100|00f20c","l60|100|0021dd","l19|100|0048b6","l18|100|0048b6","l65|100|00f40a","l32|100|009965","l31|100|005f9f","l41|100|007a83","l40|100|005ca2","l39|100|003bc3","l38|100|001ce2","l27|100|00a45a","l26|100|004cb2","l50|100|0002fc","l51|100|003ac4","l52|100|0020de","l21|100|00c23c","l22|100|00a45a","l20|100|008a74","l58|100|008c72","l57|100|00619d","l56|100|0037c7","l55|100|007688","l54|100|004bb3","l47|100|0034ca","l64|100|00b648","l84|100|00ca34","l83|100|00936b","l82|100|005f9f","l81|100|0027d7","l80|100|000000","l137|100|0018e6","l145|100|00ed11","l128|100|0005f9","l106|100|000000","l105|100|00f607","l104|100|00eb13","l101|100|00ef0f","l93|100|00c13d","l98|100|002ed0")
-	End With
-	With .AddStep(1.56667, Null, Null)
-		.Lights = Array("l12|100|00f707","l13|100|00de20","l14|100|00c43a","l15|100|00ab53","l07|100|00f509","l08|100|00dc22","l09|100|00c33b","l10|100|00a955","l06|100|00a757","l04|100|00c03e","l03|100|00d925","l02|100|00f30b","l53|100|0042bc","l35|100|00e41a","l62|100|00b04e","l34|100|009e60","l92|100|000000","l60|100|0032cc","l19|100|00728c","l18|100|000000","l49|100|0001fd","l65|100|00fa04","l32|100|00a757","l31|100|00728c","l41|100|00847a","l40|100|006797","l39|100|0047b7","l38|100|0029d5","l37|100|000bf3","l27|100|00b648","l26|100|00649a","l50|100|000000","l51|100|0022db","l52|100|0003fb","l21|100|00aa54","l22|100|008777","l20|100|00728c","l58|100|006599","l57|100|003ac4","l56|100|0011ed","l55|100|0054aa","l54|100|0029d5","l47|100|0050ae","l64|100|00cc32","l84|100|00b846","l83|100|00817d","l82|100|004db1","l81|100|0016e8","l95|100|0000ff","l137|100|0039c5","l145|100|00d826","l128|100|001de0","l105|100|00da24","l104|100|00c935","l102|100|00e915","l101|100|000000","l93|100|00c539","l98|100|0036c8")
-	End With
-	With .AddStep(1.60000, Null, Null)
-		.Lights = Array("l44|100|00e816","l12|100|00e816","l13|100|00cf2e","l14|100|00b648","l15|100|009c62","l07|100|00eb13","l08|100|00d22c","l09|100|00b945","l10|100|009f5f","l06|100|00a15d","l04|100|00ba44","l03|100|00d32a","l02|100|00ee10","l53|100|0026d8","l35|100|00ff00","l62|100|00d12d","l34|100|00bb43","l60|100|0045b9","l19|100|009b63","l49|100|000bf3","l65|100|00ff00","l32|100|00b549","l31|100|008579","l30|100|0010ee","l41|100|008e70","l40|100|00728c","l39|100|0055a9","l38|100|0037c7","l37|100|001be3","l27|100|00c638","l26|100|007a83","l25|100|000df1","l51|100|000df1","l52|100|000000","l21|100|00916d","l22|100|006995","l20|100|005ba3","l58|100|003ec0","l57|100|0015e9","l56|100|000000","l55|100|0032cc","l54|100|0009f5","l46|100|0008f6","l47|100|006d91","l64|100|00e11d","l84|100|00a45a","l83|100|00708e","l82|100|003cc2","l81|100|0006f8","l95|100|0014ea","l137|100|005ca2","l145|100|00c23c","l128|100|0037c7","l105|100|00bd41","l104|100|00a559","l102|100|00be40","l93|100|00c836","l98|100|003fbf")
-	End With
-	With .AddStep(1.63333, Null, Null)
-		.Lights = Array("l44|100|00cf2f","l11|100|00f20c","l12|100|00d925","l13|100|00c03e","l14|100|00a757","l15|100|008e70","l05|100|00f806","l07|100|00e01e","l08|100|00c737","l09|100|00ae50","l10|100|009469","l06|100|009b63","l04|100|00b44a","l03|100|00cd31","l02|100|00e618","l53|100|000cf2","l35|100|000000","l62|100|00f00e","l34|100|00d628","l60|100|0059a5","l19|100|00c43a","l18|100|00d02e","l49|100|0016e8","l65|100|000000","l32|100|00c03d","l31|100|009866","l30|100|002ad4","l41|100|009866","l40|100|007d81","l39|100|00629c","l38|100|0047b7","l37|100|002cd2","l27|100|00d529","l26|100|00916d","l25|100|002bd3","l45|100|00fa04","l51|100|000000","l21|100|007886","l22|100|004cb2","l20|100|0043bb","l58|100|0019e5","l57|100|000000","l55|100|0013eb","l54|100|000000","l46|100|002dd1","l47|100|008975","l64|100|00f409","l84|100|00916d","l83|100|005ea0","l82|100|002dd1","l81|100|000000","l95|100|002ad4","l137|100|007f7f","l145|100|00ac52","l133|100|00ff00","l128|100|0052ac","l105|100|009d61","l104|100|00827c","l102|100|00916d","l93|100|00ca34","l98|100|0049b4")
-	End With
-	With .AddStep(1.66667, Null, Null)
-		.Lights = Array("l44|100|00b449","l11|100|00e01e","l12|100|00c836","l13|100|00b04e","l14|100|009767","l15|100|007f7f","l05|100|00eb13","l07|100|00d32a","l08|100|00bb43","l09|100|00a25c","l10|100|008a74","l06|100|009569","l04|100|00ad51","l03|100|00c539","l02|100|00de20","l01|100|00f806","l53|100|000000","l62|100|000000","l34|100|00ef0f","l60|100|006d91","l19|100|00ea14","l18|100|00fa04","l49|100|0022dc","l32|100|00cb32","l31|100|00ab53","l30|100|0045b8","l41|100|00a15d","l40|100|008975","l39|100|00708e","l38|100|0057a6","l37|100|003ec0","l27|100|00e31b","l26|100|00a856","l25|100|004bb3","l45|100|00dd21","l21|100|00609e","l22|100|0030ce","l20|100|002ed0","l58|100|000000","l55|100|000000","l46|100|0052ac","l47|100|00a559","l64|100|000000","l84|100|007e80","l83|100|004db1","l82|100|001fdf","l95|100|0041bd","l137|100|00a15d","l145|100|00936a","l133|100|00d826","l128|100|006d91","l126|100|0005f9","l105|100|007f7f","l104|100|005f9f","l102|100|006698","l98|100|0055a9")
-	End With
-	With .AddStep(1.70000, Null, Null)
-		.Lights = Array("l143|100|0008f6","l44|100|009965","l11|100|00cd31","l12|100|00b648","l13|100|009f5f","l14|100|008876","l15|100|00718d","l05|100|00dc22","l07|100|00c638","l08|100|00ae50","l09|100|009767","l10|100|00807e","l06|100|008f6f","l04|100|00a559","l03|100|00bd41","l02|100|00d42a","l01|100|00ed11","l34|100|000000","l60|100|00817d","l19|100|000000","l18|100|000000","l49|100|0030ce","l32|100|00d529","l31|100|00bd41","l30|100|00629c","l41|100|00aa54","l40|100|00946a","l39|100|007e80","l38|100|006896","l37|100|0051ad","l27|100|00ef0f","l26|100|00be40","l25|100|006b93","l45|100|00c03e","l21|100|0047b7","l22|100|0016e8","l20|100|0019e4","l46|100|007886","l47|100|00c13d","l84|100|006a93","l83|100|003dc1","l82|100|0012ec","l95|100|0059a5","l137|100|00c33b","l145|100|007c82","l133|100|00b04e","l128|100|008876","l126|100|0028d6","l109|100|0008f6","l105|100|00619d","l104|100|003cc2","l102|100|003bc3","l101|100|000fef","l118|100|00ee10","l98|100|00619d")
-	End With
-	With .AddStep(1.73333, Null, Null)
-		.Lights = Array("l143|100|0029d5","l44|100|007e80","l11|100|00ba44","l12|100|00a35b","l13|100|008e70","l14|100|007985","l15|100|00639b","l05|100|00cc32","l07|100|00b846","l08|100|00a05e","l09|100|008b73","l10|100|007688","l06|100|008876","l04|100|009d61","l03|100|00b34b","l02|100|00c935","l01|100|00e01d","l60|100|00946a","l49|100|003ec0","l59|100|0003fb","l65|100|00fe01","l32|100|00dd21","l31|100|00cd31","l30|100|007e80","l41|100|00b24c","l40|100|009e60","l39|100|008b73","l38|100|007886","l37|100|006599","l27|100|00f905","l26|100|00d22c","l25|100|008b73","l45|100|00a15d","l21|100|0031cd","l22|100|000000","l20|100|0007f7","l46|100|009c61","l47|100|00da24","l84|100|0058a6","l83|100|002ecf","l82|100|0008f6","l95|100|00718d","l137|100|00e21c","l145|100|006698","l133|100|008677","l128|100|00a25c","l126|100|004cb2","l110|100|000eef","l109|100|0019e5","l105|100|0043bb","l104|100|001be3","l102|100|0012ec","l101|100|000000","l118|100|00da24","l117|100|00fe01","l93|100|00c836","l98|100|006c92")
-	End With
-	With .AddStep(1.76667, Null, Null)
-		.Lights = Array("l143|100|004ab4","l44|100|00649a","l11|100|00a559","l12|100|00916d","l13|100|007e80","l14|100|006a94","l15|100|0056a8","l05|100|00bc42","l07|100|00a855","l08|100|00936b","l09|100|00807e","l10|100|006c92","l06|100|00817d","l04|100|009569","l03|100|00aa54","l02|100|00be40","l01|100|00d32b","l60|100|00a757","l49|100|004db1","l59|100|000fef","l65|100|00f806","l32|100|00e41a","l31|100|00dc22","l30|100|009965","l41|100|00b945","l40|100|00a955","l39|100|009866","l38|100|008876","l37|100|007886","l27|100|000000","l26|100|00e41a","l25|100|00aa54","l45|100|00837b","l21|100|001ce2","l20|100|000000","l46|100|00c13d","l47|100|00f20c","l84|100|0045b8","l83|100|0021dd","l82|100|0000ff","l95|100|008876","l137|100|00ff00","l145|100|004faf","l133|100|005f9f","l128|100|00bc42","l126|100|00718d","l110|100|002dd1","l109|100|002cd2","l105|100|0027d7","l104|100|000000","l102|100|000000","l118|100|00c43a","l117|100|00ee10","l93|100|00c638","l98|100|007886")
-	End With
-	With .AddStep(1.80000, Null, Null)
-		.Lights = Array("l143|100|006c92","l44|100|004bb3","l11|100|00926c","l12|100|007f7f","l13|100|006e90","l14|100|005ca2","l15|100|0049b5","l05|100|00ab52","l07|100|009965","l08|100|008678","l09|100|007589","l10|100|00629b","l06|100|007b83","l04|100|008d71","l03|100|009f5f","l02|100|00b24c","l01|100|00c539","l60|100|00b945","l49|100|005da1","l59|100|001ce2","l65|100|00f20c","l32|100|00ea14","l31|100|00e915","l30|100|00b44a","l41|100|00bf3f","l40|100|00b24c","l39|100|00a45a","l38|100|009767","l37|100|008a73","l26|100|00f509","l25|100|00c737","l45|100|006698","l21|100|0009f5","l46|100|00e21c","l47|100|000000","l84|100|0035c9","l83|100|0016e8","l82|100|000000","l95|100|009f5f","l137|100|000000","l145|100|003bc3","l133|100|0038c6","l128|100|00d42a","l126|100|00936b","l110|100|004bb3","l109|100|003fbf","l105|100|000ef0","l118|100|00af4f","l117|100|00de20","l93|100|00c23c","l98|100|00837b")
-	End With
-	With .AddStep(1.83333, Null, Null)
-		.Lights = Array("l143|100|008b73","l44|100|0033cb","l11|100|007f7f","l12|100|006e90","l13|100|005f9f","l14|100|004eb0","l15|100|003ec0","l05|100|009a64","l07|100|008a73","l08|100|007985","l09|100|006a94","l10|100|005aa4","l06|100|007589","l04|100|008579","l03|100|009569","l02|100|00a459","l01|100|00b747","l60|100|00c935","l49|100|006c92","l59|100|002ad4","l65|100|00eb13","l32|100|00ed11","l31|100|00f40a","l30|100|00cd31","l41|100|00c43a","l40|100|00ba44","l39|100|00b14d","l38|100|00a658","l37|100|009c62","l26|100|000000","l25|100|00e21c","l45|100|004ab4","l21|100|000000","l48|100|000df1","l46|100|000000","l84|100|0026d8","l83|100|000cf2","l95|100|00b549","l145|100|0028d6","l133|100|0015e9","l128|100|00e915","l126|100|00b648","l110|100|006a94","l109|100|0052ac","l105|100|000000","l118|100|009965","l117|100|00cd31","l93|100|00be40","l98|100|008d70")
-	End With
-	With .AddStep(1.86667, Null, Null)
-		.Lights = Array("l143|100|00aa54","l44|100|001ee0","l11|100|006c92","l12|100|005ea0","l13|100|0050ae","l14|100|0042bc","l15|100|0034ca","l05|100|008a74","l07|100|007d81","l08|100|006d91","l09|100|00609e","l10|100|0051ad","l06|100|006f8f","l04|100|007d81","l03|100|008b73","l02|100|009965","l01|100|00a955","l60|100|00d826","l49|100|007a84","l59|100|0038c6","l65|100|00e21b","l32|100|00f00e","l31|100|00ff00","l30|100|00e31b","l41|100|00c836","l40|100|00c13d","l39|100|00bb43","l38|100|00b44a","l37|100|00ae50","l25|100|00fb03","l45|100|0030ce","l48|100|001ce2","l84|100|0019e5","l83|100|0004fa","l95|100|00c935","l145|100|0017e7","l133|100|000000","l128|100|00fe01","l126|100|00d429","l110|100|008777","l109|100|006599","l118|100|00847a","l117|100|00bc42","l93|100|00ba44","l98|100|009766")
-	End With
-	With .AddStep(1.90000, Null, Null)
-		.Lights = Array("l143|100|00c638","l44|100|000bf3","l11|100|005ca2","l12|100|004faf","l13|100|0044ba","l14|100|0038c6","l15|100|002bd2","l05|100|007b83","l07|100|006f8f","l08|100|00629c","l09|100|0057a7","l10|100|004ab4","l06|100|006a94","l04|100|007688","l03|100|00827c","l02|100|008d71","l01|100|009b63","l60|100|00e519","l49|100|008876","l59|100|0045b9","l65|100|00da24","l32|100|00f10d","l31|100|000000","l30|100|00f707","l41|100|00cb33","l40|100|00c737","l39|100|00c43a","l38|100|00c03e","l37|100|00bd41","l25|100|000000","l24|100|0007f7","l45|100|0019e5","l48|100|002bd3","l84|100|000ef0","l83|100|000000","l95|100|00da24","l145|100|0008f6","l128|100|000000","l126|100|00f10d","l119|100|00fc03","l110|100|00a15d","l109|100|007688","l118|100|00718d","l117|100|00ac52","l93|100|00b549","l98|100|00a15d")
-	End With
-	With .AddStep(1.93333, Null, Null)
-		.Lights = Array("l143|100|00df1f","l44|100|000000","l11|100|004bb3","l12|100|0041bd","l13|100|0038c5","l14|100|002ed0","l15|100|0024da","l05|100|006d91","l07|100|00649a","l08|100|0058a6","l09|100|004faf","l10|100|0044ba","l06|100|006698","l04|100|006f8f","l03|100|007985","l02|100|00837b","l01|100|008e70","l60|100|00f00e","l49|100|00946a","l59|100|0053ab","l65|100|00d12d","l32|100|00f20c","l30|100|000000","l41|100|00cd31","l40|100|00cc32","l39|100|00cc32","l38|100|00cb33","l37|100|00ca34","l24|100|0014ea","l45|100|0005f9","l48|100|003ac4","l84|100|0004f9","l95|100|00ea14","l145|100|000000","l126|100|000000","l119|100|00ea14","l110|100|00bb43","l109|100|008777","l118|100|00609e","l117|100|009c62","l93|100|00b04e","l98|100|00aa54")
-	End With
-	With .AddStep(1.96667, Null, Null)
-		.Lights = Array("l143|100|00f40a","l11|100|003ec0","l12|100|0036c8","l13|100|002fcf","l14|100|0027d7","l15|100|001fdf","l05|100|00619d","l07|100|0059a5","l08|100|004faf","l09|100|0048b6","l10|100|0040be","l06|100|00629c","l04|100|006a94","l03|100|00728c","l02|100|007985","l01|100|00837b","l60|100|00f905","l49|100|009f5f","l59|100|005f9f","l65|100|00c935","l32|100|00f10d","l29|100|0002fc","l41|100|00ce30","l40|100|00d02e","l39|100|00d22c","l38|100|00d42a","l37|100|00d529","l24|100|001fdf","l45|100|000000","l48|100|0047b7","l84|100|000000","l95|100|00f707","l119|100|00d925","l110|100|00d02e","l109|100|009569","l118|100|0050ae","l117|100|008e70","l93|100|00ac52","l98|100|00b14d")
-	End With
-	With .AddStep(2.00000, Null, Null)
-		.Lights = Array("l143|100|000000","l11|100|0034ca","l12|100|002dd1","l13|100|0027d6","l14|100|0021dd","l15|100|001ae4","l05|100|0057a7","l07|100|0050ae","l08|100|0048b6","l09|100|0042bb","l10|100|003cc2","l06|100|005f9f","l04|100|006599","l03|100|006c92","l02|100|00718d","l01|100|007985","l60|100|00ff00","l49|100|00a955","l59|100|006995","l65|100|00c23c","l33|100|00ff00","l32|100|00f00e","l29|100|000cf2","l41|100|00cf2f","l40|100|00d32b","l39|100|00d727","l38|100|00db23","l37|100|00de20","l24|100|002ad4","l48|100|0054aa","l95|100|000000","l119|100|00cb33","l110|100|00e11d","l109|100|00a15d","l108|100|000bf3","l118|100|0043bb","l117|100|00837b","l93|100|00a757","l98|100|00b648")
-	End With
-	With .AddStep(2.03333, Null, Null)
-		.Lights = Array("l11|100|002cd2","l12|100|0026d8","l13|100|0022dc","l14|100|001de1","l15|100|0017e7","l05|100|004faf","l07|100|004ab4","l08|100|0043bb","l09|100|003fbf","l10|100|0039c5","l06|100|005ca2","l04|100|00629c","l03|100|006797","l02|100|006b93","l01|100|00728c","l60|100|000000","l49|100|00af4e","l59|100|00708e","l65|100|00bd41","l33|100|00f707","l32|100|00ef0f","l29|100|0013eb","l41|100|00d02e","l40|100|00d529","l39|100|00db23","l38|100|00e01e","l37|100|00e519","l24|100|0032cc","l48|100|005da1","l119|100|00c03e","l110|100|00ee10","l109|100|00ab53","l108|100|0017e7","l118|100|003ac4","l117|100|007a84","l93|100|00a45a","l98|100|00ba43")
-	End With
-	With .AddStep(2.06667, Null, Null)
-		.Lights = Array("l11|100|0028d6","l12|100|0023db","l13|100|001fdf","l14|100|001ae4","l15|100|0016e8","l05|100|004bb3","l07|100|0046b8","l08|100|0040be","l09|100|003dc1","l10|100|0038c6","l06|100|005ba3","l04|100|00609e","l03|100|006599","l02|100|006896","l01|100|006e90","l49|100|00b34b","l59|100|007589","l65|100|00ba44","l33|100|00f30a","l32|100|00ee10","l29|100|0017e7","l40|100|00d628","l39|100|00dd21","l38|100|00e21c","l37|100|00e816","l24|100|0036c8","l48|100|00629c","l119|100|00ba44","l110|100|00f509","l109|100|00af4f","l108|100|001ee0","l118|100|0035c9","l117|100|007589","l93|100|00a25c","l98|100|00bd41")
-	End With
-	With .AddStep(2.10000, Null, Null)
-		.Lights = Array("l13|100|0020de","l14|100|001be3","l05|100|004cb2","l07|100|0047b7","l08|100|0041bd","l02|100|006995","l01|100|006f8f","l49|100|00b24c","l59|100|00748a","l33|100|00f40a","l32|100|00ef0f","l40|100|00d529","l39|100|00dc22","l24|100|0035c9","l48|100|00619d","l119|100|00bb43","l110|100|00f40a","l108|100|001de1","l117|100|007688","l98|100|00bc42")
-	End With
-	With .AddStep(2.13333, Null, Null)
-		.Lights = Array("l11|100|002ed0","l12|100|0028d6","l13|100|0023db","l14|100|001ee0","l15|100|0018e6","l05|100|0051ad","l07|100|004bb3","l08|100|0044ba","l09|100|0040be","l10|100|003ac4","l06|100|005da1","l04|100|00639b","l03|100|006896","l02|100|006d91","l01|100|00748a","l49|100|00ae50","l59|100|006e8f","l65|100|00be40","l33|100|00f905","l29|100|0011ed","l41|100|00cf2f","l40|100|00d42a","l39|100|00da24","l38|100|00de20","l37|100|00e31b","l24|100|0030ce","l48|100|005aa3","l119|100|00c33b","l110|100|00eb13","l109|100|00a856","l108|100|0014ea","l118|100|003cc2","l117|100|007c82","l93|100|00a559","l98|100|00b945")
-	End With
-	With .AddStep(2.16667, Null, Null)
-		.Lights = Array("l11|100|0037c7","l12|100|0030ce","l13|100|002ad4","l14|100|0023db","l15|100|001ce2","l05|100|005ba3","l07|100|0053ab","l08|100|004ab4","l09|100|0044ba","l10|100|003dc1","l06|100|00609e","l04|100|006797","l03|100|006e90","l02|100|00748a","l01|100|007c82","l60|100|00fe01","l49|100|00a559","l59|100|006698","l65|100|00c539","l33|100|000000","l32|100|00f00d","l29|100|0009f5","l40|100|00d22c","l39|100|00d628","l38|100|00d826","l37|100|00db23","l24|100|0026d8","l48|100|004faf","l95|100|00ff00","l119|100|00cf2e","l110|100|00dc22","l109|100|009d61","l108|100|0005f9","l118|100|0047b7","l117|100|008777","l93|100|00a955","l98|100|00b549")
-	End With
-	With .AddStep(2.20000, Null, Null)
-		.Lights = Array("l143|100|00ec12","l11|100|0044ba","l12|100|003bc3","l13|100|0033cb","l14|100|002ad4","l15|100|0021dd","l05|100|006698","l07|100|005da0","l08|100|0053ab","l09|100|004bb3","l10|100|0042bc","l06|100|00639b","l04|100|006c92","l03|100|007589","l02|100|007d81","l01|100|008777","l60|100|00f509","l49|100|009b63","l59|100|005aa4","l65|100|00cd31","l32|100|00f10d","l29|100|0000ff","l41|100|00ce30","l40|100|00ce30","l39|100|00d02e","l38|100|00d02e","l37|100|00d12d","l24|100|001ae3","l48|100|0042bc","l84|100|0000ff","l95|100|00f20c","l119|100|00e01e","l110|100|00c737","l109|100|008f6f","l108|100|000000","l118|100|0057a7","l117|100|00946a","l93|100|00ae50","l98|100|00ae50")
-	End With
-	With .AddStep(2.23333, Null, Null)
-		.Lights = Array("l143|100|00d32b","l44|100|0003fc","l11|100|0054aa","l12|100|0048b6","l13|100|003ec0","l14|100|0033cb","l15|100|0028d6","l05|100|00748a","l07|100|006a94","l08|100|005da1","l09|100|0053ab","l10|100|0047b7","l06|100|006896","l04|100|00738b","l03|100|007e80","l02|100|008876","l01|100|00946a","l60|100|00ea14","l49|100|008e70","l59|100|004cb2","l65|100|00d628","l32|100|00f10c","l30|100|00ff00","l29|100|000000","l41|100|00cc32","l40|100|00c934","l39|100|00c836","l38|100|00c638","l37|100|00c33b","l24|100|000df1","l45|100|000fef","l48|100|0032cb","l84|100|0009f5","l95|100|00e21c","l145|100|0001fe","l126|100|00fe01","l119|100|00f30b","l110|100|00af4f","l109|100|007f7f","l118|100|006995","l117|100|00a45a","l93|100|00b34b","l98|100|00a559")
-	End With
-	With .AddStep(2.26667, Null, Null)
-		.Lights = Array("l143|100|00b548","l44|100|0016e8","l11|100|006698","l12|100|0058a6","l13|100|004bb3","l14|100|003ec0","l15|100|0030cd","l05|100|00847a","l07|100|007787","l08|100|006995","l09|100|005da1","l10|100|004eb0","l06|100|006d91","l04|100|007a84","l03|100|008777","l02|100|00946a","l01|100|00a35b","l60|100|00dd21","l49|100|00807e","l59|100|003dc1","l65|100|00df1f","l32|100|00f10d","l30|100|00eb13","l41|100|00c935","l40|100|00c33b","l39|100|00bf3f","l38|100|00b945","l37|100|00b44a","l24|100|0000ff","l45|100|0027d7","l48|100|0022dc","l84|100|0015e9","l83|100|0001fd","l95|100|00d02e","l145|100|0010ee","l126|100|00e01e","l119|100|000000","l110|100|00916c","l109|100|006c92","l118|100|007d81","l117|100|00b648","l93|100|00b846","l98|100|009b63")
-	End With
-	With .AddStep(2.30000, Null, Null)
-		.Lights = Array("l143|100|00946a","l44|100|002dd1","l11|100|007985","l12|100|006a94","l13|100|005ba3","l14|100|004ab3","l15|100|003bc3","l05|100|009569","l07|100|008678","l08|100|007688","l09|100|006797","l10|100|0058a6","l06|100|00738b","l04|100|00827c","l03|100|00926c","l02|100|00a15d","l01|100|00b34b","l60|100|00ce30","l49|100|00708e","l59|100|002ed0","l65|100|00e816","l32|100|00ee10","l31|100|00f707","l30|100|00d32b","l41|100|00c539","l40|100|00bc42","l39|100|00b44a","l38|100|00ab53","l37|100|00a15d","l25|100|00ea14","l24|100|000000","l45|100|0042bc","l48|100|0011ed","l84|100|0022db","l83|100|000af4","l95|100|00bb43","l145|100|0022db","l133|100|000bf3","l128|100|00ef0f","l126|100|00bf3f","l110|100|00728b","l109|100|0058a6","l118|100|00936b","l117|100|00c836","l93|100|00bd41","l98|100|00906e")
-	End With
-	With .AddStep(2.33333, Null, Null)
-		.Lights = Array("l143|100|00718d","l44|100|0046b8","l11|100|008e70","l12|100|007c82","l13|100|006c92","l14|100|005aa4","l15|100|0047b7","l05|100|00a856","l07|100|009668","l08|100|00847a","l09|100|00738b","l10|100|00619d","l06|100|007a84","l04|100|008b73","l03|100|009d61","l02|100|00af4f","l01|100|00c33b","l60|100|00bc42","l49|100|00609e","l59|100|001fdf","l65|100|00f10d","l32|100|00ea14","l31|100|00eb13","l30|100|00b945","l41|100|00c03e","l40|100|00b34b","l39|100|00a757","l38|100|009a64","l37|100|008e70","l26|100|00f806","l25|100|00cc32","l45|100|00619d","l21|100|0006f8","l48|100|0000ff","l46|100|00e816","l84|100|0032cb","l83|100|0014ea","l95|100|00a35b","l145|100|0037c7","l133|100|0032cc","l128|100|00d826","l126|100|009965","l110|100|0051ad","l109|100|0042bc","l105|100|0009f4","l118|100|00ab53","l117|100|00db23","l93|100|00c23c","l98|100|008579")
-	End With
-	With .AddStep(2.36667, Null, Null)
-		.Lights = Array("l143|100|004cb2","l44|100|00639b","l11|100|00a45a","l12|100|00906e","l13|100|007d81","l14|100|006995","l15|100|0055a9","l05|100|00bb43","l07|100|00a757","l08|100|00926c","l09|100|007f7f","l10|100|006b93","l06|100|00817d","l04|100|00946a","l03|100|00a955","l02|100|00bd41","l01|100|00d22c","l60|100|00a856","l49|100|004eb0","l59|100|0010ee","l65|100|00f806","l32|100|00e519","l31|100|00dd21","l30|100|009b63","l41|100|00b945","l40|100|00a955","l39|100|009965","l38|100|008975","l37|100|007985","l26|100|00e519","l25|100|00ac52","l45|100|00817d","l21|100|001be3","l48|100|000000","l46|100|00c33b","l47|100|00f30b","l84|100|0044b9","l83|100|0021dd","l82|100|0000ff","l95|100|008a74","l145|100|004eb0","l133|100|005da1","l128|100|00be40","l126|100|00738b","l110|100|002fcf","l109|100|002dd1","l105|100|0026d8","l118|100|00c33b","l117|100|00ed11","l93|100|00c539","l98|100|007886")
-	End With
-	With .AddStep(2.40000, Null, Null)
-		.Lights = Array("l143|100|0027d7","l44|100|00807e","l11|100|00bb43","l12|100|00a459","l13|100|008f6e","l14|100|007a84","l15|100|00649a","l05|100|00cd31","l07|100|00b845","l08|100|00a15d","l09|100|008c72","l10|100|007688","l06|100|008876","l04|100|009d61","l03|100|00b44a","l02|100|00ca34","l01|100|00e11d","l60|100|00936b","l49|100|003dc1","l59|100|0003fc","l65|100|00fe01","l32|100|00dd21","l31|100|00cc32","l30|100|007d81","l41|100|00b24c","l40|100|009d61","l39|100|008a74","l38|100|007787","l37|100|00649a","l27|100|00f806","l26|100|00d12d","l25|100|008975","l45|100|00a25b","l21|100|0032cc","l22|100|0000ff","l20|100|0008f6","l46|100|009a64","l47|100|00d925","l84|100|0059a5","l83|100|002fcf","l82|100|0008f6","l95|100|00708e","l137|100|00e01e","l145|100|006797","l133|100|008975","l128|100|00a15d","l126|100|004ab4","l110|100|000df1","l109|100|0018e6","l105|100|0045b9","l104|100|001de1","l102|100|0014ea","l118|100|00db23","l117|100|00ff00","l93|100|00c836","l98|100|006b93")
-	End With
-	With .AddStep(2.43333, Null, Null)
-		.Lights = Array("l143|100|0002fd","l44|100|009e60","l11|100|00d12d","l12|100|00ba44","l13|100|00a25c","l14|100|008b73","l15|100|00748a","l05|100|00df1f","l07|100|00c835","l08|100|00b14d","l09|100|009965","l10|100|00827c","l06|100|00906e","l04|100|00a658","l03|100|00be40","l02|100|00d628","l01|100|00ef0f","l60|100|007d81","l49|100|002dd1","l59|100|000000","l65|100|000000","l32|100|00d32b","l31|100|00ba44","l30|100|005da1","l41|100|00a855","l40|100|00916c","l39|100|007b83","l38|100|006599","l37|100|004db1","l27|100|00ed11","l26|100|00ba44","l25|100|006599","l45|100|00c539","l21|100|004bb3","l22|100|001ae3","l20|100|001de1","l46|100|00718d","l47|100|00bc42","l84|100|006e90","l83|100|0040be","l82|100|0015e9","l95|100|0055a9","l137|100|00bd41","l145|100|00817d","l133|100|00b747","l128|100|00837b","l126|100|0022dc","l110|100|000000","l109|100|0005f9","l105|100|006697","l104|100|0042bc","l102|100|0042bc","l101|100|0017e7","l118|100|00f20c","l117|100|000000","l93|100|00ca34","l98|100|005ea0")
-	End With
-	With .AddStep(2.46667, Null, Null)
-		.Lights = Array("l143|100|000000","l44|100|00bd41","l11|100|00e618","l12|100|00cd30","l13|100|00b648","l14|100|009c62","l15|100|00847a","l05|100|00ef0f","l07|100|00d826","l08|100|00bf3f","l09|100|00a658","l10|100|008d70","l06|100|009767","l04|100|00af4f","l03|100|00c836","l02|100|00e11d","l01|100|00fb03","l34|100|00e716","l60|100|006797","l19|100|00de20","l18|100|00ed11","l49|100|001ee0","l32|100|00c836","l31|100|00a559","l30|100|003dc1","l41|100|009e60","l40|100|008579","l39|100|006b93","l38|100|0052ac","l37|100|0038c6","l27|100|00df1f","l26|100|00a05d","l25|100|0041bd","l45|100|00e618","l21|100|006797","l22|100|0039c5","l20|100|0034ca","l58|100|0001fd","l55|100|0000ff","l46|100|0046b8","l47|100|009c62","l84|100|00847a","l83|100|0052ac","l82|100|0023db","l95|100|0039c5","l137|100|009668","l145|100|009b63","l133|100|00e519","l128|100|006599","l126|100|000000","l109|100|000000","l105|100|008975","l104|100|006a94","l102|100|00748a","l101|100|000000","l118|100|000000","l98|100|0051ad")
-	End With
-	With .AddStep(2.50000, Null, Null)
-		.Lights = Array("l44|100|00da24","l11|100|00f905","l12|100|00e01e","l13|100|00c737","l14|100|00ae50","l15|100|00946a","l05|100|00fe01","l07|100|00e519","l08|100|00cc32","l09|100|00b34b","l10|100|009965","l06|100|009e60","l04|100|00b747","l03|100|00d02e","l02|100|00ea14","l01|100|000000","l53|100|0017e7","l62|100|00e21c","l34|100|00ca34","l60|100|004faf","l19|100|00b24c","l18|100|00bc42","l49|100|0010ed","l32|100|00bb43","l31|100|00906e","l30|100|001ee0","l41|100|00946a","l40|100|007886","l39|100|005ca2","l38|100|0040be","l37|100|0024da","l27|100|00ce30","l26|100|008777","l25|100|001de1","l45|100|000000","l51|100|0001fd","l21|100|00837b","l22|100|0059a4","l20|100|004db1","l58|100|002ad4","l57|100|0001fe","l55|100|0021dd","l46|100|001ce2","l47|100|007d81","l64|100|00ec12","l84|100|009a64","l83|100|006698","l82|100|0034ca","l81|100|0000ff","l95|100|0020de","l137|100|006f8f","l145|100|00b648","l133|100|000000","l128|100|0046b8","l105|100|00ac52","l104|100|00926c","l102|100|00a559","l93|100|00c935","l98|100|0045b9")
-	End With
-	With .AddStep(2.53333, Null, Null)
-		.Lights = Array("l44|100|00f608","l11|100|000000","l12|100|00f10d","l13|100|00d826","l14|100|00bf3f","l15|100|00a45a","l05|100|000000","l07|100|00f10d","l08|100|00d826","l09|100|00bf3f","l10|100|00a45a","l06|100|00a45a","l04|100|00be40","l03|100|00d727","l02|100|00f10d","l53|100|0036c7","l35|100|00ef0f","l62|100|00be40","l34|100|00ab53","l60|100|003ac4","l19|100|00837b","l18|100|000000","l49|100|0005f9","l65|100|00fd01","l32|100|00ad51","l31|100|007a84","l30|100|0001fe","l41|100|008975","l40|100|006b93","l39|100|004cb2","l38|100|002fcf","l37|100|0012ec","l27|100|00bd41","l26|100|006d91","l25|100|000000","l51|100|0019e5","l21|100|009f5f","l22|100|007a83","l20|100|006896","l58|100|0055a9","l57|100|002ad4","l56|100|0001fd","l55|100|0045b9","l54|100|001be2","l46|100|000000","l47|100|005da1","l64|100|00d529","l84|100|00b04d","l83|100|007a84","l82|100|0046b8","l81|100|000fef","l95|100|0008f6","l137|100|0047b7","l145|100|00cf2f","l128|100|0028d6","l105|100|00ce30","l104|100|00ba44","l102|100|00d727","l93|100|00c737","l98|100|003ac4")
-	End With
-	With .AddStep(2.56667, Null, Null)
-		.Lights = Array("l44|100|000000","l12|100|00ff00","l13|100|00e717","l14|100|00ce30","l15|100|00b549","l07|100|00fb03","l08|100|00e21c","l09|100|00c935","l10|100|00b04e","l06|100|00ab53","l04|100|00c33b","l03|100|00dc22","l02|100|00f608","l53|100|0058a6","l35|100|00d02e","l62|100|009767","l34|100|008975","l92|100|00f806","l60|100|0025d8","l19|100|0054aa","l49|100|000000","l65|100|00f608","l32|100|009d61","l31|100|00649a","l30|100|000000","l41|100|007d81","l40|100|005f9f","l39|100|003ec0","l38|100|0020de","l37|100|0001fe","l27|100|00a955","l26|100|0053ab","l51|100|0033cb","l52|100|0018e6","l21|100|00bc42","l22|100|009c62","l20|100|00837b","l58|100|00817d","l57|100|0056a8","l56|100|002cd2","l55|100|006c91","l54|100|0041bd","l47|100|003cc2","l64|100|00bd41","l84|100|00c539","l83|100|008e70","l82|100|005aa4","l81|100|0022dc","l95|100|000000","l137|100|0021dd","l145|100|00e717","l128|100|000cf2","l105|100|00ef0f","l104|100|00e11d","l102|100|000000","l101|100|00e21c","l93|100|00c33b","l98|100|0030ce")
-	End With
-	With .AddStep(2.60000, Null, Null)
-		.Lights = Array("l70|100|00f509","l69|100|00ea14","l12|100|000000","l13|100|00f40a","l14|100|00db23","l15|100|00c33b","l07|100|000000","l08|100|00ea14","l09|100|00d22c","l10|100|00ba44","l06|100|00b04e","l04|100|00c737","l03|100|00df1f","l02|100|00f805","l53|100|007a84","l35|100|00af4f","l62|100|00718d","l34|100|006895","l92|100|00e01e","l60|100|0013eb","l19|100|0026d8","l18|100|0022dc","l65|100|00ed11","l32|100|008d71","l31|100|004eb0","l41|100|00728c","l40|100|0052ac","l39|100|0031cd","l38|100|0012ec","l37|100|000000","l27|100|009569","l26|100|003ac4","l50|100|0017e7","l51|100|004eb0","l52|100|0039c5","l21|100|00d628","l22|100|00bd40","l20|100|009e60","l58|100|00ad51","l57|100|00827c","l56|100|0059a5","l55|100|00936b","l54|100|006995","l47|100|001ee0","l64|100|00a25c","l84|100|00d925","l83|100|00a25c","l82|100|006e90","l81|100|0036c8","l80|100|0003fb","l137|100|000000","l145|100|00fe01","l128|100|000000","l105|100|000000","l104|100|000000","l101|100|000000","l93|100|00bd41","l98|100|0028d6")
-	End With
-	With .AddStep(2.63333, Null, Null)
-		.Lights = Array("l70|100|00c737","l69|100|00c03e","l13|100|00ff00","l14|100|00e717","l15|100|00d02e","l08|100|00f00e","l09|100|00d925","l10|100|00c23c","l06|100|00b44a","l04|100|00ca34","l03|100|00e01e","l02|100|00f905","l63|100|00fa04","l53|100|009c62","l35|100|008d71","l62|100|004bb3","l34|100|0047b7","l92|100|00c737","l60|100|0003fc","l19|100|000000","l18|100|000000","l65|100|00e21c","l33|100|00ef0e","l32|100|007d81","l31|100|003ac4","l29|100|0000ff","l41|100|006797","l40|100|0047b7","l39|100|0026d8","l38|100|0007f7","l28|100|00f20c","l27|100|00807e","l26|100|0022dc","l50|100|0035c9","l51|100|006b92","l52|100|005da1","l21|100|00ef0f","l22|100|00dd21","l20|100|00b945","l58|100|00d826","l57|100|00ae50","l56|100|008579","l55|100|00ba44","l54|100|00906e","l47|100|0002fd","l64|100|008777","l84|100|00eb13","l83|100|00b648","l82|100|00837b","l81|100|004cb2","l80|100|001ae4","l145|100|000000","l107|100|0007f7","l106|100|0023db","l93|100|00b747","l98|100|0022dc")
-	End With
-	With .AddStep(2.66667, Null, Null)
-		.Lights = Array("l70|100|009767","l69|100|00946a","l13|100|000000","l14|100|00f10d","l15|100|00dc22","l08|100|00f40a","l09|100|00de20","l10|100|00c935","l06|100|00b747","l04|100|00cb33","l02|100|00f607","l63|100|00da24","l53|100|00bd41","l35|100|006b93","l62|100|0026d8","l34|100|0029d5","l92|100|00ac52","l60|100|000000","l65|100|00d628","l33|100|00da24","l32|100|006d90","l31|100|0028d6","l29|100|0014ea","l41|100|005da1","l40|100|003dc1","l39|100|001de1","l38|100|0000ff","l28|100|00d825","l27|100|006c92","l26|100|000df1","l24|100|0000ff","l50|100|0054aa","l51|100|008876","l52|100|00807e","l21|100|000000","l22|100|00fa04","l20|100|00d12c","l58|100|000000","l57|100|00d925","l56|100|00b24b","l55|100|00de20","l54|100|00b747","l47|100|000000","l64|100|006d91","l84|100|00fa04","l83|100|00c836","l82|100|009767","l81|100|00639b","l80|100|0033cb","l136|100|001ae4","l107|100|002cd1","l106|100|004db1","l93|100|00af4f","l98|100|001de1")
-	End With
-	With .AddStep(2.70000, Null, Null)
-		.Lights = Array("l142|100|00f608","l70|100|006896","l69|100|006995","l14|100|00f806","l15|100|00e519","l08|100|00f509","l09|100|00e21c","l10|100|00cf2f","l06|100|00b846","l04|100|00ca34","l03|100|00dd20","l02|100|00f20c","l63|100|00b846","l53|100|00dc22","l35|100|0049b5","l62|100|0004fa","l34|100|000cf2","l92|100|00906e","l65|100|00c836","l33|100|00c33b","l32|100|005ea0","l31|100|0017e7","l29|100|002ad4","l41|100|0053ab","l40|100|0035c9","l39|100|0016e8","l38|100|000000","l28|100|00bd41","l27|100|0059a5","l26|100|000000","l24|100|0012ec","l43|100|001ee0","l50|100|00748a","l51|100|00a35a","l52|100|00a35b","l22|100|000000","l20|100|00e816","l57|100|000000","l56|100|00dd21","l55|100|000000","l54|100|00dc22","l64|100|0052ac","l84|100|000000","l83|100|00d826","l82|100|00ab53","l81|100|007a84","l80|100|004db1","l136|100|0038c6","l107|100|0053ab","l106|100|007985","l93|100|00a658","l98|100|001ae3")
-	End With
-	With .AddStep(2.73333, Null, Null)
-		.Lights = Array("l142|100|00d727","l70|100|0039c4","l69|100|003ec0","l14|100|00fe01","l15|100|00ed11","l09|100|00e31b","l10|100|00d32b","l06|100|00b945","l04|100|00c935","l03|100|00d925","l02|100|00ec12","l01|100|00fd01","l63|100|009569","l53|100|00f905","l35|100|002ad3","l62|100|000000","l34|100|000000","l92|100|007589","l59|100|000af4","l65|100|00b846","l33|100|00ab53","l32|100|004faf","l31|100|0009f5","l29|100|0042bc","l41|100|004ab4","l40|100|002ed0","l39|100|0010ee","l28|100|00a05e","l27|100|0045b9","l24|100|0026d8","l43|100|0040bd","l50|100|00926c","l51|100|00bf3f","l52|100|00c538","l20|100|00fd01","l56|100|000000","l54|100|00ff00","l48|100|0001fe","l64|100|003ac4","l42|100|001ce2","l83|100|00e618","l82|100|00bd41","l81|100|00916d","l80|100|006896","l136|100|0058a6","l120|100|00df1f","l107|100|007a84","l106|100|00a35b","l93|100|009d61","l98|100|001ae4")
-	End With
-	With .AddStep(2.76667, Null, Null)
-		.Lights = Array("l142|100|00b648","l71|100|0005f9","l70|100|000ef0","l69|100|0017e7","l14|100|00ff00","l15|100|00f20c","l07|100|00ff00","l08|100|00f20c","l10|100|00d529","l04|100|00c638","l03|100|00d42a","l02|100|00e41a","l01|100|00f20c","l63|100|00738b","l53|100|000000","l35|100|000ef0","l92|100|005ba3","l59|100|0018e6","l65|100|00a856","l33|100|00926c","l32|100|0042bc","l31|100|000000","l29|100|005aa4","l41|100|0042bc","l40|100|0028d5","l39|100|000df1","l28|100|008479","l27|100|0034ca","l24|100|003cc2","l43|100|00649a","l50|100|00b14d","l51|100|00d826","l52|100|00e519","l20|100|000000","l54|100|000000","l48|100|0014ea","l64|100|0023db","l42|100|0043bb","l83|100|00f20c","l82|100|00ce30","l81|100|00a658","l80|100|00827c","l136|100|007688","l120|100|00bc42","l119|100|00f508","l108|100|0009f5","l107|100|009f5f","l106|100|00cc32","l93|100|00946a","l98|100|001be3")
-	End With
-	With .AddStep(2.80000, Null, Null)
-		.Lights = Array("l142|100|009569","l71|100|000000","l70|100|000000","l69|100|000000","l14|100|000000","l15|100|00f509","l07|100|00f806","l08|100|00ee10","l09|100|00e21c","l10|100|00d628","l06|100|00b746","l04|100|00c23c","l03|100|00cd31","l02|100|00da24","l01|100|00e519","l63|100|0053ab","l35|100|000000","l92|100|0041bd","l49|100|0005f9","l59|100|0028d6","l65|100|009866","l33|100|007b83","l32|100|0036c8","l29|100|00728c","l41|100|003cc2","l40|100|0025d9","l39|100|000cf2","l28|100|006a94","l27|100|0025d9","l24|100|0052ac","l43|100|008678","l50|100|00cd31","l51|100|00ee10","l52|100|000000","l48|100|0027d7","l64|100|000fef","l42|100|006a93","l83|100|00fd02","l82|100|00dd21","l81|100|00bb43","l80|100|009b63","l136|100|00946a","l120|100|009965","l119|100|00db23","l108|100|002ad4","l107|100|00c33b","l106|100|00f20c","l117|100|00f30b","l93|100|008b73","l98|100|001de1")
-	End With
-	With .AddStep(2.83333, Null, Null)
-		.Lights = Array("l142|100|007688","l14|100|00ff00","l15|100|00f707","l05|100|00f707","l07|100|00ef0f","l08|100|00e816","l09|100|00de20","l06|100|00b549","l04|100|00bd41","l03|100|00c638","l02|100|00d02e","l01|100|00d826","l63|100|0034ca","l92|100|002bd3","l49|100|000fef","l59|100|0038c6","l65|100|008876","l33|100|00649a","l32|100|002cd2","l29|100|008876","l41|100|0037c7","l40|100|0022dc","l28|100|004faf","l27|100|0018e6","l24|100|006895","l43|100|00a757","l50|100|00e618","l51|100|000000","l48|100|003cc2","l64|100|000000","l42|100|008f6e","l83|100|000000","l82|100|00ea14","l81|100|00ce30","l80|100|00b34b","l136|100|00b14d","l120|100|007886","l119|100|00c03d","l108|100|004bb3","l107|100|00e41a","l106|100|000000","l117|100|00e21c","l93|100|00827c","l98|100|0021dd")
-	End With
-	With .AddStep(2.86667, Null, Null)
-		.Lights = Array("l142|100|0059a5","l14|100|00fc02","l15|100|00f608","l05|100|00eb13","l07|100|00e518","l08|100|00e11d","l09|100|00da24","l10|100|00d429","l06|100|00b34b","l04|100|00b846","l03|100|00be40","l02|100|00c539","l01|100|00ca34","l63|100|0019e5","l92|100|0017e7","l49|100|001ae4","l59|100|0049b5","l65|100|007985","l33|100|004faf","l32|100|0024da","l29|100|009e60","l41|100|0033cb","l39|100|000ef0","l28|100|0038c6","l27|100|000df1","l24|100|007d81","l43|100|00c638","l50|100|00fd01","l48|100|0050ae","l42|100|00b34b","l82|100|00f40a","l81|100|00de20","l80|100|00c836","l136|100|00cb33","l120|100|0058a6","l119|100|00a658","l109|100|000bf3","l108|100|006c92","l107|100|000000","l117|100|00d02e","l93|100|007984","l98|100|0026d8")
-	End With
-	With .AddStep(2.90000, Null, Null)
-		.Lights = Array("l142|100|003ec0","l12|100|00ff00","l13|100|00fb03","l14|100|00f806","l15|100|00f509","l05|100|00de20","l07|100|00db23","l08|100|00d925","l09|100|00d529","l10|100|00d22c","l06|100|00b04e","l04|100|00b24c","l03|100|00b548","l02|100|00ba44","l01|100|00bc42","l63|100|0000fe","l92|100|0005f9","l49|100|0025d9","l59|100|0059a5","l65|100|006c92","l33|100|003cc2","l32|100|001de1","l29|100|00b24c","l41|100|0031cd","l39|100|0011ed","l38|100|0002fc","l28|100|0023db","l27|100|0004fa","l24|100|00906e","l43|100|00e11d","l50|100|000000","l48|100|00639a","l42|100|00d32b","l82|100|00fd01","l81|100|00ec12","l80|100|00db23","l136|100|00e21c","l120|100|003bc3","l119|100|008d71","l109|100|001ae4","l108|100|008975","l118|100|00ff00","l117|100|00bf3f","l93|100|00728c","l98|100|002cd2")
-	End With
-	With .AddStep(2.93333, Null, Null)
-		.Lights = Array("l142|100|0027d7","l11|100|00f608","l12|100|00f509","l13|100|00f30b","l14|100|00f30b","l15|100|00f20c","l05|100|00d22c","l07|100|00d12d","l08|100|00d22c","l09|100|00d02e","l10|100|00cf2f","l06|100|00ad51","l04|100|00ad51","l03|100|00ae50","l02|100|00b04e","l01|100|00af4f","l63|100|000000","l92|100|000000","l49|100|0030ce","l59|100|006896","l65|100|00609e","l33|100|002cd2","l32|100|0018e6","l29|100|00c33b","l41|100|002fcf","l40|100|0023db","l39|100|0015e9","l38|100|0009f5","l28|100|0011ed","l27|100|000000","l24|100|00a15d","l43|100|00f806","l48|100|007589","l42|100|00ee10","l82|100|000000","l81|100|00f707","l80|100|00eb13","l136|100|00f509","l120|100|0022dc","l119|100|007787","l109|100|002ad4","l108|100|00a45a","l118|100|00ef0e","l117|100|00af4f","l93|100|006b93","l98|100|0032cc")
-	End With
-	With .AddStep(2.96667, Null, Null)
-		.Lights = Array("l142|100|0013eb","l11|100|00ea14","l12|100|00ec12","l13|100|00ec12","l14|100|00ee10","l15|100|00ef0f","l05|100|00c638","l07|100|00c836","l08|100|00cb33","l09|100|00cb33","l10|100|00cc32","l06|100|00a955","l04|100|00a757","l03|100|00a658","l02|100|00a559","l01|100|00a35b","l49|100|003ac4","l59|100|007589","l65|100|0055a9","l33|100|001fdf","l32|100|0014ea","l29|100|00d12d","l41|100|002ed0","l40|100|0025d9","l39|100|0019e5","l38|100|000fef","l37|100|0006f8","l28|100|0003fb","l24|100|00b14d","l43|100|000000","l48|100|00847a","l42|100|000000","l81|100|000000","l80|100|00f905","l136|100|000000","l120|100|000df1","l119|100|00649a","l109|100|0037c7","l108|100|00bc42","l118|100|00e11c","l117|100|00a05e","l93|100|006599","l98|100|0037c7")
-	End With
-	With .AddStep(3.00000, Null, Null)
-		.Lights = Array("l142|100|0004fa","l11|100|00e11d","l12|100|00e41a","l13|100|00e618","l14|100|00e915","l15|100|00ec12","l05|100|00bd41","l07|100|00c03e","l08|100|00c43a","l09|100|00c638","l10|100|00c935","l06|100|00a658","l04|100|00a35b","l03|100|009f5e","l02|100|009e60","l01|100|009964","l49|100|0042bc","l59|100|007f7f","l65|100|004cb2","l33|100|0014ea","l32|100|0011ec","l29|100|00dc22","l40|100|0026d8","l39|100|001de1","l38|100|0015e9","l37|100|000df1","l28|100|000000","l24|100|00bc41","l48|100|00906e","l80|100|000000","l120|100|000000","l119|100|0054aa","l109|100|0043bb","l108|100|00ce30","l118|100|00d628","l117|100|00946a","l93|100|00609e","l98|100|003cc2")
-	End With
-	With .AddStep(3.03333, Null, Null)
-		.Lights = Array("l142|100|000000","l11|100|00da24","l12|100|00de20","l13|100|00e11d","l14|100|00e519","l15|100|00ea14","l05|100|00b648","l07|100|00ba43","l08|100|00c03e","l09|100|00c33b","l10|100|00c737","l06|100|00a45a","l04|100|00a05e","l03|100|009b63","l02|100|009866","l01|100|00936b","l49|100|0048b6","l59|100|008678","l65|100|0047b7","l33|100|000ef0","l32|100|0010ee","l29|100|00e31b","l40|100|0028d6","l39|100|0020de","l38|100|001ae4","l37|100|0013eb","l24|100|00c43a","l48|100|009865","l119|100|0049b5","l110|100|0004fa","l109|100|004bb3","l108|100|00da24","l118|100|00cd31","l117|100|008c72","l93|100|005da1","l98|100|0040be")
-	End With
-	With .AddStep(3.06667, Null, Null)
-		.Lights = Array("l11|100|00d727","l12|100|00dc22","l13|100|00df1f","l14|100|00e41a","l15|100|00e915","l05|100|00b34b","l07|100|00b846","l08|100|00be40","l09|100|00c23c","l10|100|00c638","l06|100|00a35b","l04|100|009e60","l03|100|009a64","l02|100|009668","l01|100|00906e","l49|100|004bb3","l59|100|008975","l65|100|0045b9","l33|100|000bf3","l29|100|00e618","l39|100|0021dd","l38|100|001be3","l37|100|0015e9","l24|100|00c737","l48|100|009c62","l119|100|0045b9","l110|100|0008f6","l109|100|004eb0","l108|100|00df1f","l118|100|00ca34","l117|100|008975","l93|100|005ca2","l98|100|0041bd")
-	End With
-	With .AddStep(3.10000, Null, Null)
-		.Lights = Array("l11|100|00d42a","l12|100|00d826","l13|100|00dc22","l14|100|00e01d","l15|100|00e519","l05|100|00b04e","l07|100|00b549","l08|100|00bb43","l09|100|00be40","l10|100|00c33b","l06|100|00a05e","l04|100|009b63","l03|100|009668","l02|100|00936b","l01|100|008d71","l49|100|0047b7","l59|100|008678","l65|100|0041bd","l33|100|0008f6","l32|100|000cf2","l29|100|00e31b","l41|100|002bd3","l40|100|0025d9","l39|100|001ee0","l38|100|0018e6","l37|100|0012ec","l24|100|00c43a","l48|100|009965","l119|100|0041bd","l110|100|0005f9","l109|100|004bb3","l108|100|00dc22","l118|100|00c737","l117|100|008678","l93|100|0059a5","l98|100|003ec0")
-	End With
-	With .AddStep(3.13333, Null, Null)
-		.Lights = Array("l11|100|00ca34","l12|100|00cf2f","l13|100|00d22c","l14|100|00d727","l15|100|00dc22","l05|100|00a658","l07|100|00ab52","l08|100|00b14d","l09|100|00b549","l10|100|00ba44","l06|100|009668","l04|100|00926c","l03|100|008d71","l02|100|008975","l01|100|00837b","l49|100|003ec0","l59|100|007c82","l65|100|0038c6","l33|100|0000ff","l32|100|0003fb","l29|100|00d924","l41|100|0022dc","l40|100|001ce2","l39|100|0015e9","l38|100|000fef","l37|100|0009f5","l24|100|00bb43","l48|100|008f6f","l80|100|00ff00","l119|100|0038c6","l110|100|000000","l109|100|0041bc","l108|100|00d22c","l118|100|00bd41","l117|100|007c82","l93|100|004eaf","l98|100|0034c9")
-	End With
-	With .AddStep(3.16667, Null, Null)
-		.Lights = Array("l11|100|00bc42","l12|100|00c13d","l13|100|00c43a","l14|100|00c935","l15|100|00ce30","l05|100|009866","l07|100|009c61","l08|100|00a25c","l09|100|00a658","l10|100|00ac52","l06|100|008876","l04|100|00847a","l03|100|007f7f","l02|100|007b83","l01|100|007588","l49|100|0030ce","l59|100|006e90","l65|100|002ad4","l33|100|000000","l32|100|000000","l29|100|00cc32","l41|100|0014ea","l40|100|000ef0","l39|100|0007f7","l38|100|0001fe","l37|100|000000","l24|100|00ad51","l48|100|00817d","l84|100|00f20b","l83|100|00f20b","l82|100|00f20b","l81|100|00f20b","l80|100|00f10d","l119|100|002ad4","l109|100|0033ca","l108|100|00c43a","l118|100|00af4f","l117|100|006e90","l93|100|0040bd","l98|100|0026d7")
-	End With
-	With .AddStep(3.20000, Null, Null)
-		.Lights = Array("l44|100|00fd02","l11|100|00ab53","l12|100|00af4f","l13|100|00b34b","l14|100|00b846","l15|100|00bc42","l05|100|008678","l07|100|008b73","l08|100|00916d","l09|100|00946a","l10|100|009965","l06|100|007787","l04|100|00728c","l03|100|006d91","l02|100|006a94","l01|100|00649a","l49|100|001edf","l59|100|005da1","l65|100|0019e5","l29|100|00ba44","l41|100|0002fc","l40|100|000000","l39|100|000000","l38|100|000000","l24|100|009a64","l45|100|00fd02","l43|100|00fd02","l48|100|00708e","l42|100|00fd02","l84|100|00e11d","l83|100|00e11d","l82|100|00e11d","l81|100|00e11d","l80|100|00e01e","l136|100|00f10c","l145|100|00f30b","l119|100|0019e5","l109|100|0022dc","l108|100|00b34b","l118|100|009d61","l117|100|005da1","l93|100|002fcf","l98|100|0015e9")
-	End With
-	With .AddStep(3.23333, Null, Null)
-		.Lights = Array("l44|100|00e816","l11|100|009569","l12|100|009a64","l13|100|009e60","l14|100|00a25c","l15|100|00a856","l05|100|00728c","l07|100|007787","l08|100|007d81","l09|100|00807e","l10|100|008579","l06|100|00639b","l04|100|005ea0","l03|100|0059a5","l02|100|0056a8","l01|100|004faf","l49|100|000af4","l59|100|0048b6","l65|100|0004fa","l29|100|00a559","l41|100|000000","l24|100|008678","l45|100|00e816","l43|100|00e816","l50|100|00ff00","l51|100|00ff00","l21|100|00fe01","l20|100|00fe01","l48|100|005ba2","l42|100|00e816","l84|100|00cd31","l83|100|00cd31","l82|100|00cd31","l81|100|00cd31","l80|100|00cc32","l136|100|00dd21","l145|100|00de20","l119|100|0004fa","l109|100|000ef0","l108|100|009e60","l118|100|008876","l117|100|0048b6","l93|100|001be3","l98|100|0001fe")
-	End With
-	With .AddStep(3.26667, Null, Null)
-		.Lights = Array("l44|100|00d12d","l11|100|007f7f","l12|100|00847a","l13|100|008777","l14|100|008c72","l15|100|00906d","l05|100|005ba3","l07|100|00609e","l08|100|006698","l09|100|006a94","l10|100|006e90","l06|100|004bb3","l04|100|0046b8","l03|100|0042bc","l02|100|003ec0","l01|100|0038c6","l49|100|000000","l59|100|0031cd","l65|100|000000","l29|100|008e70","l24|100|006f8f","l45|100|00d12d","l43|100|00d12d","l50|100|00e816","l51|100|00e816","l21|100|00e717","l20|100|00e717","l48|100|0044ba","l42|100|00d12d","l84|100|00b648","l83|100|00b648","l82|100|00b648","l81|100|00b648","l80|100|00b549","l136|100|00c737","l145|100|00c836","l119|100|000000","l109|100|000000","l108|100|008777","l118|100|00728c","l117|100|0031cd","l93|100|0004fa","l98|100|000000")
-	End With
-	With .AddStep(3.30000, Null, Null)
-		.Lights = Array("l44|100|00b945","l11|100|006698","l12|100|006b93","l13|100|006f8f","l14|100|00738b","l15|100|007886","l05|100|0042bc","l07|100|0047b7","l08|100|004db1","l09|100|0050ae","l10|100|0056a8","l06|100|0033cb","l04|100|002ed0","l03|100|0029d5","l02|100|0026d8","l01|100|0020de","l53|100|00fe00","l59|100|0019e5","l29|100|007688","l24|100|0057a7","l45|100|00b945","l43|100|00b945","l50|100|00cf2f","l51|100|00cf2f","l52|100|00fb03","l21|100|00ce30","l22|100|00fa04","l20|100|00ce30","l48|100|002cd2","l42|100|00b945","l84|100|009d61","l83|100|009d61","l82|100|009d61","l81|100|009d61","l80|100|009c62","l136|100|00ae50","l145|100|00af4e","l108|100|006f8f","l107|100|00ed11","l105|100|00ed11","l118|100|0059a5","l117|100|0019e5","l93|100|000000")
-	End With
-	With .AddStep(3.33333, Null, Null)
-		.Lights = Array("l44|100|009e60","l11|100|004cb2","l12|100|0050ae","l13|100|0055a9","l14|100|005aa4","l15|100|005ea0","l05|100|0028d6","l07|100|002dd1","l08|100|0033cb","l09|100|0036c8","l10|100|003bc3","l06|100|0019e5","l04|100|0014ea","l03|100|000fef","l02|100|000cf2","l01|100|0006f8","l53|100|00e41a","l59|100|0000ff","l29|100|005ca2","l24|100|003cc2","l45|100|009e60","l43|100|009e60","l50|100|00b548","l51|100|00b548","l52|100|00e11d","l21|100|00b44a","l22|100|00e01e","l20|100|00b44a","l48|100|0012ec","l42|100|009e60","l84|100|00837b","l83|100|00837b","l82|100|00837b","l81|100|00837b","l80|100|00827c","l136|100|00936b","l145|100|009569","l133|100|00f10d","l108|100|0055a9","l107|100|00d32b","l105|100|00d32b","l118|100|003fbf","l117|100|0000ff")
-	End With
-	With .AddStep(3.36667, Null, Null)
-		.Lights = Array("l44|100|00837b","l11|100|0030ce","l12|100|0035c9","l13|100|0039c5","l14|100|003dc0","l15|100|0042bc","l05|100|000df1","l07|100|0012ec","l08|100|0018e6","l09|100|001be3","l10|100|0020de","l06|100|000000","l04|100|000000","l03|100|000000","l02|100|000000","l01|100|000000","l53|100|00c835","l59|100|000000","l29|100|0040be","l24|100|0021dd","l45|100|00837b","l43|100|00837b","l50|100|009965","l51|100|009965","l52|100|00c638","l21|100|009866","l22|100|00c539","l20|100|009866","l55|100|00ec12","l54|100|00ec12","l48|100|000000","l42|100|00837b","l84|100|006896","l83|100|006896","l82|100|006896","l81|100|006896","l80|100|006797","l136|100|007886","l145|100|007984","l133|100|00d529","l108|100|0039c5","l107|100|00b846","l106|100|00e618","l105|100|00b846","l104|100|00e618","l118|100|0023db","l117|100|000000")
-	End With
-	With .AddStep(3.40000, Null, Null)
-		.Lights = Array("l44|100|006797","l11|100|0014ea","l12|100|0019e5","l13|100|001de1","l14|100|0021dd","l15|100|0026d8","l05|100|000000","l07|100|000000","l08|100|000000","l09|100|0000ff","l10|100|0004fa","l53|100|00ac52","l29|100|0024da","l24|100|0005f9","l45|100|006797","l43|100|006797","l50|100|007d81","l51|100|007d81","l52|100|00aa54","l21|100|007c82","l22|100|00a955","l20|100|007c82","l58|100|00f40a","l57|100|00f40a","l56|100|00f40a","l55|100|00d02e","l54|100|00d02e","l42|100|006797","l84|100|004bb3","l83|100|004bb3","l82|100|004bb3","l81|100|004bb3","l80|100|0049b4","l136|100|005ca2","l145|100|005da1","l134|100|00fd01","l133|100|00b945","l108|100|001de1","l107|100|009b63","l106|100|00ca34","l105|100|009b63","l104|100|00ca34","l118|100|0007f7")
-	End With
-	With .AddStep(3.43333, Null, Null)
-		.Lights = Array("l44|100|0049b5","l11|100|000000","l12|100|000000","l13|100|0000ff","l14|100|0004fa","l15|100|0009f5","l09|100|000000","l10|100|000000","l53|100|008e70","l29|100|0007f7","l24|100|000000","l45|100|0049b5","l43|100|0049b5","l50|100|00609e","l51|100|00609e","l52|100|008c72","l21|100|005f9f","l22|100|008b73","l20|100|005f9f","l58|100|00d826","l57|100|00d826","l56|100|00d826","l55|100|00b34b","l54|100|00b34b","l42|100|0049b5","l84|100|002ed0","l83|100|002ed0","l82|100|002ed0","l81|100|002ed0","l80|100|002dd1","l136|100|003ec0","l145|100|0040be","l134|100|00e01e","l133|100|009b62","l108|100|0000ff","l107|100|007e80","l106|100|00ad51","l105|100|007e80","l104|100|00ad51","l103|100|00e816","l102|100|00e717","l101|100|00ff00","l100|100|00ff00","l118|100|000000")
-	End With
-	With .AddStep(3.46667, Null, Null)
-		.Lights = Array("l44|100|002bd2","l13|100|000000","l14|100|000000","l15|100|000000","l53|100|00718d","l29|100|000000","l45|100|002bd2","l43|100|002bd2","l50|100|0042bc","l51|100|0042bc","l52|100|006f8f","l21|100|0041bd","l22|100|006d91","l20|100|0041bd","l58|100|00ba44","l57|100|00ba44","l56|100|00ba44","l55|100|00946a","l54|100|00946a","l42|100|002bd2","l84|100|0010ee","l83|100|0010ee","l82|100|0010ee","l81|100|0010ee","l80|100|000fef","l136|100|0021dd","l145|100|0022dc","l134|100|00c23c","l133|100|007e80","l108|100|000000","l107|100|00609e","l106|100|008e70","l105|100|00609e","l104|100|008e70","l103|100|00cb33","l102|100|00c935","l101|100|00e21c","l100|100|00e11d")
-	End With
-	With .AddStep(3.50000, Null, Null)
-		.Lights = Array("l44|100|000df0","l53|100|0052ac","l45|100|000df0","l43|100|000df0","l50|100|0024da","l51|100|0024da","l52|100|0050ae","l21|100|0023db","l22|100|004eb0","l20|100|0023db","l58|100|009b63","l57|100|009b63","l56|100|009b63","l55|100|007688","l54|100|007688","l42|100|000df0","l84|100|000000","l83|100|000000","l82|100|000000","l81|100|000000","l80|100|000000","l136|100|0003fb","l145|100|0004fa","l134|100|00a35b","l133|100|00609e","l107|100|0041bd","l106|100|00708d","l105|100|0041bd","l104|100|00708d","l103|100|00ad51","l102|100|00ab53","l101|100|00c43a","l100|100|00c33b")
-	End With
-	With .AddStep(3.53333, Null, Null)
-		.Lights = Array("l44|100|000000","l16|100|00f707","l53|100|0034ca","l45|100|000000","l43|100|000000","l50|100|0006f8","l51|100|0006f8","l52|100|0031cd","l21|100|0004fa","l22|100|0030ce","l20|100|0004fa","l58|100|007d81","l57|100|007d81","l56|100|007d81","l55|100|0058a6","l54|100|0058a6","l42|100|000000","l136|100|000000","l145|100|000000","l134|100|008579","l133|100|0041bd","l107|100|0023db","l106|100|0051ad","l105|100|0023db","l104|100|0051ad","l103|100|008d71","l102|100|008c72","l101|100|00a559","l100|100|00a45a")
-	End With
-	With .AddStep(3.56667, Null, Null)
-		.Lights = Array("l16|100|00d925","l53|100|0015e9","l50|100|000000","l51|100|000000","l52|100|0013eb","l21|100|000000","l22|100|0012ec","l20|100|000000","l58|100|005ea0","l57|100|005ea0","l56|100|005ea0","l55|100|0039c5","l54|100|0039c5","l134|100|006698","l133|100|0022dc","l107|100|0005f9","l106|100|0033cb","l105|100|0005f9","l104|100|0033cb","l103|100|006f8f","l102|100|006e90","l101|100|008678","l100|100|008579")
-	End With
-	With .AddStep(3.60000, Null, Null)
-		.Lights = Array("l16|100|00ba44","l53|100|000000","l52|100|000000","l22|100|000000","l58|100|003fbf","l57|100|003fbf","l56|100|003fbf","l55|100|001ae4","l54|100|001ae4","l134|100|0047b7","l133|100|0004fa","l107|100|000000","l106|100|0014ea","l105|100|000000","l104|100|0014ea","l103|100|004faf","l102|100|004eb0","l101|100|006896","l100|100|006797")
-	End With
-	With .AddStep(3.63333, Null, Null)
-		.Lights = Array("l16|100|009b63","l58|100|0020de","l57|100|0020de","l56|100|0020de","l55|100|000000","l54|100|000000","l134|100|0028d6","l133|100|000000","l106|100|000000","l104|100|000000","l103|100|0031cd","l102|100|0030ce","l101|100|0048b6","l100|100|0047b7")
-	End With
-	With .AddStep(3.66667, Null, Null)
-		.Lights = Array("l16|100|007d81","l58|100|0002fd","l57|100|0002fd","l56|100|0002fd","l134|100|000af4","l103|100|0012ec","l102|100|0011ed","l101|100|002ad4","l100|100|0029d5")
-	End With
-	With .AddStep(3.70000, Null, Null)
-		.Lights = Array("l16|100|005f9f","l58|100|000000","l57|100|000000","l56|100|000000","l134|100|000000","l103|100|000000","l102|100|000000","l101|100|000cf2","l100|100|000bf3")
-	End With
-	With .AddStep(3.73333, Null, Null)
-		.Lights = Array("l16|100|0040be","l101|100|000000","l100|100|000000")
-	End With
-	With .AddStep(3.76667, Null, Null)
-		.Lights = Array("l16|100|0023db")
-	End With
-	With .AddStep(3.80000, Null, Null)
-		.Lights = Array("l16|100|0007f6")
-	End With
-	With .AddStep(3.83333, Null, Null)
-		.Lights = Array("l16|100|000000")
-	End With
-End With
-
-
 
 With GlfShotProfiles("default")
 	With .States("on")
-			.Show = glf_ShowFlash
+			.Show = "flash"
 	End With
 	With .States("off")
-			.Show = glf_ShowOff
+			.Show = "off"
 	End With
 End With
 
 With GlfShotProfiles("flash_color")
 	With .States("off")
-		.Show = glf_ShowOff
+		.Show = "off"
 	End With
 	With .States("on")
-			.Show = glf_ShowFlashColor
+			.Show = "flash_color"
 	End With	
 End With
+
+Function AdjustHexColor(hexColor, percentage)
+    ' Ensure percentage is between 0 and 100
+    If percentage < 0 Then percentage = 0
+    If percentage > 100 Then percentage = 100
+
+    ' Parse the R, G, B components
+    Dim r, g, b
+    r = CLng("&H" & Mid(hexColor, 1, 2))
+    g = CLng("&H" & Mid(hexColor, 3, 2))
+    b = CLng("&H" & Mid(hexColor, 5, 2))
+
+    ' Adjust the RGB components by the percentage
+    r = Int(r * (percentage / 100))
+    g = Int(g * (percentage / 100))
+    b = Int(b * (percentage / 100))
+
+    ' Ensure the values are within the valid range (0 to 255)
+    r = FixRange(r)
+    g = FixRange(g)
+    b = FixRange(b)
+
+    ' Convert back to hex and return the adjusted color
+    AdjustHexColor = PadHex(Hex(r)) & PadHex(Hex(g)) & PadHex(Hex(b))
+End Function
+
+' Helper function to ensure values stay within range
+Function FixRange(value)
+    If value < 0 Then value = 0
+    If value > 255 Then value = 255
+    FixRange = value
+End Function
+
+' Helper function to pad single digit hex values with a leading zero
+Function PadHex(hexValue)
+    If Len(hexValue) < 2 Then
+        PadHex = "0" & hexValue
+    Else
+        PadHex = hexValue
+    End If
+End Function
 
 
 '******************************************************
@@ -2214,10 +1981,10 @@ Class GlfCounter
 
     Public Sub Activate()
         If m_persist_state And m_count > -1 Then
-            If Not IsNull(GetPlayerState(m_name & "_state")) Then
-                SetValue GetPlayerState(m_name & "_state")
-            Else
+            If GetPlayerState(m_name & "_state")=False Then
                 SetValue 0
+            Else
+                SetValue GetPlayerState(m_name & "_state")
             End If
         Else
             SetValue 0
@@ -2322,25 +2089,27 @@ Class GlfEventPlayer
     Public Sub Add(key, value)
         Dim newEvent : Set newEvent = (new GlfEvent)(key)
         m_events.Add newEvent.Name, newEvent
-        m_eventValues.Add newEvent.Name, value
+        'msgbox newEvent.Name
+        m_eventValues.Add newEvent.Name, value  
     End Sub
 
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener m_events(evt).EventName, m_mode & "_event_player_play", "EventPlayerEventHandler", m_priority, Array("play", Me, evt)
+            AddPinEventListener m_events(evt).EventName, m_mode & "_" & m_events(evt).Name & "_event_player_play", "EventPlayerEventHandler", m_priority, Array("play", Me, evt)
         Next
     End Sub
 
     Public Sub Deactivate()
         Dim evt
         For Each evt In m_events.Keys()
-            RemovePinEventListener m_events(evt).EventName, m_mode & "_event_player_play"
+            RemovePinEventListener m_events(evt).EventName, m_mode & "_" & m_events(evt).Name & "_event_player_play"
         Next
     End Sub
 
     Public Sub FireEvent(evt)
         If Not IsNull(m_events(evt).Condition) Then
+            'msgbox m_events(evt).Condition
             If GetRef(m_events(evt).Condition)() = False Then
                 Exit Sub
             End If
@@ -2866,6 +2635,7 @@ Class Mode
     Private m_variableplayer
     Private m_eventplayer
     Private m_shot_profiles
+    Private m_sequence_shots
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get Priority(): Priority = m_priority: End Property
@@ -2952,6 +2722,16 @@ Class Mode
         End If
     End Property
 
+    Public Property Get SequenceShots(name)
+        If m_sequence_shots.Exists(name) Then
+            Set SequenceShots = m_sequence_shots(name)
+        Else
+            Dim new_sequence_shot : Set new_sequence_shot = (new GlfSequenceShots)(name, Me)
+            m_sequence_shots.Add name, new_sequence_shot
+            Set SequenceShots = new_sequence_shot
+        End If
+    End Property
+
     Public Property Get ModeShots(): ModeShots = m_shots.Items(): End Property
     Public Property Get Shots(name)
         If m_shots.Exists(name) Then
@@ -3019,6 +2799,7 @@ Class Mode
         Set m_shot_groups = CreateObject("Scripting.Dictionary")
         Set m_ballholds = CreateObject("Scripting.Dictionary")
         Set m_shot_profiles = CreateObject("Scripting.Dictionary")
+        Set m_sequence_shots = CreateObject("Scripting.Dictionary")
         m_lightplayer = Null
         m_showplayer = Null
         m_segment_display_player = Null
@@ -3248,12 +3029,17 @@ Class GlfMultiballLocks
     Private m_balls_to_lock
     Private m_balls_locked
     Private m_balls_to_replace
-    Private m_balls_replaced
     Private m_lock_events
     Private m_reset_events
     Private m_debug
 
     Public Property Get Name(): Name = m_name: End Property
+    Public Property Get GetValue(value)
+        Select Case value
+            Case "locked_balls":
+                GetValue = m_balls_locked
+        End Select
+    End Property
     Public Property Get LockDevice() : LockDevice = m_lock_device : End Property
     Public Property Let LockDevice(value) : m_lock_device = value : End Property
     Public Property Let EnableEvents(value) : m_base_device.EnableEvents = value : End Property
@@ -3267,13 +3053,15 @@ Class GlfMultiballLocks
 	Public default Function init(name, mode)
         m_name = "multiball_locks_" & name
         m_mode = mode.Name
+        m_priority = mode.Priority
         m_lock_events = Array()
         m_reset_events = Array()
         m_lock_device = Array()
         m_balls_to_lock = 0
         m_balls_to_replace = -1
-        m_balls_replaced = 0
+        m_balls_locked = 0
         Set m_base_device = (new GlfBaseModeDevice)(mode, "multiball_locks", Me)
+        glf_multiball_locks.Add name, Me
         Set Init = Me
 	End Function
 
@@ -3319,7 +3107,7 @@ Class GlfMultiballLocks
         End If
         
         Dim balls_locked
-        If IsNull(GetPlayerState(m_name & "_balls_locked")) Then
+        If GetPlayerState(m_name & "_balls_locked") = False Then
             balls_locked = 1
         Else
             balls_locked = GetPlayerState(m_name & "_balls_locked") + 1
@@ -3331,16 +3119,22 @@ Class GlfMultiballLocks
         End If
 
         SetPlayerState m_name & "_balls_locked", balls_locked
-        DispatchPinEvent m_name & "_locked_ball", balls_locked
+        
 
         If Not IsNull(device) Then
-            If m_balls_to_replace = -1 Or m_balls_to_replace < m_balls_replaced Then
-                glf_BIP = glf_BIP - 1
-                m_balls_replaced = m_balls_replaced + 1
-                SetDelay m_name & "_queued_release", "MultiballLocksHandler" , Array(Array("queue_release", Me),Null), 1000
+            
+            If glf_ball_devices(device).Balls() > balls_locked Then
+                glf_ball_devices(device).Eject()
+            Else
+                If m_balls_to_replace = -1 Or balls_locked <= m_balls_to_replace Then
+                    glf_BIP = glf_BIP - 1
+                    SetDelay m_name & "_queued_release", "MultiballLocksHandler" , Array(Array("queue_release", Me),Null), 1000
+                End If
             End If
         End If
 
+        DispatchPinEvent m_name & "_locked_ball", balls_locked
+        
         If balls_locked = m_balls_to_lock Then
             DispatchPinEvent m_name & "_full", balls_locked
         End If
@@ -3350,7 +3144,6 @@ Class GlfMultiballLocks
 
     Public Sub Reset
         SetPlayerState m_name & "_balls_locked", 0
-        m_balls_replaced = 0
     End Sub
 
 End Class
@@ -3398,99 +3191,409 @@ Function MultiballLocksHandler(args)
         MultiballLocksHandler = kwargs
     End If
 End Function
-
-Class GlfMultiball
+Class GlfMultiballs
 
     Private m_name
-    Private m_priority
+    Private m_configname
     Private m_mode
-    Private m_multiball_locks
-    Private m_enable_events
+    Private m_priority
+    Private m_base_device
+    Private m_ball_count
+    Private m_ball_lock
+    Private m_add_a_ball_events
+    Private m_add_a_ball_grace_period
+    Private m_add_a_ball_hurry_up_time
+    Private m_add_a_ball_shoot_again
+    Private m_ball_count_type
     Private m_disable_events
+    Private m_enable_events
+    Private m_grace_period
+    Private m_grace_period_enabled
+    Private m_hurry_up
+    Private m_hurry_up_enabled
+    Private m_replace_balls_in_play
+    Private m_reset_events
+    Private m_shoot_again
+    Private m_source_playfield
     Private m_start_events
-    Private m_ball_save
+    Private m_start_or_add_a_ball_events
+    Private m_stop_events
+    Private m_balls_added_live
+    Private m_balls_live_target
+    Private m_enabled
+    Private m_shoot_again_enabled
     Private m_debug
 
     Public Property Get Name(): Name = m_name: End Property
 
-    Public Property Let EnableEvents(value) : m_enable_events = value : End Property
-    Public Property Let DisableEvents(value) : m_disable_events = value : End Property
-    Public Property Let StartEvents(value) : m_start_events = value : End Property
-    Public Property Let Debug(value) : m_debug = value : End Property
+    Public Property Let BallCount(value): Set m_ball_count = CreateGlfInput(value): End Property
+    Public Property Let AddABallEvents(value): m_add_a_ball_events = value: End Property
+    Public Property Let AddABallGracePeriod(value): Set m_add_a_ball_grace_period = CreateGlfInput(value): End Property
+    Public Property Let AddABallHurryUpTime(value): Set m_add_a_ball_hurry_up_time = CreateGlfInput(value): End Property
+    Public Property Let AddABallShootAgain(value): Set m_add_a_ball_shoot_again = CreateGlfInput(value): End Property
+    Public Property Let BallCountType(value): m_ball_count_type = value: End Property
+    Public Property Let BallLock(value): m_ball_lock = value: End Property
+    Public Property Let EnableEvents(value) : m_base_device.EnableEvents = value : End Property
+    Public Property Let DisableEvents(value) : m_base_device.DisableEvents = value : End Property
+    Public Property Let GracePeriod(value): Set m_grace_period = CreateGlfInput(value): End Property
+    Public Property Let HurryUp(value): Set m_hurry_up = CreateGlfInput(value): End Property
+    Public Property Let ReplaceBallsInPlay(value): m_replace_balls_in_play = value: End Property
+    Public Property Let ResetEvents(value): m_reset_events = value: End Property
+    Public Property Let ShootAgain(value): Set m_shoot_again = CreateGlfInput(value): End Property
+    Public Property Let StartEvents(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_start_events.Add newEvent.Name, newEvent
+        Next
+    End Property
+    Public Property Let StartOrAddABallEvents(value): m_start_or_add_a_ball_events = value: End Property
+    Public Property Let StopEvents(value): m_stop_events = value: End Property
+    Public Property Let Debug(value): m_debug = value: End Property
 
-	Public default Function init(name, multiball_locks, mode)
+    Public default Function init(name, mode)
         m_name = "multiball_" & name
+        m_configname = name
         m_mode = mode.Name
-        m_start_events = Array()
-        m_multiball_locks = multiball_locks
-        
-        AddPinEventListener m_mode & "_starting", m_name & "_activate", "MultiballHandler", m_priority, Array("activate", Me)
-        AddPinEventListener m_mode & "_stopping", m_name & "_deactivate", "MultiballHandler", m_priority, Array("deactivate", Me)
+        m_priority = mode.Priority
+        Set m_ball_count = CreateGlfInput(0)
+        m_add_a_ball_events = Array()
+        Set m_add_a_ball_grace_period = CreateGlfInput(0)
+        Set m_add_a_ball_hurry_up_time = CreateGlfInput(0)
+        Set m_add_a_ball_shoot_again = CreateGlfInput(5000)
+        m_ball_count_type = "total"
+        m_ball_lock = Empty
+        Set m_grace_period = CreateGlfInput(0)
+        Set m_hurry_up = CreateGlfInput(0)
+        m_replace_balls_in_play = False
+        Set m_shoot_again = CreateGlfInput(10000)
+        m_reset_events = Array()
+        m_start_or_add_a_ball_events = Array()
+        Set m_start_events = CreateObject("Scripting.Dictionary")
+        m_stop_events = Array()
+        m_replace_balls_in_play = False
+        m_balls_added_live = 0
+        m_balls_live_target = 0
+        m_enabled = False
+        m_shoot_again_enabled = False
+        m_grace_period_enabled = False
+        m_hurry_up_enabled = False
+        Set m_base_device = (new GlfBaseModeDevice)(mode, "multiball", Me)
+        glf_multiballs.Add name, Me
         Set Init = Me
-	End Function
+    End Function
 
     Public Sub Activate()
-        Dim evt
-        For Each evt in m_enable_events
-            AddPinEventListener evt, m_name & "_enable", "MultiballHandler", m_priority, Array("enable", Me)
-        Next
+        If UBound(m_base_device.EnableEvents.Keys()) = -1 Then
+            Enable()
+        End If
     End Sub
 
     Public Sub Deactivate()
         Disable()
-        Dim evt
-        For Each evt in m_enable_events
-            RemovePinEventListener evt, m_name & "_enable"
-        Next
     End Sub
 
     Public Sub Enable()
-        Log "Enabling"
+        m_base_device.Log "Enabling " & m_name
+        m_enabled = True
         Dim evt
-        For Each evt in m_start_events
-            AddPinEventListener evt, m_name & "_starting", "MultiballHandler", m_priority, Array("start", Me)
+        For Each evt in m_start_events.Keys
+            AddPinEventListener m_start_events(evt).EventName, m_name & "_start", "MultiballsHandler", m_priority, Array("start", Me, m_start_events(evt))
+        Next
+        For Each evt in m_reset_events
+            AddPinEventListener evt, m_name & "_reset", "MultiballsHandler", m_priority, Array("reset", Me)
+        Next
+        For Each evt in m_add_a_ball_events
+            AddPinEventListener evt, m_name & "_add_a_ball", "MultiballsHandler", m_priority, Array("add_a_ball", Me)
+        Next
+        For Each evt in m_start_or_add_a_ball_events
+            AddPinEventListener evt, m_name & "_start_or_add_a_ball", "MultiballsHandler", m_priority, Array("start_or_add_a_ball", Me)
+        Next
+        For Each evt in m_stop_events
+            AddPinEventListener evt, m_name & "_stop", "MultiballsHandler", m_priority, Array("stop", Me)
         Next
     End Sub
-
+    
     Public Sub Disable()
-        Log "Disabling"
+        m_base_device.Log "Disabling " & m_name
+        m_enabled = False
+        StopMultiball()
         Dim evt
-        For Each evt in m_start_events
-            RemovePinEventListener evt, m_name & "_starting"
+        For Each evt in m_start_events.Keys
+            RemovePinEventListener m_start_events(evt).EventName, m_name & "_start"
         Next
+        For Each evt in m_reset_events
+            RemovePinEventListener evt, m_name & "_reset"
+        Next
+        For Each evt in m_add_a_ball_events
+            RemovePinEventListener evt, m_name & "_add_a_ball"
+        Next
+        For Each evt in m_start_or_add_a_ball_events
+            RemovePinEventListener evt, m_name & "_start_or_add_a_ball"
+        Next
+        For Each evt in m_stop_events
+            RemovePinEventListener evt, m_name & "_stop"
+        Next
+        RemovePinEventListener "ball_drain", m_name & "_ball_drain"
+    End Sub
+    
+    Private Sub HandleBallsInPlayAndBallsLive()
+        'Dim balls_to_replace
+        'If m_replace_balls_in_play = True Then
+        '    balls_to_replace = glf_BIP
+        'Else
+        '    balls_to_replace = 0
+        'End If
+        'm_base_device.Log("Going to add an additional " & balls_to_replace & " balls for replace_balls_in_play")
+        m_balls_added_live = 0 
+        Dim ball_count_value : ball_count_value = m_ball_count.Value
+        If m_ball_count_type = "total" Then
+            If ball_count_value > glf_BIP Then
+                m_balls_added_live = ball_count_value - glf_BIP
+                'glf_BIP = m_ball_count
+            End If
+            m_balls_live_target = ball_count_value
+        Else
+            m_balls_added_live = ball_count_value
+            'glf_BIP = glf_BIP + m_balls_added_live
+            m_balls_live_target = glf_BIP + m_balls_added_live
+        End If
+
     End Sub
 
-    Public Sub StartMultiball()
-        glf_BIP = glf_BIP + GetPlayerState(m_multiball_locks & "_balls_locked")
-        DispatchPinEvent m_name & "_started", Null
+    Public Function BallsDrained(balls)
+        If m_shoot_again_enabled Then
+            balls = BallDrainShootAgain(balls)
+        Else
+            balls = BallDrainCountBalls(balls)
+        End If
+        BallsDrained = balls
+    End Function
+
+    Public Sub Start()
+        ' Start multiball.
+        If not m_enabled Then
+            Exit Sub
+        End If
+
+        If m_balls_live_target > 0 Then
+            m_base_device.Log("Cannot start MB because " & m_balls_live_target & " are still in play")
+            Exit Sub
+        End If
+
+        m_shoot_again_enabled = True
+
+        HandleBallsInPlayAndBallsLive()
+        m_base_device.Log("Starting multiball with " & m_balls_live_target & " balls (added " & m_balls_added_live & ")")
+
+        Dim balls_added : balls_added = 0
+
+        'eject balls from locks
+        If Not IsEmpty(m_ball_lock) Then
+            Dim available_balls : available_balls = glf_ball_devices(m_ball_lock).Balls()
+            glf_BIP = glf_BIP + available_balls
+            If available_balls > 0 Then
+                glf_ball_devices(m_ball_lock).EjectAll()
+            End If
+            balls_added = available_balls
+        End If
+
+        'request remaining balls
+        Dim remaining_balls : remaining_balls = (m_balls_added_live - balls_added)
+        'msgbox remaining_balls
+        Dim x
+        For x=1 to remaining_balls
+            SetDelay m_name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", Me),Null), 1000
+        Next
+
+        If m_shoot_again.Value = 0 Then
+            'No shoot again. Just stop multiball right away
+            StopMultiball()
+        else
+            'Enable shoot again
+            AddPinEventListener "ball_drain", m_name & "_ball_drain", "MultiballsHandler", m_priority, Array("drain", Me)
+            TimerStart()
+        End If
+
+        Dim kwargs : Set kwargs = GlfKwargs()
+        With kwargs
+            .Add "balls", m_balls_live_target
+        End With
+        DispatchPinEvent m_name & "_started", kwargs
     End Sub
 
-    Private Sub Log(message)
-        If m_debug = True Then
-            glf_debugLog.WriteToLog m_name, message
+    Sub TimerStart()
+        DispatchPinEvent "ball_save_" & m_configname & "_timer_start", Null 'desc: The multiball ball save called (name) has just start its countdown timer.
+        StartShootAgain m_shoot_again.Value, m_grace_period.Value, m_hurry_up.Value
+    End Sub
+
+    Sub StartShootAgain(shoot_again_ms, grace_period_ms, hurry_up_time_ms)
+        'Set callbacks for shoot again, grace period, and hurry up, if values above 0 are provided.
+        'This is started for both beginning multiball ball save and add a ball ball save
+        If shoot_again_ms > 0 Then
+            m_base_device.Log("Starting ball save timer: " & shoot_again_ms)
+            SetDelay m_name&"_disable_shoot_again", "MultiballsHandler" , Array(Array("stop", Me),Null), shoot_again_ms+grace_period_ms
+        End If
+        If grace_period_ms > 0 Then
+            m_grace_period_enabled = True
+            SetDelay m_name&"_grace_period", "MultiballsHandler" , Array(Array("grace_period", Me),Null), shoot_again_ms
+        End If
+        If hurry_up_time_ms > 0 Then
+            m_hurry_up_enabled = True
+            SetDelay m_name&"hurry_up", "MultiballsHandler" , Array(Array("hurry_up", Me),Null), shoot_again_ms - hurry_up_time_ms
         End If
     End Sub
+
+    Sub RunHurryUp()
+        m_base_device.Log("Starting Hurry Up")
+        m_hurry_up_enabled = False
+        DispatchPinEvent m_name & "_hurry_up", Null
+    End Sub
+
+    Sub RunGracePeriod()
+        m_base_device.Log("Starting Grace Period")
+        m_grace_period_enabled = False
+        DispatchPinEvent m_name & "_grace_period", Null
+    End Sub
+
+    Public Function BallDrainShootAgain(balls):
+        Dim balls_to_save, kwargs
+
+        balls_to_save = m_balls_live_target - glf_BIP + balls
+
+        If balls_to_save <= 0 Then
+            BallDrainShootAgain = balls
+        End If
+
+        If balls_to_save > balls Then
+            balls_to_save = balls
+        End If
+
+        Set kwargs = GlfKwargs()
+        With kwargs
+            .Add "balls", balls_to_save
+        End With
+        DispatchPinEvent m_name & "_shoot_again", kwargs
+        
+        m_base_device.log("Ball drained during MB. Requesting a new one")
+        SetDelay m_name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", Me),Null), 1000
+
+        BallDrainShootAgain = balls - balls_to_save
+    End Function
+
+    Function BallDrainCountBalls(balls):
+        DispatchPinEvent m_name & "_ball_lost", Null
+        If not glf_gameStarted or (glf_BIP - balls) < 1 Then
+            m_balls_added_live = 0
+            m_balls_live_target = 0
+            DispatchPinEvent m_name & "_ended", Null
+            RemovePinEventListener "ball_drain", m_name & "_ball_drain"
+            m_base_device.Log("Ball drained. MB ended.")
+        End If
+        BallDrainCountBalls = balls
+    End Function
+
+    Public Sub Reset()
+        m_base_device.Log "Resetting multiball: " & m_name
+        DispatchPinEvent m_name & "_reset_event", Null
+        ' Add reset logic here
+    End Sub
+
+    Public Sub AddABall()
+        m_base_device.Log "Adding a ball to multiball: " & m_name
+        DispatchPinEvent m_name & "_add_a_ball_event", Null
+        ' Add add-a-ball logic here
+    End Sub
+
+    Public Sub StartOrAddABall()
+        m_base_device.Log "Starting or adding a ball to multiball: " & m_name
+        DispatchPinEvent m_name & "_start_or_add_a_ball_event", Null
+        ' Add start-or-add-a-ball logic here
+    End Sub
+
+    Public Sub StopMultiball()
+        '"""Stop shoot again."""
+        m_base_device.Log("Stopping shoot again of multiball")
+        m_shoot_again_enabled = False
+
+        '# disable shoot again
+        RemoveDelay m_name&"_disable_shoot_again"
+
+        If m_grace_period_enabled Then
+            RemoveDelay m_name&"_grace_period"
+            RunGracePeriod()
+        End If
+        If m_hurry_up_enabled Then
+            RemoveDelay m_name&"_hurry_up"
+            RunHurryUp()
+        End If
+
+        DispatchPinEvent m_name & "_shoot_again_ended", Null
+    End Sub
+
 End Class
 
-Function MultiballHandler(args)
-    
-    Dim ownProps, kwargs : ownProps = args(0) : kwargs = args(1) 
+Function MultiballsHandler(args)
+    Dim ownProps, kwargs : ownProps = args(0)
+    If IsObject(args(1)) Then
+        Set kwargs = args(1)
+    Else
+        kwargs = args(1) 
+    End If
     Dim evt : evt = ownProps(0)
     Dim multiball : Set multiball = ownProps(1)
+    'Check if the evt has a condition to evaluate    
+    If UBound(ownProps) = 2 Then
+        If IsObject(ownProps(2)) Then
+            If ownProps(2).Evaluate() = False Then
+                If IsObject(args(1)) Then
+                    Set MultiballsHandler = kwargs
+                Else
+                    MultiballsHandler = kwargs
+                End If
+                Exit Function
+            End If
+        End If
+    End If
     Select Case evt
-        Case "activate"
-            multiball.Activate
-        Case "deactivate"
-            multiball.Deactivate
-        Case "enable"
-            multiball.Enable
-        Case "disable"
-            multiball.Disable
         Case "start"
-            multiball.StartMultiball
+            multiball.Start
+        Case "reset"
+            'multiball.Reset
+        Case "add_a_ball"
+            'multiball.AddABall
+        Case "start_or_add_a_ball"
+            'multiball.StartOrAddABall
+        Case "stop"
+            multiball.StopMultiball
+        Case "grace_period"
+            multiball.RunGracePeriod
+        Case "hurry_up_time"
+            multiball.RunHurryUp
+        Case "drain"
+            kwargs = multiball.BallsDrained(kwargs)
+        Case "queue_release"
+            If glf_plunger.HasBall = False And ballInReleasePostion = True Then
+                Glf_ReleaseBall(Null)
+                SetDelay multiball.Name&"_auto_launch", "MultiballsHandler" , Array(Array("auto_launch", multiball),Null), 500
+            Else
+                SetDelay multiball.Name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", multiball), Null), 1000
+            End If
+        Case "auto_launch"
+            If glf_plunger.HasBall = True Then
+                glf_plunger.Eject
+            Else
+                SetDelay multiball.Name&"_auto_launch", "MultiballsHandler" , Array(Array("auto_launch", multiball), Null), 500
+            End If
     End Select
-    MultiballHandler = kwargs
+
+    If IsObject(args(1)) Then
+        Set MultiballsHandler = kwargs
+    Else
+        MultiballsHandler = kwargs
+    End If
 End Function
+
 
 Class GlfSegmentDisplayPlayer
 
@@ -3778,6 +3881,322 @@ Function SegmentPlayerCallbackHandler(evt, segment_item, mode, priority)
         End If
     End If
 
+End Function
+
+Class GlfSequenceShots
+
+    Private m_name
+    Private m_command_name
+    Private m_lock_device
+    Private m_priority
+    Private m_mode
+    Private m_base_device
+
+    Private m_cancel_events
+    Private m_cancel_switches
+    Private m_delay_event_list
+    Private m_delay_switch_list
+    Private m_event_sequence
+    Private m_sequence_timeout
+    Private m_switch_sequence
+    Private m_start_event
+    Private m_sequence_count
+    Private m_active_delays
+    Private m_active_sequences
+    Private m_sequence_events
+
+    Public Property Get Name(): Name = m_name: End Property
+    Public Property Get GetValue(value)
+        Select Case value
+            'Case "":
+            '    GetValue = 
+        End Select
+    End Property
+
+    Public Property Let CancelEvents(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_cancel_events.Add newEvent.Name, newEvent
+        Next
+    End Property
+    Public Property Let CancelSwitches(value): m_cancel_switches = value: End Property
+    Public Property Let DelayEventList(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_delay_event_list.Add newEvent.Name, newEvent
+        Next
+    End Property
+    Public Property Let DelaySwitchList(value): m_delay_switch_list = value: End Property
+    Public Property Let EventSequence(value)
+        m_event_sequence = value
+        If m_sequence_count = 0 Then
+            m_sequence_events = value
+        Else
+            Redim Preserve m_sequence_events(m_sequence_count+UBound(value))
+            For i = 0 To UBound(value)
+                m_sequence_events(m_sequence_count + i) = value(i)
+            Next
+        End If
+        m_start_event = value(0)
+        m_sequence_count = m_sequence_count + (UBound(m_sequence_events)+1)
+    End Property
+    Public Property Let SequenceTimeout(value): Set m_sequence_timeout = CreateGlfInput(value): End Property
+    Public Property Let SwitchSequence(value)
+        m_switch_sequence = value
+        If m_sequence_count = 0 Then
+            m_start_event = value(0) & "_active"
+        End If
+        Redim Preserve m_sequence_events(m_sequence_count+UBound(value))
+        For i = 0 To UBound(value)
+            m_sequence_events(m_sequence_count + i) = value(i) & "_active"
+        Next
+        m_sequence_count = m_sequence_count + (UBound(m_sequence_events)+1)
+    End Property
+
+	Public default Function init(name, mode)
+        m_name = "sequence_shot_" & name
+        m_command_name = name
+        m_mode = mode.Name
+        m_priority = mode.Priority
+        
+        Set m_cancel_events = CreateObject("Scripting.Dictionary")
+        Set m_delay_event_list = CreateObject("Scripting.Dictionary")
+        Set m_active_sequences = CreateObject("Scripting.Dictionary")
+        Set m_active_delays = CreateObject("Scripting.Dictionary")
+        
+        m_sequence_events = Array()
+        m_cancel_switches = Array()
+        
+        m_event_sequence = Array()
+        m_switch_sequence = Array()
+        Set m_sequence_timeout = CreateGlfInput(0)
+        m_sequence_count = 0
+        m_start_event = Empty
+
+        Set m_base_device = (new GlfBaseModeDevice)(mode, "sequence_shot_", Me)
+        
+        Set Init = Me
+	End Function
+
+    Public Sub Activate()
+        Enable()
+    End Sub
+
+    Public Sub Deactivate()
+        Disable()
+    End Sub
+
+    Public Sub Enable()
+        m_base_device.Log "Enabling"
+        Dim evt
+        For Each evt in m_event_sequence
+            AddPinEventListener evt, m_name & "_" & evt & "_advance", "SequenceShotsHandler", m_priority, Array("advance", Me, evt)
+        Next
+        For Each evt in m_switch_sequence
+            AddPinEventListener evt & "_active", m_name & "_" & evt & "_advance", "SequenceShotsHandler", m_priority, Array("advance", Me, evt & "_active")
+        Next
+        For Each evt in m_cancel_events.Keys
+            AddPinEventListener m_cancel_events(evt).EventName, m_name & "_" & evt & "_cancel", "SequenceShotsHandler", m_priority, Array("cancel_event", Me, m_cancel_events(evt))
+        Next
+        For Each evt in m_delay_event_list.Keys
+            AddPinEventListener m_delay_event_list(evt).EventName, m_name & "_" & evt & "_delay", "SequenceShotsHandler", m_priority, Array("delay_event", Me, m_delay_event_list(evt))
+        Next
+    End Sub
+
+    Public Sub Disable()
+        m_base_device.Log "Disabling"
+        Dim evt
+        For Each evt in m_event_sequence
+            RemovePinEventListener evt, m_name & "_" & evt & "_advance"
+        Next
+        For Each evt in m_switch_sequence
+            RemovePinEventListener evt & "_active", m_name & "_" & evt & "_advance"
+        Next
+        For Each evt in m_cancel_events.Keys
+            RemovePinEventListener m_cancel_events(evt).EventName, m_name & "_" & evt & "_cancel"
+        Next
+        For Each evt in  m_delay_event_list.Keys
+            RemovePinEventListener m_delay_event_list(evt).EventName, m_name & "_" & evt & "_delay"
+        Next
+    End Sub
+
+    Sub SequenceAdvance(event_name)
+        ' Since we can track multiple simultaneous sequences (e.g. two balls
+        ' going into an orbit in a row), we first have to see whether this
+        ' switch is starting a new sequence or continuing an existing one
+
+        m_base_device.Log "Sequence advance: " & event_name
+
+        If event_name = m_start_event Then
+            If m_sequence_count > 1 Then
+                ' start a new sequence
+                StartNewSequence()
+            ElseIf UBound(m_active_delays.Keys) = -1 Then
+                ' if it only has one step it will finish right away
+                Completed()
+            End If
+        Else
+            ' Get the seq_id of the first sequence this switch is next for.
+            ' This is not a loop because we only want to advance 1 sequence
+            Dim k, seq
+            seq = Null
+            For Each k In m_active_sequences.Keys
+                m_base_device.Log m_active_sequences(k).NextEvent
+                If m_active_sequences(k).NextEvent = event_name Then
+                    Set seq = m_active_sequences(k)
+                    Exit For
+                End If
+            Next
+
+            If Not IsNull(seq) Then
+                ' advance this sequence
+                AdvanceSequence(seq)
+            End If
+        End If
+    End Sub
+
+    Public Sub StartNewSequence()
+        ' If the sequence hasn't started, make sure we're not within the
+        ' delay_switch hit window
+
+        If UBound(m_active_delays.Keys)>-1 Then
+            m_base_device.Log "There's a delay timer in effect. Sequence will not be started."
+            Exit Sub
+        End If
+
+        'record start time
+        m_start_time = gametime
+
+        ' create a new sequence
+        Dim seq_id : seq_id = "seq_" & glf_SeqCount
+        glf_SeqCount = glf_SeqCount + 1
+
+        Dim next_event : next_event = m_sequence_events(1)
+
+        m_base_device.Log "Setting up a new sequence. Next: " & next_event
+
+        m_active_sequences.Add seq_id, (new GlfActiveSequence)(seq_id, 0, next_event)
+
+        ' if this sequence has a time limit, set that up
+        If m_sequence_timeout.Value > 0 Then
+            m_base_device.Log "Setting up a sequence timer for " & m_sequence_timeout.Value
+            SetDelay seq_id, "SequenceShotsHandler" , Array(Array("seq_timeout", Me, seq_id),Null), m_sequence_timeout.Value
+        End If
+    End Sub
+
+    Public Sub AdvanceSequence(sequence)
+        ' Remove this sequence from the list
+        If sequence.CurrentPositionIndex = (m_sequence_count - 2) Then  ' complete
+            m_base_device.Log "Sequence complete!"
+            RemoveDelay sequence.SeqId
+            m_active_sequences.Remove sequence.SeqId
+            Completed()
+        Else
+            Dim current_position_index : current_position_index = sequence.CurrentPositionIndex + 1
+            Dim next_event : next_event = m_sequence_events(current_position_index + 1)
+            m_base_device.Log "Advancing the sequence. Next: " & next_event
+            sequence.CurrentPositionIndex = current_position_index
+            sequence.NextEvent = next_event
+        End If
+    End Sub
+
+    Public Sub Completed()
+        'measure the elapsed time between start and completion of the sequence
+        If m_start_time > 0 Then
+            elapsed = gametime - m_start_time
+        Else
+            elapsed = 0
+        End If
+
+        'Post sequence complete event including its elapsed time to complete.
+        Dim kwargs : Set kwargs = GlfKwargs()
+        With kwargs
+            .Add "elapsed", elapsed
+        End With
+        DispatchPinEvent m_command_name & "_hit", kwargs
+    End Sub
+
+    Public Sub ResetAllSequences()
+        'Reset all sequences."""
+        Dim k
+        For Each k in m_active_sequences.Keys
+            RemoveDelay m_active_sequences(k).SeqId
+        Next
+
+        m_active_sequences.RemoveAll()
+    End Sub
+
+    Public Sub DelayEvent(delay, name)
+        m_base_device.Log "Delaying sequence by " & delay
+        SetDelay name & "_delay_timer", "SequenceShotsHandler" , Array(Array("release_delay", Me, name),Null), delay
+        m_active_delays.Add name, True
+    End Sub
+
+    Public Sub ReleaseDelay(name)
+        m_active_delays.Remove name
+    End Sub
+
+End Class
+
+Class GlfActiveSequence
+
+    Private m_next_event, m_seq_id, m_idx
+
+    Public Property Get SeqId(): SeqId = m_seq_id: End Property
+    Public Property Get NextEvent(): NextEvent = m_next_event: End Property
+    Public Property Let NextEvent(value): m_next_event = value: End Property
+    Public Property Get CurrentPositionIndex(): CurrentPositionIndex = m_idx: End Property
+    Public Property Let CurrentPositionIndex(value): m_idx = value: End Property
+
+    Public default Function init(seq_id, idx, next_event)
+        m_seq_id = seq_id
+        m_idx = idx
+        m_next_event = next_event
+        Set Init = Me
+    End Function
+
+End Class
+
+Function SequenceShotsHandler(args)
+    Dim ownProps, kwargs : ownProps = args(0)
+    If IsObject(args(1)) Then
+        Set kwargs = args(1)
+    Else
+        kwargs = args(1) 
+    End If
+    Dim evt : evt = ownProps(0)
+    Dim sequence_shot : Set sequence_shot = ownProps(1)
+    Select Case evt
+        Case "advance"
+            sequence_shot.SequenceAdvance ownProps(2)
+        Case "cancel"
+            Set glfEvent = ownProps(2)
+            If Not IsNull(glfEvent.Condition) Then
+                If GetRef(glfEvent.Condition)() = False Then
+                    Exit Function
+                End If
+            End If
+            sequence_shot.ResetAllSequences
+        Case "delay"
+            Set glfEvent = ownProps(2)
+            If Not IsNull(glfEvent.Condition) Then
+                If GetRef(glfEvent.Condition)() = False Then
+                    Exit Function
+                End If
+            End If
+            sequence_shot.DelayEvent glfEvent.Delay, glfEvent.EventName
+        Case "seq_timeout"
+            sequence_shot.SequenceTimeout ownProps(2)
+        Case "release_delay"
+            sequence_shot.ReleaseDelay ownProps(2)
+    End Select
+    If IsObject(args(1)) Then
+        Set SequenceShotsHandler = kwargs
+    Else
+        SequenceShotsHandler = kwargs
+    End If
 End Function
 Class GlfShotGroup
     Private m_name
@@ -4432,7 +4851,7 @@ Class GlfShot
 	End Function
 
     Public Sub Activate()
-        If IsNull(GetPlayerState(m_player_var_name)) Then
+        If GetPlayerState(m_player_var_name) = False Then
             m_state = 0
             If m_persist Then
                 SetPlayerState m_player_var_name, 0
@@ -4944,7 +5363,12 @@ Class GlfShowPlayerItem
             Set Show = m_show
         End If
     End Property
-	Public Property Let Show(input): Set m_show = input: End Property
+	Public Property Let Show(input)
+        'msgbox "input:" & input
+        If glf_shows.Exists(input) Then
+            Set m_show = glf_shows(input)
+        End If
+    End Property
   
 	Public Property Get Loops(): Loops = m_loops: End Property
 	Public Property Let Loops(input): m_loops = input: End Property
@@ -5896,7 +6320,7 @@ Class GlfVariablePlayerEvent
 End Class
 
 Class GlfVariablePlayerItem
-	Private m_block, m_show, m_flaot, m_int, m_string, m_player, m_action, m_type
+	Private m_block, m_show, m_float, m_int, m_string, m_player, m_action, m_type
   
 	Public Property Get Action(): Action = m_action: End Property
     Public Property Let Action(input): m_action = input: End Property
@@ -6080,6 +6504,7 @@ Class GlfBallDevice
     Private m_mechanical_eject
     Private m_eject_targets
     Private m_entrance_count_delay
+    Private m_incoming_balls
     Private m_debug
 
     Public Property Get Name(): Name = m_name : End Property
@@ -6100,6 +6525,8 @@ Class GlfBallDevice
     End Property
     
     Public Property Get Balls(): Balls = m_balls_in_device : End Property
+
+    Public Property Let AddIncomingBalls(value) : m_incoming_balls = m_incoming_balls + value : End Property
 
     Public Property Let EjectCallback(value) : m_eject_callback = value : End Property
     Public Property Let EjectEnableTime(value) : m_eject_enable_time = value : End Property
@@ -6156,6 +6583,7 @@ Class GlfBallDevice
         m_eject_timeout = 1000
         m_eject_enable_time = 0
         m_entrance_count_delay = 500
+        m_incoming_balls = 0
         glf_ball_devices.Add name, Me
 	    Set Init = Me
 	End Function
@@ -6170,10 +6598,17 @@ Class GlfBallDevice
         Set m_balls(switch) = ball
         m_balls_in_device = m_balls_in_device + 1
         Log "Ball Entered" 
-        Dim unclaimed_balls
-        unclaimed_balls = DispatchRelayPinEvent(m_name & "_ball_enter", 1)
+        Dim unclaimed_balls: unclaimed_balls = 1
+
+        If m_incoming_balls > 0 Then
+            unclaimed_balls = 0
+        End If
+        If unclaimed_balls > 0 Then
+            unclaimed_balls = DispatchRelayPinEvent(m_name & "_ball_enter", 1)
+        End If        
         Log "Unclaimed Balls: " & unclaimed_balls
-        If (m_default_device = False Or m_ejecting = True) And unclaimed_balls > 0 And Not IsNull(m_balls(0)) Then
+        DispatchPinEvent m_name & "_ball_entered", Null
+        If unclaimed_balls > 0 Then
             SetDelay m_name & "_eject_attempt", "BallDeviceEventHandler", Array(Array("ball_eject", Me), ball), 500
         End If
     End Sub
@@ -6192,6 +6627,9 @@ Class GlfBallDevice
     Public Sub BallExitSuccess(ball)
         m_ejecting = False
         RemoveDelay m_name & "_eject_timeout"
+        If m_incoming_balls > 0 Then
+            m_incoming_balls = m_incoming_balls - 1
+        End If
         DispatchPinEvent m_name & "_ball_eject_success", Null
         Log "Ball successfully exited"
         If m_ejecting_all = True Then
@@ -6211,13 +6649,17 @@ Class GlfBallDevice
     Public Sub Eject
         
         If Not IsNull(m_eject_callback) Then
-            Log "Ejecting."
-            SetDelay m_name & "_eject_timeout", "BallDeviceEventHandler", Array(Array("eject_timeout", Me), m_balls(0)), m_eject_timeout
-            m_ejecting = True
-        
-            GetRef(m_eject_callback)(m_balls(0))
-            If m_eject_enable_time > 0 Then
-                SetDelay m_name & "_eject_enable_time", "BallDeviceEventHandler", Array(Array("eject_enable_complete", Me), m_balls(0)), m_eject_enable_time
+            If Not IsNull(m_balls(0)) Then
+                Log "Ejecting."
+                SetDelay m_name & "_eject_timeout", "BallDeviceEventHandler", Array(Array("eject_timeout", Me), m_balls(0)), m_eject_timeout
+                m_ejecting = True
+            
+                GetRef(m_eject_callback)(m_balls(0))
+                If m_eject_enable_time > 0 Then
+                    SetDelay m_name & "_eject_enable_time", "BallDeviceEventHandler", Array(Array("eject_enable_complete", Me), m_balls(0)), m_eject_enable_time
+                End If
+            Else
+                SetDelay m_name & "_eject_attempt", "BallDeviceEventHandler", Array(Array("ball_eject", Me), Null), 600
             End If
         End If
     End Sub
@@ -6409,7 +6851,12 @@ Class GlfDiverter
 End Class
 
 Function DiverterEventHandler(args)
-    Dim ownProps, kwargs : ownProps = args(0) : kwargs = args(1) 
+    Dim ownProps, kwargs : ownProps = args(0)
+    If IsObject(args(1)) Then
+        Set kwargs = args(1)
+    Else
+        kwargs = args(1) 
+    End If
     Dim evt : evt = ownProps(0)
     Dim diverter : Set diverter = ownProps(1)
     Select Case evt
@@ -6422,7 +6869,11 @@ Function DiverterEventHandler(args)
         Case "deactivate"
             diverter.Deactivate
     End Select
-    DiverterEventHandler = kwargs
+    If IsObject(args(1)) Then
+        Set DiverterEventHandler = kwargs
+    Else
+        DiverterEventHandler = kwargs
+    End If
 End Function
 Function CreateGlfDroptarget(name)
 	Dim droptarget : Set droptarget = (new GlfDroptarget)(name)
@@ -7375,12 +7826,21 @@ Function MagnetEventHandler(args)
 End Function
 
 Class GlfEvent
-	Private m_raw, m_name, m_event, m_condition
+	Private m_raw, m_name, m_event, m_condition, m_delay
   
     Public Property Get Name() : Name = m_name : End Property
     Public Property Get EventName() : EventName = m_event : End Property
     Public Property Get Condition() : Condition = m_condition : End Property
+    Public Property Get Delay() : Delay = m_delay : End Property
     Public Property Get Raw() : Raw = m_raw : End Property
+
+    Public Function Evaluate()
+        If Not IsNull(m_condition) Then
+            Evaluate = GetRef(m_condition)()
+        Else
+            Evaluate = True
+        End If
+    End Function
 
 	Public default Function init(evt)
         m_raw = evt
@@ -7388,6 +7848,7 @@ Class GlfEvent
         m_name = parsedEvent(0)
         m_event = parsedEvent(1)
         m_condition = parsedEvent(2)
+        m_delay = parsedEvent(3)
 	    Set Init = Me
 	End Function
 
@@ -7482,6 +7943,7 @@ Function Glf_ReleaseBall(args)
         End If
     End If
     glf_debugLog.WriteToLog "Release Ball", "swTrough1: " & swTrough1.BallCntOver
+    glf_plunger.AddIncomingBalls = 1
     swTrough1.kick 90, 10
     DispatchPinEvent "trough_eject", Null
     glf_debugLog.WriteToLog "Release Ball", "Just Kicked"
@@ -7839,7 +8301,7 @@ Function GetPlayerState(key)
     If glf_playerState(glf_currentPlayer).Exists(key)  Then
         GetPlayerState = glf_playerState(glf_currentPlayer)(key)
     Else
-        GetPlayerState = Null
+        GetPlayerState = False
     End If
 End Function
 

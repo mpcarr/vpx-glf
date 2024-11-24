@@ -88,6 +88,7 @@ Function Glf_ReleaseBall(args)
         End If
     End If
     glf_debugLog.WriteToLog "Release Ball", "swTrough1: " & swTrough1.BallCntOver
+    glf_plunger.AddIncomingBalls = 1
     swTrough1.kick 90, 10
     DispatchPinEvent "trough_eject", Null
     glf_debugLog.WriteToLog "Release Ball", "Just Kicked"

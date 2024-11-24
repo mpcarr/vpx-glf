@@ -6,7 +6,7 @@ Function GetPlayerState(key)
     If glf_playerState(glf_currentPlayer).Exists(key)  Then
         GetPlayerState = glf_playerState(glf_currentPlayer)(key)
     Else
-        GetPlayerState = Null
+        GetPlayerState = False
     End If
 End Function
 

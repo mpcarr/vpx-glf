@@ -21,6 +21,7 @@ Class GlfBallDevice
     Private m_mechanical_eject
     Private m_eject_targets
     Private m_entrance_count_delay
+    Private m_incoming_balls
     Private m_debug
 
     Public Property Get Name(): Name = m_name : End Property
@@ -41,6 +42,8 @@ Class GlfBallDevice
     End Property
     
     Public Property Get Balls(): Balls = m_balls_in_device : End Property
+
+    Public Property Let AddIncomingBalls(value) : m_incoming_balls = m_incoming_balls + value : End Property
 
     Public Property Let EjectCallback(value) : m_eject_callback = value : End Property
     Public Property Let EjectEnableTime(value) : m_eject_enable_time = value : End Property
@@ -97,6 +100,7 @@ Class GlfBallDevice
         m_eject_timeout = 1000
         m_eject_enable_time = 0
         m_entrance_count_delay = 500
+        m_incoming_balls = 0
         glf_ball_devices.Add name, Me
 	    Set Init = Me
 	End Function
@@ -111,10 +115,17 @@ Class GlfBallDevice
         Set m_balls(switch) = ball
         m_balls_in_device = m_balls_in_device + 1
         Log "Ball Entered" 
-        Dim unclaimed_balls
-        unclaimed_balls = DispatchRelayPinEvent(m_name & "_ball_enter", 1)
+        Dim unclaimed_balls: unclaimed_balls = 1
+
+        If m_incoming_balls > 0 Then
+            unclaimed_balls = 0
+        End If
+        If unclaimed_balls > 0 Then
+            unclaimed_balls = DispatchRelayPinEvent(m_name & "_ball_enter", 1)
+        End If        
         Log "Unclaimed Balls: " & unclaimed_balls
-        If (m_default_device = False Or m_ejecting = True) And unclaimed_balls > 0 And Not IsNull(m_balls(0)) Then
+        DispatchPinEvent m_name & "_ball_entered", Null
+        If unclaimed_balls > 0 Then
             SetDelay m_name & "_eject_attempt", "BallDeviceEventHandler", Array(Array("ball_eject", Me), ball), 500
         End If
     End Sub
@@ -133,6 +144,9 @@ Class GlfBallDevice
     Public Sub BallExitSuccess(ball)
         m_ejecting = False
         RemoveDelay m_name & "_eject_timeout"
+        If m_incoming_balls > 0 Then
+            m_incoming_balls = m_incoming_balls - 1
+        End If
         DispatchPinEvent m_name & "_ball_eject_success", Null
         Log "Ball successfully exited"
         If m_ejecting_all = True Then
@@ -152,13 +166,17 @@ Class GlfBallDevice
     Public Sub Eject
         
         If Not IsNull(m_eject_callback) Then
-            Log "Ejecting."
-            SetDelay m_name & "_eject_timeout", "BallDeviceEventHandler", Array(Array("eject_timeout", Me), m_balls(0)), m_eject_timeout
-            m_ejecting = True
-        
-            GetRef(m_eject_callback)(m_balls(0))
-            If m_eject_enable_time > 0 Then
-                SetDelay m_name & "_eject_enable_time", "BallDeviceEventHandler", Array(Array("eject_enable_complete", Me), m_balls(0)), m_eject_enable_time
+            If Not IsNull(m_balls(0)) Then
+                Log "Ejecting."
+                SetDelay m_name & "_eject_timeout", "BallDeviceEventHandler", Array(Array("eject_timeout", Me), m_balls(0)), m_eject_timeout
+                m_ejecting = True
+            
+                GetRef(m_eject_callback)(m_balls(0))
+                If m_eject_enable_time > 0 Then
+                    SetDelay m_name & "_eject_enable_time", "BallDeviceEventHandler", Array(Array("eject_enable_complete", Me), m_balls(0)), m_eject_enable_time
+                End If
+            Else
+                SetDelay m_name & "_eject_attempt", "BallDeviceEventHandler", Array(Array("ball_eject", Me), Null), 600
             End If
         End If
     End Sub

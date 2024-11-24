@@ -11,12 +11,17 @@ Class GlfMultiballLocks
     Private m_balls_to_lock
     Private m_balls_locked
     Private m_balls_to_replace
-    Private m_balls_replaced
     Private m_lock_events
     Private m_reset_events
     Private m_debug
 
     Public Property Get Name(): Name = m_name: End Property
+    Public Property Get GetValue(value)
+        Select Case value
+            Case "locked_balls":
+                GetValue = m_balls_locked
+        End Select
+    End Property
     Public Property Get LockDevice() : LockDevice = m_lock_device : End Property
     Public Property Let LockDevice(value) : m_lock_device = value : End Property
     Public Property Let EnableEvents(value) : m_base_device.EnableEvents = value : End Property
@@ -30,13 +35,15 @@ Class GlfMultiballLocks
 	Public default Function init(name, mode)
         m_name = "multiball_locks_" & name
         m_mode = mode.Name
+        m_priority = mode.Priority
         m_lock_events = Array()
         m_reset_events = Array()
         m_lock_device = Array()
         m_balls_to_lock = 0
         m_balls_to_replace = -1
-        m_balls_replaced = 0
+        m_balls_locked = 0
         Set m_base_device = (new GlfBaseModeDevice)(mode, "multiball_locks", Me)
+        glf_multiball_locks.Add name, Me
         Set Init = Me
 	End Function
 
@@ -82,7 +89,7 @@ Class GlfMultiballLocks
         End If
         
         Dim balls_locked
-        If IsNull(GetPlayerState(m_name & "_balls_locked")) Then
+        If GetPlayerState(m_name & "_balls_locked") = False Then
             balls_locked = 1
         Else
             balls_locked = GetPlayerState(m_name & "_balls_locked") + 1
@@ -94,16 +101,22 @@ Class GlfMultiballLocks
         End If
 
         SetPlayerState m_name & "_balls_locked", balls_locked
-        DispatchPinEvent m_name & "_locked_ball", balls_locked
+        
 
         If Not IsNull(device) Then
-            If m_balls_to_replace = -1 Or m_balls_to_replace < m_balls_replaced Then
-                glf_BIP = glf_BIP - 1
-                m_balls_replaced = m_balls_replaced + 1
-                SetDelay m_name & "_queued_release", "MultiballLocksHandler" , Array(Array("queue_release", Me),Null), 1000
+            
+            If glf_ball_devices(device).Balls() > balls_locked Then
+                glf_ball_devices(device).Eject()
+            Else
+                If m_balls_to_replace = -1 Or balls_locked <= m_balls_to_replace Then
+                    glf_BIP = glf_BIP - 1
+                    SetDelay m_name & "_queued_release", "MultiballLocksHandler" , Array(Array("queue_release", Me),Null), 1000
+                End If
             End If
         End If
 
+        DispatchPinEvent m_name & "_locked_ball", balls_locked
+        
         If balls_locked = m_balls_to_lock Then
             DispatchPinEvent m_name & "_full", balls_locked
         End If
@@ -113,7 +126,6 @@ Class GlfMultiballLocks
 
     Public Sub Reset
         SetPlayerState m_name & "_balls_locked", 0
-        m_balls_replaced = 0
     End Sub
 
 End Class

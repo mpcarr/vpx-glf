@@ -24,25 +24,27 @@ Class GlfEventPlayer
     Public Sub Add(key, value)
         Dim newEvent : Set newEvent = (new GlfEvent)(key)
         m_events.Add newEvent.Name, newEvent
-        m_eventValues.Add newEvent.Name, value
+        'msgbox newEvent.Name
+        m_eventValues.Add newEvent.Name, value  
     End Sub
 
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener m_events(evt).EventName, m_mode & "_event_player_play", "EventPlayerEventHandler", m_priority, Array("play", Me, evt)
+            AddPinEventListener m_events(evt).EventName, m_mode & "_" & m_events(evt).Name & "_event_player_play", "EventPlayerEventHandler", m_priority, Array("play", Me, evt)
         Next
     End Sub
 
     Public Sub Deactivate()
         Dim evt
         For Each evt In m_events.Keys()
-            RemovePinEventListener m_events(evt).EventName, m_mode & "_event_player_play"
+            RemovePinEventListener m_events(evt).EventName, m_mode & "_" & m_events(evt).Name & "_event_player_play"
         Next
     End Sub
 
     Public Sub FireEvent(evt)
         If Not IsNull(m_events(evt).Condition) Then
+            'msgbox m_events(evt).Condition
             If GetRef(m_events(evt).Condition)() = False Then
                 Exit Sub
             End If

@@ -22,6 +22,7 @@ Class Mode
     Private m_variableplayer
     Private m_eventplayer
     Private m_shot_profiles
+    Private m_sequence_shots
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get Priority(): Priority = m_priority: End Property
@@ -108,6 +109,16 @@ Class Mode
         End If
     End Property
 
+    Public Property Get SequenceShots(name)
+        If m_sequence_shots.Exists(name) Then
+            Set SequenceShots = m_sequence_shots(name)
+        Else
+            Dim new_sequence_shot : Set new_sequence_shot = (new GlfSequenceShots)(name, Me)
+            m_sequence_shots.Add name, new_sequence_shot
+            Set SequenceShots = new_sequence_shot
+        End If
+    End Property
+
     Public Property Get ModeShots(): ModeShots = m_shots.Items(): End Property
     Public Property Get Shots(name)
         If m_shots.Exists(name) Then
@@ -175,6 +186,7 @@ Class Mode
         Set m_shot_groups = CreateObject("Scripting.Dictionary")
         Set m_ballholds = CreateObject("Scripting.Dictionary")
         Set m_shot_profiles = CreateObject("Scripting.Dictionary")
+        Set m_sequence_shots = CreateObject("Scripting.Dictionary")
         m_lightplayer = Null
         m_showplayer = Null
         m_segment_display_player = Null

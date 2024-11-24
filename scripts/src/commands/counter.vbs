@@ -61,10 +61,10 @@ Class GlfCounter
 
     Public Sub Activate()
         If m_persist_state And m_count > -1 Then
-            If Not IsNull(GetPlayerState(m_name & "_state")) Then
-                SetValue GetPlayerState(m_name & "_state")
-            Else
+            If GetPlayerState(m_name & "_state")=False Then
                 SetValue 0
+            Else
+                SetValue GetPlayerState(m_name & "_state")
             End If
         Else
             SetValue 0
