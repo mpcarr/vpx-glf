@@ -93,7 +93,7 @@ Class GlfShot
         Set m_base_device = (new GlfBaseModeDevice)(mode, "shot", Me)
 
         m_profile = "default"
-        m_player_var_name = "player_shot_" & m_name
+        m_player_var_name = "shot_" & m_name
         m_state = -1
         m_switches = Array()
         m_start_enabled = Empty

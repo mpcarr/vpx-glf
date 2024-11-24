@@ -700,6 +700,38 @@ Function Glf_FormatValue(value, formatString)
     Glf_FormatValue = result
 End Function
 
+Function glf_ReadShowYAMLFiles()
+    Dim fso, folder, file, yamlFiles, fileContent
+    Set fso = CreateObject("Scripting.FileSystemObject")
+    
+    ' Check if the directory exists
+    If Not fso.FolderExists(directoryPath) Then
+        WScript.Echo "Directory does not exist: " & directoryPath
+        Exit Function
+    End If
+    
+    ' Initialize the array to store file contents
+    Dim yamlFiles()
+    ReDim yamlFiles(-1)
+    
+    ' Get the folder object
+    Set folder = fso.GetFolder(directoryPath)
+    
+    ' Iterate through the files in the directory
+    For Each file In folder.Files
+        ' Check if the file has a .yaml extension
+        If LCase(fso.GetExtensionName(file.Name)) = "yaml" Then
+            ' Read the file content
+            Set fileContent = fso.OpenTextFile(file.Path, 1) ' 1 = ForReading
+            ReDim Preserve yamlFiles(UBound(yamlFiles) + 1)
+            yamlFiles(UBound(yamlFiles)) = fileContent.ReadAll
+            fileContent.Close
+        End If
+    Next
+    
+    ' Return the array of YAML file contents
+    ReadYAMLFiles = yamlFiles
+End Function
 
 Sub glf_ConvertYamlShowToGlfShow(yamlFilePath)
     Dim fso, file, content, lines, line, output, i, stepLights
@@ -4835,7 +4867,7 @@ Class GlfShot
         Set m_base_device = (new GlfBaseModeDevice)(mode, "shot", Me)
 
         m_profile = "default"
-        m_player_var_name = "player_shot_" & m_name
+        m_player_var_name = "shot_" & m_name
         m_state = -1
         m_switches = Array()
         m_start_enabled = Empty
