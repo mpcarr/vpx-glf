@@ -125,12 +125,20 @@ Class GlfLightSegmentDisplay
                 Glf_SetLight m_light_group & CStr(segment_idx + 12), SegmentColor(segment.m)
                 Glf_SetLight m_light_group & CStr(segment_idx + 13), SegmentColor(segment.l)
                 Glf_SetLight m_light_group & CStr(segment_idx + 14), SegmentColor(segment.dp)
-
+                segment_idx = segment_idx + 15
             ElseIf m_segment_type = "7Segment" Then
-                
+                Glf_SetLight m_light_group & CStr(segment_idx), SegmentColor(segment.a)
+                Glf_SetLight m_light_group & CStr(segment_idx + 1), SegmentColor(segment.b)
+                Glf_SetLight m_light_group & CStr(segment_idx + 2), SegmentColor(segment.c)
+                Glf_SetLight m_light_group & CStr(segment_idx + 3), SegmentColor(segment.d)
+                Glf_SetLight m_light_group & CStr(segment_idx + 4), SegmentColor(segment.e)
+                Glf_SetLight m_light_group & CStr(segment_idx + 5), SegmentColor(segment.f)
+                Glf_SetLight m_light_group & CStr(segment_idx + 6), SegmentColor(segment.g)
+                Glf_SetLight m_light_group & CStr(segment_idx + 7), SegmentColor(segment.dp)
+                segment_idx = segment_idx + 8
             End If
             
-            segment_idx = segment_idx + 15
+            
         Next
         'for char, lights_for_char in zip(mapped_text, self._lights):
         '    for name, light in lights_for_char.items():
@@ -419,7 +427,7 @@ Function MapSegmentTextToSegments(text, display_width, segment_mapping)
     Dim segments()
 	ReDim segments(Len(text)-1)
 
-	Dim charCode, i
+    Dim charCode, char, mapping, i
     For i = 1 To Len(text)
         char = Mid(text, i, 1)
         charCode = Asc(char)

@@ -2,29 +2,50 @@
 
 Dim glf_lastPinEvent : glf_lastPinEvent = Null
 
+Dim glf_dispatch_parent : glf_dispatch_parent = 0
+Dim glf_dispatch_q : Set glf_dispatch_q = CreateObject("Scripting.Dictionary")
+
 Sub DispatchPinEvent(e, kwargs)
-    If Not glf_pinEvents.Exists(e) Then
-        glf_debugLog.WriteToLog "DispatchPinEvent", e & " has no listeners"
-        Exit Sub
-    End If
-    If Not Glf_EventBlocks.Exists(e) Then
-        Glf_EventBlocks.Add e, CreateObject("Scripting.Dictionary")
-    End If
-    glf_lastPinEvent = e
-    Dim k
-    Dim handlers : Set handlers = glf_pinEvents(e)
-    glf_debugLog.WriteToLog "DispatchPinEvent", e
-    Dim handler
-    For Each k In glf_pinEventsOrder(e)
-        glf_debugLog.WriteToLog "DispatchPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
-        If handlers.Exists(k(1)) Then
-            handler = handlers(k(1))
-            GetRef(handler(0))(Array(handler(2), kwargs, e))
-        Else
-            glf_debugLog.WriteToLog "DispatchPinEvent_"&e, "Handler does not exist: " & k(1)
+    If glf_dispatch_parent > 0 Then
+        'There's already a dispatch running.
+        glf_dispatch_q.Add e, kwargs
+    Else
+
+        If Not glf_pinEvents.Exists(e) Then
+            glf_debugLog.WriteToLog "DispatchPinEvent", e & " has no listeners"
+            Exit Sub
         End If
-    Next
-    Glf_EventBlocks(e).RemoveAll
+        glf_dispatch_parent = glf_dispatch_parent + 1 'Increment the parent count
+
+        If Not Glf_EventBlocks.Exists(e) Then
+            Glf_EventBlocks.Add e, CreateObject("Scripting.Dictionary")
+        End If
+        glf_lastPinEvent = e
+        Dim k
+        Dim handlers : Set handlers = glf_pinEvents(e)
+        glf_debugLog.WriteToLog "DispatchPinEvent", e
+        Dim handler
+        For Each k In glf_pinEventsOrder(e)
+            glf_debugLog.WriteToLog "DispatchPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
+            If handlers.Exists(k(1)) Then
+                handler = handlers(k(1))
+                GetRef(handler(0))(Array(handler(2), kwargs, e))
+            Else
+                glf_debugLog.WriteToLog "DispatchPinEvent_"&e, "Handler does not exist: " & k(1)
+            End If
+        Next
+        Glf_EventBlocks(e).RemoveAll
+
+        glf_dispatch_parent = glf_dispatch_parent - 1 'Handlers finsihed, reduce count.Add
+        'process any q items
+        Dim keys : keys =  glf_dispatch_q.Keys()
+        Dim items : items = glf_dispatch_q.Items()
+        glf_dispatch_q.RemoveAll()
+        Dim i
+        For i=0 To UBound(keys)
+            DispatchPinEvent keys(i), items(i)
+        Next
+    End If
 End Sub
 
 Function DispatchRelayPinEvent(e, kwargs)
