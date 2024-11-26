@@ -1121,10 +1121,10 @@ End With
 
 With GlfShotProfiles("default")
 	With .States("on")
-			.Show = "flash"
+		.Show = "flash"
 	End With
 	With .States("off")
-			.Show = "off"
+		.Show = "off"
 	End With
 End With
 
@@ -1133,7 +1133,7 @@ With GlfShotProfiles("flash_color")
 		.Show = "off"
 	End With
 	With .States("on")
-			.Show = "flash_color"
+		.Show = "flash_color"
 	End With	
 End With
 
