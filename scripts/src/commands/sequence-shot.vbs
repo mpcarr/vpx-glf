@@ -20,6 +20,7 @@ Class GlfSequenceShots
     Private m_active_delays
     Private m_active_sequences
     Private m_sequence_events
+    Private m_start_time
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get GetValue(value)
@@ -51,6 +52,7 @@ Class GlfSequenceShots
             m_sequence_events = value
         Else
             Redim Preserve m_sequence_events(m_sequence_count+UBound(value))
+            Dim i
             For i = 0 To UBound(value)
                 m_sequence_events(m_sequence_count + i) = value(i)
             Next
@@ -65,6 +67,7 @@ Class GlfSequenceShots
             m_start_event = value(0) & "_active"
         End If
         Redim Preserve m_sequence_events(m_sequence_count+UBound(value))
+        Dim i
         For i = 0 To UBound(value)
             m_sequence_events(m_sequence_count + i) = value(i) & "_active"
         Next
@@ -84,7 +87,7 @@ Class GlfSequenceShots
         
         m_sequence_events = Array()
         m_cancel_switches = Array()
-        
+        m_start_time = 0
         m_event_sequence = Array()
         m_switch_sequence = Array()
         Set m_sequence_timeout = CreateGlfInput(0)
@@ -220,6 +223,7 @@ Class GlfSequenceShots
 
     Public Sub Completed()
         'measure the elapsed time between start and completion of the sequence
+        Dim elapsed
         If m_start_time > 0 Then
             elapsed = gametime - m_start_time
         Else
