@@ -10,6 +10,7 @@ Class GlfStateMachine
     Private m_state
     Private m_persist_state
     Private m_starting_state
+    Private m_show
  
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get GetValue(value)
@@ -21,42 +22,47 @@ Class GlfStateMachine
 
     Public Property Get State()
         If m_persist_state = True Then
-            State = GetPlayerState(m_player_var_name)
+            Dim s : s = GetPlayerState(m_player_var_name)
+            If s=False Then
+                State = Null
+            Else
+                State = s
+            End If
         Else
             State = m_state
         End If
     End Property
+
     Public Property Let State(value)
-        Dim old : old = m_state
         If m_persist_state = True Then
-            old = GetPlayerState(m_player_var_name)
-            SetPlayerState(m_player_var_name) = value
+            SetPlayerState m_player_var_name, value
         Else
             m_state = value
         End If
     End Property
-    Public Property Get States(): Set States = m_states: End Property
-    Public Property Let States(value)
-        Dim x
-        For x=0 to UBound(value)
-            Dim newState : Set newState = (new GlfStateMachineState)(value(x))
-            m_states.Add newState.Name, newState
-        Next
+    
+    Public Property Get States(name)
+        If m_states.Exists(name) Then
+            Set States = m_states(name)
+        Else
+            Dim new_state : Set new_state = (new GlfStateMachineState)(name)
+            m_states.Add name, new_state
+            Set States = new_state
+        End If
     End Property
  
-    Public Property Get Transitions(): Set Transitions = m_transitions: End Property
-    Public Property Let Transitions(value)
-        Dim x
-        For x=0 to UBound(value)
-            Dim newTransition : Set newTransition = (new GlfStateMachineTranistion)(value(x))
-            m_states.Add newTransition.Name, newTransition
-        Next
+    Public Property Get Transitions(name)
+        If m_transitions.Exists(name) Then
+            Set Transitions = m_transitions(name)
+        Else
+            Dim new_transition : Set new_transition = (new GlfStateMachineTranistion)(name)
+            m_transitions.Add name, new_transition
+            Set Transitions = new_transition
+        End If
     End Property
  
-    Public Property Get CurrentState(): CurrentState = m_current_state: End Property
-    Public Property Let CurrentState(value)
-        m_current_state = value
-    End Property
+    Public Property Get PersistState(): PersistState = m_persist_state : End Property
+    Public Property Let PersistState(value) : m_persist_state = value : End Property
  
     Public default Function init(name, mode)
         m_name = name
@@ -76,11 +82,16 @@ Class GlfStateMachine
         Set Init = Me
     End Function
 
+    Public Sub Activate()
+        Enable()
+    End Sub
+
+    Public Sub Deactivate()
+        Disable()
+    End Sub
 
     Public Sub Enable()
-
-        ' Restore internal state from player if persist_state is set or create new state.
-        If IsNull(m_state) Then
+        If IsNull(State()) Then
             StartState m_starting_state
         Else
             AddHandlersForCurrentState()
@@ -89,24 +100,34 @@ Class GlfStateMachine
 
     End Sub
 
-    Public Sub StartState(state)
-        m_base_device.Log("Starting state " & state)
-        If Not m_states.Exists(state) Then
-            m_base_device.Log("Invalid state " & state)
+    Public Sub Disable()
+        RemoveHandlers()
+        m_state = Null
+        If Not IsEmpty(m_show) Then
+            'm_show.Stop()
+            m_show = Empty
+        End If
+    End Sub
+
+    Public Sub StartState(start_state)
+        m_base_device.Log("Starting state " & start_state)
+        If Not m_states.Exists(start_state) Then
+            m_base_device.Log("Invalid state " & start_state)
             Exit Sub
         End If
 
-        Dim state_config : Set state_config = m_states(state)
+        Dim state_config : Set state_config = m_states(start_state)
 
-        State() = state
-
-        If UBound(state_config.EventsWhenStarted().Keys()) > 1 Then
+        State() = start_state
+        If UBound(state_config.EventsWhenStarted().Keys()) > -1 Then
             Dim evt
             For Each evt in state_config.EventsWhenStarted().Items()
                 If Not IsNull(evt.Condition) Then
                     If GetRef(evt.Condition)() = True Then
                         DispatchPinEvent evt.EventName, Null
                     End If
+                Else
+                    DispatchPinEvent evt.EventName, Null
                 End If
             Next
         End If
@@ -127,6 +148,8 @@ Class GlfStateMachine
                     If GetRef(evt.Condition)() = True Then
                         DispatchPinEvent evt.EventName, Null
                     End If
+                Else
+                    DispatchPinEvent evt.EventName, Null
                 End If
             Next
         End If
@@ -153,12 +176,21 @@ Class GlfStateMachine
 
     Public Sub AddHandlersForCurrentState()
         Dim transition, evt
-        For Each transition in m_transitions
-            If transition.Exists(State()) Then
+        For Each transition in m_transitions.Items()
+            If transition.Source.Exists(State()) Then
                 For Each evt in transition.Events.Items()
                     AddPinEventListener evt.EventName, m_name & "_" & transition.Name & "_" & evt.EventName & "_transition", "StateMachineTransitionHandler", m_priority, Array("transition", Me, evt, transition)
                 Next
             End If
+        Next
+    End Sub
+
+    Public Sub RemoveHandlers()
+        Dim transition, evt
+        For Each transition in m_transitions.Items()
+            For Each evt in transition.Events.Items()
+                RemovePinEventListener evt.EventName, m_name & "_" & transition.Name & "_" & evt.EventName & "_transition"
+            Next
         Next
     End Sub
 
@@ -173,6 +205,8 @@ Class GlfStateMachine
                     If GetRef(evt.Condition)() = True Then
                         DispatchPinEvent evt.EventName, Null
                     End If
+                Else
+                    DispatchPinEvent evt.EventName, Null
                 End If
             Next
         End If
@@ -234,18 +268,18 @@ Class GlfStateMachineTranistion
     Public Property Let Name(input): m_name = input: End Property    
 
     Public Property Get Source(): Set Source = m_sources: End Property
-    Public Property Let Source(input)
+    Public Property Let Source(value)
         Dim x
         For x=0 to UBound(value)
             m_sources.Add value(x), True
         Next    
     End Property
  
-    Public Property Get Target(): Set Target = m_target: End Property
+    Public Property Get Target(): Target = m_target: End Property
     Public Property Let Target(input): m_target = input: End Property  
 
     Public Property Get Events(): Set Events = m_events: End Property
-    Public Property Let Events(input)
+    Public Property Let Events(value)
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
@@ -254,7 +288,7 @@ Class GlfStateMachineTranistion
     End Property
  
     Public Property Get EventsWhenTransitioning(): Set EventsWhenTransitioning = m_events_when_transitioning: End Property
-    Public Property Let EventsWhenTransitioning(input)
+    Public Property Let EventsWhenTransitioning(value)
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
@@ -290,6 +324,8 @@ Public Function StateMachineTransitionHandler(args)
                 If GetRef(glf_event.Condition)() = True Then
                     state_machine.MakeTransition ownProps(3)
                 End If
+            Else
+                state_machine.MakeTransition ownProps(3)
             End If
     End Select
     If IsObject(args(1)) Then

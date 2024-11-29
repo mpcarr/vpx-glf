@@ -125,7 +125,18 @@ Public Sub Glf_Init()
 			godotLightScene = godotLightScene + "[node name="""&light.name&""" type=""Sprite2D"" parent=""lights""]" & vbCrLf
 			godotLightScene = godotLightScene + "position = Vector2("&light.x*scaleFactor&", "&light.y*scaleFactor&")" & vbCrLf
 			godotLightScene = godotLightScene + "script = ExtResource(""3_qb2nn"")" & vbCrLf
-			godotLightScene = godotLightScene + "tags = []" & vbCrLf
+
+			Dim splitTagArray : splitTagArray = Split(light.BlinkPattern, ",")
+			Dim outputTagString : outputTagString = ""
+			Dim i
+			For i = LBound(splitTagArray) To UBound(splitTagArray)
+				outputTagString = outputTagString & """" & Trim(splitTagArray(i)) & """"
+				If i < UBound(splitTagArray) Then
+					outputTagString = outputTagString & ", "
+				End If
+			Next
+
+			godotLightScene = godotLightScene + "tags = ["&outputTagString&"]" & vbCrLf
 			godotLightScene = godotLightScene + vbCrLf
 		Next
 
@@ -454,7 +465,7 @@ Public Function Glf_RegisterLights()
 		tags = Split(light.BlinkPattern, ",")
 		For Each tag in tags
 			
-			tag = Trim(tag) ' Remove any leading or trailing spaces
+			tag = "T_" & Trim(tag)
 			If Not glf_lightTags.Exists(tag) Then
 				Set glf_lightTags(tag) = CreateObject("Scripting.Dictionary")
 			End If
@@ -471,6 +482,7 @@ Public Function Glf_RegisterLights()
 				lmStr = lmStr & e.Name & ","
 			End If
 			For Each tag in tags
+				tag = "T_" & Trim(tag)
 				If InStr(LCase(e.Name), LCase("_" & tag & "_")) Then
 					lmStr = lmStr & e.Name & ","
 				End If
@@ -734,7 +746,7 @@ End Function
 
 Sub glf_ConvertYamlShowToGlfShow(yamlFilePath)
     Dim fso, file, content, lines, line, output, i, stepLights
-    Dim glf_ShowName, stepTime, lightsDict, key, lightName, color, intensity
+    Dim glf_ShowName, stepTime, lightsDict, key, lightName, color, intensity, lightParts
     
     ' Initialize FileSystemObject
     Set fso = CreateObject("Scripting.FileSystemObject")
@@ -774,11 +786,15 @@ Sub glf_ConvertYamlShowToGlfShow(yamlFilePath)
 		ElseIf InStr(line, "lights:") = 1 Then
 			'Do Nothing
         ' Identify lights and colors
-        ElseIf InStr(line, "l") = 1 Then
-            key = Split(line, ":")(0)
+        ElseIf InStr(line, ":") > 0 Then
+            lightParts = Split(line, ":")
+			key = lightParts(0)
             lightName = Trim(key)
-            color = Trim(Split(line, """")(1))
-            
+			
+            color = lightParts(1)
+			color = Trim(color)
+			color = Replace(color, """", "")
+            'msgbox key & "<>" & color
             ' Default intensity to 100 if color is not "000000"
             intensity = 100
             'If color = "000000" Then
@@ -793,11 +809,15 @@ Sub glf_ConvertYamlShowToGlfShow(yamlFilePath)
 
         End If
     Next
-    
+    msgbox Len(stepLights)
     ' Close the final step and the show
-	'output = output & vbTab & vbTab & ".Lights = Array("& Left(stepLights, Len(stepLights) - 1)&")" & vbCrLf
-	output = output & vbTab & vbTab & ".Lights = Array(" & _ 
-    SplitStringWithUnderscore(Left(stepLights, Len(stepLights) - 1), 1500) & ")" & vbCrLf
+	If Len(stepLights) = 0 Then
+		output = output & vbTab & vbTab & ".Lights = Array()" & vbCrLf
+	Else
+		output = output & vbTab & vbTab & ".Lights = Array(" & _ 
+		SplitStringWithUnderscore(Left(stepLights, Len(stepLights) - 1), 1500) & ")" & vbCrLf
+	End If
+	
     output = output & vbTab & "End With" & vbCrLf
     output = output & "End With" & vbCrLf
     
@@ -878,7 +898,7 @@ Function Glf_ConvertShow(show, tokens)
 			If IsArray(lightParts) Then
 				token = Glf_IsToken(lightParts(0))
 				If IsNull(token) And Not glf_lightNames.Exists(lightParts(0)) Then
-					tagLights = glf_lightTags(lightParts(0)).Keys()
+					tagLights = glf_lightTags("T_"&lightParts(0)).Keys()
 					lightsCount = UBound(tagLights)+1
 				Else
 					If IsNull(token) Then
@@ -887,7 +907,7 @@ Function Glf_ConvertShow(show, tokens)
 						'resolve token lights
 						If Not glf_lightNames.Exists(tokens(token)) Then
 							'token is a tag
-							tagLights = glf_lightTags(tokens(token)).Keys()
+							tagLights = glf_lightTags("T_"&tokens(token)).Keys()
 							lightsCount = UBound(tagLights)+1
 						Else
 							lightsCount = lightsCount + 1
@@ -914,7 +934,7 @@ Function Glf_ConvertShow(show, tokens)
 			If IsArray(lightParts) Then
 				token = Glf_IsToken(lightParts(0))
 				If IsNull(token) And Not glf_lightNames.Exists(lightParts(0)) Then
-					tagLights = glf_lightTags(lightParts(0)).Keys()
+					tagLights = glf_lightTags("T_"&lightParts(0)).Keys()
 					For Each tagLight in tagLights
 						If UBound(lightParts) >=1 Then
 							seqArray(x) = tagLight & "|"&lightParts(1)&"|" & AdjustHexColor(lightColor, lightParts(1))
@@ -941,7 +961,7 @@ Function Glf_ConvertShow(show, tokens)
 						'resolve token lights
 						If Not glf_lightNames.Exists(tokens(token)) Then
 							'token is a tag
-							tagLights = glf_lightTags(tokens(token)).Keys()
+							tagLights = glf_lightTags("T_"&tokens(token)).Keys()
 							For Each tagLight in tagLights
 								If UBound(lightParts) >=1 Then
 									seqArray(x) = tagLight & "|"&lightParts(1)&"|"&AdjustHexColor(lightColor, lightParts(1))
@@ -2248,7 +2268,7 @@ Class GlfLightPlayer
                 Dim lightsCount, x,tagLight, tagLights
                 lightsCount = 0
                 If Not glf_lightNames.Exists(lightName) Then
-                    tagLights = glf_lightTags(lightName).Keys()
+                    tagLights = glf_lightTags("T_"&lightName).Keys()
                     m_base_device.Log "Tag Lights: " & Join(tagLights)
                     For Each tagLight in tagLights
                         lightsCount = lightsCount + 1
@@ -2266,7 +2286,7 @@ Class GlfLightPlayer
                 Set light = m_events(evt).Lights(lightName)
 
                 If Not glf_lightNames.Exists(lightName) Then
-                    tagLights = glf_lightTags(lightName).Keys()
+                    tagLights = glf_lightTags("T_"&lightName).Keys()
                     For Each tagLight in tagLights
                         seqArray(x) = tagLight & "|100|" & light.Color
                         x=x+1
@@ -2667,6 +2687,7 @@ Class Mode
     Private m_eventplayer
     Private m_shot_profiles
     Private m_sequence_shots
+    Private m_state_machines
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get Priority(): Priority = m_priority: End Property
@@ -2763,6 +2784,16 @@ Class Mode
         End If
     End Property
 
+    Public Property Get StateMachines(name)
+        If m_state_machines.Exists(name) Then
+            Set StateMachines = m_state_machines(name)
+        Else
+            Dim new_state_machine : Set new_state_machine = (new GlfStateMachine)(name, Me)
+            m_state_machines.Add name, new_state_machine
+            Set StateMachines = new_state_machine
+        End If
+    End Property
+
     Public Property Get ModeShots(): ModeShots = m_shots.Items(): End Property
     Public Property Get Shots(name)
         If m_shots.Exists(name) Then
@@ -2831,6 +2862,8 @@ Class Mode
         Set m_ballholds = CreateObject("Scripting.Dictionary")
         Set m_shot_profiles = CreateObject("Scripting.Dictionary")
         Set m_sequence_shots = CreateObject("Scripting.Dictionary")
+        Set m_state_machines = CreateObject("Scripting.Dictionary")
+        
         m_lightplayer = Null
         m_showplayer = Null
         m_segment_display_player = Null
@@ -4203,6 +4236,12 @@ Class GlfSequenceShots
         m_active_delays.Remove name
     End Sub
 
+    Public Sub FireSequenceTimeout(seq_id)
+        m_base_device.Log "Sequence " & seq_id & " timeouted"
+        m_active_sequences.Remove seq_id
+        DispatchPinEvent m_name & "_timeout", Null
+    End Sub
+
 End Class
 
 Class GlfActiveSequence
@@ -4253,7 +4292,7 @@ Function SequenceShotsHandler(args)
             End If
             sequence_shot.DelayEvent glfEvent.Delay, glfEvent.EventName
         Case "seq_timeout"
-            sequence_shot.SequenceTimeout ownProps(2)
+            sequence_shot.FireSequenceTimeout ownProps(2)
         Case "release_delay"
             sequence_shot.ReleaseDelay ownProps(2)
     End Select
@@ -5840,6 +5879,7 @@ Class GlfStateMachine
     Private m_state
     Private m_persist_state
     Private m_starting_state
+    Private m_show
  
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get GetValue(value)
@@ -5851,42 +5891,47 @@ Class GlfStateMachine
 
     Public Property Get State()
         If m_persist_state = True Then
-            State = GetPlayerState(m_player_var_name)
+            Dim s : s = GetPlayerState(m_player_var_name)
+            If s=False Then
+                State = Null
+            Else
+                State = s
+            End If
         Else
             State = m_state
         End If
     End Property
+
     Public Property Let State(value)
-        Dim old : old = m_state
         If m_persist_state = True Then
-            old = GetPlayerState(m_player_var_name)
-            SetPlayerState(m_player_var_name) = value
+            SetPlayerState m_player_var_name, value
         Else
             m_state = value
         End If
     End Property
-    Public Property Get States(): Set States = m_states: End Property
-    Public Property Let States(value)
-        Dim x
-        For x=0 to UBound(value)
-            Dim newState : Set newState = (new GlfStateMachineState)(value(x))
-            m_states.Add newState.Name, newState
-        Next
+    
+    Public Property Get States(name)
+        If m_states.Exists(name) Then
+            Set States = m_states(name)
+        Else
+            Dim new_state : Set new_state = (new GlfStateMachineState)(name)
+            m_states.Add name, new_state
+            Set States = new_state
+        End If
     End Property
  
-    Public Property Get Transitions(): Set Transitions = m_transitions: End Property
-    Public Property Let Transitions(value)
-        Dim x
-        For x=0 to UBound(value)
-            Dim newTransition : Set newTransition = (new GlfStateMachineTranistion)(value(x))
-            m_states.Add newTransition.Name, newTransition
-        Next
+    Public Property Get Transitions(name)
+        If m_transitions.Exists(name) Then
+            Set Transitions = m_transitions(name)
+        Else
+            Dim new_transition : Set new_transition = (new GlfStateMachineTranistion)(name)
+            m_transitions.Add name, new_transition
+            Set Transitions = new_transition
+        End If
     End Property
  
-    Public Property Get CurrentState(): CurrentState = m_current_state: End Property
-    Public Property Let CurrentState(value)
-        m_current_state = value
-    End Property
+    Public Property Get PersistState(): PersistState = m_persist_state : End Property
+    Public Property Let PersistState(value) : m_persist_state = value : End Property
  
     Public default Function init(name, mode)
         m_name = name
@@ -5906,11 +5951,16 @@ Class GlfStateMachine
         Set Init = Me
     End Function
 
+    Public Sub Activate()
+        Enable()
+    End Sub
+
+    Public Sub Deactivate()
+        Disable()
+    End Sub
 
     Public Sub Enable()
-
-        ' Restore internal state from player if persist_state is set or create new state.
-        If IsNull(m_state) Then
+        If IsNull(State()) Then
             StartState m_starting_state
         Else
             AddHandlersForCurrentState()
@@ -5919,24 +5969,34 @@ Class GlfStateMachine
 
     End Sub
 
-    Public Sub StartState(state)
-        m_base_device.Log("Starting state " & state)
-        If Not m_states.Exists(state) Then
-            m_base_device.Log("Invalid state " & state)
+    Public Sub Disable()
+        RemoveHandlers()
+        m_state = Null
+        If Not IsEmpty(m_show) Then
+            'm_show.Stop()
+            m_show = Empty
+        End If
+    End Sub
+
+    Public Sub StartState(start_state)
+        m_base_device.Log("Starting state " & start_state)
+        If Not m_states.Exists(start_state) Then
+            m_base_device.Log("Invalid state " & start_state)
             Exit Sub
         End If
 
-        Dim state_config : Set state_config = m_states(state)
+        Dim state_config : Set state_config = m_states(start_state)
 
-        State() = state
-
-        If UBound(state_config.EventsWhenStarted().Keys()) > 1 Then
+        State() = start_state
+        If UBound(state_config.EventsWhenStarted().Keys()) > -1 Then
             Dim evt
             For Each evt in state_config.EventsWhenStarted().Items()
                 If Not IsNull(evt.Condition) Then
                     If GetRef(evt.Condition)() = True Then
                         DispatchPinEvent evt.EventName, Null
                     End If
+                Else
+                    DispatchPinEvent evt.EventName, Null
                 End If
             Next
         End If
@@ -5957,6 +6017,8 @@ Class GlfStateMachine
                     If GetRef(evt.Condition)() = True Then
                         DispatchPinEvent evt.EventName, Null
                     End If
+                Else
+                    DispatchPinEvent evt.EventName, Null
                 End If
             Next
         End If
@@ -5983,12 +6045,21 @@ Class GlfStateMachine
 
     Public Sub AddHandlersForCurrentState()
         Dim transition, evt
-        For Each transition in m_transitions
-            If transition.Exists(State()) Then
+        For Each transition in m_transitions.Items()
+            If transition.Source.Exists(State()) Then
                 For Each evt in transition.Events.Items()
                     AddPinEventListener evt.EventName, m_name & "_" & transition.Name & "_" & evt.EventName & "_transition", "StateMachineTransitionHandler", m_priority, Array("transition", Me, evt, transition)
                 Next
             End If
+        Next
+    End Sub
+
+    Public Sub RemoveHandlers()
+        Dim transition, evt
+        For Each transition in m_transitions.Items()
+            For Each evt in transition.Events.Items()
+                RemovePinEventListener evt.EventName, m_name & "_" & transition.Name & "_" & evt.EventName & "_transition"
+            Next
         Next
     End Sub
 
@@ -6003,6 +6074,8 @@ Class GlfStateMachine
                     If GetRef(evt.Condition)() = True Then
                         DispatchPinEvent evt.EventName, Null
                     End If
+                Else
+                    DispatchPinEvent evt.EventName, Null
                 End If
             Next
         End If
@@ -6064,18 +6137,18 @@ Class GlfStateMachineTranistion
     Public Property Let Name(input): m_name = input: End Property    
 
     Public Property Get Source(): Set Source = m_sources: End Property
-    Public Property Let Source(input)
+    Public Property Let Source(value)
         Dim x
         For x=0 to UBound(value)
             m_sources.Add value(x), True
         Next    
     End Property
  
-    Public Property Get Target(): Set Target = m_target: End Property
+    Public Property Get Target(): Target = m_target: End Property
     Public Property Let Target(input): m_target = input: End Property  
 
     Public Property Get Events(): Set Events = m_events: End Property
-    Public Property Let Events(input)
+    Public Property Let Events(value)
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
@@ -6084,7 +6157,7 @@ Class GlfStateMachineTranistion
     End Property
  
     Public Property Get EventsWhenTransitioning(): Set EventsWhenTransitioning = m_events_when_transitioning: End Property
-    Public Property Let EventsWhenTransitioning(input)
+    Public Property Let EventsWhenTransitioning(value)
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
@@ -6120,6 +6193,8 @@ Public Function StateMachineTransitionHandler(args)
                 If GetRef(glf_event.Condition)() = True Then
                     state_machine.MakeTransition ownProps(3)
                 End If
+            Else
+                state_machine.MakeTransition ownProps(3)
             End If
     End Select
     If IsObject(args(1)) Then
@@ -7449,6 +7524,9 @@ Class GlfLightSegmentDisplay
     private m_text
     private m_current_text
     private m_display_state
+    private m_current_state
+    private m_current_flashing
+    Private m_current_flash_mask
     private m_lights
     private m_light_group
     private m_segmentmap
@@ -7490,6 +7568,9 @@ Class GlfLightSegmentDisplay
         m_light_group = Empty
         m_current_text = Empty
         m_display_state = Empty
+        m_current_state = Null
+        m_current_flashing = Empty
+        m_current_flash_mask = Empty
         m_lights = Array()  
 
         glf_segment_displays.Add name, Me
@@ -7514,16 +7595,14 @@ Class GlfLightSegmentDisplay
 
     Private Sub SetText(text, flashing, flash_mask)
         'Set a text to the display.
-        m_text = text
-        m_flashing = flashing
-
+        
         If flashing = "no_flash" Then
             m_flash_on = True
         ElseIf flashing = "flash_mask" Then
             'm_flash_mask = flash_mask.rjust(len(text))
         End If
 
-        If flashing = "no_flash" or m_flash_on = True or Not IsEmpty(text) Then
+        If flashing = "no_flash" or m_flash_on = True or Not IsNull(text) Then
             If text <> m_display_state Then
                 m_display_state = text
                 'Set text to lights.
@@ -7540,10 +7619,17 @@ Class GlfLightSegmentDisplay
         End If
     End Sub
 
+    Private Sub UpdateDisplay(segment_text, flashing, flash_mask)
+        Set m_current_state = segment_text
+        m_current_flashing = flashing
+        m_current_flash_mask = flash_mask
+        SetText m_current_state.ConvertToString(), flashing, flash_mask
+    End Sub
+
     Private Sub UpdateText()
         'iterate lights and chars
         Dim mapped_text, segment
-        mapped_text = MapSegmentTextToSegments(m_current_text, m_size, m_segmentmap)
+        mapped_text = MapSegmentTextToSegments(m_current_state, m_size, m_segmentmap)
         Dim segment_idx : segment_idx = 1
         For Each segment in mapped_text
             
@@ -7595,7 +7681,13 @@ Class GlfLightSegmentDisplay
     End Function
 
     Public Sub AddTextEntry(text, color, flashing, flash_mask, transition, transition_out, priority, key)
-        SetText text, "no_flash", Empty
+        
+        Dim new_text : new_text = Glf_SegmentTextCreateCharacters(text, m_size, True, True, True, Array())
+        Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,m_collapse_dots, m_collapse_commas, m_use_dots_for_commas) 
+        
+        
+        UpdateDisplay display_text, "no_flash", Empty
+
     End Sub
 
     Public Sub RemoveTextByKey(key)
@@ -7860,25 +7952,269 @@ SEVEN_SEGMENTS.Add 125, (New SevenSegments)(0, 1, 1, 1, 0, 0, 0, 0, "}")
 SEVEN_SEGMENTS.Add 126, (New SevenSegments)(0, 0, 0, 0, 0, 0, 0, 1, "~")
 
 
-Function MapSegmentTextToSegments(text, display_width, segment_mapping)
+Function MapSegmentTextToSegments(text_state, display_width, segment_mapping)
     'Map a segment display text to a certain display mapping.
+
+    Dim text : text = text_state.Text
     Dim segments()
-	ReDim segments(Len(text)-1)
+    ReDim segments(UBound(text))
 
     Dim charCode, char, mapping, i
-    For i = 1 To Len(text)
-        char = Mid(text, i, 1)
-        charCode = Asc(char)
-        If segment_mapping.Exists(CharCode) Then
-            Set mapping = segment_mapping(CharCode)
+    For i = 0 To UBound(text)
+        Set char = text(i)
+        If segment_mapping.Exists(char("char_code")) Then
+            Set mapping = segment_mapping(char("char_code"))
         Else
             Set mapping = segment_mapping(Null)
         End If
-        Set segments(i-1) = mapping
+
+        Set segments(i) = mapping
     Next
 
     MapSegmentTextToSegments = segments
 End Function
+
+
+Class GlfSegmentDisplayText
+
+    Private m_embed_dots
+    Private m_embed_commas
+    Private m_use_dots_for_commas
+    Private m_text
+
+    Public Property Get Text() : Text = m_text : End Property
+
+    ' Initialize the class
+    Public default Function Init(char_list, embed_dots, embed_commas, use_dots_for_commas)
+        m_embed_dots = embed_dots
+        m_embed_commas = embed_commas
+        m_use_dots_for_commas = use_dots_for_commas
+        m_text = char_list
+        Set Init = Me
+    End Function
+
+    ' Get the length of the text
+    Public Function Length()
+        Length = UBound(m_text) + 1
+    End Function
+
+    ' Get a character or a slice of the text
+    Public Function GetItem(index)
+        If IsArray(index) Then
+            Dim slice, i
+            slice = Array()
+            For i = LBound(index) To UBound(index)
+                slice = AppendArray(slice, m_text(index(i)))
+            Next
+            GetItem = slice
+        Else
+            GetItem = m_text(index)
+        End If
+    End Function
+
+    ' Extend the text with another list
+    Public Sub Extend(other_text)
+        Dim i
+        For i = LBound(other_text) To UBound(other_text)
+            m_text = AppendArray(m_text, other_text(i))
+        Next
+    End Sub
+
+    ' Convert the text to a string
+    Public Function ConvertToString()
+        Dim text, char, i
+        text = ""
+        For i = LBound(m_text) To UBound(m_text)
+            Set char = m_text(i)
+            text = text & Chr(char("char_code"))
+            If char("dot") Then text = text & "."
+            If char("comma") Then text = text & ","
+        Next
+        ConvertToString = text
+    End Function
+
+    ' Get colors (to be implemented in subclasses)
+    Public Function GetColors()
+        GetColors = Null
+    End Function
+
+    Public Function BlankSegments(flash_mask)
+        Dim new_text, i, char, mask
+        new_text = Array()
+    
+        ' Iterate over characters and the flash mask
+        For i = LBound(m_text) To UBound(m_text)
+            Set char = m_text(i)
+            mask = flash_mask(i)
+    
+            ' If mask is "F", blank the character
+            If mask = "F" Then
+                new_text = AppendArray(new_text, Glf_SegmentTextCreateDisplayCharacter(" ", False, False, char("color")))
+            Else
+                ' Otherwise, keep the character as is
+                new_text = AppendArray(new_text, char)
+            End If
+        Next
+    
+        ' Create a new GlfSegmentDisplayText object with the updated text
+        Dim blanked_text
+        Set blanked_text = (new GlfSegmentDisplayText)(m_embed_dots, m_embed_commas, m_use_dots_for_commas, new_text)
+        Set BlankSegments = blanked_text
+    End Function
+    
+
+End Class
+
+' Helper function to append to an array
+Function AppendArray(arr, value)
+    Dim newArr, i
+    ReDim newArr(UBound(arr) + 1)
+    For i = LBound(arr) To UBound(arr)
+        If IsObject(arr(i)) Then
+            Set newArr(i) = arr(i)
+        Else
+            newArr(i) = arr(i)
+        End If
+    Next
+    If IsObject(value) Then
+        Set newArr(UBound(newArr)) = value
+    Else
+        newArr(UBound(newArr)) = value
+    End If
+    AppendArray = newArr
+End Function
+
+' Helper function to slice an array
+Function SliceArray(arr, start_idx, end_idx)
+    Dim sliced, i, j
+    ReDim sliced(end_idx - start_idx)
+    j = 0
+    For i = start_idx To end_idx
+        If IsObject(arr(i)) Then
+            Set sliced(j) = arr(i)
+        Else
+            sliced(j) = arr(i)
+        End If
+        j = j + 1
+    Next
+    SliceArray = sliced
+End Function
+
+' Helper function to prepend an element to an array
+Function PrependArray(arr, value)
+    Dim newArr, i
+    ReDim newArr(UBound(arr) + 1)
+    If IsObject(value) Then
+        Set newArr(0) = value
+    Else
+        newArr(0) = value
+    End If
+    
+    For i = LBound(arr) To UBound(arr)
+        If IsObject(arr(i)) Then
+            Set newArr(i + 1) = arr(i)
+        Else
+            newArr(i + 1) = arr(i)
+        End If
+    Next
+    PrependArray = newArr
+End Function
+
+
+Function Glf_SegmentTextCreateCharacters(text, display_size, collapse_dots, collapse_commas, use_dots_for_commas, colors)
+            
+
+    Dim char_list, uncolored_chars, left_pad_color, default_right_color, i, char, color, current_length
+    char_list = Array()
+
+    ' Determine padding and default colors
+    If IsArray(colors) And UBound(colors) >= 0 Then
+        left_pad_color = colors(0)
+        default_right_color = colors(UBound(colors))
+    Else
+        left_pad_color = Null
+        default_right_color = Null
+    End If
+
+    ' Embed dots and commas
+    uncolored_chars = Glf_SegmentTextEmbedDotsAndCommas(text, collapse_dots, collapse_commas, use_dots_for_commas)
+    
+    ' Adjust colors to match the uncolored characters
+    If IsArray(colors) And UBound(colors) >= 0 Then
+        Dim adjusted_colors
+        adjusted_colors = SliceArray(colors, UBound(colors) - UBound(uncolored_chars) + 1, UBound(colors))
+    Else
+        adjusted_colors = Array()
+    End If
+
+    ' Create display characters
+    For i = LBound(uncolored_chars) To UBound(uncolored_chars)
+        char = uncolored_chars(i)
+        If IsArray(adjusted_colors) And UBound(adjusted_colors) >= 0 Then
+            color = adjusted_colors(0)
+            adjusted_colors = SliceArray(adjusted_colors, 1, UBound(adjusted_colors))
+        Else
+            color = default_right_color
+        End If
+        char_list = AppendArray(char_list, Glf_SegmentTextCreateDisplayCharacter(char(0), char(1), char(2), color))
+    Next
+
+    ' Adjust the list size to match the display size
+    current_length = UBound(char_list) + 1
+    
+    If current_length > display_size Then
+        ' Truncate characters from the left
+        char_list = SliceArray(char_list, current_length - display_size, UBound(char_list))
+    ElseIf current_length < display_size Then
+        ' Pad with spaces to the left
+        Dim padding
+        padding = display_size - current_length
+        For i = 1 To padding
+            char_list = PrependArray(char_list, Glf_SegmentTextCreateDisplayCharacter(SPACE_CODE, False, False, left_pad_color))
+        Next
+    End If
+    Glf_SegmentTextCreateCharacters = char_list
+End Function
+
+Function Glf_SegmentTextEmbedDotsAndCommas(text, collapse_dots, collapse_commas, use_dots_for_commas)
+    Dim char_has_dot, char_has_comma, char_list
+    Dim i, char_code
+
+    char_has_dot = False
+    char_has_comma = False
+    char_list = Array()
+
+    ' Iterate through the text in reverse
+    For i = Len(text) To 1 Step -1
+        char_code = Asc(Mid(text, i, 1))
+        
+        ' Check for dots and commas and handle collapsing rules
+        If (collapse_dots And char_code = Asc(".")) Or (use_dots_for_commas And char_code = Asc(",")) Then
+            char_has_dot = True
+        ElseIf collapse_commas And char_code = Asc(",") Then
+            char_has_comma = True
+        Else
+            ' Insert the character at the start of the list
+            char_list = PrependArray(char_list, Array(char_code, char_has_dot, char_has_comma))
+            char_has_dot = False
+            char_has_comma = False
+        End If
+    Next
+
+    Glf_SegmentTextEmbedDotsAndCommas = char_list
+End Function
+
+' Helper function to create a display character
+Function Glf_SegmentTextCreateDisplayCharacter(char_code, has_dot, has_comma, color)
+    Dim display_character
+    Set display_character = CreateObject("Scripting.Dictionary")
+    display_character.Add "char_code", char_code
+    display_character.Add "dot", has_dot
+    display_character.Add "comma", has_comma
+    display_character.Add "color", color
+    Set Glf_SegmentTextCreateDisplayCharacter = display_character
+End Function
+
 Function CreateGlfMagnet(name)
 	Dim magnet : Set magnet = (new GlfMagnet)(name)
 	Set CreateGlfMagnet = magnet
@@ -8100,6 +8436,140 @@ Function MagnetEventHandler(args)
     End If
     
 End Function
+
+Class GlfPushTransition
+
+    Private m_name
+    Private m_output_length
+    Private m_config
+    Private m_collapse_dots
+    Private m_collapse_commas
+    Private m_use_dots_for_commas
+    Private m_current_step
+    Private m_total_steps
+
+    Private m_direction
+    Private m_text
+    Private m_text_color
+
+    ' Properties
+    Public Property Get Name(): Name = m_name: End Property
+    Public Property Let Name(value): m_name = value: End Property
+
+    Public Property Let OutputLength(value): m_output_length = value: End Property
+    Public Property Get OutputLength(): OutputLength = m_output_length: End Property
+
+    Public Property Let Config(value): m_config = value: End Property
+    Public Property Get Config(): Config = m_config: End Property
+
+    Public Property Let CollapseDots(value): m_collapse_dots = value: End Property
+    Public Property Get CollapseDots(): CollapseDots = m_collapse_dots: End Property
+
+    Public Property Let CollapseCommas(value): m_collapse_commas = value: End Property
+    Public Property Get CollapseCommas(): CollapseCommas = m_collapse_commas: End Property
+
+    Public Property Let UseDotsForCommas(value): m_use_dots_for_commas = value: End Property
+    Public Property Get UseDotsForCommas(): UseDotsForCommas = m_use_dots_for_commas: End Property
+
+    Public Property Let CurrentStep(value): m_current_step = value: End Property
+    Public Property Get CurrentStep(): CurrentStep = m_current_step: End Property
+
+    Public Property Let TotalSteps(value): m_total_steps = value: End Property
+    Public Property Get TotalSteps(): TotalSteps = m_total_steps: End Property
+
+    ' Initialize the class
+    Public Function Init(name, output_length, collapse_dots, collapse_commas, use_dots_for_commas, config)
+        m_name = "transition_" & name
+        m_output_length = output_length
+        m_collapse_dots = collapse_dots
+        m_collapse_commas = collapse_commas
+        m_use_dots_for_commas = use_dots_for_commas
+        m_config = config
+        m_current_step = 0
+        m_total_steps = 0
+
+        m_direction = "right"
+        m_text = Empty
+        m_color = Empty
+        Set Init = Me
+    End Function
+
+    Public Function GetStepCount()
+        GetStepCount = m_output_length + Len(m_text)
+    End Function
+
+    Public Function GetTransitionStep(current_step, current_text, new_text, current_colors, new_colors)
+
+        If current_step < 0 or current_step >= GetStepCount() Then
+            Log "Step id out of range"
+            Exit Function
+        End If
+        
+        Dim current_display_text
+        Dim current_char_list : current_char_list = Glf_SegmentTextCreateCharacters(current_text, m_output_length, m_collapse_dots, m_collapse_commas, m_use_dots_for_commas, current_colors)
+        Set current_display_text = (new GlfSegmentDisplayText)(current_char_list, m_collapse_dots, m_collapse_commas, m_use_dots_for_commas)
+        
+        Dim new_display_text    
+        Dim new_char_list : new_char_list = Glf_SegmentTextCreateCharacters(new_text, m_output_length, m_collapse_dots, m_collapse_commas, m_use_dots_for_commas, new_colors)
+        Set new_display_text = (new GlfSegmentDisplayText)(new_char_list, m_collapse_dots, m_collapse_commas, m_use_dots_for_commas) 
+
+        Dim text_color,transition_text
+        If Not IsEmpty(m_text) Then
+            If IsArray(new_colors) and IsEmpty(m_text_color) Then
+                text_color = Array(new_colors(0))
+            Else
+                text_color = m_text_color
+            End If
+            Dim trnasition_char_list : trnasition_char_list = Glf_SegmentTextCreateCharacters(m_text, Len(m_text), m_collapse_dots, m_collapse_commas, m_use_dots_for_commas, text_color)
+            Set transition_text = (new GlfSegmentDisplayText)(trnasition_char_list,m_collapse_dots, m_collapse_commas, m_use_dots_for_commas) 
+        Else
+            Set transition_text = (new GlfSegmentDisplayText)(Array(),m_collapse_dots, m_collapse_commas, m_use_dots_for_commas) 
+        End If
+        Dim start_idx, end_idx
+        If m_direction = "right" Then
+            Dim temp_list : Set temp_list = new_display_text
+            temp_list.Extend transition_text.Text()
+            temp_list.Extend current_display_text.Text()
+
+            
+            start_idx = m_output_length + Len(m_text) - (current_step + 1)
+            end_idx = 2 * m_output_length + Len(m_text) - (current_step + 1) - 1
+            GetTransitionStep = SliceArray(temp_list, start_idx, end_idx)
+        End If
+
+        If m_direction = "left" Then
+            temp_list = current_display_text
+            temp_list.Extend transition_text.Text()
+            temp_list.Extend new_display_text.Text()
+
+            
+            start_idx = current_step + 1
+            end_idx = current_step + 1 + m_output_length - 1
+            GetTransitionStep = SliceArray(temp_list, start_idx, end_idx)
+
+        End If
+
+    End Function
+
+    ' Start the transition process
+    Public Sub StartTransition(current_text, new_text)
+        m_current_step = 0
+        m_total_steps = GetStepCount()
+        If m_total_steps = 0 Then
+            m_total_steps = 1 ' Default to at least one step
+        End If
+
+        While m_current_step < m_total_steps
+            Dim result
+            result = GetTransitionStep(m_current_step, current_text, new_text)
+            m_base_device.Log "Step " & m_current_step & ": " & result
+            m_current_step = m_current_step + 1
+        Wend
+        m_base_device.Log "Transition complete for: " & m_name
+    End Sub
+
+End Class
+
 
 Class GlfEvent
 	Private m_raw, m_name, m_event, m_condition, m_delay
@@ -8368,7 +8838,9 @@ Dim glf_dispatch_q : Set glf_dispatch_q = CreateObject("Scripting.Dictionary")
 Sub DispatchPinEvent(e, kwargs)
     If glf_dispatch_parent > 0 Then
         'There's already a dispatch running.
-        glf_dispatch_q.Add e, kwargs
+        If Not glf_dispatch_q.Exists(e) Then
+            glf_dispatch_q.Add e, kwargs
+        End If
     Else
 
         If Not glf_pinEvents.Exists(e) Then

@@ -8,7 +8,9 @@ Dim glf_dispatch_q : Set glf_dispatch_q = CreateObject("Scripting.Dictionary")
 Sub DispatchPinEvent(e, kwargs)
     If glf_dispatch_parent > 0 Then
         'There's already a dispatch running.
-        glf_dispatch_q.Add e, kwargs
+        If Not glf_dispatch_q.Exists(e) Then
+            glf_dispatch_q.Add e, kwargs
+        End If
     Else
 
         If Not glf_pinEvents.Exists(e) Then

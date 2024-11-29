@@ -258,6 +258,12 @@ Class GlfSequenceShots
         m_active_delays.Remove name
     End Sub
 
+    Public Sub FireSequenceTimeout(seq_id)
+        m_base_device.Log "Sequence " & seq_id & " timeouted"
+        m_active_sequences.Remove seq_id
+        DispatchPinEvent m_name & "_timeout", Null
+    End Sub
+
 End Class
 
 Class GlfActiveSequence
@@ -308,7 +314,7 @@ Function SequenceShotsHandler(args)
             End If
             sequence_shot.DelayEvent glfEvent.Delay, glfEvent.EventName
         Case "seq_timeout"
-            sequence_shot.SequenceTimeout ownProps(2)
+            sequence_shot.FireSequenceTimeout ownProps(2)
         Case "release_delay"
             sequence_shot.ReleaseDelay ownProps(2)
     End Select

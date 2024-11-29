@@ -11,6 +11,9 @@ Class GlfLightSegmentDisplay
     private m_text
     private m_current_text
     private m_display_state
+    private m_current_state
+    private m_current_flashing
+    Private m_current_flash_mask
     private m_lights
     private m_light_group
     private m_segmentmap
@@ -52,6 +55,9 @@ Class GlfLightSegmentDisplay
         m_light_group = Empty
         m_current_text = Empty
         m_display_state = Empty
+        m_current_state = Null
+        m_current_flashing = Empty
+        m_current_flash_mask = Empty
         m_lights = Array()  
 
         glf_segment_displays.Add name, Me
@@ -76,16 +82,14 @@ Class GlfLightSegmentDisplay
 
     Private Sub SetText(text, flashing, flash_mask)
         'Set a text to the display.
-        m_text = text
-        m_flashing = flashing
-
+        
         If flashing = "no_flash" Then
             m_flash_on = True
         ElseIf flashing = "flash_mask" Then
             'm_flash_mask = flash_mask.rjust(len(text))
         End If
 
-        If flashing = "no_flash" or m_flash_on = True or Not IsEmpty(text) Then
+        If flashing = "no_flash" or m_flash_on = True or Not IsNull(text) Then
             If text <> m_display_state Then
                 m_display_state = text
                 'Set text to lights.
@@ -102,10 +106,17 @@ Class GlfLightSegmentDisplay
         End If
     End Sub
 
+    Private Sub UpdateDisplay(segment_text, flashing, flash_mask)
+        Set m_current_state = segment_text
+        m_current_flashing = flashing
+        m_current_flash_mask = flash_mask
+        SetText m_current_state.ConvertToString(), flashing, flash_mask
+    End Sub
+
     Private Sub UpdateText()
         'iterate lights and chars
         Dim mapped_text, segment
-        mapped_text = MapSegmentTextToSegments(m_current_text, m_size, m_segmentmap)
+        mapped_text = MapSegmentTextToSegments(m_current_state, m_size, m_segmentmap)
         Dim segment_idx : segment_idx = 1
         For Each segment in mapped_text
             
@@ -157,7 +168,13 @@ Class GlfLightSegmentDisplay
     End Function
 
     Public Sub AddTextEntry(text, color, flashing, flash_mask, transition, transition_out, priority, key)
-        SetText text, "no_flash", Empty
+        
+        Dim new_text : new_text = Glf_SegmentTextCreateCharacters(text, m_size, True, True, True, Array())
+        Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,m_collapse_dots, m_collapse_commas, m_use_dots_for_commas) 
+        
+        
+        UpdateDisplay display_text, "no_flash", Empty
+
     End Sub
 
     Public Sub RemoveTextByKey(key)
@@ -422,22 +439,265 @@ SEVEN_SEGMENTS.Add 125, (New SevenSegments)(0, 1, 1, 1, 0, 0, 0, 0, "}")
 SEVEN_SEGMENTS.Add 126, (New SevenSegments)(0, 0, 0, 0, 0, 0, 0, 1, "~")
 
 
-Function MapSegmentTextToSegments(text, display_width, segment_mapping)
+Function MapSegmentTextToSegments(text_state, display_width, segment_mapping)
     'Map a segment display text to a certain display mapping.
+
+    Dim text : text = text_state.Text
     Dim segments()
-	ReDim segments(Len(text)-1)
+    ReDim segments(UBound(text))
 
     Dim charCode, char, mapping, i
-    For i = 1 To Len(text)
-        char = Mid(text, i, 1)
-        charCode = Asc(char)
-        If segment_mapping.Exists(CharCode) Then
-            Set mapping = segment_mapping(CharCode)
+    For i = 0 To UBound(text)
+        Set char = text(i)
+        If segment_mapping.Exists(char("char_code")) Then
+            Set mapping = segment_mapping(char("char_code"))
         Else
             Set mapping = segment_mapping(Null)
         End If
-        Set segments(i-1) = mapping
+
+        Set segments(i) = mapping
     Next
 
     MapSegmentTextToSegments = segments
+End Function
+
+
+Class GlfSegmentDisplayText
+
+    Private m_embed_dots
+    Private m_embed_commas
+    Private m_use_dots_for_commas
+    Private m_text
+
+    Public Property Get Text() : Text = m_text : End Property
+
+    ' Initialize the class
+    Public default Function Init(char_list, embed_dots, embed_commas, use_dots_for_commas)
+        m_embed_dots = embed_dots
+        m_embed_commas = embed_commas
+        m_use_dots_for_commas = use_dots_for_commas
+        m_text = char_list
+        Set Init = Me
+    End Function
+
+    ' Get the length of the text
+    Public Function Length()
+        Length = UBound(m_text) + 1
+    End Function
+
+    ' Get a character or a slice of the text
+    Public Function GetItem(index)
+        If IsArray(index) Then
+            Dim slice, i
+            slice = Array()
+            For i = LBound(index) To UBound(index)
+                slice = AppendArray(slice, m_text(index(i)))
+            Next
+            GetItem = slice
+        Else
+            GetItem = m_text(index)
+        End If
+    End Function
+
+    ' Extend the text with another list
+    Public Sub Extend(other_text)
+        Dim i
+        For i = LBound(other_text) To UBound(other_text)
+            m_text = AppendArray(m_text, other_text(i))
+        Next
+    End Sub
+
+    ' Convert the text to a string
+    Public Function ConvertToString()
+        Dim text, char, i
+        text = ""
+        For i = LBound(m_text) To UBound(m_text)
+            Set char = m_text(i)
+            text = text & Chr(char("char_code"))
+            If char("dot") Then text = text & "."
+            If char("comma") Then text = text & ","
+        Next
+        ConvertToString = text
+    End Function
+
+    ' Get colors (to be implemented in subclasses)
+    Public Function GetColors()
+        GetColors = Null
+    End Function
+
+    Public Function BlankSegments(flash_mask)
+        Dim new_text, i, char, mask
+        new_text = Array()
+    
+        ' Iterate over characters and the flash mask
+        For i = LBound(m_text) To UBound(m_text)
+            Set char = m_text(i)
+            mask = flash_mask(i)
+    
+            ' If mask is "F", blank the character
+            If mask = "F" Then
+                new_text = AppendArray(new_text, Glf_SegmentTextCreateDisplayCharacter(" ", False, False, char("color")))
+            Else
+                ' Otherwise, keep the character as is
+                new_text = AppendArray(new_text, char)
+            End If
+        Next
+    
+        ' Create a new GlfSegmentDisplayText object with the updated text
+        Dim blanked_text
+        Set blanked_text = (new GlfSegmentDisplayText)(m_embed_dots, m_embed_commas, m_use_dots_for_commas, new_text)
+        Set BlankSegments = blanked_text
+    End Function
+    
+
+End Class
+
+' Helper function to append to an array
+Function AppendArray(arr, value)
+    Dim newArr, i
+    ReDim newArr(UBound(arr) + 1)
+    For i = LBound(arr) To UBound(arr)
+        If IsObject(arr(i)) Then
+            Set newArr(i) = arr(i)
+        Else
+            newArr(i) = arr(i)
+        End If
+    Next
+    If IsObject(value) Then
+        Set newArr(UBound(newArr)) = value
+    Else
+        newArr(UBound(newArr)) = value
+    End If
+    AppendArray = newArr
+End Function
+
+' Helper function to slice an array
+Function SliceArray(arr, start_idx, end_idx)
+    Dim sliced, i, j
+    ReDim sliced(end_idx - start_idx)
+    j = 0
+    For i = start_idx To end_idx
+        If IsObject(arr(i)) Then
+            Set sliced(j) = arr(i)
+        Else
+            sliced(j) = arr(i)
+        End If
+        j = j + 1
+    Next
+    SliceArray = sliced
+End Function
+
+' Helper function to prepend an element to an array
+Function PrependArray(arr, value)
+    Dim newArr, i
+    ReDim newArr(UBound(arr) + 1)
+    If IsObject(value) Then
+        Set newArr(0) = value
+    Else
+        newArr(0) = value
+    End If
+    
+    For i = LBound(arr) To UBound(arr)
+        If IsObject(arr(i)) Then
+            Set newArr(i + 1) = arr(i)
+        Else
+            newArr(i + 1) = arr(i)
+        End If
+    Next
+    PrependArray = newArr
+End Function
+
+
+Function Glf_SegmentTextCreateCharacters(text, display_size, collapse_dots, collapse_commas, use_dots_for_commas, colors)
+            
+
+    Dim char_list, uncolored_chars, left_pad_color, default_right_color, i, char, color, current_length
+    char_list = Array()
+
+    ' Determine padding and default colors
+    If IsArray(colors) And UBound(colors) >= 0 Then
+        left_pad_color = colors(0)
+        default_right_color = colors(UBound(colors))
+    Else
+        left_pad_color = Null
+        default_right_color = Null
+    End If
+
+    ' Embed dots and commas
+    uncolored_chars = Glf_SegmentTextEmbedDotsAndCommas(text, collapse_dots, collapse_commas, use_dots_for_commas)
+    
+    ' Adjust colors to match the uncolored characters
+    If IsArray(colors) And UBound(colors) >= 0 Then
+        Dim adjusted_colors
+        adjusted_colors = SliceArray(colors, UBound(colors) - UBound(uncolored_chars) + 1, UBound(colors))
+    Else
+        adjusted_colors = Array()
+    End If
+
+    ' Create display characters
+    For i = LBound(uncolored_chars) To UBound(uncolored_chars)
+        char = uncolored_chars(i)
+        If IsArray(adjusted_colors) And UBound(adjusted_colors) >= 0 Then
+            color = adjusted_colors(0)
+            adjusted_colors = SliceArray(adjusted_colors, 1, UBound(adjusted_colors))
+        Else
+            color = default_right_color
+        End If
+        char_list = AppendArray(char_list, Glf_SegmentTextCreateDisplayCharacter(char(0), char(1), char(2), color))
+    Next
+
+    ' Adjust the list size to match the display size
+    current_length = UBound(char_list) + 1
+    
+    If current_length > display_size Then
+        ' Truncate characters from the left
+        char_list = SliceArray(char_list, current_length - display_size, UBound(char_list))
+    ElseIf current_length < display_size Then
+        ' Pad with spaces to the left
+        Dim padding
+        padding = display_size - current_length
+        For i = 1 To padding
+            char_list = PrependArray(char_list, Glf_SegmentTextCreateDisplayCharacter(SPACE_CODE, False, False, left_pad_color))
+        Next
+    End If
+    Glf_SegmentTextCreateCharacters = char_list
+End Function
+
+Function Glf_SegmentTextEmbedDotsAndCommas(text, collapse_dots, collapse_commas, use_dots_for_commas)
+    Dim char_has_dot, char_has_comma, char_list
+    Dim i, char_code
+
+    char_has_dot = False
+    char_has_comma = False
+    char_list = Array()
+
+    ' Iterate through the text in reverse
+    For i = Len(text) To 1 Step -1
+        char_code = Asc(Mid(text, i, 1))
+        
+        ' Check for dots and commas and handle collapsing rules
+        If (collapse_dots And char_code = Asc(".")) Or (use_dots_for_commas And char_code = Asc(",")) Then
+            char_has_dot = True
+        ElseIf collapse_commas And char_code = Asc(",") Then
+            char_has_comma = True
+        Else
+            ' Insert the character at the start of the list
+            char_list = PrependArray(char_list, Array(char_code, char_has_dot, char_has_comma))
+            char_has_dot = False
+            char_has_comma = False
+        End If
+    Next
+
+    Glf_SegmentTextEmbedDotsAndCommas = char_list
+End Function
+
+' Helper function to create a display character
+Function Glf_SegmentTextCreateDisplayCharacter(char_code, has_dot, has_comma, color)
+    Dim display_character
+    Set display_character = CreateObject("Scripting.Dictionary")
+    display_character.Add "char_code", char_code
+    display_character.Add "dot", has_dot
+    display_character.Add "comma", has_comma
+    display_character.Add "color", color
+    Set Glf_SegmentTextCreateDisplayCharacter = display_character
 End Function

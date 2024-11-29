@@ -23,6 +23,7 @@ Class Mode
     Private m_eventplayer
     Private m_shot_profiles
     Private m_sequence_shots
+    Private m_state_machines
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get Priority(): Priority = m_priority: End Property
@@ -119,6 +120,16 @@ Class Mode
         End If
     End Property
 
+    Public Property Get StateMachines(name)
+        If m_state_machines.Exists(name) Then
+            Set StateMachines = m_state_machines(name)
+        Else
+            Dim new_state_machine : Set new_state_machine = (new GlfStateMachine)(name, Me)
+            m_state_machines.Add name, new_state_machine
+            Set StateMachines = new_state_machine
+        End If
+    End Property
+
     Public Property Get ModeShots(): ModeShots = m_shots.Items(): End Property
     Public Property Get Shots(name)
         If m_shots.Exists(name) Then
@@ -187,6 +198,8 @@ Class Mode
         Set m_ballholds = CreateObject("Scripting.Dictionary")
         Set m_shot_profiles = CreateObject("Scripting.Dictionary")
         Set m_sequence_shots = CreateObject("Scripting.Dictionary")
+        Set m_state_machines = CreateObject("Scripting.Dictionary")
+        
         m_lightplayer = Null
         m_showplayer = Null
         m_segment_display_player = Null

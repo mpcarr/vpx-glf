@@ -58,7 +58,7 @@ Class GlfLightPlayer
                 Dim lightsCount, x,tagLight, tagLights
                 lightsCount = 0
                 If Not glf_lightNames.Exists(lightName) Then
-                    tagLights = glf_lightTags(lightName).Keys()
+                    tagLights = glf_lightTags("T_"&lightName).Keys()
                     m_base_device.Log "Tag Lights: " & Join(tagLights)
                     For Each tagLight in tagLights
                         lightsCount = lightsCount + 1
@@ -76,7 +76,7 @@ Class GlfLightPlayer
                 Set light = m_events(evt).Lights(lightName)
 
                 If Not glf_lightNames.Exists(lightName) Then
-                    tagLights = glf_lightTags(lightName).Keys()
+                    tagLights = glf_lightTags("T_"&lightName).Keys()
                     For Each tagLight in tagLights
                         seqArray(x) = tagLight & "|100|" & light.Color
                         x=x+1

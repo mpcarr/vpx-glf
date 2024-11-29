@@ -125,7 +125,18 @@ Public Sub Glf_Init()
 			godotLightScene = godotLightScene + "[node name="""&light.name&""" type=""Sprite2D"" parent=""lights""]" & vbCrLf
 			godotLightScene = godotLightScene + "position = Vector2("&light.x*scaleFactor&", "&light.y*scaleFactor&")" & vbCrLf
 			godotLightScene = godotLightScene + "script = ExtResource(""3_qb2nn"")" & vbCrLf
-			godotLightScene = godotLightScene + "tags = []" & vbCrLf
+
+			Dim splitTagArray : splitTagArray = Split(light.BlinkPattern, ",")
+			Dim outputTagString : outputTagString = ""
+			Dim i
+			For i = LBound(splitTagArray) To UBound(splitTagArray)
+				outputTagString = outputTagString & """" & Trim(splitTagArray(i)) & """"
+				If i < UBound(splitTagArray) Then
+					outputTagString = outputTagString & ", "
+				End If
+			Next
+
+			godotLightScene = godotLightScene + "tags = ["&outputTagString&"]" & vbCrLf
 			godotLightScene = godotLightScene + vbCrLf
 		Next
 
@@ -454,7 +465,7 @@ Public Function Glf_RegisterLights()
 		tags = Split(light.BlinkPattern, ",")
 		For Each tag in tags
 			
-			tag = Trim(tag) ' Remove any leading or trailing spaces
+			tag = "T_" & Trim(tag)
 			If Not glf_lightTags.Exists(tag) Then
 				Set glf_lightTags(tag) = CreateObject("Scripting.Dictionary")
 			End If
@@ -471,6 +482,7 @@ Public Function Glf_RegisterLights()
 				lmStr = lmStr & e.Name & ","
 			End If
 			For Each tag in tags
+				tag = "T_" & Trim(tag)
 				If InStr(LCase(e.Name), LCase("_" & tag & "_")) Then
 					lmStr = lmStr & e.Name & ","
 				End If
@@ -734,7 +746,7 @@ End Function
 
 Sub glf_ConvertYamlShowToGlfShow(yamlFilePath)
     Dim fso, file, content, lines, line, output, i, stepLights
-    Dim glf_ShowName, stepTime, lightsDict, key, lightName, color, intensity
+    Dim glf_ShowName, stepTime, lightsDict, key, lightName, color, intensity, lightParts
     
     ' Initialize FileSystemObject
     Set fso = CreateObject("Scripting.FileSystemObject")
@@ -774,11 +786,15 @@ Sub glf_ConvertYamlShowToGlfShow(yamlFilePath)
 		ElseIf InStr(line, "lights:") = 1 Then
 			'Do Nothing
         ' Identify lights and colors
-        ElseIf InStr(line, "l") = 1 Then
-            key = Split(line, ":")(0)
+        ElseIf InStr(line, ":") > 0 Then
+            lightParts = Split(line, ":")
+			key = lightParts(0)
             lightName = Trim(key)
-            color = Trim(Split(line, """")(1))
-            
+			
+            color = lightParts(1)
+			color = Trim(color)
+			color = Replace(color, """", "")
+            'msgbox key & "<>" & color
             ' Default intensity to 100 if color is not "000000"
             intensity = 100
             'If color = "000000" Then
@@ -793,11 +809,15 @@ Sub glf_ConvertYamlShowToGlfShow(yamlFilePath)
 
         End If
     Next
-    
+    msgbox Len(stepLights)
     ' Close the final step and the show
-	'output = output & vbTab & vbTab & ".Lights = Array("& Left(stepLights, Len(stepLights) - 1)&")" & vbCrLf
-	output = output & vbTab & vbTab & ".Lights = Array(" & _ 
-    SplitStringWithUnderscore(Left(stepLights, Len(stepLights) - 1), 1500) & ")" & vbCrLf
+	If Len(stepLights) = 0 Then
+		output = output & vbTab & vbTab & ".Lights = Array()" & vbCrLf
+	Else
+		output = output & vbTab & vbTab & ".Lights = Array(" & _ 
+		SplitStringWithUnderscore(Left(stepLights, Len(stepLights) - 1), 1500) & ")" & vbCrLf
+	End If
+	
     output = output & vbTab & "End With" & vbCrLf
     output = output & "End With" & vbCrLf
     
@@ -878,7 +898,7 @@ Function Glf_ConvertShow(show, tokens)
 			If IsArray(lightParts) Then
 				token = Glf_IsToken(lightParts(0))
 				If IsNull(token) And Not glf_lightNames.Exists(lightParts(0)) Then
-					tagLights = glf_lightTags(lightParts(0)).Keys()
+					tagLights = glf_lightTags("T_"&lightParts(0)).Keys()
 					lightsCount = UBound(tagLights)+1
 				Else
 					If IsNull(token) Then
@@ -887,7 +907,7 @@ Function Glf_ConvertShow(show, tokens)
 						'resolve token lights
 						If Not glf_lightNames.Exists(tokens(token)) Then
 							'token is a tag
-							tagLights = glf_lightTags(tokens(token)).Keys()
+							tagLights = glf_lightTags("T_"&tokens(token)).Keys()
 							lightsCount = UBound(tagLights)+1
 						Else
 							lightsCount = lightsCount + 1
@@ -914,7 +934,7 @@ Function Glf_ConvertShow(show, tokens)
 			If IsArray(lightParts) Then
 				token = Glf_IsToken(lightParts(0))
 				If IsNull(token) And Not glf_lightNames.Exists(lightParts(0)) Then
-					tagLights = glf_lightTags(lightParts(0)).Keys()
+					tagLights = glf_lightTags("T_"&lightParts(0)).Keys()
 					For Each tagLight in tagLights
 						If UBound(lightParts) >=1 Then
 							seqArray(x) = tagLight & "|"&lightParts(1)&"|" & AdjustHexColor(lightColor, lightParts(1))
@@ -941,7 +961,7 @@ Function Glf_ConvertShow(show, tokens)
 						'resolve token lights
 						If Not glf_lightNames.Exists(tokens(token)) Then
 							'token is a tag
-							tagLights = glf_lightTags(tokens(token)).Keys()
+							tagLights = glf_lightTags("T_"&tokens(token)).Keys()
 							For Each tagLight in tagLights
 								If UBound(lightParts) >=1 Then
 									seqArray(x) = tagLight & "|"&lightParts(1)&"|"&AdjustHexColor(lightColor, lightParts(1))
