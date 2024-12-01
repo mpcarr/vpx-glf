@@ -1,0 +1,110 @@
+
+Function CreateGlfAutoFireDevice(name)
+	Dim flipper : Set flipper = (new GlfAutoFireDevice)(name)
+	Set CreateGlfAutoFireDevice = flipper
+End Function
+
+Class GlfAutoFireDevice
+
+    Private m_name
+    Private m_enable_events
+    Private m_disable_events
+    Private m_enabled
+    Private m_switch
+    Private m_action_cb
+    Private m_debug
+
+    Public Property Let Switch(value)
+        m_switch = value
+    End Property
+    Public Property Let ActionCallback(value) : m_action_cb = value : End Property
+    Public Property Let EnableEvents(value)
+        Dim evt
+        If IsArray(m_enable_events) Then
+            For Each evt in m_enable_events
+                RemovePinEventListener evt, m_name & "_enable"
+            Next
+        End If
+        m_enable_events = value
+        For Each evt in m_enable_events
+            AddPinEventListener evt, m_name & "_enable", "AutoFireDeviceEventHandler", 1000, Array("enable", Me)
+        Next
+    End Property
+    Public Property Let DisableEvents(value)
+        Dim evt
+        If IsArray(m_disable_events) Then
+            For Each evt in m_enable_events
+                RemovePinEventListener evt, m_name & "_disable"
+            Next
+        End If
+        m_disable_events = value
+        For Each evt in m_disable_events
+            AddPinEventListener evt, m_name & "_disable", "AutoFireDeviceEventHandler", 1000, Array("disable", Me)
+        Next
+    End Property
+    Public Property Let Debug(value) : m_debug = value : End Property
+
+	Public default Function init(name)
+        m_name = "auto_fire_coil_" & name
+        EnableEvents = Array("ball_started")
+        DisableEvents = Array("ball_will_end", "service_mode_entered")
+        m_enabled = False
+        m_action_cb = Empty
+        m_switch = Array()
+        m_debug = False
+        glf_autofiredevices.Add name, Me
+        Set Init = Me
+	End Function
+
+    Public Sub Enable()
+        Log "Enabling"
+        m_enabled = True
+        AddPinEventListener m_switch & "_active", m_name & "_active", "AutoFireDeviceEventHandler", 1000, Array("activate", Me)
+    End Sub
+
+    Public Sub Disable()
+        Log "Disabling"
+        m_enabled = False
+        Deactivate()
+        RemovePinEventListener m_switch & "_active", m_name & "_active"
+    End Sub
+
+    Public Sub Activate()
+        Log "Activating"
+        If Not IsEmpty(m_action_cb) Then
+            GetRef(m_action_cb)(1)
+        End If
+        DispatchPinEvent m_name & "_activate", Null
+    End Sub
+
+    Public Sub Deactivate()
+        Log "Activating"
+        If Not IsEmpty(m_action_cb) Then
+            GetRef(m_action_cb)(0)
+        End If
+        DispatchPinEvent m_name & "_deactivate", Null
+    End Sub
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
+    End Sub
+End Class
+
+Function AutoFireDeviceEventHandler(args)
+    Dim ownProps, kwargs : ownProps = args(0) : kwargs = args(1) 
+    Dim evt : evt = ownProps(0)
+    Dim flipper : Set flipper = ownProps(1)
+    Select Case evt
+        Case "enable"
+            flipper.Enable
+        Case "disable"
+            flipper.Disable
+        Case "activate"
+            flipper.Activate
+        Case "deactivate"
+            flipper.Deactivate
+    End Select
+    AutoFireDeviceEventHandler = kwargs
+End Function

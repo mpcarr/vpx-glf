@@ -29,6 +29,7 @@ Dim glf_timers : Set glf_timers = CreateObject("Scripting.Dictionary")
 Dim glf_ball_devices : Set glf_ball_devices = CreateObject("Scripting.Dictionary")
 Dim glf_diverters : Set glf_diverters = CreateObject("Scripting.Dictionary")
 Dim glf_flippers : Set glf_flippers = CreateObject("Scripting.Dictionary")
+Dim glf_autofiredevices : Set glf_autofiredevices = CreateObject("Scripting.Dictionary")
 Dim glf_ball_holds : Set glf_ball_holds = CreateObject("Scripting.Dictionary")
 Dim glf_magnets : Set glf_magnets = CreateObject("Scripting.Dictionary")
 Dim glf_segment_displays : Set glf_segment_displays = CreateObject("Scripting.Dictionary")
@@ -2513,6 +2514,39 @@ Class GlfLightStack
             Set Pop = Nothing
         End If
     End Function
+
+    Public Function PopByKey(key)
+        Dim i, removedItem, found
+        found = False
+        Set removedItem = Nothing
+    
+        ' Loop through the stack to find the item with the matching key
+        For i = LBound(stack) To UBound(stack)
+            If stack(i)("Key") = key Then
+                ' Store the item to be removed
+                Set removedItem = stack(i)
+                found = True
+    
+                ' Shift all elements after the removed item to the left
+                Dim j
+                For j = i To UBound(stack) - 1
+                    Set stack(j) = stack(j + 1)
+                Next
+    
+                ' Resize the array to remove the last element
+                ReDim Preserve stack(UBound(stack) - 1)
+                Exit For
+            End If
+        Next
+    
+        ' Return the removed item (or Nothing if not found)
+        If found Then
+            Set PopByKey = removedItem
+        Else
+            Set PopByKey = Nothing
+        End If
+    End Function
+    
 
     ' Get the current top color without popping it
     Public Function Peek()
@@ -5726,7 +5760,7 @@ Class GlfRunningShow
             
             If Not lightStack.IsEmpty() Then
                 ' Pop the current top color
-                lightStack.Pop()
+                lightStack.PopByKey(m_show_name & "_" & m_key)
             End If
             
             If Not lightStack.IsEmpty() Then
@@ -5777,7 +5811,7 @@ Function GlfShowStepHandler(args)
     End If
     If running_show.CurrentStep > running_show.TotalSteps Then
         'End of Show
-        'glf_debugLog.WriteToLog "Running Show", "END OF SHOW"
+        glf_debugLog.WriteToLog "Running Show", "END OF SHOW"
         If running_show.ShowSettings.Loops = -1 Or running_show.ShowSettings.Loops > 1 Then
             If running_show.ShowSettings.Loops > 1 Then
                 running_show.ShowSettings.Loops = running_show.ShowSettings.Loops - 1
@@ -6824,6 +6858,116 @@ Sub DelayTick()
         End If
     Next
 End Sub
+
+Function CreateGlfAutoFireDevice(name)
+	Dim flipper : Set flipper = (new GlfAutoFireDevice)(name)
+	Set CreateGlfAutoFireDevice = flipper
+End Function
+
+Class GlfAutoFireDevice
+
+    Private m_name
+    Private m_enable_events
+    Private m_disable_events
+    Private m_enabled
+    Private m_switch
+    Private m_action_cb
+    Private m_debug
+
+    Public Property Let Switch(value)
+        m_switch = value
+    End Property
+    Public Property Let ActionCallback(value) : m_action_cb = value : End Property
+    Public Property Let EnableEvents(value)
+        Dim evt
+        If IsArray(m_enable_events) Then
+            For Each evt in m_enable_events
+                RemovePinEventListener evt, m_name & "_enable"
+            Next
+        End If
+        m_enable_events = value
+        For Each evt in m_enable_events
+            AddPinEventListener evt, m_name & "_enable", "AutoFireDeviceEventHandler", 1000, Array("enable", Me)
+        Next
+    End Property
+    Public Property Let DisableEvents(value)
+        Dim evt
+        If IsArray(m_disable_events) Then
+            For Each evt in m_enable_events
+                RemovePinEventListener evt, m_name & "_disable"
+            Next
+        End If
+        m_disable_events = value
+        For Each evt in m_disable_events
+            AddPinEventListener evt, m_name & "_disable", "AutoFireDeviceEventHandler", 1000, Array("disable", Me)
+        Next
+    End Property
+    Public Property Let Debug(value) : m_debug = value : End Property
+
+	Public default Function init(name)
+        m_name = "auto_fire_coil_" & name
+        EnableEvents = Array("ball_started")
+        DisableEvents = Array("ball_will_end", "service_mode_entered")
+        m_enabled = False
+        m_action_cb = Empty
+        m_switch = Array()
+        m_debug = False
+        glf_autofiredevices.Add name, Me
+        Set Init = Me
+	End Function
+
+    Public Sub Enable()
+        Log "Enabling"
+        m_enabled = True
+        AddPinEventListener m_switch & "_active", m_name & "_active", "AutoFireDeviceEventHandler", 1000, Array("activate", Me)
+    End Sub
+
+    Public Sub Disable()
+        Log "Disabling"
+        m_enabled = False
+        Deactivate()
+        RemovePinEventListener m_switch & "_active", m_name & "_active"
+    End Sub
+
+    Public Sub Activate()
+        Log "Activating"
+        If Not IsEmpty(m_action_cb) Then
+            GetRef(m_action_cb)(1)
+        End If
+        DispatchPinEvent m_name & "_activate", Null
+    End Sub
+
+    Public Sub Deactivate()
+        Log "Activating"
+        If Not IsEmpty(m_action_cb) Then
+            GetRef(m_action_cb)(0)
+        End If
+        DispatchPinEvent m_name & "_deactivate", Null
+    End Sub
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
+    End Sub
+End Class
+
+Function AutoFireDeviceEventHandler(args)
+    Dim ownProps, kwargs : ownProps = args(0) : kwargs = args(1) 
+    Dim evt : evt = ownProps(0)
+    Dim flipper : Set flipper = ownProps(1)
+    Select Case evt
+        Case "enable"
+            flipper.Enable
+        Case "disable"
+            flipper.Disable
+        Case "activate"
+            flipper.Activate
+        Case "deactivate"
+            flipper.Deactivate
+    End Select
+    AutoFireDeviceEventHandler = kwargs
+End Function
 Function CreateGlfBallDevice(name)
 	Dim device : Set device = (new GlfBallDevice)(name)
 	Set CreateGlfBallDevice = device
@@ -7683,7 +7827,7 @@ Class GlfLightSegmentDisplay
     Public Sub AddTextEntry(text, color, flashing, flash_mask, transition, transition_out, priority, key)
         
         Dim new_text : new_text = Glf_SegmentTextCreateCharacters(text, m_size, True, True, True, Array())
-        Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,m_collapse_dots, m_collapse_commas, m_use_dots_for_commas) 
+        Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,True, True, True) 
         
         
         UpdateDisplay display_text, "no_flash", Empty
@@ -8049,7 +8193,7 @@ Class GlfSegmentDisplayText
     
             ' If mask is "F", blank the character
             If mask = "F" Then
-                new_text = AppendArray(new_text, Glf_SegmentTextCreateDisplayCharacter(" ", False, False, char("color")))
+                new_text = AppendArray(new_text, Glf_SegmentTextCreateDisplayCharacter(32, False, False, char("color")))
             Else
                 ' Otherwise, keep the character as is
                 new_text = AppendArray(new_text, char)
@@ -8170,7 +8314,7 @@ Function Glf_SegmentTextCreateCharacters(text, display_size, collapse_dots, coll
         Dim padding
         padding = display_size - current_length
         For i = 1 To padding
-            char_list = PrependArray(char_list, Glf_SegmentTextCreateDisplayCharacter(SPACE_CODE, False, False, left_pad_color))
+            char_list = PrependArray(char_list, Glf_SegmentTextCreateDisplayCharacter(32, False, False, left_pad_color))
         Next
     End If
     Glf_SegmentTextCreateCharacters = char_list
