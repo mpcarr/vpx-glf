@@ -68,7 +68,7 @@ Class GlfAutoFireDevice
     Public Sub Disable()
         Log "Disabling"
         m_enabled = False
-        Deactivate()
+        Deactivate(Null)
         RemovePinEventListener m_switch & "_active", m_name & "_active"
         RemovePinEventListener m_switch & "_inactive", m_name & "_inactive"
     End Sub
