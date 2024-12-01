@@ -304,6 +304,39 @@ Class GlfLightStack
         End If
     End Function
 
+    Public Function PopByKey(key)
+        Dim i, removedItem, found
+        found = False
+        Set removedItem = Nothing
+    
+        ' Loop through the stack to find the item with the matching key
+        For i = LBound(stack) To UBound(stack)
+            If stack(i)("Key") = key Then
+                ' Store the item to be removed
+                Set removedItem = stack(i)
+                found = True
+    
+                ' Shift all elements after the removed item to the left
+                Dim j
+                For j = i To UBound(stack) - 1
+                    Set stack(j) = stack(j + 1)
+                Next
+    
+                ' Resize the array to remove the last element
+                ReDim Preserve stack(UBound(stack) - 1)
+                Exit For
+            End If
+        Next
+    
+        ' Return the removed item (or Nothing if not found)
+        If found Then
+            Set PopByKey = removedItem
+        Else
+            Set PopByKey = Nothing
+        End If
+    End Function
+    
+
     ' Get the current top color without popping it
     Public Function Peek()
         If UBound(stack) >= 0 Then

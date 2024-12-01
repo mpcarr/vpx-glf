@@ -191,7 +191,7 @@ Class GlfRunningShow
             
             If Not lightStack.IsEmpty() Then
                 ' Pop the current top color
-                lightStack.Pop()
+                lightStack.PopByKey(m_show_name & "_" & m_key)
             End If
             
             If Not lightStack.IsEmpty() Then
@@ -242,7 +242,7 @@ Function GlfShowStepHandler(args)
     End If
     If running_show.CurrentStep > running_show.TotalSteps Then
         'End of Show
-        'glf_debugLog.WriteToLog "Running Show", "END OF SHOW"
+        glf_debugLog.WriteToLog "Running Show", "END OF SHOW"
         If running_show.ShowSettings.Loops = -1 Or running_show.ShowSettings.Loops > 1 Then
             If running_show.ShowSettings.Loops > 1 Then
                 running_show.ShowSettings.Loops = running_show.ShowSettings.Loops - 1
