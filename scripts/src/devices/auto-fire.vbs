@@ -73,18 +73,18 @@ Class GlfAutoFireDevice
         RemovePinEventListener m_switch & "_inactive", m_name & "_inactive"
     End Sub
 
-    Public Sub Activate()
+    Public Sub Activate(active_ball)
         Log "Activating"
         If Not IsEmpty(m_action_cb) Then
-            GetRef(m_action_cb)(1)
+            GetRef(m_action_cb)(Array(1, active_ball))
         End If
         DispatchPinEvent m_name & "_activate", Null
     End Sub
 
-    Public Sub Deactivate()
+    Public Sub Deactivate(active_ball)
         Log "Deactivating"
         If Not IsEmpty(m_action_cb) Then
-            GetRef(m_action_cb)(0)
+            GetRef(m_action_cb)(Array(0, active_ball))
         End If
         DispatchPinEvent m_name & "_deactivate", Null
     End Sub
@@ -97,7 +97,12 @@ Class GlfAutoFireDevice
 End Class
 
 Function AutoFireDeviceEventHandler(args)
-    Dim ownProps, kwargs : ownProps = args(0) : kwargs = args(1) 
+    Dim ownProps, kwargs : ownProps = args(0)
+    If IsObject(args(1)) Then
+        Set kwargs = args(1)
+    Else
+        kwargs = args(1) 
+    End If
     Dim evt : evt = ownProps(0)
     Dim flipper : Set flipper = ownProps(1)
     Select Case evt
@@ -106,9 +111,13 @@ Function AutoFireDeviceEventHandler(args)
         Case "disable"
             flipper.Disable
         Case "activate"
-            flipper.Activate
+            flipper.Activate kwargs
         Case "deactivate"
-            flipper.Deactivate
+            flipper.Deactivate kwargs
     End Select
-    AutoFireDeviceEventHandler = kwargs
+    If IsObject(args(1)) Then
+        Set AutoFireDeviceEventHandler = kwargs
+    Else
+        AutoFireDeviceEventHandler = kwargs
+    End If
 End Function

@@ -99,7 +99,12 @@ Class GlfFlipper
 End Class
 
 Function FlipperEventHandler(args)
-    Dim ownProps, kwargs : ownProps = args(0) : kwargs = args(1) 
+    Dim ownProps, kwargs : ownProps = args(0)
+    If IsObject(args(1)) Then
+        Set kwargs = args(1)
+    Else
+        kwargs = args(1) 
+    End If
     Dim evt : evt = ownProps(0)
     Dim flipper : Set flipper = ownProps(1)
     Select Case evt
@@ -112,5 +117,9 @@ Function FlipperEventHandler(args)
         Case "deactivate"
             flipper.Deactivate
     End Select
-    FlipperEventHandler = kwargs
+    If IsObject(args(1)) Then
+        Set FlipperEventHandler = kwargs
+    Else
+        FlipperEventHandler = kwargs
+    End If
 End Function
