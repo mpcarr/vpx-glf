@@ -2233,6 +2233,8 @@ Class GlfLightPlayer
         End If
     End Property
 
+    Public Property Let Debug(value) : m_debug = value : End Property
+
 	Public default Function init(mode)
         m_name = "light_player_" & mode.name
         m_mode = mode.Name
@@ -2259,7 +2261,7 @@ Class GlfLightPlayer
     End Sub
 
     Public Sub ReloadLights()
-        m_base_device.Log "Reloading Lights"
+        Log "Reloading Lights"
         Dim evt
         For Each evt in m_events.Keys()
             Dim lightName, light
@@ -2270,7 +2272,7 @@ Class GlfLightPlayer
                 lightsCount = 0
                 If Not glf_lightNames.Exists(lightName) Then
                     tagLights = glf_lightTags("T_"&lightName).Keys()
-                    m_base_device.Log "Tag Lights: " & Join(tagLights)
+                    Log "Tag Lights: " & Join(tagLights)
                     For Each tagLight in tagLights
                         lightsCount = lightsCount + 1
                     Next
@@ -2278,7 +2280,7 @@ Class GlfLightPlayer
                     lightsCount = lightsCount + 1
                 End If
             Next
-            m_base_device.Log "Adding " & lightsCount & " lights for event: " & evt 
+            Log "Adding " & lightsCount & " lights for event: " & evt 
             Dim seqArray
             ReDim seqArray(lightsCount-1)
             x=0
@@ -2297,7 +2299,7 @@ Class GlfLightPlayer
                     x=x+1
                 End If
             Next
-            m_base_device.Log "Light List: " & Join(seqArray)
+            Log "Light List: " & Join(seqArray)
             m_events(evt).LightSeq = seqArray
         Next   
     End Sub
@@ -2308,6 +2310,12 @@ Class GlfLightPlayer
 
     Public Sub PlayOff(evt, lights)
         LightPlayerCallbackHandler evt, Null, m_name, m_priority
+    End Sub
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
     End Sub
 
     Public Function ToYaml()
@@ -6910,7 +6918,7 @@ Class GlfAutoFireDevice
         DisableEvents = Array("ball_will_end", "service_mode_entered")
         m_enabled = False
         m_action_cb = Empty
-        m_switch = Array()
+        m_switch = Empty
         m_debug = False
         glf_autofiredevices.Add name, Me
         Set Init = Me
@@ -6919,7 +6927,10 @@ Class GlfAutoFireDevice
     Public Sub Enable()
         Log "Enabling"
         m_enabled = True
-        AddPinEventListener m_switch & "_active", m_name & "_active", "AutoFireDeviceEventHandler", 1000, Array("activate", Me)
+        If Not IsEmpty(m_switch) Then
+            AddPinEventListener m_switch & "_active", m_name & "_active", "AutoFireDeviceEventHandler", 1000, Array("activate", Me)
+            AddPinEventListener m_switch & "_inactive", m_name & "_inactive", "AutoFireDeviceEventHandler", 1000, Array("deactivate", Me)
+        End If
     End Sub
 
     Public Sub Disable()
@@ -6927,6 +6938,7 @@ Class GlfAutoFireDevice
         m_enabled = False
         Deactivate()
         RemovePinEventListener m_switch & "_active", m_name & "_active"
+        RemovePinEventListener m_switch & "_inactive", m_name & "_inactive"
     End Sub
 
     Public Sub Activate()
@@ -6938,7 +6950,7 @@ Class GlfAutoFireDevice
     End Sub
 
     Public Sub Deactivate()
-        Log "Activating"
+        Log "Deactivating"
         If Not IsEmpty(m_action_cb) Then
             GetRef(m_action_cb)(0)
         End If
@@ -7549,12 +7561,12 @@ Class GlfFlipper
     Private m_enable_events
     Private m_disable_events
     Private m_enabled
-    Private m_switches
+    Private m_switch
     Private m_action_cb
     Private m_debug
 
     Public Property Let Switch(value)
-        m_switches = value
+        m_switch = value
     End Property
     Public Property Let ActionCallback(value) : m_action_cb = value : End Property
     Public Property Let EnableEvents(value)
@@ -7589,7 +7601,7 @@ Class GlfFlipper
         DisableEvents = Array("ball_will_end", "service_mode_entered")
         m_enabled = False
         m_action_cb = Empty
-        m_switches = Array()
+        m_switch = Empty
         m_debug = False
         glf_flippers.Add name, Me
         Set Init = Me
@@ -7599,10 +7611,10 @@ Class GlfFlipper
         Log "Enabling"
         m_enabled = True
         Dim evt
-        For Each evt in m_switches
-            AddPinEventListener evt & "_active", m_name & "_active", "FlipperEventHandler", 1000, Array("activate", Me)
-            AddPinEventListener evt & "_inactive", m_name & "_inactive", "FlipperEventHandler", 1000, Array("deactivate", Me)
-        Next
+        If Not IsEmpty(m_switch) Then
+            AddPinEventListener m_switch & "_active", m_name & "_active", "FlipperEventHandler", 1000, Array("activate", Me)
+            AddPinEventListener m_switch & "_inactive", m_name & "_inactive", "FlipperEventHandler", 1000, Array("deactivate", Me)
+        End If
     End Sub
 
     Public Sub Disable()
@@ -7610,10 +7622,8 @@ Class GlfFlipper
         m_enabled = False
         Deactivate()
         Dim evt
-        For Each evt in m_switches
-            RemovePinEventListener evt & "_active", m_name & "_active"
-            RemovePinEventListener evt & "_inactive", m_name & "_inactive"
-        Next
+        RemovePinEventListener m_switch & "_active", m_name & "_active"
+        RemovePinEventListener m_switch & "_inactive", m_name & "_inactive"
     End Sub
 
     Public Sub Activate()
@@ -7625,7 +7635,7 @@ Class GlfFlipper
     End Sub
 
     Public Sub Deactivate()
-        Log "Activating"
+        Log "Deactivating"
         If Not IsEmpty(m_action_cb) Then
             GetRef(m_action_cb)(0)
         End If

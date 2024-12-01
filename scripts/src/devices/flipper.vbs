@@ -10,12 +10,12 @@ Class GlfFlipper
     Private m_enable_events
     Private m_disable_events
     Private m_enabled
-    Private m_switches
+    Private m_switch
     Private m_action_cb
     Private m_debug
 
     Public Property Let Switch(value)
-        m_switches = value
+        m_switch = value
     End Property
     Public Property Let ActionCallback(value) : m_action_cb = value : End Property
     Public Property Let EnableEvents(value)
@@ -50,7 +50,7 @@ Class GlfFlipper
         DisableEvents = Array("ball_will_end", "service_mode_entered")
         m_enabled = False
         m_action_cb = Empty
-        m_switches = Array()
+        m_switch = Empty
         m_debug = False
         glf_flippers.Add name, Me
         Set Init = Me
@@ -60,10 +60,10 @@ Class GlfFlipper
         Log "Enabling"
         m_enabled = True
         Dim evt
-        For Each evt in m_switches
-            AddPinEventListener evt & "_active", m_name & "_active", "FlipperEventHandler", 1000, Array("activate", Me)
-            AddPinEventListener evt & "_inactive", m_name & "_inactive", "FlipperEventHandler", 1000, Array("deactivate", Me)
-        Next
+        If Not IsEmpty(m_switch) Then
+            AddPinEventListener m_switch & "_active", m_name & "_active", "FlipperEventHandler", 1000, Array("activate", Me)
+            AddPinEventListener m_switch & "_inactive", m_name & "_inactive", "FlipperEventHandler", 1000, Array("deactivate", Me)
+        End If
     End Sub
 
     Public Sub Disable()
@@ -71,10 +71,8 @@ Class GlfFlipper
         m_enabled = False
         Deactivate()
         Dim evt
-        For Each evt in m_switches
-            RemovePinEventListener evt & "_active", m_name & "_active"
-            RemovePinEventListener evt & "_inactive", m_name & "_inactive"
-        Next
+        RemovePinEventListener m_switch & "_active", m_name & "_active"
+        RemovePinEventListener m_switch & "_inactive", m_name & "_inactive"
     End Sub
 
     Public Sub Activate()
@@ -86,7 +84,7 @@ Class GlfFlipper
     End Sub
 
     Public Sub Deactivate()
-        Log "Activating"
+        Log "Deactivating"
         If Not IsEmpty(m_action_cb) Then
             GetRef(m_action_cb)(0)
         End If

@@ -50,7 +50,7 @@ Class GlfAutoFireDevice
         DisableEvents = Array("ball_will_end", "service_mode_entered")
         m_enabled = False
         m_action_cb = Empty
-        m_switch = Array()
+        m_switch = Empty
         m_debug = False
         glf_autofiredevices.Add name, Me
         Set Init = Me
@@ -59,7 +59,10 @@ Class GlfAutoFireDevice
     Public Sub Enable()
         Log "Enabling"
         m_enabled = True
-        AddPinEventListener m_switch & "_active", m_name & "_active", "AutoFireDeviceEventHandler", 1000, Array("activate", Me)
+        If Not IsEmpty(m_switch) Then
+            AddPinEventListener m_switch & "_active", m_name & "_active", "AutoFireDeviceEventHandler", 1000, Array("activate", Me)
+            AddPinEventListener m_switch & "_inactive", m_name & "_inactive", "AutoFireDeviceEventHandler", 1000, Array("deactivate", Me)
+        End If
     End Sub
 
     Public Sub Disable()
@@ -67,6 +70,7 @@ Class GlfAutoFireDevice
         m_enabled = False
         Deactivate()
         RemovePinEventListener m_switch & "_active", m_name & "_active"
+        RemovePinEventListener m_switch & "_inactive", m_name & "_inactive"
     End Sub
 
     Public Sub Activate()
@@ -78,7 +82,7 @@ Class GlfAutoFireDevice
     End Sub
 
     Public Sub Deactivate()
-        Log "Activating"
+        Log "Deactivating"
         If Not IsEmpty(m_action_cb) Then
             GetRef(m_action_cb)(0)
         End If
