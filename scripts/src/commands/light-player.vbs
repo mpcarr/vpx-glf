@@ -22,6 +22,8 @@ Class GlfLightPlayer
         End If
     End Property
 
+    Public Property Let Debug(value) : m_debug = value : End Property
+
 	Public default Function init(mode)
         m_name = "light_player_" & mode.name
         m_mode = mode.Name
@@ -48,7 +50,7 @@ Class GlfLightPlayer
     End Sub
 
     Public Sub ReloadLights()
-        m_base_device.Log "Reloading Lights"
+        Log "Reloading Lights"
         Dim evt
         For Each evt in m_events.Keys()
             Dim lightName, light
@@ -59,7 +61,7 @@ Class GlfLightPlayer
                 lightsCount = 0
                 If Not glf_lightNames.Exists(lightName) Then
                     tagLights = glf_lightTags("T_"&lightName).Keys()
-                    m_base_device.Log "Tag Lights: " & Join(tagLights)
+                    Log "Tag Lights: " & Join(tagLights)
                     For Each tagLight in tagLights
                         lightsCount = lightsCount + 1
                     Next
@@ -67,7 +69,7 @@ Class GlfLightPlayer
                     lightsCount = lightsCount + 1
                 End If
             Next
-            m_base_device.Log "Adding " & lightsCount & " lights for event: " & evt 
+            Log "Adding " & lightsCount & " lights for event: " & evt 
             Dim seqArray
             ReDim seqArray(lightsCount-1)
             x=0
@@ -86,7 +88,7 @@ Class GlfLightPlayer
                     x=x+1
                 End If
             Next
-            m_base_device.Log "Light List: " & Join(seqArray)
+            Log "Light List: " & Join(seqArray)
             m_events(evt).LightSeq = seqArray
         Next   
     End Sub
@@ -97,6 +99,12 @@ Class GlfLightPlayer
 
     Public Sub PlayOff(evt, lights)
         LightPlayerCallbackHandler evt, Null, m_name, m_priority
+    End Sub
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
     End Sub
 
     Public Function ToYaml()

@@ -6,6 +6,7 @@ Class GlfBallHold
     Private m_priority
     Private m_mode
     Private m_base_device
+    Private m_debug
 
     Private m_enabled
     Private m_balls_to_hold
@@ -17,6 +18,9 @@ Class GlfBallHold
     Private m_release_one_if_full_events
 
     Public Property Get Name() : Name = m_name : End Property
+    Public Property Let Debug(value)
+        m_debug = value
+    End Property
 
     Public Property Let EnableEvents(value) : m_base_device.EnableEvents = value : End Property
     Public Property Let DisableEvents(value) : m_base_device.DisableEvents = value : End Property
@@ -140,7 +144,7 @@ Class GlfBallHold
     Public Function HoldBall(device, unclaimed_balls)        
         ' Handle result of _ball_enter event of hold_devices.
         If IsFull() Then
-            m_base_device.Log "Cannot hold balls. Hold is full."
+            Log "Cannot hold balls. Hold is full."
             HoldBall = unclaimed_balls
             Exit Function
         End If
@@ -158,7 +162,7 @@ Class GlfBallHold
             balls_to_hold = unclaimed_balls
         End If
         m_balls_held = m_balls_held + balls_to_hold
-        m_base_device.Log "Held " & balls_to_hold & " balls"
+        Log "Held " & balls_to_hold & " balls"
 
         Dim kwargs : Set kwargs = GlfKwargs()
         With kwargs
@@ -200,7 +204,7 @@ Class GlfBallHold
 
         Dim remaining_balls_to_release : remaining_balls_to_release = balls_to_release
 
-        m_base_device.Log "Releasing up to " & balls_to_release & " balls from hold"
+        Log "Releasing up to " & balls_to_release & " balls from hold"
         Dim balls_released : balls_released = 0
         Do While Ubound(m_hold_queue.Keys()) > -1
             Dim keys : keys = m_hold_queue.Keys()
@@ -241,6 +245,12 @@ Class GlfBallHold
         m_balls_held = m_balls_held - balls_released
         ReleaseBalls = balls_released
     End Function
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
+    End Sub
 
     Public Function ToYaml()
         Dim yaml

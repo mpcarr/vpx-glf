@@ -32,9 +32,6 @@ Dim delayCallbacks : Set delayCallbacks = CreateObject("Scripting.Dictionary")
 Sub SetDelay(name, callbackFunc, args, delayInMs)
     Dim executionTime
     executionTime = gametime + delayInMs
-    'If gametime >= executionTime Then
-    '    executionTime = executionTime + 100
-    'End If
     
     If delayQueueMap.Exists(name) Then
         delayQueueMap.Remove name
@@ -48,8 +45,7 @@ Sub SetDelay(name, callbackFunc, args, delayInMs)
     Else
         delayQueue.Add executionTime, CreateObject("Scripting.Dictionary")
     End If
-
-    'glf_debugLog.WriteToLog "Delay", "Adding delay for " & name & ", callback: " & callbackFunc & ", ExecutionTime: " & executionTime
+    Glf_WriteDebugLog "Delay", "Adding delay for " & name & ", callback: " & callbackFunc & ", ExecutionTime: " & executionTime
     delayQueue(executionTime).Add name, (new DelayObject)(name, callbackFunc, executionTime, args)
     delayQueueMap.Add name, executionTime
     
@@ -63,12 +59,12 @@ Function RemoveDelay(name)
     If delayQueueMap.Exists(name) Then
         If delayQueue.Exists(delayQueueMap(name)) Then
             If delayQueue(delayQueueMap(name)).Exists(name) Then
-                'glf_debugLog.WriteToLog "Delay", "Removing delay for " & name & " and  Execution Time: " & delayQueueMap(name)
+                Glf_WriteDebugLog "Delay", "Removing delay for " & name & " and  Execution Time: " & delayQueueMap(name)
                 delayQueue(delayQueueMap(name)).Remove name
             End If
             delayQueueMap.Remove name
             RemoveDelay = True
-            'glf_debugLog.WriteToLog "Delay", "Removing delay for " & name
+            Glf_WriteDebugLog "Delay", "Removing delay for " & name
             Exit Function
         End If
     End If
@@ -82,7 +78,7 @@ Sub DelayTick()
             For Each key In delayQueue(queueItem).Keys()
                 If IsObject(delayQueue(queueItem)(key)) Then
                     Set delayObject = delayQueue(queueItem)(key)
-                    'glf_debugLog.WriteToLog "Delay", "Executing delay: " & key & ", callback: " & delayObject.Callback
+                    Glf_WriteDebugLog "Delay", "Executing delay: " & key & ", callback: " & delayObject.Callback
                     GetRef(delayObject.Callback)(delayObject.Args)    
                 End If
             Next

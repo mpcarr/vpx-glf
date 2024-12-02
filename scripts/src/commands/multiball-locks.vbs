@@ -58,7 +58,7 @@ Class GlfMultiballLocks
     End Sub
 
     Public Sub Enable()
-        m_base_device.Log "Enabling"
+        Log "Enabling"
         AddPinEventListener "balldevice_" & m_lock_device & "_ball_enter", m_mode & "_" & name & "_lock", "MultiballLocksHandler", m_priority, Array("lock", me, m_lock_device)
         Dim evt
         For Each evt in m_lock_events
@@ -70,7 +70,7 @@ Class GlfMultiballLocks
     End Sub
 
     Public Sub Disable()
-        m_base_device.Log "Disabling"
+        Log "Disabling"
         RemovePinEventListener "balldevice_" & m_lock_device & "_ball_enter", m_mode & "_" & name & "_lock"
         Dim evt
         For Each evt in m_lock_events
@@ -95,7 +95,7 @@ Class GlfMultiballLocks
             balls_locked = GetPlayerState(m_name & "_balls_locked") + 1
         End If
         If balls_locked > m_balls_to_lock Then
-            m_base_device.Log "Cannot lock balls. Lock is full."
+            Log "Cannot lock balls. Lock is full."
             Lock = unclaimed_balls
             Exit Function
         End If
@@ -126,6 +126,12 @@ Class GlfMultiballLocks
 
     Public Sub Reset
         SetPlayerState m_name & "_balls_locked", 0
+    End Sub
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
     End Sub
 
 End Class

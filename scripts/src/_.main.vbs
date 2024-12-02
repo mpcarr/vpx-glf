@@ -54,12 +54,19 @@ Dim glf_lastTroughSw : glf_lastTroughSw = Null
 
 Dim glf_debugLog : Set glf_debugLog = (new GlfDebugLogFile)()
 Dim glf_debugEnabled : glf_debugEnabled = False
+Dim glf_debug_level : glf_debug_level = "Info"
 
 Glf_RegisterLights()
 Dim glf_ball1, glf_ball2, glf_ball3, glf_ball4, glf_ball5, glf_ball6, glf_ball7, glf_ball8	
 
 Public Sub Glf_ConnectToBCPMediaController
     Set bcpController = (new GlfVpxBcpController)(bcpPort, bcpExeName)
+End Sub
+
+Public Sub Glf_WriteDebugLog(name, message)
+	If glf_debug_level = "Debug" Then
+		glf_debugLog.WriteToLog name, message
+	End If
 End Sub
 
 Public Sub Glf_Init()
@@ -238,7 +245,7 @@ Public Sub Glf_Init()
 	show_count = 0
 	shot_count = 0
 	For Each mode in glf_modes.Items()
-		glf_debugLog.WriteToLog "Init", mode.Name
+		Glf_WriteDebugLog "Init", mode.Name
 		If Not IsNull(mode.ShowPlayer) Then
 			With mode.ShowPlayer()
 				Dim show_settings
@@ -246,7 +253,6 @@ Public Sub Glf_Init()
 					If Not IsNull(show_settings.Show) And show_settings.Action = "play" Then
 						show_settings.InternalCacheId = CStr(show_count)
 						show_count = show_count + 1
-						glf_debugLog.WriteToLog "Show Settings", "show_player_" & mode.name & "_" & show_settings.Key & "_" & show_settings.InternalCacheId
 						cached_show = Glf_ConvertShow(show_settings.Show, show_settings.Tokens)
 						glf_cached_shows.Add "show_player_" & mode.name & "_" & show_settings.Key & "__" & show_settings.InternalCacheId, cached_show
 					End If 
@@ -276,8 +282,6 @@ Public Sub Glf_Init()
 						state.InternalCacheId = CStr(show_count)
 						show_count = show_count + 1
 					End If
-
-					glf_debugLog.WriteToLog "Shot State", mode.name & "_" & x & "_" & mode_shot.Name & "_" & state.Key & "_" & mode_shot.InternalCacheId & "_" & state.InternalCacheId
 
 					Dim key
 					Dim mergedTokens : Set mergedTokens = CreateObject("Scripting.Dictionary")
@@ -327,6 +331,13 @@ Sub Glf_Options(ByVal eventId)
 	Else
 		glf_debugEnabled = False
 		glf_debugLog.DisableLogs
+	End If
+
+	Dim glfDebugLevel : glfDebugLevel = Table1.Option("Glf Debug Log Level", 0, 1, 1, 0, 0, Array("Info", "Debug"))
+	If glfDebugLevel = 1 Then
+		glf_debug_level = "Debug"
+	Else
+		glf_debug_level = "Info"
 	End If
 
 	Dim glfuseBCP : glfuseBCP = Table1.Option("Glf Backbox Control Protocol", 0, 1, 1, 0, 0, Array("Off", "On"))
@@ -989,7 +1000,7 @@ Function Glf_ConvertShow(show, tokens)
 				End If
 			End If
 		Next
-		glf_debugLog.WriteToLog "Convert Show", Join(seqArray)
+		'Glf_WriteDebugLog "Convert Show", Join(seqArray)
 		newShow(stepIdx) = seqArray
 		stepIdx = stepIdx + 1
 	Next

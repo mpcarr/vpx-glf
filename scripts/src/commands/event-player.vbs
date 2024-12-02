@@ -4,11 +4,16 @@ Class GlfEventPlayer
 
     Private m_priority
     Private m_mode
+    Private m_debug
     private m_base_device
     Private m_events
     Private m_eventValues
 
     Public Property Get Name() : Name = "event_player" : End Property
+    Public Property Let Debug(value)
+        m_debug = value
+    End Property
+
     Public Property Get Events() : Set Events = m_events : End Property
 
 	Public default Function init(mode)
@@ -53,6 +58,12 @@ Class GlfEventPlayer
         For Each evtValue In m_eventValues(evt)
             DispatchPinEvent evtValue, Null
         Next
+    End Sub
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
     End Sub
 
     Public Function ToYaml()

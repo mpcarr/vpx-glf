@@ -113,6 +113,11 @@ Class GlfPushTransition
 
     End Function
 
+    Private Sub Log(message)
+        Glf_WriteDebugLog m_name, message
+    End Sub
+
+
     ' Start the transition process
     Public Sub StartTransition(current_text, new_text)
         m_current_step = 0
@@ -124,10 +129,10 @@ Class GlfPushTransition
         While m_current_step < m_total_steps
             Dim result
             result = GetTransitionStep(m_current_step, current_text, new_text)
-            m_base_device.Log "Step " & m_current_step & ": " & result
+            Log "Step " & m_current_step & ": " & result
             m_current_step = m_current_step + 1
         Wend
-        m_base_device.Log "Transition complete for: " & m_name
+        Log "Transition complete for: " & m_name
     End Sub
 
 End Class

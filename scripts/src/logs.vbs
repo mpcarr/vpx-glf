@@ -6,7 +6,8 @@ Class GlfDebugLogFile
 	Private TxtFileStream
 
 	Public default Function init()
-        Filename = cGameName + "_" & GetTimeStamp & "_debug_log.txt"
+        Dim timestamp : timestamp = GetTimeStamp(True)
+        Filename = cGameName + "_" & timestamp & "_debug_log.txt"
 		TxtFileStream = Null
 		Set Init = Me
 	End Function
@@ -36,26 +37,33 @@ Class GlfDebugLogFile
 		LZ = Right(Zeros & CStr(Number), Places)
 	End Function
 	
-	Private Function GetTimeStamp
+	Private Function GetTimeStamp(full)
 		Dim CurrTime, Elapsed, MilliSecs
 		CurrTime = Now()
 		Elapsed = Timer()
 		MilliSecs = Int((Elapsed - Int(Elapsed)) * 1000)
-		GetTimeStamp = _
-		LZ(Year(CurrTime),   4) & "-" _
-		 & LZ(Month(CurrTime),  2) & "-" _
-		 & LZ(Day(CurrTime),	2) & "_" _
-		 & LZ(Hour(CurrTime),   2) & "_" _
-		 & LZ(Minute(CurrTime), 2) & "_" _
-		 & LZ(Second(CurrTime), 2) & "_" _
-		 & LZ(MilliSecs, 4)
+        If full = True Then
+            GetTimeStamp = _
+            LZ(Year(CurrTime),   4) & "-" _
+            & LZ(Month(CurrTime),  2) & "-" _
+            & LZ(Day(CurrTime),	2) & "_" _
+            & LZ(Hour(CurrTime),   2) & "_" _
+            & LZ(Minute(CurrTime), 2) & "_" _
+            & LZ(Second(CurrTime), 2) & "_" _
+            & LZ(MilliSecs, 4)
+        Else
+            GetTimeStamp = _
+            LZ(Hour(CurrTime),   2) & "_" _
+            & LZ(Minute(CurrTime), 2) & "_" _
+            & LZ(Second(CurrTime), 2)
+        End If
 	End Function
 	
 	' *** Debug.Print the time with milliseconds, and a message of your choice
 	Public Sub WriteToLog(label, message)
 		If glf_debugEnabled = True Then
 			Dim FormattedMsg, Timestamp
-			Timestamp = GetTimeStamp
+			Timestamp = GetTimeStamp(False)
 			FormattedMsg = Timestamp & ": " & label & ": " & message
 			TxtFileStream.WriteLine FormattedMsg
 			Debug.Print label & ": " & message

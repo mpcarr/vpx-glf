@@ -54,12 +54,19 @@ Dim glf_lastTroughSw : glf_lastTroughSw = Null
 
 Dim glf_debugLog : Set glf_debugLog = (new GlfDebugLogFile)()
 Dim glf_debugEnabled : glf_debugEnabled = False
+Dim glf_debug_level : glf_debug_level = "Info"
 
 Glf_RegisterLights()
 Dim glf_ball1, glf_ball2, glf_ball3, glf_ball4, glf_ball5, glf_ball6, glf_ball7, glf_ball8	
 
 Public Sub Glf_ConnectToBCPMediaController
     Set bcpController = (new GlfVpxBcpController)(bcpPort, bcpExeName)
+End Sub
+
+Public Sub Glf_WriteDebugLog(name, message)
+	If glf_debug_level = "Debug" Then
+		glf_debugLog.WriteToLog name, message
+	End If
 End Sub
 
 Public Sub Glf_Init()
@@ -238,7 +245,7 @@ Public Sub Glf_Init()
 	show_count = 0
 	shot_count = 0
 	For Each mode in glf_modes.Items()
-		glf_debugLog.WriteToLog "Init", mode.Name
+		Glf_WriteDebugLog "Init", mode.Name
 		If Not IsNull(mode.ShowPlayer) Then
 			With mode.ShowPlayer()
 				Dim show_settings
@@ -246,7 +253,6 @@ Public Sub Glf_Init()
 					If Not IsNull(show_settings.Show) And show_settings.Action = "play" Then
 						show_settings.InternalCacheId = CStr(show_count)
 						show_count = show_count + 1
-						glf_debugLog.WriteToLog "Show Settings", "show_player_" & mode.name & "_" & show_settings.Key & "_" & show_settings.InternalCacheId
 						cached_show = Glf_ConvertShow(show_settings.Show, show_settings.Tokens)
 						glf_cached_shows.Add "show_player_" & mode.name & "_" & show_settings.Key & "__" & show_settings.InternalCacheId, cached_show
 					End If 
@@ -276,8 +282,6 @@ Public Sub Glf_Init()
 						state.InternalCacheId = CStr(show_count)
 						show_count = show_count + 1
 					End If
-
-					glf_debugLog.WriteToLog "Shot State", mode.name & "_" & x & "_" & mode_shot.Name & "_" & state.Key & "_" & mode_shot.InternalCacheId & "_" & state.InternalCacheId
 
 					Dim key
 					Dim mergedTokens : Set mergedTokens = CreateObject("Scripting.Dictionary")
@@ -327,6 +331,13 @@ Sub Glf_Options(ByVal eventId)
 	Else
 		glf_debugEnabled = False
 		glf_debugLog.DisableLogs
+	End If
+
+	Dim glfDebugLevel : glfDebugLevel = Table1.Option("Glf Debug Log Level", 0, 1, 1, 0, 0, Array("Info", "Debug"))
+	If glfDebugLevel = 1 Then
+		glf_debug_level = "Debug"
+	Else
+		glf_debug_level = "Info"
 	End If
 
 	Dim glfuseBCP : glfuseBCP = Table1.Option("Glf Backbox Control Protocol", 0, 1, 1, 0, 0, Array("Off", "On"))
@@ -989,7 +1000,7 @@ Function Glf_ConvertShow(show, tokens)
 				End If
 			End If
 		Next
-		glf_debugLog.WriteToLog "Convert Show", Join(seqArray)
+		'Glf_WriteDebugLog "Convert Show", Join(seqArray)
 		newShow(stepIdx) = seqArray
 		stepIdx = stepIdx + 1
 	Next
@@ -1365,6 +1376,7 @@ Class GlfBallHold
     Private m_priority
     Private m_mode
     Private m_base_device
+    Private m_debug
 
     Private m_enabled
     Private m_balls_to_hold
@@ -1376,6 +1388,9 @@ Class GlfBallHold
     Private m_release_one_if_full_events
 
     Public Property Get Name() : Name = m_name : End Property
+    Public Property Let Debug(value)
+        m_debug = value
+    End Property
 
     Public Property Let EnableEvents(value) : m_base_device.EnableEvents = value : End Property
     Public Property Let DisableEvents(value) : m_base_device.DisableEvents = value : End Property
@@ -1499,7 +1514,7 @@ Class GlfBallHold
     Public Function HoldBall(device, unclaimed_balls)        
         ' Handle result of _ball_enter event of hold_devices.
         If IsFull() Then
-            m_base_device.Log "Cannot hold balls. Hold is full."
+            Log "Cannot hold balls. Hold is full."
             HoldBall = unclaimed_balls
             Exit Function
         End If
@@ -1517,7 +1532,7 @@ Class GlfBallHold
             balls_to_hold = unclaimed_balls
         End If
         m_balls_held = m_balls_held + balls_to_hold
-        m_base_device.Log "Held " & balls_to_hold & " balls"
+        Log "Held " & balls_to_hold & " balls"
 
         Dim kwargs : Set kwargs = GlfKwargs()
         With kwargs
@@ -1559,7 +1574,7 @@ Class GlfBallHold
 
         Dim remaining_balls_to_release : remaining_balls_to_release = balls_to_release
 
-        m_base_device.Log "Releasing up to " & balls_to_release & " balls from hold"
+        Log "Releasing up to " & balls_to_release & " balls from hold"
         Dim balls_released : balls_released = 0
         Do While Ubound(m_hold_queue.Keys()) > -1
             Dim keys : keys = m_hold_queue.Keys()
@@ -1600,6 +1615,12 @@ Class GlfBallHold
         m_balls_held = m_balls_held - balls_released
         ReleaseBalls = balls_released
     End Function
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
+    End Sub
 
     Public Function ToYaml()
         Dim yaml
@@ -2121,11 +2142,16 @@ Class GlfEventPlayer
 
     Private m_priority
     Private m_mode
+    Private m_debug
     private m_base_device
     Private m_events
     Private m_eventValues
 
     Public Property Get Name() : Name = "event_player" : End Property
+    Public Property Let Debug(value)
+        m_debug = value
+    End Property
+
     Public Property Get Events() : Set Events = m_events : End Property
 
 	Public default Function init(mode)
@@ -2170,6 +2196,12 @@ Class GlfEventPlayer
         For Each evtValue In m_eventValues(evt)
             DispatchPinEvent evtValue, Null
         Next
+    End Sub
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
     End Sub
 
     Public Function ToYaml()
@@ -2884,8 +2916,60 @@ Class Mode
             AddPinEventListener newEvent.EventName, m_name & "_stop", "ModeEventHandler", m_priority+1, Array("stop", Me, newEvent)
         Next
     End Property
+
     Public Property Let Debug(value)
         m_debug = value
+        Dim config_item
+        For Each config_item in m_ballsaves.Items()
+            config_item.Debug = value
+        Next
+        For Each config_item in m_counters.Items()
+            config_item.Debug = value
+        Next
+        For Each config_item in m_timers.Items()
+            config_item.Debug = value
+        Next
+        For Each config_item in m_multiball_locks.Items()
+            config_item.Debug = value
+        Next
+        For Each config_item in m_multiballs.Items()
+            config_item.Debug = value
+        Next
+        For Each config_item in m_shots.Items()
+            config_item.Debug = value
+        Next
+        For Each config_item in m_shot_groups.Items()
+            config_item.Debug = value
+        Next
+        For Each config_item in m_ballholds.Items()
+            config_item.Debug = value
+        Next
+        For Each config_item in m_shot_profiles.Items()
+            config_item.Debug = value
+        Next
+        For Each config_item in m_sequence_shots.Items()
+            config_item.Debug = value
+        Next
+        For Each config_item in m_state_machines.Items()
+            config_item.Debug = value
+        Next
+        If Not IsNull(m_lightplayer) Then
+            m_lightplayer.Debug = value
+        End If
+        If Not IsNull(m_eventplayer) Then
+            m_eventplayer.Debug = value
+        End If
+        If Not IsNull(m_showplayer) Then
+            m_showplayer.Debug = value
+        End If
+        If Not IsNull(m_segment_display_player) Then
+            m_segment_display_player.Debug = value
+        End If
+        If Not IsNull(m_variableplayer) Then
+            m_variableplayer.Debug = value
+        End If
+
+
     End Property
 
 	Public default Function init(name, priority)
@@ -3182,7 +3266,7 @@ Class GlfMultiballLocks
     End Sub
 
     Public Sub Enable()
-        m_base_device.Log "Enabling"
+        Log "Enabling"
         AddPinEventListener "balldevice_" & m_lock_device & "_ball_enter", m_mode & "_" & name & "_lock", "MultiballLocksHandler", m_priority, Array("lock", me, m_lock_device)
         Dim evt
         For Each evt in m_lock_events
@@ -3194,7 +3278,7 @@ Class GlfMultiballLocks
     End Sub
 
     Public Sub Disable()
-        m_base_device.Log "Disabling"
+        Log "Disabling"
         RemovePinEventListener "balldevice_" & m_lock_device & "_ball_enter", m_mode & "_" & name & "_lock"
         Dim evt
         For Each evt in m_lock_events
@@ -3219,7 +3303,7 @@ Class GlfMultiballLocks
             balls_locked = GetPlayerState(m_name & "_balls_locked") + 1
         End If
         If balls_locked > m_balls_to_lock Then
-            m_base_device.Log "Cannot lock balls. Lock is full."
+            Log "Cannot lock balls. Lock is full."
             Lock = unclaimed_balls
             Exit Function
         End If
@@ -3250,6 +3334,12 @@ Class GlfMultiballLocks
 
     Public Sub Reset
         SetPlayerState m_name & "_balls_locked", 0
+    End Sub
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
     End Sub
 
 End Class
@@ -3400,7 +3490,7 @@ Class GlfMultiballs
     End Sub
 
     Public Sub Enable()
-        m_base_device.Log "Enabling " & m_name
+        Log "Enabling " & m_name
         m_enabled = True
         Dim evt
         For Each evt in m_start_events.Keys
@@ -3421,7 +3511,7 @@ Class GlfMultiballs
     End Sub
     
     Public Sub Disable()
-        m_base_device.Log "Disabling " & m_name
+        Log "Disabling " & m_name
         m_enabled = False
         StopMultiball()
         Dim evt
@@ -3450,7 +3540,7 @@ Class GlfMultiballs
         'Else
         '    balls_to_replace = 0
         'End If
-        'm_base_device.Log("Going to add an additional " & balls_to_replace & " balls for replace_balls_in_play")
+        'Log("Going to add an additional " & balls_to_replace & " balls for replace_balls_in_play")
         m_balls_added_live = 0 
         Dim ball_count_value : ball_count_value = m_ball_count.Value
         If m_ball_count_type = "total" Then
@@ -3483,14 +3573,14 @@ Class GlfMultiballs
         End If
 
         If m_balls_live_target > 0 Then
-            m_base_device.Log("Cannot start MB because " & m_balls_live_target & " are still in play")
+            Log("Cannot start MB because " & m_balls_live_target & " are still in play")
             Exit Sub
         End If
 
         m_shoot_again_enabled = True
 
         HandleBallsInPlayAndBallsLive()
-        m_base_device.Log("Starting multiball with " & m_balls_live_target & " balls (added " & m_balls_added_live & ")")
+        Log("Starting multiball with " & m_balls_live_target & " balls (added " & m_balls_added_live & ")")
 
         Dim balls_added : balls_added = 0
 
@@ -3537,7 +3627,7 @@ Class GlfMultiballs
         'Set callbacks for shoot again, grace period, and hurry up, if values above 0 are provided.
         'This is started for both beginning multiball ball save and add a ball ball save
         If shoot_again_ms > 0 Then
-            m_base_device.Log("Starting ball save timer: " & shoot_again_ms)
+            Log("Starting ball save timer: " & shoot_again_ms)
             SetDelay m_name&"_disable_shoot_again", "MultiballsHandler" , Array(Array("stop", Me),Null), shoot_again_ms+grace_period_ms
         End If
         If grace_period_ms > 0 Then
@@ -3551,13 +3641,13 @@ Class GlfMultiballs
     End Sub
 
     Sub RunHurryUp()
-        m_base_device.Log("Starting Hurry Up")
+        Log("Starting Hurry Up")
         m_hurry_up_enabled = False
         DispatchPinEvent m_name & "_hurry_up", Null
     End Sub
 
     Sub RunGracePeriod()
-        m_base_device.Log("Starting Grace Period")
+        Log("Starting Grace Period")
         m_grace_period_enabled = False
         DispatchPinEvent m_name & "_grace_period", Null
     End Sub
@@ -3581,7 +3671,7 @@ Class GlfMultiballs
         End With
         DispatchPinEvent m_name & "_shoot_again", kwargs
         
-        m_base_device.log("Ball drained during MB. Requesting a new one")
+        Log("Ball drained during MB. Requesting a new one")
         SetDelay m_name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", Me),Null), 1000
 
         BallDrainShootAgain = balls - balls_to_save
@@ -3594,32 +3684,32 @@ Class GlfMultiballs
             m_balls_live_target = 0
             DispatchPinEvent m_name & "_ended", Null
             RemovePinEventListener "ball_drain", m_name & "_ball_drain"
-            m_base_device.Log("Ball drained. MB ended.")
+            Log("Ball drained. MB ended.")
         End If
         BallDrainCountBalls = balls
     End Function
 
     Public Sub Reset()
-        m_base_device.Log "Resetting multiball: " & m_name
+        Log "Resetting multiball: " & m_name
         DispatchPinEvent m_name & "_reset_event", Null
         ' Add reset logic here
     End Sub
 
     Public Sub AddABall()
-        m_base_device.Log "Adding a ball to multiball: " & m_name
+        Log "Adding a ball to multiball: " & m_name
         DispatchPinEvent m_name & "_add_a_ball_event", Null
         ' Add add-a-ball logic here
     End Sub
 
     Public Sub StartOrAddABall()
-        m_base_device.Log "Starting or adding a ball to multiball: " & m_name
+        Log "Starting or adding a ball to multiball: " & m_name
         DispatchPinEvent m_name & "_start_or_add_a_ball_event", Null
         ' Add start-or-add-a-ball logic here
     End Sub
 
     Public Sub StopMultiball()
         '"""Stop shoot again."""
-        m_base_device.Log("Stopping shoot again of multiball")
+        Log("Stopping shoot again of multiball")
         m_shoot_again_enabled = False
 
         '# disable shoot again
@@ -3635,6 +3725,12 @@ Class GlfMultiballs
         End If
 
         DispatchPinEvent m_name & "_shoot_again_ended", Null
+    End Sub
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
     End Sub
 
 End Class
@@ -3706,10 +3802,15 @@ Class GlfSegmentDisplayPlayer
     Private m_priority
     Private m_mode
     Private m_name
+    Private m_debug
     Private m_events
     private m_base_device
 
     Public Property Get Name() : Name = "segment_player" : End Property
+    Public Property Let Debug(value)
+        m_debug = value
+    End Property
+    
 
     Public Property Get EventNames() : EventNames = m_events.Keys() : End Property    
     Public Property Get Events(name)
@@ -3726,6 +3827,7 @@ Class GlfSegmentDisplayPlayer
         m_name = "segment_player_" & mode.name
         m_mode = mode.Name
         m_priority = mode.Priority
+        m_debug = False
         Set m_events = CreateObject("Scripting.Dictionary")
         Set m_base_device = (new GlfBaseModeDevice)(mode, "segment_player", Me)
         Set Init = Me
@@ -3766,6 +3868,12 @@ Class GlfSegmentDisplayPlayer
             RemoveDelay key
             display.RemoveTextByKey key    
         Next
+    End Sub
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
     End Sub
 
     Public Function ToYaml()
@@ -4027,6 +4135,7 @@ Class GlfSequenceShots
     Private m_priority
     Private m_mode
     Private m_base_device
+    Private m_debug
 
     Private m_cancel_events
     Private m_cancel_switches
@@ -4043,6 +4152,10 @@ Class GlfSequenceShots
     Private m_start_time
 
     Public Property Get Name(): Name = m_name: End Property
+    Public Property Let Debug(value)
+        m_debug = value
+    End Property
+    
     Public Property Get GetValue(value)
         Select Case value
             'Case "":
@@ -4113,7 +4226,7 @@ Class GlfSequenceShots
         Set m_sequence_timeout = CreateGlfInput(0)
         m_sequence_count = 0
         m_start_event = Empty
-
+        m_debug = False
         Set m_base_device = (new GlfBaseModeDevice)(mode, "sequence_shot_", Me)
         
         Set Init = Me
@@ -4128,7 +4241,7 @@ Class GlfSequenceShots
     End Sub
 
     Public Sub Enable()
-        m_base_device.Log "Enabling"
+        Log "Enabling"
         Dim evt
         For Each evt in m_event_sequence
             AddPinEventListener evt, m_name & "_" & evt & "_advance", "SequenceShotsHandler", m_priority, Array("advance", Me, evt)
@@ -4145,7 +4258,7 @@ Class GlfSequenceShots
     End Sub
 
     Public Sub Disable()
-        m_base_device.Log "Disabling"
+        Log "Disabling"
         Dim evt
         For Each evt in m_event_sequence
             RemovePinEventListener evt, m_name & "_" & evt & "_advance"
@@ -4166,7 +4279,7 @@ Class GlfSequenceShots
         ' going into an orbit in a row), we first have to see whether this
         ' switch is starting a new sequence or continuing an existing one
 
-        m_base_device.Log "Sequence advance: " & event_name
+        Log "Sequence advance: " & event_name
 
         If event_name = m_start_event Then
             If m_sequence_count > 1 Then
@@ -4182,7 +4295,7 @@ Class GlfSequenceShots
             Dim k, seq
             seq = Null
             For Each k In m_active_sequences.Keys
-                m_base_device.Log m_active_sequences(k).NextEvent
+                Log m_active_sequences(k).NextEvent
                 If m_active_sequences(k).NextEvent = event_name Then
                     Set seq = m_active_sequences(k)
                     Exit For
@@ -4201,7 +4314,7 @@ Class GlfSequenceShots
         ' delay_switch hit window
 
         If UBound(m_active_delays.Keys)>-1 Then
-            m_base_device.Log "There's a delay timer in effect. Sequence will not be started."
+            Log "There's a delay timer in effect. Sequence will not be started."
             Exit Sub
         End If
 
@@ -4214,13 +4327,13 @@ Class GlfSequenceShots
 
         Dim next_event : next_event = m_sequence_events(1)
 
-        m_base_device.Log "Setting up a new sequence. Next: " & next_event
+        Log "Setting up a new sequence. Next: " & next_event
 
         m_active_sequences.Add seq_id, (new GlfActiveSequence)(seq_id, 0, next_event)
 
         ' if this sequence has a time limit, set that up
         If m_sequence_timeout.Value > 0 Then
-            m_base_device.Log "Setting up a sequence timer for " & m_sequence_timeout.Value
+            Log "Setting up a sequence timer for " & m_sequence_timeout.Value
             SetDelay seq_id, "SequenceShotsHandler" , Array(Array("seq_timeout", Me, seq_id),Null), m_sequence_timeout.Value
         End If
     End Sub
@@ -4228,14 +4341,14 @@ Class GlfSequenceShots
     Public Sub AdvanceSequence(sequence)
         ' Remove this sequence from the list
         If sequence.CurrentPositionIndex = (m_sequence_count - 2) Then  ' complete
-            m_base_device.Log "Sequence complete!"
+            Log "Sequence complete!"
             RemoveDelay sequence.SeqId
             m_active_sequences.Remove sequence.SeqId
             Completed()
         Else
             Dim current_position_index : current_position_index = sequence.CurrentPositionIndex + 1
             Dim next_event : next_event = m_sequence_events(current_position_index + 1)
-            m_base_device.Log "Advancing the sequence. Next: " & next_event
+            Log "Advancing the sequence. Next: " & next_event
             sequence.CurrentPositionIndex = current_position_index
             sequence.NextEvent = next_event
         End If
@@ -4269,7 +4382,7 @@ Class GlfSequenceShots
     End Sub
 
     Public Sub DelayEvent(delay, name)
-        m_base_device.Log "Delaying sequence by " & delay
+        Log "Delaying sequence by " & delay
         SetDelay name & "_delay_timer", "SequenceShotsHandler" , Array(Array("release_delay", Me, name),Null), delay
         m_active_delays.Add name, True
     End Sub
@@ -4279,9 +4392,15 @@ Class GlfSequenceShots
     End Sub
 
     Public Sub FireSequenceTimeout(seq_id)
-        m_base_device.Log "Sequence " & seq_id & " timeouted"
+        Log "Sequence " & seq_id & " timeouted"
         m_active_sequences.Remove seq_id
         DispatchPinEvent m_name & "_timeout", Null
+    End Sub
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
     End Sub
 
 End Class
@@ -4349,6 +4468,7 @@ Class GlfShotGroup
     Private m_mode
     Private m_priority
     private m_base_device
+    private m_debug
     private m_shots
     private m_common_state
     Private m_enable_rotation_events
@@ -4365,6 +4485,11 @@ Class GlfShotGroup
     Private m_isRotating
  
     Public Property Get Name(): Name = m_name: End Property
+    
+    Public Property Let Debug(value)
+        m_debug = value
+    End Property
+
     Public Property Get CommonState()
         Dim state : state = m_base_device.Mode.Shots(m_shots(0)).State
         Dim shot
@@ -4536,7 +4661,7 @@ Class GlfShotGroup
  
         Dim state_name : state_name = Glf_ShotProfiles(m_base_device.Mode.Shots(m_shots(0)).Profile).StateName(m_common_state)
  
-        m_base_device.Log "Shot group is complete with state: " & state_name
+        Log "Shot group is complete with state: " & state_name
         Dim kwargs : Set kwargs = GlfKwargs()
 		With kwargs
             .Add "state", state_name
@@ -4548,7 +4673,7 @@ Class GlfShotGroup
  
     Public Sub Enable()
         Dim shot
-        m_base_device.Log "Enabling"
+        Log "Enabling"
         For Each shot in m_shots
             m_base_device.Mode.Shots(shot).Enable()
         Next
@@ -4563,12 +4688,12 @@ Class GlfShotGroup
     End Sub
  
     Public Sub EnableRotation
-        m_base_device.Log "Enabling Rotation"
+        Log "Enabling Rotation"
         m_rotation_enabled = True
     End Sub
  
     Public Sub DisableRotation
-        m_base_device.Log "Disabling Rotation"
+        Log "Disabling Rotation"
         m_rotation_enabled = False
     End Sub
  
@@ -4618,12 +4743,18 @@ Class GlfShotGroup
         x=0
         m_isRotating = True
         For Each shot in m_temp_shots.Keys
-            m_base_device.Log "Rotating Shot:" & shot
+            Log "Rotating Shot:" & shot
             m_temp_shots(shot).Jump shot_states(x), True, False
             x=x+1
         Next 
         m_isRotating = False
         CheckForComplete()
+    End Sub
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
     End Sub
  
     Public Function ToYaml
@@ -4893,6 +5024,7 @@ Class GlfShot
     Private m_mode
     Private m_priority
     Private m_base_device
+    Private m_debug
     Private m_profile
     Private m_control_events
     Private m_advance_events
@@ -4910,6 +5042,9 @@ Class GlfShot
     Private m_internal_cache_id
 
     Public Property Get Name(): Name = m_name: End Property
+    Public Property Let Debug(value)
+        m_debug = value
+    End Property
     Public Property Get Profile(): Profile = m_profile: End Property
     Public Property Get ShotKey(): ShotKey = m_name & "_" & m_profile: End Property
     Public Property Get State(): State = m_state: End Property
@@ -4969,7 +5104,6 @@ Class GlfShot
             m_hit_events.Add newEvent.Name, newEvent
         Next
     End Property
-    Public Property Let Debug(value) : m_debug = value : End Property
 
 	Public default Function init(name, mode)
         m_name = name
@@ -4979,7 +5113,7 @@ Class GlfShot
         m_enabled = False
         m_persist = True
         Set m_base_device = (new GlfBaseModeDevice)(mode, "shot", Me)
-
+        m_debug = False
         m_profile = "default"
         m_player_var_name = "shot_" & m_name
         m_state = -1
@@ -5041,7 +5175,7 @@ Class GlfShot
     End Sub
 
     Public Sub Enable()
-        m_base_device.Log "Enabling"
+        Log "Enabling"
         m_enabled = True
         Dim evt
         For Each evt in m_switches
@@ -5070,7 +5204,7 @@ Class GlfShot
     End Sub
 
     Public Sub Disable()
-        m_base_device.Log "Disabling"
+        Log "Disabling"
         m_enabled = False
         Dim evt
         For Each evt in m_hit_events.Keys
@@ -5084,7 +5218,7 @@ Class GlfShot
 
     Private Sub StopShowForState(state)
         Dim profileState : Set profileState = Glf_ShotProfiles(m_profile).StateForIndex(state)
-        m_base_device.Log "Removing Shot Show: " & m_mode & "_" & m_name & ". Key: " & profileState.Key
+        Log "Removing Shot Show: " & m_mode & "_" & m_name & ". Key: " & profileState.Key
         If glf_running_shows.Exists(m_mode & "_" & CStr(state) & "_" & m_name & "_" & profileState.Key) Then 
             glf_running_shows(m_mode & "_" & CStr(state) & "_" & m_name & "_" & profileState.Key).StopRunningShow()
         End If
@@ -5095,7 +5229,7 @@ Class GlfShot
             Exit Sub
         End If
         Dim profileState : Set profileState = Glf_ShotProfiles(m_profile).StateForIndex(state)
-        m_base_device.Log "Playing Shot Show: " & m_mode & "_" & m_name & ". Key: " & profileState.Key
+        Log "Playing Shot Show: " & m_mode & "_" & m_name & ". Key: " & profileState.Key
         If IsObject(profileState) Then
             If Not IsNull(profileState.Show) Then
                 Dim new_running_show
@@ -5111,14 +5245,14 @@ Class GlfShot
 
         Dim profile : Set profile = Glf_ShotProfiles(m_profile)
         Dim old_state : old_state = m_state
-        m_base_device.Log "Hit! Profile: "&m_profile&", State: " & profile.StateName(m_state)
+        Log "Hit! Profile: "&m_profile&", State: " & profile.StateName(m_state)
 
         Dim advancing
         If profile.AdvanceOnHit Then
-            m_base_device.Log "Advancing shot because advance_on_hit is True."
+            Log "Advancing shot because advance_on_hit is True."
             advancing = Advance(False)
         Else
-            m_base_device.Log "Not advancing shot"
+            Log "Not advancing shot"
             advancing = False
         End If
 
@@ -5150,7 +5284,7 @@ Class GlfShot
         End If
         Dim profile : Set profile = Glf_ShotProfiles(m_profile)
 
-        m_base_device.Log "Advancing 1 step. Profile: "&m_profile&", Current State: " & profile.StateName(m_state)
+        Log "Advancing 1 step. Profile: "&m_profile&", Current State: " & profile.StateName(m_state)
 
         If profile.StatesCount() = m_state Then
             If profile.ProfileLoop Then
@@ -5182,17 +5316,17 @@ Class GlfShot
     End Sub
 
     Public Sub Jump(state, force, force_show)
-        m_base_device.Log "Received jump request. State: " & state & ", Force: "& force
+        Log "Received jump request. State: " & state & ", Force: "& force
 
         If Not m_enabled And Not force Then
-            m_base_device.Log "Profile is disabled and force is False. Not jumping"
+            Log "Profile is disabled and force is False. Not jumping"
             Exit Sub
         End If
         If state = m_state And Not force_show Then
-            m_base_device.Log "Shot is already in the jump destination state"
+            Log "Shot is already in the jump destination state"
             Exit Sub
         End If
-        m_base_device.Log "Jumping to profile state " & state
+        Log "Jumping to profile state " & state
 
         StopShowForState(m_state)
         m_state = state
@@ -5205,6 +5339,13 @@ Class GlfShot
     Public Sub Restart()
         Reset()
         Enable()
+    End Sub
+
+    
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
     End Sub
 
     Public Function ToYaml
@@ -5420,7 +5561,7 @@ Class GlfShowPlayer
         m_name = "show_player_" & mode.name
         m_mode = mode.Name
         m_priority = mode.Priority
-        m_debug = True
+        m_debug = False
         Set m_events = CreateObject("Scripting.Dictionary")
         Set m_base_device = (new GlfBaseModeDevice)(mode, "show_player", Me)
         Set Init = Me
@@ -5429,7 +5570,6 @@ Class GlfShowPlayer
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
-            m_base_device.Log "Adding EVENT: " & Replace(evt, "_" & m_events(evt).Key, "")
             AddPinEventListener evt , m_mode & "_" & m_events(evt).Key & "_show_player_play", "ShowPlayerEventHandler", -m_priority, Array("play", Me, m_events(evt), evt)
         Next
     End Sub
@@ -5454,6 +5594,13 @@ Class GlfShowPlayer
     Public Sub PlayOff(key)
         If glf_running_shows.Exists(m_name & "_" & key) Then 
             glf_running_shows(m_name & "_" & key).StopRunningShow()
+        End If
+    End Sub
+
+    
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
         End If
     End Sub
 
@@ -5787,7 +5934,9 @@ Class GlfRunningShow
     End Sub
 
     Public Sub Log(message)
-        glf_debugLog.WriteToLog "Running Show", message
+        If glf_debug_level = "Debug" Then
+            glf_debugLog.WriteToLog "Running Show", message
+        End If
     End Sub
 End Class
 
@@ -5913,6 +6062,7 @@ Class GlfStateMachine
     Private m_name
     Private m_player_var_name
     Private m_mode
+    Private m_debug
     Private m_priority
     Private m_states
     Private m_transitions
@@ -5924,6 +6074,11 @@ Class GlfStateMachine
     Private m_show
  
     Public Property Get Name(): Name = m_name: End Property
+    Public Property Let Debug(value)
+        m_debug = value
+    End Property
+    
+        
     Public Property Get GetValue(value)
         Select Case value
             Case "state":
@@ -5980,7 +6135,7 @@ Class GlfStateMachine
         m_player_var_name = "state_machine_" & name
         m_mode = mode.Name
         m_priority = mode.Priority
-
+        m_debug = False
         m_persist_state = False
         m_starting_state = "start"
         m_state = Null
@@ -6021,9 +6176,9 @@ Class GlfStateMachine
     End Sub
 
     Public Sub StartState(start_state)
-        m_base_device.Log("Starting state " & start_state)
+        Log("Starting state " & start_state)
         If Not m_states.Exists(start_state) Then
-            m_base_device.Log("Invalid state " & start_state)
+            Log("Invalid state " & start_state)
             Exit Sub
         End If
 
@@ -6048,7 +6203,7 @@ Class GlfStateMachine
     End Sub
 
     Public Sub StopCurrentState()
-        m_base_device.Log "Stopping state " & State()
+        Log "Stopping state " & State()
         RemoveHandlers()
         Dim state_config : Set state_config = m_states(state)
 
@@ -6066,7 +6221,7 @@ Class GlfStateMachine
         End If
 
         If Not IsEmpty(m_show) Then
-            m_base_device.Log "Stopping show " & m_show
+            Log "Stopping show " & m_show
             m_show.Stop()
             m_show = Empty
         End If
@@ -6080,7 +6235,7 @@ Class GlfStateMachine
         End If
         Dim state_config : Set state_config = m_states(state)
         If Not IsEmpty(state_config.ShowWhenActive) Then
-            m_base_device.Log "Starting show %s" & state_config.ShowWhenActive
+            Log "Starting show %s" & state_config.ShowWhenActive
             'm_show = self.machine.show_controller.play_show_with_config(state_config['show_when_active'],
         End If
     End Sub
@@ -6107,7 +6262,7 @@ Class GlfStateMachine
 
     Public Sub MakeTransition(transition)
 
-        m_base_device.Log "Transitioning from " & State() & " to " & transition.Target
+        Log "Transitioning from " & State() & " to " & transition.Target
         StopCurrentState()
         If UBound(transition.EventsWhenTransitioning().Keys()) > -1 Then
             Dim evt
@@ -6124,6 +6279,13 @@ Class GlfStateMachine
         
         StartState transition.Target
 
+    End Sub
+
+    
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
     End Sub
 
 End Class
@@ -6253,6 +6415,7 @@ Class GlfTimer
     Private m_priority
     Private m_mode
     Private m_base_device
+    Private m_debug
 
     Private m_control_events
     Private m_running
@@ -6268,6 +6431,11 @@ Class GlfTimer
     Private m_start_running
 
     Public Property Get Name() : Name = m_name : End Property
+    Public Property Let Debug(value)
+        m_debug = value
+    End Property
+    
+
     Public Property Get ControlEvents(name)
         If m_control_events.Exists(name) Then
             Set ControlEvents = m_control_events(name)
@@ -6376,7 +6544,7 @@ Class GlfTimer
             Exit Sub
         End If
 
-        m_base_device.Log "Starting Timer"
+        Log "Starting Timer"
         m_running = True
         RemoveDelay m_name & "_unpause"
         Dim kwargs : Set kwargs = GlfKwargs()
@@ -6390,7 +6558,7 @@ Class GlfTimer
     End Sub
 
     Private Sub StopTimer()
-        m_base_device.Log "Stopping Timer"
+        Log "Stopping Timer"
         m_running = False
         Dim kwargs : Set kwargs = GlfKwargs()
         With kwargs
@@ -6402,7 +6570,7 @@ Class GlfTimer
     End Sub
 
     Public Sub Pause(pause_ms)
-        m_base_device.Log "Pausing Timer for "&pause_ms&" ms"
+        Log "Pausing Timer for "&pause_ms&" ms"
         m_running = False
         RemoveDelay m_name & "_tick"
         
@@ -6421,9 +6589,9 @@ Class GlfTimer
     End Sub 
 
     Public Sub Tick()
-        m_base_device.Log "Timer Tick"
+        Log "Timer Tick"
         If Not m_running Then
-            m_base_device.Log "Timer is not running. Will remove."
+            Log "Timer is not running. Will remove."
             Exit Sub
         End If
 
@@ -6434,7 +6602,7 @@ Class GlfTimer
             newValue = m_ticks + 1
         End If
         
-        m_base_device.Log "ticking: old value: "& m_ticks & ", new Value: " & newValue & ", target: "& m_end_value
+        Log "ticking: old value: "& m_ticks & ", new Value: " & newValue & ", target: "& m_end_value
         m_ticks = newValue
         If Not PostTickEvents() Then
             SetDelay m_name & "_tick", "TimerEventHandler", Array(Array("tick", Me), Null), m_tick_interval    
@@ -6445,7 +6613,7 @@ Class GlfTimer
 
         ' Checks to see if this timer is done. Automatically called anytime the
         ' timer's value changes.
-        m_base_device.Log "Checking to see if timer is done. Ticks: "&m_ticks&", End Value: "&m_end_value&", Direction: "& m_direction
+        Log "Checking to see if timer is done. Ticks: "&m_ticks&", End Value: "&m_end_value&", Direction: "& m_direction
 
         if m_direction = "up" And Not IsEmpty(m_end_value) And m_ticks >= m_end_value Then
             TimerComplete()
@@ -6462,7 +6630,7 @@ Class GlfTimer
         If Not IsEmpty(m_end_value) Then 
             m_ticks_remaining = abs(m_end_value - m_ticks)
         End If
-        m_base_device.Log "Timer is not done"
+        Log "Timer is not done"
 
         CheckForDone = False
 
@@ -6470,7 +6638,7 @@ Class GlfTimer
 
     Private Sub TimerComplete
 
-        m_base_device.Log "Timer Complete"
+        Log "Timer Complete"
 
         StopTimer()
         Dim kwargs : Set kwargs = GlfKwargs()
@@ -6481,7 +6649,7 @@ Class GlfTimer
         DispatchPinEvent m_name & "_complete", kwargs
         
         If m_restart_on_complete Then
-            m_base_device.Log "Restart on complete: True"
+            Log "Restart on complete: True"
             Restart()
         End If
     End Sub
@@ -6496,7 +6664,7 @@ Class GlfTimer
     End Sub
 
     Private Sub Reset
-        m_base_device.Log "Resetting timer. New value: "& m_start_value
+        Log "Resetting timer. New value: "& m_start_value
         Jump m_start_value
     End Sub
 
@@ -6528,7 +6696,7 @@ Class GlfTimer
                 .Add "ticks_remaining", m_ticks_remaining
             End With
             DispatchPinEvent m_name & "_tick", kwargs
-            m_base_device.Log "Ticks: "&m_ticks&", Remaining: " & m_ticks_remaining
+            Log "Ticks: "&m_ticks&", Remaining: " & m_ticks_remaining
         End If
     End Function
 
@@ -6565,6 +6733,13 @@ Class GlfTimer
         
         CheckForDone()
     End Sub
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
+    End Sub
+
 End Class
 
 Function TimerEventHandler(args)
@@ -6629,7 +6804,7 @@ Class GlfVariablePlayer
         m_priority = mode.Priority
 
         Set m_events = CreateObject("Scripting.Dictionary")
-        
+        m_debug = False
         AddPinEventListener m_mode & "_starting", "variable_player_activate", "VariablePlayerEventHandler", m_priority, Array("activate", Me)
         AddPinEventListener m_mode & "_stopping", "variable_player_deactivate", "VariablePlayerEventHandler", m_priority, Array("deactivate", Me)
         Set Init = Me
@@ -6808,9 +6983,6 @@ Dim delayCallbacks : Set delayCallbacks = CreateObject("Scripting.Dictionary")
 Sub SetDelay(name, callbackFunc, args, delayInMs)
     Dim executionTime
     executionTime = gametime + delayInMs
-    'If gametime >= executionTime Then
-    '    executionTime = executionTime + 100
-    'End If
     
     If delayQueueMap.Exists(name) Then
         delayQueueMap.Remove name
@@ -6824,8 +6996,7 @@ Sub SetDelay(name, callbackFunc, args, delayInMs)
     Else
         delayQueue.Add executionTime, CreateObject("Scripting.Dictionary")
     End If
-
-    'glf_debugLog.WriteToLog "Delay", "Adding delay for " & name & ", callback: " & callbackFunc & ", ExecutionTime: " & executionTime
+    Glf_WriteDebugLog "Delay", "Adding delay for " & name & ", callback: " & callbackFunc & ", ExecutionTime: " & executionTime
     delayQueue(executionTime).Add name, (new DelayObject)(name, callbackFunc, executionTime, args)
     delayQueueMap.Add name, executionTime
     
@@ -6839,12 +7010,12 @@ Function RemoveDelay(name)
     If delayQueueMap.Exists(name) Then
         If delayQueue.Exists(delayQueueMap(name)) Then
             If delayQueue(delayQueueMap(name)).Exists(name) Then
-                'glf_debugLog.WriteToLog "Delay", "Removing delay for " & name & " and  Execution Time: " & delayQueueMap(name)
+                Glf_WriteDebugLog "Delay", "Removing delay for " & name & " and  Execution Time: " & delayQueueMap(name)
                 delayQueue(delayQueueMap(name)).Remove name
             End If
             delayQueueMap.Remove name
             RemoveDelay = True
-            'glf_debugLog.WriteToLog "Delay", "Removing delay for " & name
+            Glf_WriteDebugLog "Delay", "Removing delay for " & name
             Exit Function
         End If
     End If
@@ -6858,7 +7029,7 @@ Sub DelayTick()
             For Each key In delayQueue(queueItem).Keys()
                 If IsObject(delayQueue(queueItem)(key)) Then
                     Set delayObject = delayQueue(queueItem)(key)
-                    'glf_debugLog.WriteToLog "Delay", "Executing delay: " & key & ", callback: " & delayObject.Callback
+                    Glf_WriteDebugLog "Delay", "Executing delay: " & key & ", callback: " & delayObject.Callback
                     GetRef(delayObject.Callback)(delayObject.Args)    
                 End If
             Next
@@ -8723,6 +8894,11 @@ Class GlfPushTransition
 
     End Function
 
+    Private Sub Log(message)
+        Glf_WriteDebugLog m_name, message
+    End Sub
+
+
     ' Start the transition process
     Public Sub StartTransition(current_text, new_text)
         m_current_step = 0
@@ -8734,10 +8910,10 @@ Class GlfPushTransition
         While m_current_step < m_total_steps
             Dim result
             result = GetTransitionStep(m_current_step, current_text, new_text)
-            m_base_device.Log "Step " & m_current_step & ": " & result
+            Log "Step " & m_current_step & ": " & result
             m_current_step = m_current_step + 1
         Wend
-        m_base_device.Log "Transition complete for: " & m_name
+        Log "Transition complete for: " & m_name
     End Sub
 
 End Class
@@ -8860,11 +9036,11 @@ Function Glf_ReleaseBall(args)
             End If
         End If
     End If
-    glf_debugLog.WriteToLog "Release Ball", "swTrough1: " & swTrough1.BallCntOver
+    Glf_WriteDebugLog "Release Ball", "swTrough1: " & swTrough1.BallCntOver
     glf_plunger.AddIncomingBalls = 1
     swTrough1.kick 90, 10
     DispatchPinEvent "trough_eject", Null
-    glf_debugLog.WriteToLog "Release Ball", "Just Kicked"
+    Glf_WriteDebugLog "Release Ball", "Just Kicked"
     glf_BIP = glf_BIP + 1
 End Function
 
@@ -8878,8 +9054,8 @@ End Function
 Function Glf_Drain(args)
     
     Dim ballsToSave : ballsToSave = args(1) 
-    glf_debugLog.WriteToLog "end_of_ball, unclaimed balls", CStr(ballsToSave)
-    glf_debugLog.WriteToLog "end_of_ball, balls in play", CStr(glf_BIP)
+    Glf_WriteDebugLog "end_of_ball, unclaimed balls", CStr(ballsToSave)
+    Glf_WriteDebugLog "end_of_ball, balls in play", CStr(glf_BIP)
     If ballsToSave <= 0 Then
         Exit Function
     End If
@@ -8940,7 +9116,8 @@ Class GlfDebugLogFile
 	Private TxtFileStream
 
 	Public default Function init()
-        Filename = cGameName + "_" & GetTimeStamp & "_debug_log.txt"
+        Dim timestamp : timestamp = GetTimeStamp(True)
+        Filename = cGameName + "_" & timestamp & "_debug_log.txt"
 		TxtFileStream = Null
 		Set Init = Me
 	End Function
@@ -8970,26 +9147,33 @@ Class GlfDebugLogFile
 		LZ = Right(Zeros & CStr(Number), Places)
 	End Function
 	
-	Private Function GetTimeStamp
+	Private Function GetTimeStamp(full)
 		Dim CurrTime, Elapsed, MilliSecs
 		CurrTime = Now()
 		Elapsed = Timer()
 		MilliSecs = Int((Elapsed - Int(Elapsed)) * 1000)
-		GetTimeStamp = _
-		LZ(Year(CurrTime),   4) & "-" _
-		 & LZ(Month(CurrTime),  2) & "-" _
-		 & LZ(Day(CurrTime),	2) & "_" _
-		 & LZ(Hour(CurrTime),   2) & "_" _
-		 & LZ(Minute(CurrTime), 2) & "_" _
-		 & LZ(Second(CurrTime), 2) & "_" _
-		 & LZ(MilliSecs, 4)
+        If full = True Then
+            GetTimeStamp = _
+            LZ(Year(CurrTime),   4) & "-" _
+            & LZ(Month(CurrTime),  2) & "-" _
+            & LZ(Day(CurrTime),	2) & "_" _
+            & LZ(Hour(CurrTime),   2) & "_" _
+            & LZ(Minute(CurrTime), 2) & "_" _
+            & LZ(Second(CurrTime), 2) & "_" _
+            & LZ(MilliSecs, 4)
+        Else
+            GetTimeStamp = _
+            LZ(Hour(CurrTime),   2) & "_" _
+            & LZ(Minute(CurrTime), 2) & "_" _
+            & LZ(Second(CurrTime), 2)
+        End If
 	End Function
 	
 	' *** Debug.Print the time with milliseconds, and a message of your choice
 	Public Sub WriteToLog(label, message)
 		If glf_debugEnabled = True Then
 			Dim FormattedMsg, Timestamp
-			Timestamp = GetTimeStamp
+			Timestamp = GetTimeStamp(False)
 			FormattedMsg = Timestamp & ": " & label & ": " & message
 			TxtFileStream.WriteLine FormattedMsg
 			Debug.Print label & ": " & message
@@ -9016,7 +9200,7 @@ Sub DispatchPinEvent(e, kwargs)
     Else
 
         If Not glf_pinEvents.Exists(e) Then
-            glf_debugLog.WriteToLog "DispatchPinEvent", e & " has no listeners"
+            Glf_WriteDebugLog "DispatchPinEvent", e & " has no listeners"
             Exit Sub
         End If
         glf_dispatch_parent = glf_dispatch_parent + 1 'Increment the parent count
@@ -9027,15 +9211,15 @@ Sub DispatchPinEvent(e, kwargs)
         glf_lastPinEvent = e
         Dim k
         Dim handlers : Set handlers = glf_pinEvents(e)
-        glf_debugLog.WriteToLog "DispatchPinEvent", e
+        Glf_WriteDebugLog "DispatchPinEvent", e
         Dim handler
         For Each k In glf_pinEventsOrder(e)
-            glf_debugLog.WriteToLog "DispatchPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
+            Glf_WriteDebugLog "DispatchPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
             If handlers.Exists(k(1)) Then
                 handler = handlers(k(1))
                 GetRef(handler(0))(Array(handler(2), kwargs, e))
             Else
-                glf_debugLog.WriteToLog "DispatchPinEvent_"&e, "Handler does not exist: " & k(1)
+                Glf_WriteDebugLog "DispatchPinEvent_"&e, "Handler does not exist: " & k(1)
             End If
         Next
         Glf_EventBlocks(e).RemoveAll
@@ -9054,7 +9238,7 @@ End Sub
 
 Function DispatchRelayPinEvent(e, kwargs)
     If Not glf_pinEvents.Exists(e) Then
-        'glf_debugLog.WriteToLog "DispatchRelayPinEvent", e & " has no listeners"
+        Glf_WriteDebugLog "DispatchRelayPinEvent", e & " has no listeners"
         DispatchRelayPinEvent = kwargs
         Exit Function
     End If
@@ -9064,9 +9248,9 @@ Function DispatchRelayPinEvent(e, kwargs)
     glf_lastPinEvent = e
     Dim k
     Dim handlers : Set handlers = glf_pinEvents(e)
-    'glf_debugLog.WriteToLog "DispatchReplayPinEvent", e
+    Glf_WriteDebugLog "DispatchReplayPinEvent", e
     For Each k In glf_pinEventsOrder(e)
-        'glf_debugLog.WriteToLog "DispatchReplayPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
+        Glf_WriteDebugLog "DispatchReplayPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
         kwargs = GetRef(handlers(k(1))(0))(Array(handlers(k(1))(2), kwargs, e))
     Next
     DispatchRelayPinEvent = kwargs
@@ -9075,7 +9259,7 @@ End Function
 
 Function DispatchQueuePinEvent(e, kwargs)
     If Not glf_pinEvents.Exists(e) Then
-        'glf_debugLog.WriteToLog "DispatchRelayPinEvent", e & " has no listeners"
+        Glf_WriteDebugLog "DispatchRelayPinEvent", e & " has no listeners"
         Exit Function
     End If
     If Not Glf_EventBlocks.Exists(e) Then
@@ -9087,10 +9271,10 @@ Function DispatchQueuePinEvent(e, kwargs)
     If IsNull(kwargs) Then
         Set kwargs = GlfKwargs()
     End If
-    'glf_debugLog.WriteToLog "DispatchReplayPinEvent", e
+    Glf_WriteDebugLog "DispatchReplayPinEvent", e
     For i=0 to UBound(glf_pinEventsOrder(e))
         k = glf_pinEventsOrder(e)(i)
-        'glf_debugLog.WriteToLog "DispatchQueuePinEvent"&e, "key: " & k(1) & ", priority: " & k(0)
+        Glf_WriteDebugLog "DispatchQueuePinEvent"&e, "key: " & k(1) & ", priority: " & k(0)
         'msgbox "DispatchQueuePinEvent: " & e & " , key: " & k(1) & ", priority: " & k(0)
         'msgbox handlers(k(1))(0)
         'Call the handlers.
@@ -9122,7 +9306,7 @@ Function ContinueDispatchQueuePinEvent(args)
     Dim idx : idx = arrContinue(2)
     
     If Not glf_pinEvents.Exists(e) Then
-        'glf_debugLog.WriteToLog "DispatchRelayPinEvent", e & " has no listeners"
+        Glf_WriteDebugLog "DispatchRelayPinEvent", e & " has no listeners"
         Exit Function
     End If
     If Not Glf_EventBlocks.Exists(e) Then
@@ -9131,10 +9315,10 @@ Function ContinueDispatchQueuePinEvent(args)
     glf_lastPinEvent = e
     Dim k,i,retArgs
     Dim handlers : Set handlers = glf_pinEvents(e)
-    'glf_debugLog.WriteToLog "DispatchReplayPinEvent", e
+    Glf_WriteDebugLog "DispatchReplayPinEvent", e
     For i=idx to UBound(glf_pinEventsOrder(e))
         k = glf_pinEventsOrder(e)(i)
-        'glf_debugLog.WriteToLog "DispatchReplayPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
+        Glf_WriteDebugLog "DispatchReplayPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
 
         'Call the handlers.
         'The handlers might return a waitfor command.

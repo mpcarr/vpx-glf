@@ -26,7 +26,7 @@ Class GlfShowPlayer
         m_name = "show_player_" & mode.name
         m_mode = mode.Name
         m_priority = mode.Priority
-        m_debug = True
+        m_debug = False
         Set m_events = CreateObject("Scripting.Dictionary")
         Set m_base_device = (new GlfBaseModeDevice)(mode, "show_player", Me)
         Set Init = Me
@@ -35,7 +35,6 @@ Class GlfShowPlayer
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
-            m_base_device.Log "Adding EVENT: " & Replace(evt, "_" & m_events(evt).Key, "")
             AddPinEventListener evt , m_mode & "_" & m_events(evt).Key & "_show_player_play", "ShowPlayerEventHandler", -m_priority, Array("play", Me, m_events(evt), evt)
         Next
     End Sub
@@ -60,6 +59,13 @@ Class GlfShowPlayer
     Public Sub PlayOff(key)
         If glf_running_shows.Exists(m_name & "_" & key) Then 
             glf_running_shows(m_name & "_" & key).StopRunningShow()
+        End If
+    End Sub
+
+    
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
         End If
     End Sub
 

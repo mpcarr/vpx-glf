@@ -210,7 +210,9 @@ Class GlfRunningShow
     End Sub
 
     Public Sub Log(message)
-        glf_debugLog.WriteToLog "Running Show", message
+        If glf_debug_level = "Debug" Then
+            glf_debugLog.WriteToLog "Running Show", message
+        End If
     End Sub
 End Class
 

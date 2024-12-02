@@ -4,10 +4,15 @@ Class GlfSegmentDisplayPlayer
     Private m_priority
     Private m_mode
     Private m_name
+    Private m_debug
     Private m_events
     private m_base_device
 
     Public Property Get Name() : Name = "segment_player" : End Property
+    Public Property Let Debug(value)
+        m_debug = value
+    End Property
+    
 
     Public Property Get EventNames() : EventNames = m_events.Keys() : End Property    
     Public Property Get Events(name)
@@ -24,6 +29,7 @@ Class GlfSegmentDisplayPlayer
         m_name = "segment_player_" & mode.name
         m_mode = mode.Name
         m_priority = mode.Priority
+        m_debug = False
         Set m_events = CreateObject("Scripting.Dictionary")
         Set m_base_device = (new GlfBaseModeDevice)(mode, "segment_player", Me)
         Set Init = Me
@@ -64,6 +70,12 @@ Class GlfSegmentDisplayPlayer
             RemoveDelay key
             display.RemoveTextByKey key    
         Next
+    End Sub
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
     End Sub
 
     Public Function ToYaml()

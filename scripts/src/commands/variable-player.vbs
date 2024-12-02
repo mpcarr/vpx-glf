@@ -20,7 +20,7 @@ Class GlfVariablePlayer
         m_priority = mode.Priority
 
         Set m_events = CreateObject("Scripting.Dictionary")
-        
+        m_debug = False
         AddPinEventListener m_mode & "_starting", "variable_player_activate", "VariablePlayerEventHandler", m_priority, Array("activate", Me)
         AddPinEventListener m_mode & "_stopping", "variable_player_deactivate", "VariablePlayerEventHandler", m_priority, Array("deactivate", Me)
         Set Init = Me

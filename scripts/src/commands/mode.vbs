@@ -178,8 +178,60 @@ Class Mode
             AddPinEventListener newEvent.EventName, m_name & "_stop", "ModeEventHandler", m_priority+1, Array("stop", Me, newEvent)
         Next
     End Property
+
     Public Property Let Debug(value)
         m_debug = value
+        Dim config_item
+        For Each config_item in m_ballsaves.Items()
+            config_item.Debug = value
+        Next
+        For Each config_item in m_counters.Items()
+            config_item.Debug = value
+        Next
+        For Each config_item in m_timers.Items()
+            config_item.Debug = value
+        Next
+        For Each config_item in m_multiball_locks.Items()
+            config_item.Debug = value
+        Next
+        For Each config_item in m_multiballs.Items()
+            config_item.Debug = value
+        Next
+        For Each config_item in m_shots.Items()
+            config_item.Debug = value
+        Next
+        For Each config_item in m_shot_groups.Items()
+            config_item.Debug = value
+        Next
+        For Each config_item in m_ballholds.Items()
+            config_item.Debug = value
+        Next
+        For Each config_item in m_shot_profiles.Items()
+            config_item.Debug = value
+        Next
+        For Each config_item in m_sequence_shots.Items()
+            config_item.Debug = value
+        Next
+        For Each config_item in m_state_machines.Items()
+            config_item.Debug = value
+        Next
+        If Not IsNull(m_lightplayer) Then
+            m_lightplayer.Debug = value
+        End If
+        If Not IsNull(m_eventplayer) Then
+            m_eventplayer.Debug = value
+        End If
+        If Not IsNull(m_showplayer) Then
+            m_showplayer.Debug = value
+        End If
+        If Not IsNull(m_segment_display_player) Then
+            m_segment_display_player.Debug = value
+        End If
+        If Not IsNull(m_variableplayer) Then
+            m_variableplayer.Debug = value
+        End If
+
+
     End Property
 
 	Public default Function init(name, priority)

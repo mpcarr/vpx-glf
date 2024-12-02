@@ -3,6 +3,7 @@ Class GlfShotGroup
     Private m_mode
     Private m_priority
     private m_base_device
+    private m_debug
     private m_shots
     private m_common_state
     Private m_enable_rotation_events
@@ -19,6 +20,11 @@ Class GlfShotGroup
     Private m_isRotating
  
     Public Property Get Name(): Name = m_name: End Property
+    
+    Public Property Let Debug(value)
+        m_debug = value
+    End Property
+
     Public Property Get CommonState()
         Dim state : state = m_base_device.Mode.Shots(m_shots(0)).State
         Dim shot
@@ -190,7 +196,7 @@ Class GlfShotGroup
  
         Dim state_name : state_name = Glf_ShotProfiles(m_base_device.Mode.Shots(m_shots(0)).Profile).StateName(m_common_state)
  
-        m_base_device.Log "Shot group is complete with state: " & state_name
+        Log "Shot group is complete with state: " & state_name
         Dim kwargs : Set kwargs = GlfKwargs()
 		With kwargs
             .Add "state", state_name
@@ -202,7 +208,7 @@ Class GlfShotGroup
  
     Public Sub Enable()
         Dim shot
-        m_base_device.Log "Enabling"
+        Log "Enabling"
         For Each shot in m_shots
             m_base_device.Mode.Shots(shot).Enable()
         Next
@@ -217,12 +223,12 @@ Class GlfShotGroup
     End Sub
  
     Public Sub EnableRotation
-        m_base_device.Log "Enabling Rotation"
+        Log "Enabling Rotation"
         m_rotation_enabled = True
     End Sub
  
     Public Sub DisableRotation
-        m_base_device.Log "Disabling Rotation"
+        Log "Disabling Rotation"
         m_rotation_enabled = False
     End Sub
  
@@ -272,12 +278,18 @@ Class GlfShotGroup
         x=0
         m_isRotating = True
         For Each shot in m_temp_shots.Keys
-            m_base_device.Log "Rotating Shot:" & shot
+            Log "Rotating Shot:" & shot
             m_temp_shots(shot).Jump shot_states(x), True, False
             x=x+1
         Next 
         m_isRotating = False
         CheckForComplete()
+    End Sub
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
     End Sub
  
     Public Function ToYaml

@@ -170,7 +170,7 @@ Class GlfLightSegmentDisplay
     Public Sub AddTextEntry(text, color, flashing, flash_mask, transition, transition_out, priority, key)
         
         Dim new_text : new_text = Glf_SegmentTextCreateCharacters(text, m_size, True, True, True, Array())
-        Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,m_collapse_dots, m_collapse_commas, m_use_dots_for_commas) 
+        Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,True, True, True) 
         
         
         UpdateDisplay display_text, "no_flash", Empty
@@ -536,7 +536,7 @@ Class GlfSegmentDisplayText
     
             ' If mask is "F", blank the character
             If mask = "F" Then
-                new_text = AppendArray(new_text, Glf_SegmentTextCreateDisplayCharacter(" ", False, False, char("color")))
+                new_text = AppendArray(new_text, Glf_SegmentTextCreateDisplayCharacter(32, False, False, char("color")))
             Else
                 ' Otherwise, keep the character as is
                 new_text = AppendArray(new_text, char)
@@ -657,7 +657,7 @@ Function Glf_SegmentTextCreateCharacters(text, display_size, collapse_dots, coll
         Dim padding
         padding = display_size - current_length
         For i = 1 To padding
-            char_list = PrependArray(char_list, Glf_SegmentTextCreateDisplayCharacter(SPACE_CODE, False, False, left_pad_color))
+            char_list = PrependArray(char_list, Glf_SegmentTextCreateDisplayCharacter(32, False, False, left_pad_color))
         Next
     End If
     Glf_SegmentTextCreateCharacters = char_list

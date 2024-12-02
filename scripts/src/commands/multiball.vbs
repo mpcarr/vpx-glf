@@ -101,7 +101,7 @@ Class GlfMultiballs
     End Sub
 
     Public Sub Enable()
-        m_base_device.Log "Enabling " & m_name
+        Log "Enabling " & m_name
         m_enabled = True
         Dim evt
         For Each evt in m_start_events.Keys
@@ -122,7 +122,7 @@ Class GlfMultiballs
     End Sub
     
     Public Sub Disable()
-        m_base_device.Log "Disabling " & m_name
+        Log "Disabling " & m_name
         m_enabled = False
         StopMultiball()
         Dim evt
@@ -151,7 +151,7 @@ Class GlfMultiballs
         'Else
         '    balls_to_replace = 0
         'End If
-        'm_base_device.Log("Going to add an additional " & balls_to_replace & " balls for replace_balls_in_play")
+        'Log("Going to add an additional " & balls_to_replace & " balls for replace_balls_in_play")
         m_balls_added_live = 0 
         Dim ball_count_value : ball_count_value = m_ball_count.Value
         If m_ball_count_type = "total" Then
@@ -184,14 +184,14 @@ Class GlfMultiballs
         End If
 
         If m_balls_live_target > 0 Then
-            m_base_device.Log("Cannot start MB because " & m_balls_live_target & " are still in play")
+            Log("Cannot start MB because " & m_balls_live_target & " are still in play")
             Exit Sub
         End If
 
         m_shoot_again_enabled = True
 
         HandleBallsInPlayAndBallsLive()
-        m_base_device.Log("Starting multiball with " & m_balls_live_target & " balls (added " & m_balls_added_live & ")")
+        Log("Starting multiball with " & m_balls_live_target & " balls (added " & m_balls_added_live & ")")
 
         Dim balls_added : balls_added = 0
 
@@ -238,7 +238,7 @@ Class GlfMultiballs
         'Set callbacks for shoot again, grace period, and hurry up, if values above 0 are provided.
         'This is started for both beginning multiball ball save and add a ball ball save
         If shoot_again_ms > 0 Then
-            m_base_device.Log("Starting ball save timer: " & shoot_again_ms)
+            Log("Starting ball save timer: " & shoot_again_ms)
             SetDelay m_name&"_disable_shoot_again", "MultiballsHandler" , Array(Array("stop", Me),Null), shoot_again_ms+grace_period_ms
         End If
         If grace_period_ms > 0 Then
@@ -252,13 +252,13 @@ Class GlfMultiballs
     End Sub
 
     Sub RunHurryUp()
-        m_base_device.Log("Starting Hurry Up")
+        Log("Starting Hurry Up")
         m_hurry_up_enabled = False
         DispatchPinEvent m_name & "_hurry_up", Null
     End Sub
 
     Sub RunGracePeriod()
-        m_base_device.Log("Starting Grace Period")
+        Log("Starting Grace Period")
         m_grace_period_enabled = False
         DispatchPinEvent m_name & "_grace_period", Null
     End Sub
@@ -282,7 +282,7 @@ Class GlfMultiballs
         End With
         DispatchPinEvent m_name & "_shoot_again", kwargs
         
-        m_base_device.log("Ball drained during MB. Requesting a new one")
+        Log("Ball drained during MB. Requesting a new one")
         SetDelay m_name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", Me),Null), 1000
 
         BallDrainShootAgain = balls - balls_to_save
@@ -295,32 +295,32 @@ Class GlfMultiballs
             m_balls_live_target = 0
             DispatchPinEvent m_name & "_ended", Null
             RemovePinEventListener "ball_drain", m_name & "_ball_drain"
-            m_base_device.Log("Ball drained. MB ended.")
+            Log("Ball drained. MB ended.")
         End If
         BallDrainCountBalls = balls
     End Function
 
     Public Sub Reset()
-        m_base_device.Log "Resetting multiball: " & m_name
+        Log "Resetting multiball: " & m_name
         DispatchPinEvent m_name & "_reset_event", Null
         ' Add reset logic here
     End Sub
 
     Public Sub AddABall()
-        m_base_device.Log "Adding a ball to multiball: " & m_name
+        Log "Adding a ball to multiball: " & m_name
         DispatchPinEvent m_name & "_add_a_ball_event", Null
         ' Add add-a-ball logic here
     End Sub
 
     Public Sub StartOrAddABall()
-        m_base_device.Log "Starting or adding a ball to multiball: " & m_name
+        Log "Starting or adding a ball to multiball: " & m_name
         DispatchPinEvent m_name & "_start_or_add_a_ball_event", Null
         ' Add start-or-add-a-ball logic here
     End Sub
 
     Public Sub StopMultiball()
         '"""Stop shoot again."""
-        m_base_device.Log("Stopping shoot again of multiball")
+        Log("Stopping shoot again of multiball")
         m_shoot_again_enabled = False
 
         '# disable shoot again
@@ -336,6 +336,12 @@ Class GlfMultiballs
         End If
 
         DispatchPinEvent m_name & "_shoot_again_ended", Null
+    End Sub
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
     End Sub
 
 End Class

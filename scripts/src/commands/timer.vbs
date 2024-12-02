@@ -6,6 +6,7 @@ Class GlfTimer
     Private m_priority
     Private m_mode
     Private m_base_device
+    Private m_debug
 
     Private m_control_events
     Private m_running
@@ -21,6 +22,11 @@ Class GlfTimer
     Private m_start_running
 
     Public Property Get Name() : Name = m_name : End Property
+    Public Property Let Debug(value)
+        m_debug = value
+    End Property
+    
+
     Public Property Get ControlEvents(name)
         If m_control_events.Exists(name) Then
             Set ControlEvents = m_control_events(name)
@@ -129,7 +135,7 @@ Class GlfTimer
             Exit Sub
         End If
 
-        m_base_device.Log "Starting Timer"
+        Log "Starting Timer"
         m_running = True
         RemoveDelay m_name & "_unpause"
         Dim kwargs : Set kwargs = GlfKwargs()
@@ -143,7 +149,7 @@ Class GlfTimer
     End Sub
 
     Private Sub StopTimer()
-        m_base_device.Log "Stopping Timer"
+        Log "Stopping Timer"
         m_running = False
         Dim kwargs : Set kwargs = GlfKwargs()
         With kwargs
@@ -155,7 +161,7 @@ Class GlfTimer
     End Sub
 
     Public Sub Pause(pause_ms)
-        m_base_device.Log "Pausing Timer for "&pause_ms&" ms"
+        Log "Pausing Timer for "&pause_ms&" ms"
         m_running = False
         RemoveDelay m_name & "_tick"
         
@@ -174,9 +180,9 @@ Class GlfTimer
     End Sub 
 
     Public Sub Tick()
-        m_base_device.Log "Timer Tick"
+        Log "Timer Tick"
         If Not m_running Then
-            m_base_device.Log "Timer is not running. Will remove."
+            Log "Timer is not running. Will remove."
             Exit Sub
         End If
 
@@ -187,7 +193,7 @@ Class GlfTimer
             newValue = m_ticks + 1
         End If
         
-        m_base_device.Log "ticking: old value: "& m_ticks & ", new Value: " & newValue & ", target: "& m_end_value
+        Log "ticking: old value: "& m_ticks & ", new Value: " & newValue & ", target: "& m_end_value
         m_ticks = newValue
         If Not PostTickEvents() Then
             SetDelay m_name & "_tick", "TimerEventHandler", Array(Array("tick", Me), Null), m_tick_interval    
@@ -198,7 +204,7 @@ Class GlfTimer
 
         ' Checks to see if this timer is done. Automatically called anytime the
         ' timer's value changes.
-        m_base_device.Log "Checking to see if timer is done. Ticks: "&m_ticks&", End Value: "&m_end_value&", Direction: "& m_direction
+        Log "Checking to see if timer is done. Ticks: "&m_ticks&", End Value: "&m_end_value&", Direction: "& m_direction
 
         if m_direction = "up" And Not IsEmpty(m_end_value) And m_ticks >= m_end_value Then
             TimerComplete()
@@ -215,7 +221,7 @@ Class GlfTimer
         If Not IsEmpty(m_end_value) Then 
             m_ticks_remaining = abs(m_end_value - m_ticks)
         End If
-        m_base_device.Log "Timer is not done"
+        Log "Timer is not done"
 
         CheckForDone = False
 
@@ -223,7 +229,7 @@ Class GlfTimer
 
     Private Sub TimerComplete
 
-        m_base_device.Log "Timer Complete"
+        Log "Timer Complete"
 
         StopTimer()
         Dim kwargs : Set kwargs = GlfKwargs()
@@ -234,7 +240,7 @@ Class GlfTimer
         DispatchPinEvent m_name & "_complete", kwargs
         
         If m_restart_on_complete Then
-            m_base_device.Log "Restart on complete: True"
+            Log "Restart on complete: True"
             Restart()
         End If
     End Sub
@@ -249,7 +255,7 @@ Class GlfTimer
     End Sub
 
     Private Sub Reset
-        m_base_device.Log "Resetting timer. New value: "& m_start_value
+        Log "Resetting timer. New value: "& m_start_value
         Jump m_start_value
     End Sub
 
@@ -281,7 +287,7 @@ Class GlfTimer
                 .Add "ticks_remaining", m_ticks_remaining
             End With
             DispatchPinEvent m_name & "_tick", kwargs
-            m_base_device.Log "Ticks: "&m_ticks&", Remaining: " & m_ticks_remaining
+            Log "Ticks: "&m_ticks&", Remaining: " & m_ticks_remaining
         End If
     End Function
 
@@ -318,6 +324,13 @@ Class GlfTimer
         
         CheckForDone()
     End Sub
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
+    End Sub
+
 End Class
 
 Function TimerEventHandler(args)

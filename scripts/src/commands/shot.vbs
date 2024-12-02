@@ -5,6 +5,7 @@ Class GlfShot
     Private m_mode
     Private m_priority
     Private m_base_device
+    Private m_debug
     Private m_profile
     Private m_control_events
     Private m_advance_events
@@ -22,6 +23,9 @@ Class GlfShot
     Private m_internal_cache_id
 
     Public Property Get Name(): Name = m_name: End Property
+    Public Property Let Debug(value)
+        m_debug = value
+    End Property
     Public Property Get Profile(): Profile = m_profile: End Property
     Public Property Get ShotKey(): ShotKey = m_name & "_" & m_profile: End Property
     Public Property Get State(): State = m_state: End Property
@@ -81,7 +85,6 @@ Class GlfShot
             m_hit_events.Add newEvent.Name, newEvent
         Next
     End Property
-    Public Property Let Debug(value) : m_debug = value : End Property
 
 	Public default Function init(name, mode)
         m_name = name
@@ -91,7 +94,7 @@ Class GlfShot
         m_enabled = False
         m_persist = True
         Set m_base_device = (new GlfBaseModeDevice)(mode, "shot", Me)
-
+        m_debug = False
         m_profile = "default"
         m_player_var_name = "shot_" & m_name
         m_state = -1
@@ -153,7 +156,7 @@ Class GlfShot
     End Sub
 
     Public Sub Enable()
-        m_base_device.Log "Enabling"
+        Log "Enabling"
         m_enabled = True
         Dim evt
         For Each evt in m_switches
@@ -182,7 +185,7 @@ Class GlfShot
     End Sub
 
     Public Sub Disable()
-        m_base_device.Log "Disabling"
+        Log "Disabling"
         m_enabled = False
         Dim evt
         For Each evt in m_hit_events.Keys
@@ -196,7 +199,7 @@ Class GlfShot
 
     Private Sub StopShowForState(state)
         Dim profileState : Set profileState = Glf_ShotProfiles(m_profile).StateForIndex(state)
-        m_base_device.Log "Removing Shot Show: " & m_mode & "_" & m_name & ". Key: " & profileState.Key
+        Log "Removing Shot Show: " & m_mode & "_" & m_name & ". Key: " & profileState.Key
         If glf_running_shows.Exists(m_mode & "_" & CStr(state) & "_" & m_name & "_" & profileState.Key) Then 
             glf_running_shows(m_mode & "_" & CStr(state) & "_" & m_name & "_" & profileState.Key).StopRunningShow()
         End If
@@ -207,7 +210,7 @@ Class GlfShot
             Exit Sub
         End If
         Dim profileState : Set profileState = Glf_ShotProfiles(m_profile).StateForIndex(state)
-        m_base_device.Log "Playing Shot Show: " & m_mode & "_" & m_name & ". Key: " & profileState.Key
+        Log "Playing Shot Show: " & m_mode & "_" & m_name & ". Key: " & profileState.Key
         If IsObject(profileState) Then
             If Not IsNull(profileState.Show) Then
                 Dim new_running_show
@@ -223,14 +226,14 @@ Class GlfShot
 
         Dim profile : Set profile = Glf_ShotProfiles(m_profile)
         Dim old_state : old_state = m_state
-        m_base_device.Log "Hit! Profile: "&m_profile&", State: " & profile.StateName(m_state)
+        Log "Hit! Profile: "&m_profile&", State: " & profile.StateName(m_state)
 
         Dim advancing
         If profile.AdvanceOnHit Then
-            m_base_device.Log "Advancing shot because advance_on_hit is True."
+            Log "Advancing shot because advance_on_hit is True."
             advancing = Advance(False)
         Else
-            m_base_device.Log "Not advancing shot"
+            Log "Not advancing shot"
             advancing = False
         End If
 
@@ -262,7 +265,7 @@ Class GlfShot
         End If
         Dim profile : Set profile = Glf_ShotProfiles(m_profile)
 
-        m_base_device.Log "Advancing 1 step. Profile: "&m_profile&", Current State: " & profile.StateName(m_state)
+        Log "Advancing 1 step. Profile: "&m_profile&", Current State: " & profile.StateName(m_state)
 
         If profile.StatesCount() = m_state Then
             If profile.ProfileLoop Then
@@ -294,17 +297,17 @@ Class GlfShot
     End Sub
 
     Public Sub Jump(state, force, force_show)
-        m_base_device.Log "Received jump request. State: " & state & ", Force: "& force
+        Log "Received jump request. State: " & state & ", Force: "& force
 
         If Not m_enabled And Not force Then
-            m_base_device.Log "Profile is disabled and force is False. Not jumping"
+            Log "Profile is disabled and force is False. Not jumping"
             Exit Sub
         End If
         If state = m_state And Not force_show Then
-            m_base_device.Log "Shot is already in the jump destination state"
+            Log "Shot is already in the jump destination state"
             Exit Sub
         End If
-        m_base_device.Log "Jumping to profile state " & state
+        Log "Jumping to profile state " & state
 
         StopShowForState(m_state)
         m_state = state
@@ -317,6 +320,13 @@ Class GlfShot
     Public Sub Restart()
         Reset()
         Enable()
+    End Sub
+
+    
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
     End Sub
 
     Public Function ToYaml

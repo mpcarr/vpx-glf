@@ -7,6 +7,7 @@ Class GlfSequenceShots
     Private m_priority
     Private m_mode
     Private m_base_device
+    Private m_debug
 
     Private m_cancel_events
     Private m_cancel_switches
@@ -23,6 +24,10 @@ Class GlfSequenceShots
     Private m_start_time
 
     Public Property Get Name(): Name = m_name: End Property
+    Public Property Let Debug(value)
+        m_debug = value
+    End Property
+    
     Public Property Get GetValue(value)
         Select Case value
             'Case "":
@@ -93,7 +98,7 @@ Class GlfSequenceShots
         Set m_sequence_timeout = CreateGlfInput(0)
         m_sequence_count = 0
         m_start_event = Empty
-
+        m_debug = False
         Set m_base_device = (new GlfBaseModeDevice)(mode, "sequence_shot_", Me)
         
         Set Init = Me
@@ -108,7 +113,7 @@ Class GlfSequenceShots
     End Sub
 
     Public Sub Enable()
-        m_base_device.Log "Enabling"
+        Log "Enabling"
         Dim evt
         For Each evt in m_event_sequence
             AddPinEventListener evt, m_name & "_" & evt & "_advance", "SequenceShotsHandler", m_priority, Array("advance", Me, evt)
@@ -125,7 +130,7 @@ Class GlfSequenceShots
     End Sub
 
     Public Sub Disable()
-        m_base_device.Log "Disabling"
+        Log "Disabling"
         Dim evt
         For Each evt in m_event_sequence
             RemovePinEventListener evt, m_name & "_" & evt & "_advance"
@@ -146,7 +151,7 @@ Class GlfSequenceShots
         ' going into an orbit in a row), we first have to see whether this
         ' switch is starting a new sequence or continuing an existing one
 
-        m_base_device.Log "Sequence advance: " & event_name
+        Log "Sequence advance: " & event_name
 
         If event_name = m_start_event Then
             If m_sequence_count > 1 Then
@@ -162,7 +167,7 @@ Class GlfSequenceShots
             Dim k, seq
             seq = Null
             For Each k In m_active_sequences.Keys
-                m_base_device.Log m_active_sequences(k).NextEvent
+                Log m_active_sequences(k).NextEvent
                 If m_active_sequences(k).NextEvent = event_name Then
                     Set seq = m_active_sequences(k)
                     Exit For
@@ -181,7 +186,7 @@ Class GlfSequenceShots
         ' delay_switch hit window
 
         If UBound(m_active_delays.Keys)>-1 Then
-            m_base_device.Log "There's a delay timer in effect. Sequence will not be started."
+            Log "There's a delay timer in effect. Sequence will not be started."
             Exit Sub
         End If
 
@@ -194,13 +199,13 @@ Class GlfSequenceShots
 
         Dim next_event : next_event = m_sequence_events(1)
 
-        m_base_device.Log "Setting up a new sequence. Next: " & next_event
+        Log "Setting up a new sequence. Next: " & next_event
 
         m_active_sequences.Add seq_id, (new GlfActiveSequence)(seq_id, 0, next_event)
 
         ' if this sequence has a time limit, set that up
         If m_sequence_timeout.Value > 0 Then
-            m_base_device.Log "Setting up a sequence timer for " & m_sequence_timeout.Value
+            Log "Setting up a sequence timer for " & m_sequence_timeout.Value
             SetDelay seq_id, "SequenceShotsHandler" , Array(Array("seq_timeout", Me, seq_id),Null), m_sequence_timeout.Value
         End If
     End Sub
@@ -208,14 +213,14 @@ Class GlfSequenceShots
     Public Sub AdvanceSequence(sequence)
         ' Remove this sequence from the list
         If sequence.CurrentPositionIndex = (m_sequence_count - 2) Then  ' complete
-            m_base_device.Log "Sequence complete!"
+            Log "Sequence complete!"
             RemoveDelay sequence.SeqId
             m_active_sequences.Remove sequence.SeqId
             Completed()
         Else
             Dim current_position_index : current_position_index = sequence.CurrentPositionIndex + 1
             Dim next_event : next_event = m_sequence_events(current_position_index + 1)
-            m_base_device.Log "Advancing the sequence. Next: " & next_event
+            Log "Advancing the sequence. Next: " & next_event
             sequence.CurrentPositionIndex = current_position_index
             sequence.NextEvent = next_event
         End If
@@ -249,7 +254,7 @@ Class GlfSequenceShots
     End Sub
 
     Public Sub DelayEvent(delay, name)
-        m_base_device.Log "Delaying sequence by " & delay
+        Log "Delaying sequence by " & delay
         SetDelay name & "_delay_timer", "SequenceShotsHandler" , Array(Array("release_delay", Me, name),Null), delay
         m_active_delays.Add name, True
     End Sub
@@ -259,9 +264,15 @@ Class GlfSequenceShots
     End Sub
 
     Public Sub FireSequenceTimeout(seq_id)
-        m_base_device.Log "Sequence " & seq_id & " timeouted"
+        Log "Sequence " & seq_id & " timeouted"
         m_active_sequences.Remove seq_id
         DispatchPinEvent m_name & "_timeout", Null
+    End Sub
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
     End Sub
 
 End Class

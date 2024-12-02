@@ -87,11 +87,11 @@ Function Glf_ReleaseBall(args)
             End If
         End If
     End If
-    glf_debugLog.WriteToLog "Release Ball", "swTrough1: " & swTrough1.BallCntOver
+    Glf_WriteDebugLog "Release Ball", "swTrough1: " & swTrough1.BallCntOver
     glf_plunger.AddIncomingBalls = 1
     swTrough1.kick 90, 10
     DispatchPinEvent "trough_eject", Null
-    glf_debugLog.WriteToLog "Release Ball", "Just Kicked"
+    Glf_WriteDebugLog "Release Ball", "Just Kicked"
     glf_BIP = glf_BIP + 1
 End Function
 
@@ -105,8 +105,8 @@ End Function
 Function Glf_Drain(args)
     
     Dim ballsToSave : ballsToSave = args(1) 
-    glf_debugLog.WriteToLog "end_of_ball, unclaimed balls", CStr(ballsToSave)
-    glf_debugLog.WriteToLog "end_of_ball, balls in play", CStr(glf_BIP)
+    Glf_WriteDebugLog "end_of_ball, unclaimed balls", CStr(ballsToSave)
+    Glf_WriteDebugLog "end_of_ball, balls in play", CStr(glf_BIP)
     If ballsToSave <= 0 Then
         Exit Function
     End If

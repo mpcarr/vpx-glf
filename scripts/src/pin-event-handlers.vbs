@@ -14,7 +14,7 @@ Sub DispatchPinEvent(e, kwargs)
     Else
 
         If Not glf_pinEvents.Exists(e) Then
-            glf_debugLog.WriteToLog "DispatchPinEvent", e & " has no listeners"
+            Glf_WriteDebugLog "DispatchPinEvent", e & " has no listeners"
             Exit Sub
         End If
         glf_dispatch_parent = glf_dispatch_parent + 1 'Increment the parent count
@@ -25,15 +25,15 @@ Sub DispatchPinEvent(e, kwargs)
         glf_lastPinEvent = e
         Dim k
         Dim handlers : Set handlers = glf_pinEvents(e)
-        glf_debugLog.WriteToLog "DispatchPinEvent", e
+        Glf_WriteDebugLog "DispatchPinEvent", e
         Dim handler
         For Each k In glf_pinEventsOrder(e)
-            glf_debugLog.WriteToLog "DispatchPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
+            Glf_WriteDebugLog "DispatchPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
             If handlers.Exists(k(1)) Then
                 handler = handlers(k(1))
                 GetRef(handler(0))(Array(handler(2), kwargs, e))
             Else
-                glf_debugLog.WriteToLog "DispatchPinEvent_"&e, "Handler does not exist: " & k(1)
+                Glf_WriteDebugLog "DispatchPinEvent_"&e, "Handler does not exist: " & k(1)
             End If
         Next
         Glf_EventBlocks(e).RemoveAll
@@ -52,7 +52,7 @@ End Sub
 
 Function DispatchRelayPinEvent(e, kwargs)
     If Not glf_pinEvents.Exists(e) Then
-        'glf_debugLog.WriteToLog "DispatchRelayPinEvent", e & " has no listeners"
+        Glf_WriteDebugLog "DispatchRelayPinEvent", e & " has no listeners"
         DispatchRelayPinEvent = kwargs
         Exit Function
     End If
@@ -62,9 +62,9 @@ Function DispatchRelayPinEvent(e, kwargs)
     glf_lastPinEvent = e
     Dim k
     Dim handlers : Set handlers = glf_pinEvents(e)
-    'glf_debugLog.WriteToLog "DispatchReplayPinEvent", e
+    Glf_WriteDebugLog "DispatchReplayPinEvent", e
     For Each k In glf_pinEventsOrder(e)
-        'glf_debugLog.WriteToLog "DispatchReplayPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
+        Glf_WriteDebugLog "DispatchReplayPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
         kwargs = GetRef(handlers(k(1))(0))(Array(handlers(k(1))(2), kwargs, e))
     Next
     DispatchRelayPinEvent = kwargs
@@ -73,7 +73,7 @@ End Function
 
 Function DispatchQueuePinEvent(e, kwargs)
     If Not glf_pinEvents.Exists(e) Then
-        'glf_debugLog.WriteToLog "DispatchRelayPinEvent", e & " has no listeners"
+        Glf_WriteDebugLog "DispatchRelayPinEvent", e & " has no listeners"
         Exit Function
     End If
     If Not Glf_EventBlocks.Exists(e) Then
@@ -85,10 +85,10 @@ Function DispatchQueuePinEvent(e, kwargs)
     If IsNull(kwargs) Then
         Set kwargs = GlfKwargs()
     End If
-    'glf_debugLog.WriteToLog "DispatchReplayPinEvent", e
+    Glf_WriteDebugLog "DispatchReplayPinEvent", e
     For i=0 to UBound(glf_pinEventsOrder(e))
         k = glf_pinEventsOrder(e)(i)
-        'glf_debugLog.WriteToLog "DispatchQueuePinEvent"&e, "key: " & k(1) & ", priority: " & k(0)
+        Glf_WriteDebugLog "DispatchQueuePinEvent"&e, "key: " & k(1) & ", priority: " & k(0)
         'msgbox "DispatchQueuePinEvent: " & e & " , key: " & k(1) & ", priority: " & k(0)
         'msgbox handlers(k(1))(0)
         'Call the handlers.
@@ -120,7 +120,7 @@ Function ContinueDispatchQueuePinEvent(args)
     Dim idx : idx = arrContinue(2)
     
     If Not glf_pinEvents.Exists(e) Then
-        'glf_debugLog.WriteToLog "DispatchRelayPinEvent", e & " has no listeners"
+        Glf_WriteDebugLog "DispatchRelayPinEvent", e & " has no listeners"
         Exit Function
     End If
     If Not Glf_EventBlocks.Exists(e) Then
@@ -129,10 +129,10 @@ Function ContinueDispatchQueuePinEvent(args)
     glf_lastPinEvent = e
     Dim k,i,retArgs
     Dim handlers : Set handlers = glf_pinEvents(e)
-    'glf_debugLog.WriteToLog "DispatchReplayPinEvent", e
+    Glf_WriteDebugLog "DispatchReplayPinEvent", e
     For i=idx to UBound(glf_pinEventsOrder(e))
         k = glf_pinEventsOrder(e)(i)
-        'glf_debugLog.WriteToLog "DispatchReplayPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
+        Glf_WriteDebugLog "DispatchReplayPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
 
         'Call the handlers.
         'The handlers might return a waitfor command.

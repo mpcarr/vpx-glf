@@ -2,6 +2,7 @@ Class GlfStateMachine
     Private m_name
     Private m_player_var_name
     Private m_mode
+    Private m_debug
     Private m_priority
     Private m_states
     Private m_transitions
@@ -13,6 +14,11 @@ Class GlfStateMachine
     Private m_show
  
     Public Property Get Name(): Name = m_name: End Property
+    Public Property Let Debug(value)
+        m_debug = value
+    End Property
+    
+        
     Public Property Get GetValue(value)
         Select Case value
             Case "state":
@@ -69,7 +75,7 @@ Class GlfStateMachine
         m_player_var_name = "state_machine_" & name
         m_mode = mode.Name
         m_priority = mode.Priority
-
+        m_debug = False
         m_persist_state = False
         m_starting_state = "start"
         m_state = Null
@@ -110,9 +116,9 @@ Class GlfStateMachine
     End Sub
 
     Public Sub StartState(start_state)
-        m_base_device.Log("Starting state " & start_state)
+        Log("Starting state " & start_state)
         If Not m_states.Exists(start_state) Then
-            m_base_device.Log("Invalid state " & start_state)
+            Log("Invalid state " & start_state)
             Exit Sub
         End If
 
@@ -137,7 +143,7 @@ Class GlfStateMachine
     End Sub
 
     Public Sub StopCurrentState()
-        m_base_device.Log "Stopping state " & State()
+        Log "Stopping state " & State()
         RemoveHandlers()
         Dim state_config : Set state_config = m_states(state)
 
@@ -155,7 +161,7 @@ Class GlfStateMachine
         End If
 
         If Not IsEmpty(m_show) Then
-            m_base_device.Log "Stopping show " & m_show
+            Log "Stopping show " & m_show
             m_show.Stop()
             m_show = Empty
         End If
@@ -169,7 +175,7 @@ Class GlfStateMachine
         End If
         Dim state_config : Set state_config = m_states(state)
         If Not IsEmpty(state_config.ShowWhenActive) Then
-            m_base_device.Log "Starting show %s" & state_config.ShowWhenActive
+            Log "Starting show %s" & state_config.ShowWhenActive
             'm_show = self.machine.show_controller.play_show_with_config(state_config['show_when_active'],
         End If
     End Sub
@@ -196,7 +202,7 @@ Class GlfStateMachine
 
     Public Sub MakeTransition(transition)
 
-        m_base_device.Log "Transitioning from " & State() & " to " & transition.Target
+        Log "Transitioning from " & State() & " to " & transition.Target
         StopCurrentState()
         If UBound(transition.EventsWhenTransitioning().Keys()) > -1 Then
             Dim evt
@@ -213,6 +219,13 @@ Class GlfStateMachine
         
         StartState transition.Target
 
+    End Sub
+
+    
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
     End Sub
 
 End Class
