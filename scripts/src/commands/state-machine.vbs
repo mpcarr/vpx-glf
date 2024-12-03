@@ -58,14 +58,11 @@ Class GlfStateMachine
     End Property
     Public Property Get StateItems(): StateItems = m_states.Items(): End Property
  
-    Public Property Get Transitions(name)
-        If m_transitions.Exists(name) Then
-            Set Transitions = m_transitions(name)
-        Else
-            Dim new_transition : Set new_transition = (new GlfStateMachineTranistion)(name)
-            m_transitions.Add name, new_transition
-            Set Transitions = new_transition
-        End If
+    Public Property Get Transitions()
+        Dim count : count = UBound(m_transitions.Keys)
+        Dim new_transition : Set new_transition = (new GlfStateMachineTranistion)()
+        m_transitions.Add CStr(count), new_transition
+        Set Transitions = new_transition
     End Property
  
     Public Property Get PersistState(): PersistState = m_persist_state : End Property
@@ -189,7 +186,7 @@ Class GlfStateMachine
         For Each transition in m_transitions.Items()
             If transition.Source.Exists(State()) Then
                 For Each evt in transition.Events.Items()
-                    AddPinEventListener evt.EventName, m_name & "_" & transition.Name & "_" & evt.EventName & "_transition", "StateMachineTransitionHandler", m_priority, Array("transition", Me, evt, transition)
+                    AddPinEventListener evt.EventName, m_name & "_" & transition.Target & "_" & evt.EventName & "_transition", "StateMachineTransitionHandler", m_priority, Array("transition", Me, evt, transition)
                 Next
             End If
         Next
@@ -199,7 +196,7 @@ Class GlfStateMachine
         Dim transition, evt
         For Each transition in m_transitions.Items()
             For Each evt in transition.Events.Items()
-                RemovePinEventListener evt.EventName, m_name & "_" & transition.Name & "_" & evt.EventName & "_transition"
+                RemovePinEventListener evt.EventName, m_name & "_" & transition.Target & "_" & evt.EventName & "_transition"
             Next
         Next
     End Sub
@@ -283,9 +280,6 @@ End Class
  
 Class GlfStateMachineTranistion
 	Private m_name, m_sources, m_target, m_events, m_events_when_transitioning
- 
-	Public Property Get Name(): Name = m_name: End Property
-    Public Property Let Name(input): m_name = input: End Property    
 
     Public Property Get Source(): Set Source = m_sources: End Property
     Public Property Let Source(value)
@@ -316,8 +310,7 @@ Class GlfStateMachineTranistion
         Next    
     End Property
  
-	Public default Function init(name)
-        m_name = name
+	Public default Function init()
         Set m_sources = CreateObject("Scripting.Dictionary")
         m_target = Empty
         Set m_events = CreateObject("Scripting.Dictionary")
