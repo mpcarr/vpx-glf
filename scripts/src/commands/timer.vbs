@@ -27,14 +27,11 @@ Class GlfTimer
     End Property
     
 
-    Public Property Get ControlEvents(name)
-        If m_control_events.Exists(name) Then
-            Set ControlEvents = m_control_events(name)
-        Else
-            Dim newEvent : Set newEvent = (new GlfTimerControlEvent)()
-            m_control_events.Add name, newEvent
-            Set ControlEvents = newEvent
-        End If
+    Public Property Get ControlEvents()
+        Dim control_event_count : control_event_count = UBound(m_control_events.Keys)    
+        Dim newEvent : Set newEvent = (new GlfTimerControlEvent)()
+        m_control_events.Add name, newEvent
+        Set ControlEvents = newEvent
     End Property
     Public Property Get StartValue() : StartValue = m_start_value : End Property
     Public Property Get EndValue() : EndValue = m_end_value : End Property
