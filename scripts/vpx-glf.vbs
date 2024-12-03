@@ -265,18 +265,17 @@ Public Sub Glf_Init()
 				.ReloadLights()
 			End With
 		End If
-
+		Dim x,state
 		If UBound(mode.ModeShots) > -1 Then
 			Dim mode_shot
 			For Each mode_shot in mode.ModeShots
 				Dim shot_profile : Set shot_profile = Glf_ShotProfiles(mode_shot.Profile)
-				Dim x
+				
 				If mode_shot.InternalCacheId = -1 Then
 					mode_shot.InternalCacheId = shot_count
 					shot_count = shot_count + 1
 				End If
 				For x=0 to shot_profile.StatesCount
-					Dim state
 					Set state = shot_profile.StateForIndex(x)
 					If state.InternalCacheId = -1 Then
 						state.InternalCacheId = CStr(show_count)
@@ -303,6 +302,29 @@ Public Sub Glf_Init()
 					End If
 					cached_show = Glf_ConvertShow(state.Show, mergedTokens)
 					glf_cached_shows.Add mode.name & "_" & x & "_" & mode_shot.Name & "_" & state.Key & "_" & mode_shot.InternalCacheId & "_" & state.InternalCacheId, cached_show
+				Next
+			Next
+		End If
+
+		If UBound(mode.ModeStateMachines) > -1 Then
+			Dim mode_state_machine,state_count
+			state_count = 0
+			For Each mode_state_machine in mode.ModeStateMachines
+				
+				For x=0 to UBound(mode_state_machine.StateItems)
+					Set state = mode_state_machine.StateItems()(x)
+					If state.InternalCacheId = -1 Then
+						state.InternalCacheId = CStr(state_count)
+						state_count = state_count + 1
+					End If
+					If Not IsNull(state.ShowWhenActive().Show) Then
+						If state.ShowWhenActive().Action = "play" Then
+							state.ShowWhenActive().InternalCacheId = CStr(show_count)
+							show_count = show_count + 1
+							cached_show = Glf_ConvertShow(state.ShowWhenActive().Show, state.ShowWhenActive().Tokens)
+							glf_cached_shows.Add mode.name & "_" & mode_state_machine.Name & "_" & state.Name & "_" & state.ShowWhenActive().Key & "_" & state.InternalCacheId & "_" & state.ShowWhenActive().InternalCacheId, cached_show
+						End If
+					End If
 				Next
 			Next
 		End If
@@ -2867,6 +2889,7 @@ Class Mode
             Set StateMachines = new_state_machine
         End If
     End Property
+    Public Property Get ModeStateMachines(): ModeStateMachines = m_state_machines.Items(): End Property
 
     Public Property Get ModeShots(): ModeShots = m_shots.Items(): End Property
     Public Property Get Shots(name)
@@ -5062,14 +5085,11 @@ Class GlfShot
 
     Public Property Let EnableEvents(value) : m_base_device.EnableEvents = value : End Property
     Public Property Let DisableEvents(value) : m_base_device.DisableEvents = value : End Property
-    Public Property Get ControlEvents(name)
-        If m_control_events.Exists(name) Then
-            Set ControlEvents = m_control_events(name)
-        Else
+    Public Property Get ControlEvents()
+            Dim control_event_count : control_event_count = UBound(m_control_events.Keys)
             Dim newEvent : Set newEvent = (new GlfShotControlEvent)()
-            m_control_events.Add name, newEvent
+            m_control_events.Add CStr(control_event_count+1), newEvent
             Set ControlEvents = newEvent
-        End If
     End Property
     Public Property Let AdvanceEvents(value)
         Dim x
@@ -5906,7 +5926,7 @@ Class GlfRunningShow
             cached_show = glf_cached_shows(CacheName)
             Set cached_show_lights = cached_show(1)
         Else
-            msgbox "show not cached! Problem with caching"
+            msgbox "show " & running_show.CacheName & " not cached! Problem with caching"
         End If
         Dim lightStack
         For Each light in cached_show_lights.Keys()
@@ -6116,6 +6136,7 @@ Class GlfStateMachine
             Set States = new_state
         End If
     End Property
+    Public Property Get StateItems(): StateItems = m_states.Items(): End Property
  
     Public Property Get Transitions(name)
         If m_transitions.Exists(name) Then
@@ -6234,9 +6255,12 @@ Class GlfStateMachine
             Exit Sub
         End If
         Dim state_config : Set state_config = m_states(state)
-        If Not IsEmpty(state_config.ShowWhenActive) Then
-            Log "Starting show %s" & state_config.ShowWhenActive
-            'm_show = self.machine.show_controller.play_show_with_config(state_config['show_when_active'],
+        If Not IsNull(state_config.ShowWhenActive().Show) Then
+            Dim show : Set show = state_config.ShowWhenActive
+            Log "Starting show %s" & m_name & "_" & show.Key
+            Dim new_running_show
+            
+            Set new_running_show = (new GlfRunningShow)(m_mode & "_" & m_name & "_" & state_config.Name & "_" & show.Key, show.Key, show, m_priority, Null, state_config.InternalCacheId)
         End If
     End Sub
 
@@ -6291,19 +6315,22 @@ Class GlfStateMachine
 End Class
  
 Class GlfStateMachineState
-	Private m_name, m_label, m_show_when_active, m_show_tokens, m_events_when_started, m_events_when_stopped
+	Private m_name, m_label, m_show_when_active, m_show_tokens, m_events_when_started, m_events_when_stopped, m_internal_cache_id
  
+
+    Public Property Get InternalCacheId(): InternalCacheId = m_internal_cache_id: End Property
+    Public Property Let InternalCacheId(input): m_internal_cache_id = input: End Property
+
 	Public Property Get Name(): Name = m_name: End Property
     Public Property Let Name(input): m_name = input: End Property
  
     Public Property Get Label(): Label = m_label: End Property
     Public Property Let Label(input): m_label = input: End Property
  
-    Public Property Get ShowWhenActive(): ShowWhenActive = m_show_when_active: End Property
-    Public Property Let ShowWhenActive(input): m_show_when_active = input: End Property
- 
-    Public Property Get ShowTokens(): Set ShowTokens = m_show_tokens: End Property
- 
+    Public Property Get ShowWhenActive()
+        Set ShowWhenActive = m_show_when_active
+    End Property
+
     Public Property Get EventsWhenStarted(): Set EventsWhenStarted = m_events_when_started: End Property
     Public Property Let EventsWhenStarted(value)
         Dim x
@@ -6325,8 +6352,8 @@ Class GlfStateMachineState
 	Public default Function init(name)
         m_name = name
         m_label = Empty
-        m_show_when_active = Empty
-        Set m_show_tokens = CreateObject("Scripting.Dictionary")
+        m_internal_cache_id = -1
+        Set m_show_when_active = (new GlfShowPlayerItem)()
         Set m_events_when_started = CreateObject("Scripting.Dictionary")
         Set m_events_when_stopped = CreateObject("Scripting.Dictionary")
 	    Set Init = Me
@@ -6436,14 +6463,11 @@ Class GlfTimer
     End Property
     
 
-    Public Property Get ControlEvents(name)
-        If m_control_events.Exists(name) Then
-            Set ControlEvents = m_control_events(name)
-        Else
-            Dim newEvent : Set newEvent = (new GlfTimerControlEvent)()
-            m_control_events.Add name, newEvent
-            Set ControlEvents = newEvent
-        End If
+    Public Property Get ControlEvents()
+        Dim control_event_count : control_event_count = UBound(m_control_events.Keys)    
+        Dim newEvent : Set newEvent = (new GlfTimerControlEvent)()
+        m_control_events.Add name, newEvent
+        Set ControlEvents = newEvent
     End Property
     Public Property Get StartValue() : StartValue = m_start_value : End Property
     Public Property Get EndValue() : EndValue = m_end_value : End Property

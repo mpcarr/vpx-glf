@@ -182,7 +182,7 @@ Class GlfRunningShow
             cached_show = glf_cached_shows(CacheName)
             Set cached_show_lights = cached_show(1)
         Else
-            msgbox "show not cached! Problem with caching"
+            msgbox "show " & running_show.CacheName & " not cached! Problem with caching"
         End If
         Dim lightStack
         For Each light in cached_show_lights.Keys()

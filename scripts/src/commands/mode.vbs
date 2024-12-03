@@ -129,6 +129,7 @@ Class Mode
             Set StateMachines = new_state_machine
         End If
     End Property
+    Public Property Get ModeStateMachines(): ModeStateMachines = m_state_machines.Items(): End Property
 
     Public Property Get ModeShots(): ModeShots = m_shots.Items(): End Property
     Public Property Get Shots(name)

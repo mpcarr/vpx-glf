@@ -265,18 +265,17 @@ Public Sub Glf_Init()
 				.ReloadLights()
 			End With
 		End If
-
+		Dim x,state
 		If UBound(mode.ModeShots) > -1 Then
 			Dim mode_shot
 			For Each mode_shot in mode.ModeShots
 				Dim shot_profile : Set shot_profile = Glf_ShotProfiles(mode_shot.Profile)
-				Dim x
+				
 				If mode_shot.InternalCacheId = -1 Then
 					mode_shot.InternalCacheId = shot_count
 					shot_count = shot_count + 1
 				End If
 				For x=0 to shot_profile.StatesCount
-					Dim state
 					Set state = shot_profile.StateForIndex(x)
 					If state.InternalCacheId = -1 Then
 						state.InternalCacheId = CStr(show_count)
@@ -303,6 +302,29 @@ Public Sub Glf_Init()
 					End If
 					cached_show = Glf_ConvertShow(state.Show, mergedTokens)
 					glf_cached_shows.Add mode.name & "_" & x & "_" & mode_shot.Name & "_" & state.Key & "_" & mode_shot.InternalCacheId & "_" & state.InternalCacheId, cached_show
+				Next
+			Next
+		End If
+
+		If UBound(mode.ModeStateMachines) > -1 Then
+			Dim mode_state_machine,state_count
+			state_count = 0
+			For Each mode_state_machine in mode.ModeStateMachines
+				
+				For x=0 to UBound(mode_state_machine.StateItems)
+					Set state = mode_state_machine.StateItems()(x)
+					If state.InternalCacheId = -1 Then
+						state.InternalCacheId = CStr(state_count)
+						state_count = state_count + 1
+					End If
+					If Not IsNull(state.ShowWhenActive().Show) Then
+						If state.ShowWhenActive().Action = "play" Then
+							state.ShowWhenActive().InternalCacheId = CStr(show_count)
+							show_count = show_count + 1
+							cached_show = Glf_ConvertShow(state.ShowWhenActive().Show, state.ShowWhenActive().Tokens)
+							glf_cached_shows.Add mode.name & "_" & mode_state_machine.Name & "_" & state.Name & "_" & state.ShowWhenActive().Key & "_" & state.InternalCacheId & "_" & state.ShowWhenActive().InternalCacheId, cached_show
+						End If
+					End If
 				Next
 			Next
 		End If
