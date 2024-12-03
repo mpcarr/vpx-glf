@@ -43,14 +43,11 @@ Class GlfShot
 
     Public Property Let EnableEvents(value) : m_base_device.EnableEvents = value : End Property
     Public Property Let DisableEvents(value) : m_base_device.DisableEvents = value : End Property
-    Public Property Get ControlEvents(name)
-        If m_control_events.Exists(name) Then
-            Set ControlEvents = m_control_events(name)
-        Else
+    Public Property Get ControlEvents()
+            Dim control_event_count : control_event_count = UBound(m_control_events.Keys)
             Dim newEvent : Set newEvent = (new GlfShotControlEvent)()
-            m_control_events.Add name, newEvent
+            m_control_events.Add CStr(control_event_count+1), newEvent
             Set ControlEvents = newEvent
-        End If
     End Property
     Public Property Let AdvanceEvents(value)
         Dim x
