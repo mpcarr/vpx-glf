@@ -257,7 +257,7 @@ Class GlfTimer
     End Sub
 
     Private Sub Jump(timer_value)
-        m_ticks = (timer_value/1000)
+        m_ticks = timer_value
 
         If m_max_value and m_ticks > m_max_value Then
             m_ticks = m_max_value
@@ -267,7 +267,7 @@ Class GlfTimer
     End Sub
 
     Public Sub ChangeTickInterval(change)
-        m_tick_interval = m_tick_interval * (change/1000)
+        m_tick_interval = m_tick_interval * change
     End Sub
 
     Public Sub SetTickInterval(timer_value)
@@ -291,7 +291,7 @@ Class GlfTimer
     Public Sub Add(timer_value) 
         Dim new_value
 
-        new_value = m_ticks + (timer_value/1000)
+        new_value = m_ticks + timer_value
 
         If Not IsEmpty(m_max_value) And new_value > m_max_value Then
             new_value = m_max_value
@@ -310,7 +310,7 @@ Class GlfTimer
     End Sub
 
     Public Sub Subtract(timer_value)
-        m_ticks = m_ticks - (timer_value/1000)
+        m_ticks = m_ticks - timer_value
         Dim kwargs : Set kwargs = GlfKwargs()
         With kwargs
             .Add "ticks", m_ticks
