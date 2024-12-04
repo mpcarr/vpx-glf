@@ -140,8 +140,8 @@ Class GlfShot
         Next
         For Each evt in m_control_events.Keys
             Dim cEvt
-            For Each cEvt in m_control_events(evt).Events
-                RemovePinEventListener cEvt, m_mode & "_" & m_name & "_control"
+            For Each cEvt in m_control_events(evt).Events.Keys
+                RemovePinEventListener m_control_events(evt)(cEvt).EventName, m_mode & "_" & m_name & "_control"
             Next
         Next
         For Each evt in m_reset_events.Keys
@@ -167,8 +167,8 @@ Class GlfShot
         Next
         For Each evt in m_control_events.Keys
             Dim cEvt
-            For Each cEvt in m_control_events(evt).Events
-                AddPinEventListener cEvt, m_mode & "_" & m_name & "_control", "ShotEventHandler", m_priority, Array("control", Me, m_control_events(evt))
+            For Each cEvt in m_control_events(evt).Events.Keys
+                AddPinEventListener m_control_events(evt)(cEvt).EventName, m_mode & "_" & m_name & "_control", "ShotEventHandler", m_priority, Array("control", Me, m_control_events(evt)(cEvt))
             Next
         Next
         For Each evt in m_reset_events.Keys
@@ -490,8 +490,14 @@ End Function
 Class GlfShotControlEvent
 	Private m_events, m_state, m_force, m_force_show
   
-	Public Property Get Events(): Events = m_events: End Property
-    Public Property Let Events(input): m_events = input: End Property
+	Public Property Get Events(): Set Events = m_events: End Property
+    Public Property Let Events(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_events.Add newEvent.Name, newEvent
+        Next
+    End Property
 
     Public Property Get State(): State = m_state End Property
     Public Property Let State(input): m_state = input End Property
@@ -503,7 +509,7 @@ Class GlfShotControlEvent
 	Public Property Let ForceShow(input): m_force_show = input: End Property   
 
 	Public default Function init()
-        m_events = Array()
+        Set m_events = CreateObject("Scripting.Dictionary")
         m_state = 0
         m_force = True
         m_force_show = False

@@ -43,7 +43,7 @@ Class GlfTimer
     Public Property Let RestartOnComplete(value) : restart_on_complete = value : End Property
     Public Property Let StartRunning(value) : m_start_running = value : End Property
     Public Property Let TickInterval(value)
-        m_tick_interval = value * 1000
+        m_tick_interval = value
         m_starting_tick_interval = value
     End Property
 

@@ -5182,8 +5182,8 @@ Class GlfShot
         Next
         For Each evt in m_control_events.Keys
             Dim cEvt
-            For Each cEvt in m_control_events(evt).Events
-                RemovePinEventListener cEvt, m_mode & "_" & m_name & "_control"
+            For Each cEvt in m_control_events(evt).Events.Keys
+                RemovePinEventListener m_control_events(evt)(cEvt).EventName, m_mode & "_" & m_name & "_control"
             Next
         Next
         For Each evt in m_reset_events.Keys
@@ -5209,8 +5209,8 @@ Class GlfShot
         Next
         For Each evt in m_control_events.Keys
             Dim cEvt
-            For Each cEvt in m_control_events(evt).Events
-                AddPinEventListener cEvt, m_mode & "_" & m_name & "_control", "ShotEventHandler", m_priority, Array("control", Me, m_control_events(evt))
+            For Each cEvt in m_control_events(evt).Events.Keys
+                AddPinEventListener m_control_events(evt)(cEvt).EventName, m_mode & "_" & m_name & "_control", "ShotEventHandler", m_priority, Array("control", Me, m_control_events(evt)(cEvt))
             Next
         Next
         For Each evt in m_reset_events.Keys
@@ -5532,8 +5532,14 @@ End Function
 Class GlfShotControlEvent
 	Private m_events, m_state, m_force, m_force_show
   
-	Public Property Get Events(): Events = m_events: End Property
-    Public Property Let Events(input): m_events = input: End Property
+	Public Property Get Events(): Set Events = m_events: End Property
+    Public Property Let Events(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_events.Add newEvent.Name, newEvent
+        Next
+    End Property
 
     Public Property Get State(): State = m_state End Property
     Public Property Let State(input): m_state = input End Property
@@ -5545,7 +5551,7 @@ Class GlfShotControlEvent
 	Public Property Let ForceShow(input): m_force_show = input: End Property   
 
 	Public default Function init()
-        m_events = Array()
+        Set m_events = CreateObject("Scripting.Dictionary")
         m_state = 0
         m_force = True
         m_force_show = False
@@ -6472,7 +6478,7 @@ Class GlfTimer
     Public Property Let RestartOnComplete(value) : restart_on_complete = value : End Property
     Public Property Let StartRunning(value) : m_start_running = value : End Property
     Public Property Let TickInterval(value)
-        m_tick_interval = value * 1000
+        m_tick_interval = value
         m_starting_tick_interval = value
     End Property
 
@@ -7892,6 +7898,11 @@ Class GlfLightSegmentDisplay
     private m_segmentmap
     private m_segment_type
     private m_size
+    private m_update_method
+    private m_text_stack
+    private m_current_text_stack_entry
+    private m_top_key
+    private m_max_priority
 
     Public Property Get SegmentType() : SegmentType = m_segment_type : End Property
     Public Property Let SegmentType(input)
@@ -7909,6 +7920,9 @@ Class GlfLightSegmentDisplay
         m_light_group = input
         CalculateLights()
     End Property
+
+    Public Property Get UpdateMethod() : UpdateMethod = m_update_method : End Property
+    Public Property Let UpdateMethod(input) : m_update_method = input : End Property
 
     Public Property Get SegmentSize() : SegmentSize = m_size : End Property
     Public Property Let SegmentSize(input)
@@ -7931,7 +7945,13 @@ Class GlfLightSegmentDisplay
         m_current_state = Null
         m_current_flashing = Empty
         m_current_flash_mask = Empty
+        m_current_text_stack_entry = Null
+        Set m_text_stack = CreateObject("Scripting.Dictionary")
+        m_update_method = "replace"
         m_lights = Array()  
+
+        m_max_priority = -1
+        m_top_key = Empty
 
         glf_segment_displays.Add name, Me
         Set Init = Me
@@ -8042,11 +8062,106 @@ Class GlfLightSegmentDisplay
 
     Public Sub AddTextEntry(text, color, flashing, flash_mask, transition, transition_out, priority, key)
         
-        Dim new_text : new_text = Glf_SegmentTextCreateCharacters(text, m_size, True, True, True, Array())
-        Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,True, True, True) 
+
+        If m_update_method = "stack" Then
+            Dim text_entry : Set text_entry = (new GlfTextStackEntry)(text,color,flashing,flash_mask,transition,transition_out,priority,key)
+            If m_text_stack.Exists(key) Then
+                m_text_stack.Remove key
+            End If
+            m_text_stack.Add, key, text_entry
+            If -priority > m_max_priority Then
+                m_top_key = key
+                m_max_priority = priority
+            End If
+            UpdateStack()
+        Else
+            Dim new_text : new_text = Glf_SegmentTextCreateCharacters(text, m_size, True, True, True, Array())
+            Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,True, True, True) 
         
-        
-        UpdateDisplay display_text, "no_flash", Empty
+            UpdateDisplay display_text, "no_flash", Empty
+        End If
+    End Sub
+
+    Public Sub UpdateStack()
+
+        'Sort stack and show top entry on display.
+        Dim top_text_stack_entry
+        If Ubound(m_text_stack.Keys) = -1 Then
+            Set top_text_stack_entry = (new GlfTextStackEntry)(String(m_size, " "),Null,"no_flash","",Null,Null,-999999,"")
+        Else
+            'sort text stack by priority
+            self._text_stack = dict(
+                sorted(self._text_stack.items(), key=lambda item: item[1].priority, reverse=True))
+
+            'get top entry (highest priority)
+            top_text_stack_entry = next(iter(self._text_stack.values()))
+
+        Dim previous_text_stack_entry
+        Set previous_text_stack_entry = m_current_text_stack_entry
+        Set m_current_text_stack_entry = top_text_stack_entry
+
+        'determine if the new key is different than the previous key (out transitions are only applied when changing keys)
+        Dim transition_config : transition_config = Null
+        If Not IsNull(previous_text_stack_entry) And top_text_stack_entry.key != previous_text_stack_entry.key And Not IsNull(previous_text_stack_entry.transition_out) Then
+            Set transition_config = previous_text_stack_entry.transition_out
+        End If
+        'determine if new text entry has a transition, if so, apply it (overrides any outgoing transition)
+        If Not IsNull(top_text_stack_entry.transition) Then
+            Set transition_config = top_text_stack_entry.transition
+        End If
+        'start transition (if configured)
+        Dim flashing, flash_mask
+        If Not IsNull(transition_config) Then
+            transition = TransitionManager.get_transition(self.size,
+                                                          self.config['integrated_dots'],
+                                                          self.config['integrated_commas'],
+                                                          self.config['use_dots_for_commas'],
+                                                          transition_config)
+            Dim previous_text
+            If Not IsNull(previous_text_stack_entry) Then
+                previous_text = previous_text_stack_entry.text
+            Else
+                previous_text = " " * self.size
+            End If
+
+            If Not IsEmpty(top_text_stack_entry.flashing) Then
+                flashing = top_text_stack_entry.flashing
+                flash_mask = top_text_stack_entry.flash_mask
+            Else
+                flashing = m_current_state.flashing
+                flash_mask = m_current_state.flash_mask
+            End If
+
+            self._start_transition(transition, previous_text, top_text_stack_entry.text,
+                                   self._current_state.text.get_colors(), top_text_stack_entry.colors,
+                                   self.config['default_transition_update_hz'], flashing, flash_mask)
+        Else
+            'no transition - subscribe to text template changes and update display
+            m_current_placeholder = TextTemplate(self.machine, top_text_stack_entry.text)
+            new_text, future = self._current_placeholder.evaluate_and_subscribe({})
+            future.add_done_callback(self._current_placeholder_changed)
+
+            # set any flashing state specified in the entry
+            if top_text_stack_entry.flashing is not None:
+                flashing = top_text_stack_entry.flashing
+                flash_mask = top_text_stack_entry.flash_mask
+            else:
+                flashing = self._current_state.flashing
+                flash_mask = self._current_state.flash_mask
+
+            # update colors if specified
+            if top_text_stack_entry.colors:
+                colors = top_text_stack_entry.colors
+            else:
+                colors = self._current_state.text.get_colors()
+
+            # update the display
+            text = SegmentDisplayText.from_str(new_text, self.size, self.config['integrated_dots'],
+                                               self.config['integrated_commas'], self.config['use_dots_for_commas'],
+                                               colors)
+            self._update_display(SegmentDisplayState(text, flashing, flash_mask))
+        End If
+
 
     End Sub
 
@@ -8066,6 +8181,22 @@ Class GlfLightSegmentDisplay
 
     End Sub
 
+End Class
+
+Class GlfTextStackEntry
+    Public text, colors, flashing, flash_mask, transition, transition_out, priority, key
+
+    Public default Function init(text, colors, flashing, flash_mask, transition, transition_out, priority, key)
+        Me.text = text
+        Me.colors = colors
+        Me.flashing = flashing
+        Me.flash_mask = flash_mask
+        Me.transition = transition
+        Me.transition_out = transition_out
+        Me.priority = priority
+        Me.key = key
+        Set Init = Me
+    End Function
 End Class
 
 Class FourteenSegments
@@ -8091,6 +8222,8 @@ Class FourteenSegments
         Set Init = Me
     End Function
 End Class
+
+
 
 Class SevenSegments
     Public dp, g, f, e, d, c, b, a, char
