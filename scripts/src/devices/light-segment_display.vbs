@@ -4,7 +4,7 @@ Function CreateGlfLightSegmentDisplay(name)
 End Function
 
 Class GlfLightSegmentDisplay
-
+    private m_name
     private m_flash_on
     private m_flashing
     private m_flash_mask
@@ -19,6 +19,11 @@ Class GlfLightSegmentDisplay
     private m_segmentmap
     private m_segment_type
     private m_size
+    private m_update_method
+    private m_text_stack
+    private m_current_text_stack_entry
+    private m_top_key
+    private m_max_priority
 
     Public Property Get SegmentType() : SegmentType = m_segment_type : End Property
     Public Property Let SegmentType(input)
@@ -37,6 +42,9 @@ Class GlfLightSegmentDisplay
         CalculateLights()
     End Property
 
+    Public Property Get UpdateMethod() : UpdateMethod = m_update_method : End Property
+    Public Property Let UpdateMethod(input) : m_update_method = input : End Property
+
     Public Property Get SegmentSize() : SegmentSize = m_size : End Property
     Public Property Let SegmentSize(input)
         m_size = input
@@ -44,7 +52,7 @@ Class GlfLightSegmentDisplay
     End Property
 
     Public default Function init(name)
-
+        m_name = name
         m_flash_on = True
         m_flashing = "no_flash"
         m_flash_mask = Empty
@@ -58,7 +66,13 @@ Class GlfLightSegmentDisplay
         m_current_state = Null
         m_current_flashing = Empty
         m_current_flash_mask = Empty
+        m_current_text_stack_entry = Null
+        Set m_text_stack = (new GlfTextStack)()
+        m_update_method = "replace"
         m_lights = Array()  
+
+        m_max_priority = -1
+        m_top_key = Empty
 
         glf_segment_displays.Add name, Me
         Set Init = Me
@@ -169,12 +183,118 @@ Class GlfLightSegmentDisplay
 
     Public Sub AddTextEntry(text, color, flashing, flash_mask, transition, transition_out, priority, key)
         
-        Dim new_text : new_text = Glf_SegmentTextCreateCharacters(text, m_size, True, True, True, Array())
-        Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,True, True, True) 
-        
-        
-        UpdateDisplay display_text, "no_flash", Empty
 
+        If m_update_method = "stack" Then
+            m_text_stack.Push text,color,flashing,flash_mask,transition,transition_out,priority,key
+            UpdateStack()
+        Else
+            Dim new_text : new_text = Glf_SegmentTextCreateCharacters(text.Value(), m_size, False, False, True, Array())
+            Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,False, False, True) 
+            UpdateDisplay display_text, "no_flash", Empty
+        End If
+    End Sub
+
+    Public Sub UpdateStack()
+
+        'Sort stack and show top entry on display.
+        Dim top_text_stack_entry
+        If m_text_stack.IsEmpty() Then
+            Set top_text_stack_entry = (new GlfTextStackEntry)(String(m_size, " "),Null,"no_flash","",Null,Null,-999999,"")
+        Else
+            Set top_text_stack_entry = m_text_stack.Pop()
+        End If
+
+        Dim previous_text_stack_entry : previous_text_stack_entry = Null
+        If Not IsNull(m_current_text_stack_entry) Then
+            Set previous_text_stack_entry = m_current_text_stack_entry
+            If previous_text_stack_entry.text.IsPlayerState() Then
+                RemovePlayerStateEventListener previous_text_stack_entry.text.PlayerStateValue(), "display"
+            End If
+        End If
+        
+        Set m_current_text_stack_entry = top_text_stack_entry
+
+        'determine if the new key is different than the previous key (out transitions are only applied when changing keys)
+        Dim transition_config : transition_config = Null
+        If Not IsNull(previous_text_stack_entry) Then
+            If top_text_stack_entry.key <> previous_text_stack_entry.key And Not IsNull(previous_text_stack_entry.transition_out) Then
+                Set transition_config = previous_text_stack_entry.transition_out
+            End If
+        End If
+        'determine if new text entry has a transition, if so, apply it (overrides any outgoing transition)
+        If Not IsNull(top_text_stack_entry.transition) Then
+            Set transition_config = top_text_stack_entry.transition
+        End If
+        'start transition (if configured)
+        Dim flashing, flash_mask
+        If Not IsNull(transition_config) Then
+            Dim transition
+            Select Case transition_config.Type()
+                case "push":
+                    Set transition = (new GlfPushTransition)(m_size, True, True, True, transition_config)
+            End Select
+
+            Dim previous_text
+            If Not IsNull(previous_text_stack_entry) Then
+                previous_text = previous_text_stack_entry.text
+            Else
+                previous_text = String(m_size, " ")
+            End If
+
+            If Not IsEmpty(top_text_stack_entry.flashing) Then
+                flashing = top_text_stack_entry.flashing
+                flash_mask = top_text_stack_entry.flash_mask
+            Else
+                flashing = m_current_state.flashing
+                flash_mask = m_current_state.flash_mask
+            End If
+
+            'self._start_transition(transition, previous_text, top_text_stack_entry.text,
+             '                      self._current_state.text.get_colors(), top_text_stack_entry.colors,
+             '                      self.config['default_transition_update_hz'], flashing, flash_mask)
+        Else
+            'no transition - subscribe to text template changes and update display
+            If top_text_stack_entry.text.IsPlayerState() Then
+                AddPlayerStateEventListener top_text_stack_entry.text.PlayerStateValue(), m_name, top_text_stack_entry.text.PlayerStatePlayer(), "Glf_SegmentTextStackEventHandler", top_text_stack_entry.priority, Me
+            End If
+
+            'set any flashing state specified in the entry
+            If Not IsEmpty(top_text_stack_entry.flashing) Then
+                flashing = top_text_stack_entry.flashing
+                flash_mask = top_text_stack_entry.flash_mask
+            Else
+                flashing = m_current_state.flashing
+                flash_mask = m_current_state.flash_mask
+            End If
+
+            'update colors if specified
+            'if top_text_stack_entry.colors:
+            '    colors = top_text_stack_entry.colors
+            'else:
+            '    colors = self._current_state.text.get_colors()
+
+            'update the display
+            Dim text_value : text_value = top_text_stack_entry.text.Value()
+
+            If text_value = False Then
+                text_value = String(m_size, " ")
+            End If
+            Dim new_text : new_text = Glf_SegmentTextCreateCharacters(text_value, m_size, True, True, True, Array())
+            Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,False, False, True) 
+            UpdateDisplay display_text, "no_flash", Empty
+        End If
+
+
+    End Sub
+
+    Public Sub CurrentPlaceholderChanged()
+        Dim text_value : text_value = m_current_text_stack_entry.text.Value()
+        If text_value = False Then
+            text_value = String(m_size, " ")
+        End If
+        Dim new_text : new_text = Glf_SegmentTextCreateCharacters(text_value, m_size, False, False, True, Array())
+        Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,False, False, True) 
+        UpdateDisplay display_text, "no_flash", Empty
     End Sub
 
     Public Sub RemoveTextByKey(key)
@@ -194,6 +314,148 @@ Class GlfLightSegmentDisplay
     End Sub
 
 End Class
+
+Sub Glf_SegmentTextStackEventHandler(args)
+    Dim ownProps, kwargs
+    Set ownProps = args(0) 
+    kwargs = args(1) 
+    Dim player_var : player_var = kwargs(0)
+    Dim value : value = kwargs(1)
+    Dim prevValue : prevValue = kwargs(2)
+    ownProps.CurrentPlaceholderChanged()
+End Sub
+
+
+Class GlfTextStackEntry
+    Public text, colors, flashing, flash_mask, transition, transition_out, priority, key
+
+    Public default Function init(text, colors, flashing, flash_mask, transition, transition_out, priority, key)
+        Set Me.text = text
+        Me.colors = colors
+        Me.flashing = flashing
+        Me.flash_mask = flash_mask
+        Me.transition = transition
+        Me.transition_out = transition_out
+        Me.priority = priority
+        Me.key = key
+        Set Init = Me
+    End Function
+End Class
+
+Class GlfTextStack
+    Private stack
+
+    ' Initialize an empty stack
+    Public default Function Init()
+        ReDim stack(-1)  ' Initialize an empty array
+        Set Init = Me
+    End Function
+
+    ' Push a new text entry onto the stack or update an existing one
+    Public Sub Push(text, colors, flashing, flash_mask, transition, transition_out, priority, key)
+        Dim found : found = False
+        Dim i
+
+        ' Check if the key already exists in the stack and update it
+        For i = LBound(stack) To UBound(stack)
+            If stack(i).key = key Then
+                ' Replace the existing item if the key matches
+                Set stack(i) = CreateTextStackEntry(text, colors, flashing, flash_mask, transition, transition_out, priority, key)
+                found = True
+                Exit For
+            End If
+        Next
+        
+        If Not found Then
+            ' Insert the new item into the array maintaining priority order
+            ReDim Preserve stack(UBound(stack) + 1)
+            Set stack(UBound(stack)) = CreateTextStackEntry(text, colors, flashing, flash_mask, transition, transition_out, priority, key)
+            SortStackByPriority
+        End If
+    End Sub
+
+    ' Pop the top entry from the stack
+    Public Function Pop()
+        If UBound(stack) >= 0 Then
+            Set Pop = stack(UBound(stack))
+            ReDim Preserve stack(UBound(stack) - 1)
+        Else
+            Set Pop = Nothing
+        End If
+    End Function
+
+    ' Pop a specific entry from the stack by key
+    Public Function PopByKey(key)
+        Dim i, removedItem, found
+        found = False
+        Set removedItem = Nothing
+    
+        ' Loop through the stack to find the item with the matching key
+        For i = LBound(stack) To UBound(stack)
+            If stack(i).key = key Then
+                ' Store the item to be removed
+                Set removedItem = stack(i)
+                found = True
+    
+                ' Shift all elements after the removed item to the left
+                Dim j
+                For j = i To UBound(stack) - 1
+                    Set stack(j) = stack(j + 1)
+                Next
+    
+                ' Resize the array to remove the last element
+                ReDim Preserve stack(UBound(stack) - 1)
+                Exit For
+            End If
+        Next
+    
+        ' Return the removed item (or Nothing if not found)
+        If found Then
+            Set PopByKey = removedItem
+        Else
+            Set PopByKey = Nothing
+        End If
+    End Function
+
+    ' Peek at the top entry of the stack without popping it
+    Public Function Peek()
+        If UBound(stack) >= 0 Then
+            Set Peek = stack(UBound(stack))
+        Else
+            Set Peek = Nothing
+        End If
+    End Function
+
+    ' Check if the stack is empty
+    Public Function IsEmpty()
+        IsEmpty = (UBound(stack) < 0)
+    End Function
+
+    ' Create a new GlfTextStackEntry object
+    Private Function CreateTextStackEntry(text, colors, flashing, flash_mask, transition, transition_out, priority, key)
+        Dim entry
+        Set entry = New GlfTextStackEntry
+        entry.init text, colors, flashing, flash_mask, transition, transition_out, priority, key
+        Set CreateTextStackEntry = entry
+    End Function
+
+    ' Sort the stack by priority (descending)
+    Private Sub SortStackByPriority()
+        Dim i, j
+        Dim temp
+        For i = LBound(stack) To UBound(stack) - 1
+            For j = i + 1 To UBound(stack)
+                If stack(i).priority < stack(j).priority Then
+                    ' Swap the elements
+                    Set temp = stack(i)
+                    Set stack(i) = stack(j)
+                    Set stack(j) = temp
+                End If
+            Next
+        Next
+    End Sub
+End Class
+
 
 Class FourteenSegments
     Public dp, l, m, n, k, j, h, g2, g1, f, e, d, c, b, a, char
@@ -218,6 +480,8 @@ Class FourteenSegments
         Set Init = Me
     End Function
 End Class
+
+
 
 Class SevenSegments
     Public dp, g, f, e, d, c, b, a, char
@@ -451,6 +715,11 @@ Function MapSegmentTextToSegments(text_state, display_width, segment_mapping)
         Set char = text(i)
         If segment_mapping.Exists(char("char_code")) Then
             Set mapping = segment_mapping(char("char_code"))
+            If char("dot") = True Then
+                mapping.dp = 1
+            Else
+                mapping.dp = 0
+            End If
         Else
             Set mapping = segment_mapping(Null)
         End If
@@ -637,6 +906,7 @@ Function Glf_SegmentTextCreateCharacters(text, display_size, collapse_dots, coll
     ' Create display characters
     For i = LBound(uncolored_chars) To UBound(uncolored_chars)
         char = uncolored_chars(i)
+        
         If IsArray(adjusted_colors) And UBound(adjusted_colors) >= 0 Then
             color = adjusted_colors(0)
             adjusted_colors = SliceArray(adjusted_colors, 1, UBound(adjusted_colors))

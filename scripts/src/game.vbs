@@ -8,21 +8,25 @@ Sub Glf_AddPlayer()
     Select Case UBound(glf_playerState.Keys())
         Case -1:
             glf_playerState.Add "PLAYER 1", Glf_InitNewPlayer()
+            SetPlayerStateByPlayer GLF_SCORE, 0, 0
             Glf_BcpAddPlayer 1
             glf_currentPlayer = "PLAYER 1"
         Case 0:     
             If GetPlayerState(GLF_CURRENT_BALL) = 1 Then
                 glf_playerState.Add "PLAYER 2", Glf_InitNewPlayer()
+                SetPlayerStateByPlayer GLF_SCORE, 0, 1
                 Glf_BcpAddPlayer 2
             End If
         Case 1:
             If GetPlayerState(GLF_CURRENT_BALL) = 1 Then
                 glf_playerState.Add "PLAYER 3", Glf_InitNewPlayer()
+                SetPlayerStateByPlayer GLF_SCORE, 0, 2
                 Glf_BcpAddPlayer 3
             End If     
         Case 2:   
             If GetPlayerState(GLF_CURRENT_BALL) = 1 Then
                 glf_playerState.Add "PLAYER 4", Glf_InitNewPlayer()
+                SetPlayerStateByPlayer GLF_SCORE, 0, 3
                 Glf_BcpAddPlayer 4
             End If  
             glf_canAddPlayers = False
@@ -31,7 +35,7 @@ End Sub
 
 Function Glf_InitNewPlayer()
     Dim state : Set state = CreateObject("Scripting.Dictionary")
-    state.Add GLF_SCORE, 0
+    state.Add GLF_SCORE, -1
     state.Add GLF_INITIALS, ""
     state.Add GLF_CURRENT_BALL, 1
     Set Glf_InitNewPlayer = state

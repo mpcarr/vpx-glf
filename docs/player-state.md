@@ -34,7 +34,7 @@ The parameters are:
 - Args: Any arguments you want to pass along to the callback.
 
 ```
-AddPlayerStateEventListener "score", "player_score_changed", "UpdateDMD", 1000, Null
+AddPlayerStateEventListener "score", "player_score_changed", 0, "UpdateDMD", 1000, Null
 ```
 
 ### Remove Player State Event Listener

@@ -136,9 +136,9 @@ Class GlfSegmentPlayerEventItem
     
     Public Property Get Text()
         If Not IsNull(m_text) Then
-            Text = m_text.Value()
+            Set Text = m_text
         Else
-            Text = Empty
+            Text = Null
         End If
     End Property
     Public Property Let Text(input) 
@@ -165,6 +165,9 @@ Class GlfSegmentPlayerEventItem
 
     Public Property Get Color() : Color = m_color : End Property
     Public Property Let Color(input) : m_color = input : End Property
+
+    Public Property Get HasTransition() : HasTransition = Not IsNull(m_transition) : End Property    
+    Public Property Get HasTransitionOut() : HasTransitionOut = Not IsNull(m_transition_out) : End Property
 
     Public Property Get Transition()
         If IsNull(m_transition) Then
@@ -302,7 +305,14 @@ Function SegmentPlayerCallbackHandler(evt, segment_item, mode, priority)
         
         If segment_item.Action = "add" Then
             RemoveDelay key
-            display.AddTextEntry segment_item.Text, segment_item.Color, segment_item.Flashing, segment_item.FlashMask, segment_item.Transition, segment_item.TransitionOut, segment_item.Priority, segment_item.Key
+            Dim transition, transition_out : transition = Null : transition_out = Null
+            If segment_item.HasTransition() Then
+                Set transition = segment_item.Transition
+            End If
+            If segment_item.HasTransitionOut() Then
+                Set transition_out = segment_item.TransitionOut
+            End If
+            display.AddTextEntry segment_item.Text, segment_item.Color, segment_item.Flashing, segment_item.FlashMask, transition, transition_out, segment_item.Priority, segment_item.Key
                                 
             If segment_item.Expire > 0 Then
                 'TODO Add delay for remove

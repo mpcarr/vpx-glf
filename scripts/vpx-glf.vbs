@@ -568,6 +568,7 @@ Public Function Glf_ParseInput(value)
     Select Case VarType(value)
         Case 8 ' vbString
 			tmp = Glf_ReplaceCurrentPlayerAttributes(tmp)
+			tmp = Glf_ReplaceAnyPlayerAttributes(tmp)
 			tmp = Glf_ReplaceDeviceAttributes(tmp)
 			'msgbox tmp
 			If InStr(tmp, " if ") Then
@@ -622,6 +623,7 @@ Public Function Glf_ParseEventInput(value)
 		Glf_ParseEventInput = Array(value, value, Null, event_delay)
 	Else
 		dim conditionReplaced : conditionReplaced = Glf_ReplaceCurrentPlayerAttributes(condition)
+		conditionReplaced = Glf_ReplaceAnyPlayerAttributes(conditionReplaced)
 		conditionReplaced = Glf_ReplaceDeviceAttributes(conditionReplaced)
 		templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
 		templateCode = templateCode & vbTab & "On Error Resume Next" & vbCrLf
@@ -649,6 +651,19 @@ Function Glf_ReplaceCurrentPlayerAttributes(inputString)
     Glf_ReplaceCurrentPlayerAttributes = outputString
 End Function
 
+Function Glf_ReplaceAnyPlayerAttributes(inputString)
+    Dim pattern, replacement, regex, outputString
+    pattern = "players\[([0-3]+)\]\.([a-zA-Z0-9_]+)"
+    Set regex = New RegExp
+    regex.Pattern = pattern
+    regex.IgnoreCase = True
+    regex.Global = True
+    replacement = "GetPlayerStateForPlayer($1, ""$2"")"
+    outputString = regex.Replace(inputString, replacement)
+    Set regex = Nothing
+    Glf_ReplaceAnyPlayerAttributes = outputString
+End Function
+
 Function Glf_ReplaceDeviceAttributes(inputString)
     Dim pattern, replacement, regex, outputString
     pattern = "devices\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)"
@@ -661,6 +676,54 @@ Function Glf_ReplaceDeviceAttributes(inputString)
     Set regex = Nothing
     Glf_ReplaceDeviceAttributes = outputString
 End Function
+
+Function Glf_CheckForGetPlayerState(inputString)
+    Dim pattern, regex, matches, match, hasGetPlayerState, attribute, playerNumber
+	inputString = Glf_ReplaceCurrentPlayerAttributes(inputString)
+	inputString = Glf_ReplaceAnyPlayerAttributes(inputString)
+    pattern = "GetPlayerState\(""([a-zA-Z0-9_]+)""\)"
+    Set regex = New RegExp
+    regex.Pattern = pattern
+    regex.IgnoreCase = True
+    regex.Global = False
+    
+    Set matches = regex.Execute(inputString)
+    If matches.Count > 0 Then
+        hasGetPlayerState = True
+		playerNumber = -1 'Current Player
+        attribute = matches(0).SubMatches(0)
+    Else
+        hasGetPlayerState = False
+        attribute = ""
+		playerNumber = Null
+    End If
+
+
+	pattern = "GetPlayerStateForPlayer\(([0-3]), ""([a-zA-Z0-9_]+)""\)"
+    Set regex = New RegExp
+    regex.Pattern = pattern
+    regex.IgnoreCase = True
+    regex.Global = False
+    
+    Set matches = regex.Execute(inputString)
+    If matches.Count > 0 Then
+        hasGetPlayerState = True
+		playerNumber = Int(matches(0).SubMatches(0))
+        attribute = matches(0).SubMatches(1)
+    Else
+        hasGetPlayerState = False
+        attribute = ""
+		playerNumber = Null
+    End If
+
+    Set regex = Nothing
+    Set matches = Nothing
+    
+    Glf_CheckForGetPlayerState = Array(hasGetPlayerState, attribute, playerNumber)
+End Function
+
+
+
 
 Function Glf_ConvertIf(value, retName)
     Dim parts, condition, truePart, falsePart, isVariable
@@ -704,19 +767,56 @@ Function Glf_ConvertCondition(value, retName)
 End Function
 
 Function Glf_FormatValue(value, formatString)
-    Dim padChar, width, result, align
+    Dim padChar, width, result, align, hasCommas
+	
+	If CStr(value) = "False" Then
+		Glf_FormatValue = ""
+		Exit Function
+	End If
 
     ' Default values
     padChar = " " ' Default padding character is space
     align = ">"   ' Default alignment is right
     width = 0     ' Default width is 0 (no padding)
+    hasCommas = False ' Default: No thousand separators
 
+    ' Check for :, in the format string
+    If InStr(formatString, ",") > 0 Then
+        hasCommas = True
+        formatString = Replace(formatString, ",", "") ' Remove , from format string
+    End If
+
+    ' Parse the remaining format string
     If Len(formatString) >= 2 Then
         padChar = Mid(formatString, 1, 1)
         align = Mid(formatString, 2, 1)
         width = CInt(Mid(formatString, 3))
     End If
 
+    ' Format the value
+    If hasCommas And IsNumeric(value) Then
+        ' Add commas as thousand separators
+        Dim numStr, decimalPart
+        numStr = CStr(value)
+        If InStr(numStr, ".") > 0 Then
+            decimalPart = Mid(numStr, InStr(numStr, "."))
+            numStr = Left(numStr, InStr(numStr, ".") - 1)
+        Else
+            decimalPart = ""
+        End If
+
+        Dim i, formattedNum
+        formattedNum = ""
+        For i = Len(numStr) To 1 Step -1
+            formattedNum = Mid(numStr, i, 1) & formattedNum
+            If ((Len(numStr) - i) Mod 3 = 2) And (i > 1) Then
+                formattedNum = "," & formattedNum
+            End If
+        Next
+        value = formattedNum & decimalPart
+    End If
+
+    ' Apply alignment and padding
     Select Case align
         Case ">" ' Right-align with padding
             If Len(value) < width Then
@@ -745,6 +845,7 @@ Function Glf_FormatValue(value, formatString)
 
     Glf_FormatValue = result
 End Function
+
 
 Function glf_ReadShowYAMLFiles()
     Dim fso, folder, file, yamlFiles, fileContent
@@ -1104,7 +1205,7 @@ Function CreateGlfInput(value)
 End Function
 
 Class GlfInput
-	Private m_raw, m_value, m_isGetRef
+	Private m_raw, m_value, m_isGetRef, m_isPlayerState, m_playerStateValue, m_playerStatePlayer
   
     Public Property Get Value() 
 		If m_isGetRef = True Then
@@ -1116,9 +1217,18 @@ Class GlfInput
 
     Public Property Get Raw() : Raw = m_raw : End Property
 
+	Public Property Get IsPlayerState() : IsPlayerState = m_isPlayerState : End Property
+	Public Property Get PlayerStateValue() : PlayerStateValue = m_playerStateValue : End Property		
+	Public Property Get PlayerStatePlayer() : PlayerStatePlayer = m_playerStatePlayer : End Property		
+
+
 	Public default Function init(input)
         m_raw = input
         Dim parsedInput : parsedInput = Glf_ParseInput(input)
+		Dim playerState : playerState = Glf_CheckForGetPlayerState(input)
+		m_isPlayerState = playerState(0)
+		m_playerStateValue = playerState(1)
+		m_playerStatePlayer = playerState(2)
         m_value = parsedInput(0)
         m_isGetRef = parsedInput(2)
 	    Set Init = Me
@@ -1377,8 +1487,8 @@ Sub Glf_BcpUpdate()
                 case "monitor_start"
                     Dim category : category = message.GetValue("category")
                     If category = "player_vars" Then
-                        AddPlayerStateEventListener "score", "bcp_player_var_score", "Glf_BcpSendPlayerVar", 1000, Null
-                        AddPlayerStateEventListener "current_ball", "bcp_player_var_ball", "Glf_BcpSendPlayerVar", 1000, Null
+                        AddPlayerStateEventListener "score", "bcp_player_var_score_0", 0, "Glf_BcpSendPlayerVar", 1000, Null
+                        AddPlayerStateEventListener "current_ball", "bcp_player_var_ball_0", 0, "Glf_BcpSendPlayerVar", 1000, Null
                     End If
                 case "register_trigger"
                     eventName = message.GetValue("event")
@@ -3957,9 +4067,9 @@ Class GlfSegmentPlayerEventItem
     
     Public Property Get Text()
         If Not IsNull(m_text) Then
-            Text = m_text.Value()
+            Set Text = m_text
         Else
-            Text = Empty
+            Text = Null
         End If
     End Property
     Public Property Let Text(input) 
@@ -3986,6 +4096,9 @@ Class GlfSegmentPlayerEventItem
 
     Public Property Get Color() : Color = m_color : End Property
     Public Property Let Color(input) : m_color = input : End Property
+
+    Public Property Get HasTransition() : HasTransition = Not IsNull(m_transition) : End Property    
+    Public Property Get HasTransitionOut() : HasTransitionOut = Not IsNull(m_transition_out) : End Property
 
     Public Property Get Transition()
         If IsNull(m_transition) Then
@@ -4123,7 +4236,14 @@ Function SegmentPlayerCallbackHandler(evt, segment_item, mode, priority)
         
         If segment_item.Action = "add" Then
             RemoveDelay key
-            display.AddTextEntry segment_item.Text, segment_item.Color, segment_item.Flashing, segment_item.FlashMask, segment_item.Transition, segment_item.TransitionOut, segment_item.Priority, segment_item.Key
+            Dim transition, transition_out : transition = Null : transition_out = Null
+            If segment_item.HasTransition() Then
+                Set transition = segment_item.Transition
+            End If
+            If segment_item.HasTransitionOut() Then
+                Set transition_out = segment_item.TransitionOut
+            End If
+            display.AddTextEntry segment_item.Text, segment_item.Color, segment_item.Flashing, segment_item.FlashMask, transition, transition_out, segment_item.Priority, segment_item.Key
                                 
             If segment_item.Expire > 0 Then
                 'TODO Add delay for remove
@@ -4632,7 +4752,7 @@ Class GlfShotGroup
         Dim shot_name
         For Each shot_name in m_shots
             AddPinEventListener shot_name & "_hit", m_name & "_" & m_mode & "_hit", "ShotGroupEventHandler", m_priority, Array("hit", Me)
-            AddPlayerStateEventListener "shot_" & shot_name, m_name & "_" & m_mode & "_complete", "ShotGroupEventHandler", m_priority, Array("complete", Me)
+            AddPlayerStateEventListener "shot_" & shot_name, m_name & "_" & m_mode & "_complete", -1, "ShotGroupEventHandler", m_priority, Array("complete", Me)
         Next
     End Sub
  
@@ -7891,7 +8011,7 @@ Function CreateGlfLightSegmentDisplay(name)
 End Function
 
 Class GlfLightSegmentDisplay
-
+    private m_name
     private m_flash_on
     private m_flashing
     private m_flash_mask
@@ -7906,6 +8026,11 @@ Class GlfLightSegmentDisplay
     private m_segmentmap
     private m_segment_type
     private m_size
+    private m_update_method
+    private m_text_stack
+    private m_current_text_stack_entry
+    private m_top_key
+    private m_max_priority
 
     Public Property Get SegmentType() : SegmentType = m_segment_type : End Property
     Public Property Let SegmentType(input)
@@ -7924,6 +8049,9 @@ Class GlfLightSegmentDisplay
         CalculateLights()
     End Property
 
+    Public Property Get UpdateMethod() : UpdateMethod = m_update_method : End Property
+    Public Property Let UpdateMethod(input) : m_update_method = input : End Property
+
     Public Property Get SegmentSize() : SegmentSize = m_size : End Property
     Public Property Let SegmentSize(input)
         m_size = input
@@ -7931,7 +8059,7 @@ Class GlfLightSegmentDisplay
     End Property
 
     Public default Function init(name)
-
+        m_name = name
         m_flash_on = True
         m_flashing = "no_flash"
         m_flash_mask = Empty
@@ -7945,7 +8073,13 @@ Class GlfLightSegmentDisplay
         m_current_state = Null
         m_current_flashing = Empty
         m_current_flash_mask = Empty
+        m_current_text_stack_entry = Null
+        Set m_text_stack = (new GlfTextStack)()
+        m_update_method = "replace"
         m_lights = Array()  
+
+        m_max_priority = -1
+        m_top_key = Empty
 
         glf_segment_displays.Add name, Me
         Set Init = Me
@@ -8056,12 +8190,118 @@ Class GlfLightSegmentDisplay
 
     Public Sub AddTextEntry(text, color, flashing, flash_mask, transition, transition_out, priority, key)
         
-        Dim new_text : new_text = Glf_SegmentTextCreateCharacters(text, m_size, True, True, True, Array())
-        Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,True, True, True) 
-        
-        
-        UpdateDisplay display_text, "no_flash", Empty
 
+        If m_update_method = "stack" Then
+            m_text_stack.Push text,color,flashing,flash_mask,transition,transition_out,priority,key
+            UpdateStack()
+        Else
+            Dim new_text : new_text = Glf_SegmentTextCreateCharacters(text.Value(), m_size, False, False, True, Array())
+            Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,False, False, True) 
+            UpdateDisplay display_text, "no_flash", Empty
+        End If
+    End Sub
+
+    Public Sub UpdateStack()
+
+        'Sort stack and show top entry on display.
+        Dim top_text_stack_entry
+        If m_text_stack.IsEmpty() Then
+            Set top_text_stack_entry = (new GlfTextStackEntry)(String(m_size, " "),Null,"no_flash","",Null,Null,-999999,"")
+        Else
+            Set top_text_stack_entry = m_text_stack.Pop()
+        End If
+
+        Dim previous_text_stack_entry : previous_text_stack_entry = Null
+        If Not IsNull(m_current_text_stack_entry) Then
+            Set previous_text_stack_entry = m_current_text_stack_entry
+            If previous_text_stack_entry.text.IsPlayerState() Then
+                RemovePlayerStateEventListener previous_text_stack_entry.text.PlayerStateValue(), "display"
+            End If
+        End If
+        
+        Set m_current_text_stack_entry = top_text_stack_entry
+
+        'determine if the new key is different than the previous key (out transitions are only applied when changing keys)
+        Dim transition_config : transition_config = Null
+        If Not IsNull(previous_text_stack_entry) Then
+            If top_text_stack_entry.key <> previous_text_stack_entry.key And Not IsNull(previous_text_stack_entry.transition_out) Then
+                Set transition_config = previous_text_stack_entry.transition_out
+            End If
+        End If
+        'determine if new text entry has a transition, if so, apply it (overrides any outgoing transition)
+        If Not IsNull(top_text_stack_entry.transition) Then
+            Set transition_config = top_text_stack_entry.transition
+        End If
+        'start transition (if configured)
+        Dim flashing, flash_mask
+        If Not IsNull(transition_config) Then
+            Dim transition
+            Select Case transition_config.Type()
+                case "push":
+                    Set transition = (new GlfPushTransition)(m_size, True, True, True, transition_config)
+            End Select
+
+            Dim previous_text
+            If Not IsNull(previous_text_stack_entry) Then
+                previous_text = previous_text_stack_entry.text
+            Else
+                previous_text = String(m_size, " ")
+            End If
+
+            If Not IsEmpty(top_text_stack_entry.flashing) Then
+                flashing = top_text_stack_entry.flashing
+                flash_mask = top_text_stack_entry.flash_mask
+            Else
+                flashing = m_current_state.flashing
+                flash_mask = m_current_state.flash_mask
+            End If
+
+            'self._start_transition(transition, previous_text, top_text_stack_entry.text,
+             '                      self._current_state.text.get_colors(), top_text_stack_entry.colors,
+             '                      self.config['default_transition_update_hz'], flashing, flash_mask)
+        Else
+            'no transition - subscribe to text template changes and update display
+            If top_text_stack_entry.text.IsPlayerState() Then
+                AddPlayerStateEventListener top_text_stack_entry.text.PlayerStateValue(), m_name, top_text_stack_entry.text.PlayerStatePlayer(), "Glf_SegmentTextStackEventHandler", top_text_stack_entry.priority, Me
+            End If
+
+            'set any flashing state specified in the entry
+            If Not IsEmpty(top_text_stack_entry.flashing) Then
+                flashing = top_text_stack_entry.flashing
+                flash_mask = top_text_stack_entry.flash_mask
+            Else
+                flashing = m_current_state.flashing
+                flash_mask = m_current_state.flash_mask
+            End If
+
+            'update colors if specified
+            'if top_text_stack_entry.colors:
+            '    colors = top_text_stack_entry.colors
+            'else:
+            '    colors = self._current_state.text.get_colors()
+
+            'update the display
+            Dim text_value : text_value = top_text_stack_entry.text.Value()
+
+            If text_value = False Then
+                text_value = String(m_size, " ")
+            End If
+            Dim new_text : new_text = Glf_SegmentTextCreateCharacters(text_value, m_size, True, True, True, Array())
+            Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,False, False, True) 
+            UpdateDisplay display_text, "no_flash", Empty
+        End If
+
+
+    End Sub
+
+    Public Sub CurrentPlaceholderChanged()
+        Dim text_value : text_value = m_current_text_stack_entry.text.Value()
+        If text_value = False Then
+            text_value = String(m_size, " ")
+        End If
+        Dim new_text : new_text = Glf_SegmentTextCreateCharacters(text_value, m_size, False, False, True, Array())
+        Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,False, False, True) 
+        UpdateDisplay display_text, "no_flash", Empty
     End Sub
 
     Public Sub RemoveTextByKey(key)
@@ -8081,6 +8321,148 @@ Class GlfLightSegmentDisplay
     End Sub
 
 End Class
+
+Sub Glf_SegmentTextStackEventHandler(args)
+    Dim ownProps, kwargs
+    Set ownProps = args(0) 
+    kwargs = args(1) 
+    Dim player_var : player_var = kwargs(0)
+    Dim value : value = kwargs(1)
+    Dim prevValue : prevValue = kwargs(2)
+    ownProps.CurrentPlaceholderChanged()
+End Sub
+
+
+Class GlfTextStackEntry
+    Public text, colors, flashing, flash_mask, transition, transition_out, priority, key
+
+    Public default Function init(text, colors, flashing, flash_mask, transition, transition_out, priority, key)
+        Set Me.text = text
+        Me.colors = colors
+        Me.flashing = flashing
+        Me.flash_mask = flash_mask
+        Me.transition = transition
+        Me.transition_out = transition_out
+        Me.priority = priority
+        Me.key = key
+        Set Init = Me
+    End Function
+End Class
+
+Class GlfTextStack
+    Private stack
+
+    ' Initialize an empty stack
+    Public default Function Init()
+        ReDim stack(-1)  ' Initialize an empty array
+        Set Init = Me
+    End Function
+
+    ' Push a new text entry onto the stack or update an existing one
+    Public Sub Push(text, colors, flashing, flash_mask, transition, transition_out, priority, key)
+        Dim found : found = False
+        Dim i
+
+        ' Check if the key already exists in the stack and update it
+        For i = LBound(stack) To UBound(stack)
+            If stack(i).key = key Then
+                ' Replace the existing item if the key matches
+                Set stack(i) = CreateTextStackEntry(text, colors, flashing, flash_mask, transition, transition_out, priority, key)
+                found = True
+                Exit For
+            End If
+        Next
+        
+        If Not found Then
+            ' Insert the new item into the array maintaining priority order
+            ReDim Preserve stack(UBound(stack) + 1)
+            Set stack(UBound(stack)) = CreateTextStackEntry(text, colors, flashing, flash_mask, transition, transition_out, priority, key)
+            SortStackByPriority
+        End If
+    End Sub
+
+    ' Pop the top entry from the stack
+    Public Function Pop()
+        If UBound(stack) >= 0 Then
+            Set Pop = stack(UBound(stack))
+            ReDim Preserve stack(UBound(stack) - 1)
+        Else
+            Set Pop = Nothing
+        End If
+    End Function
+
+    ' Pop a specific entry from the stack by key
+    Public Function PopByKey(key)
+        Dim i, removedItem, found
+        found = False
+        Set removedItem = Nothing
+    
+        ' Loop through the stack to find the item with the matching key
+        For i = LBound(stack) To UBound(stack)
+            If stack(i).key = key Then
+                ' Store the item to be removed
+                Set removedItem = stack(i)
+                found = True
+    
+                ' Shift all elements after the removed item to the left
+                Dim j
+                For j = i To UBound(stack) - 1
+                    Set stack(j) = stack(j + 1)
+                Next
+    
+                ' Resize the array to remove the last element
+                ReDim Preserve stack(UBound(stack) - 1)
+                Exit For
+            End If
+        Next
+    
+        ' Return the removed item (or Nothing if not found)
+        If found Then
+            Set PopByKey = removedItem
+        Else
+            Set PopByKey = Nothing
+        End If
+    End Function
+
+    ' Peek at the top entry of the stack without popping it
+    Public Function Peek()
+        If UBound(stack) >= 0 Then
+            Set Peek = stack(UBound(stack))
+        Else
+            Set Peek = Nothing
+        End If
+    End Function
+
+    ' Check if the stack is empty
+    Public Function IsEmpty()
+        IsEmpty = (UBound(stack) < 0)
+    End Function
+
+    ' Create a new GlfTextStackEntry object
+    Private Function CreateTextStackEntry(text, colors, flashing, flash_mask, transition, transition_out, priority, key)
+        Dim entry
+        Set entry = New GlfTextStackEntry
+        entry.init text, colors, flashing, flash_mask, transition, transition_out, priority, key
+        Set CreateTextStackEntry = entry
+    End Function
+
+    ' Sort the stack by priority (descending)
+    Private Sub SortStackByPriority()
+        Dim i, j
+        Dim temp
+        For i = LBound(stack) To UBound(stack) - 1
+            For j = i + 1 To UBound(stack)
+                If stack(i).priority < stack(j).priority Then
+                    ' Swap the elements
+                    Set temp = stack(i)
+                    Set stack(i) = stack(j)
+                    Set stack(j) = temp
+                End If
+            Next
+        Next
+    End Sub
+End Class
+
 
 Class FourteenSegments
     Public dp, l, m, n, k, j, h, g2, g1, f, e, d, c, b, a, char
@@ -8105,6 +8487,8 @@ Class FourteenSegments
         Set Init = Me
     End Function
 End Class
+
+
 
 Class SevenSegments
     Public dp, g, f, e, d, c, b, a, char
@@ -8338,6 +8722,11 @@ Function MapSegmentTextToSegments(text_state, display_width, segment_mapping)
         Set char = text(i)
         If segment_mapping.Exists(char("char_code")) Then
             Set mapping = segment_mapping(char("char_code"))
+            If char("dot") = True Then
+                mapping.dp = 1
+            Else
+                mapping.dp = 0
+            End If
         Else
             Set mapping = segment_mapping(Null)
         End If
@@ -8524,6 +8913,7 @@ Function Glf_SegmentTextCreateCharacters(text, display_size, collapse_dots, coll
     ' Create display characters
     For i = LBound(uncolored_chars) To UBound(uncolored_chars)
         char = uncolored_chars(i)
+        
         If IsArray(adjusted_colors) And UBound(adjusted_colors) >= 0 Then
             color = adjusted_colors(0)
             adjusted_colors = SliceArray(adjusted_colors, 1, UBound(adjusted_colors))
@@ -8827,8 +9217,8 @@ Class GlfPushTransition
     Private m_text_color
 
     ' Properties
-    Public Property Get Name(): Name = m_name: End Property
-    Public Property Let Name(value): m_name = value: End Property
+    'Public Property Get Name(): Name = m_name: End Property
+    'Public Property Let Name(value): m_name = value: End Property
 
     Public Property Let OutputLength(value): m_output_length = value: End Property
     Public Property Get OutputLength(): OutputLength = m_output_length: End Property
@@ -8852,8 +9242,8 @@ Class GlfPushTransition
     Public Property Get TotalSteps(): TotalSteps = m_total_steps: End Property
 
     ' Initialize the class
-    Public Function Init(name, output_length, collapse_dots, collapse_commas, use_dots_for_commas, config)
-        m_name = "transition_" & name
+    Public Function Init(output_length, collapse_dots, collapse_commas, use_dots_for_commas, config)
+        'm_name = "transition_" & name
         m_output_length = output_length
         m_collapse_dots = collapse_dots
         m_collapse_commas = collapse_commas
@@ -8988,21 +9378,25 @@ Sub Glf_AddPlayer()
     Select Case UBound(glf_playerState.Keys())
         Case -1:
             glf_playerState.Add "PLAYER 1", Glf_InitNewPlayer()
+            SetPlayerStateByPlayer GLF_SCORE, 0, 0
             Glf_BcpAddPlayer 1
             glf_currentPlayer = "PLAYER 1"
         Case 0:     
             If GetPlayerState(GLF_CURRENT_BALL) = 1 Then
                 glf_playerState.Add "PLAYER 2", Glf_InitNewPlayer()
+                SetPlayerStateByPlayer GLF_SCORE, 0, 1
                 Glf_BcpAddPlayer 2
             End If
         Case 1:
             If GetPlayerState(GLF_CURRENT_BALL) = 1 Then
                 glf_playerState.Add "PLAYER 3", Glf_InitNewPlayer()
+                SetPlayerStateByPlayer GLF_SCORE, 0, 2
                 Glf_BcpAddPlayer 3
             End If     
         Case 2:   
             If GetPlayerState(GLF_CURRENT_BALL) = 1 Then
                 glf_playerState.Add "PLAYER 4", Glf_InitNewPlayer()
+                SetPlayerStateByPlayer GLF_SCORE, 0, 3
                 Glf_BcpAddPlayer 4
             End If  
             glf_canAddPlayers = False
@@ -9011,7 +9405,7 @@ End Sub
 
 Function Glf_InitNewPlayer()
     Dim state : Set state = CreateObject("Scripting.Dictionary")
-    state.Add GLF_SCORE, 0
+    state.Add GLF_SCORE, -1
     state.Add GLF_INITIALS, ""
     state.Add GLF_CURRENT_BALL, 1
     Set Glf_InitNewPlayer = state
@@ -9461,36 +9855,49 @@ Function GetPlayerState(key)
     End If
 End Function
 
-Function GetPlayerScore(player)
+Function GetPlayerStateForPlayer(player, key)
     dim p
     Select Case player
-        Case 1:
+        Case 0:
             p = "PLAYER 1"
-        Case 2:
+        Case 1:
             p = "PLAYER 2"
-        Case 3:
+        Case 2:
             p = "PLAYER 3"
-        Case 4:
+        Case 3:
             p = "PLAYER 4"
     End Select
 
     If glf_playerState.Exists(p) Then
-        GetPlayerScore = glf_playerState(p)(SCORE)
+        GetPlayerStateForPlayer = glf_playerState(p)(key)
     Else
-        GetPlayerScore = 0
+        GetPlayerStateForPlayer = False
     End If
 End Function
 
 Function Getglf_currentPlayerNumber()
     Select Case glf_currentPlayer
         Case "PLAYER 1":
-            Getglf_currentPlayerNumber = 1
+            Getglf_currentPlayerNumber = 0
         Case "PLAYER 2":
-            Getglf_currentPlayerNumber = 2
+            Getglf_currentPlayerNumber = 1
         Case "PLAYER 3":
-            Getglf_currentPlayerNumber = 3
+            Getglf_currentPlayerNumber = 2
         Case "PLAYER 4":
-            Getglf_currentPlayerNumber = 4
+            Getglf_currentPlayerNumber = 3
+    End Select
+End Function
+
+Function Getglf_PlayerName(player)
+    Select Case player
+        Case 0:
+            Getglf_PlayerName = "PLAYER 1"
+        Case 1:
+            Getglf_PlayerName = "PLAYER 2"
+        Case 2:
+            Getglf_PlayerName = "PLAYER 3"
+        Case 3:
+            Getglf_PlayerName = "PLAYER 4"
     End Select
 End Function
 
@@ -9516,29 +9923,57 @@ Function SetPlayerState(key, value)
     glf_playerState(glf_currentPlayer).Add key, value
     
     If glf_playerEvents.Exists(key) Then
-        FirePlayerEventHandlers key, value, prevValue
+        FirePlayerEventHandlers key, value, prevValue, -1
     End If
     
     SetPlayerState = Null
 End Function
 
-Sub FirePlayerEventHandlers(evt, value, prevValue)
+Function SetPlayerStateByPlayer(key, value, player)
+
+    If IsArray(value) Then
+        If Join(GetPlayerStateForPlayer(player, key)) = Join(value) Then
+            Exit Function
+        End If
+    Else
+        If GetPlayerStateForPlayer(player, key) = value Then
+            Exit Function
+        End If
+    End If   
+    Dim prevValue, player_name
+    player_name = Getglf_PlayerName(player)
+    If glf_playerState(player_name).Exists(key) Then
+        prevValue = glf_playerState(player_name)(key)
+        glf_playerState(player_name).Remove key
+    End If
+    glf_playerState(player_name).Add key, value
+    
+    If glf_playerEvents.Exists(key) Then
+        FirePlayerEventHandlers key, value, prevValue, player
+    End If
+    
+    SetPlayerStateByPlayer = Null
+End Function
+
+Sub FirePlayerEventHandlers(evt, value, prevValue, player)
     If Not glf_playerEvents.Exists(evt) Then
         Exit Sub
     End If    
     Dim k
     Dim handlers : Set handlers = glf_playerEvents(evt)
     For Each k In glf_playerEventsOrder(evt)
-        GetRef(handlers(k(1))(0))(Array(handlers(k(1))(2), Array(evt,value,prevValue)))
+        If handlers(k(1))(3) = player or handlers(k(1))(3) = Getglf_currentPlayerNumber() Then
+            GetRef(handlers(k(1))(0))(Array(handlers(k(1))(2), Array(evt,value,prevValue)))
+        End If
     Next
 End Sub
 
-Sub AddPlayerStateEventListener(evt, key, callbackName, priority, args)
+Sub AddPlayerStateEventListener(evt, key, player, callbackName, priority, args)
     If Not glf_playerEvents.Exists(evt) Then
         glf_playerEvents.Add evt, CreateObject("Scripting.Dictionary")
     End If
     If Not glf_playerEvents(evt).Exists(key) Then
-        glf_playerEvents(evt).Add key, Array(callbackName, priority, args)
+        glf_playerEvents(evt).Add key, Array(callbackName, priority, args, player)
         Sortglf_playerEventsByPriority evt, priority, key, True
     End If
 End Sub
@@ -9617,7 +10052,7 @@ End Sub
 Sub EmitAllglf_playerEvents()
     Dim key
     For Each key in glf_playerState(glf_currentPlayer).Keys()
-        FirePlayerEventHandlers key, GetPlayerState(key), GetPlayerState(key)
+        FirePlayerEventHandlers key, GetPlayerState(key), GetPlayerState(key), -1
     Next
 End Sub
 

@@ -144,7 +144,7 @@ Class GlfShotGroup
         Dim shot_name
         For Each shot_name in m_shots
             AddPinEventListener shot_name & "_hit", m_name & "_" & m_mode & "_hit", "ShotGroupEventHandler", m_priority, Array("hit", Me)
-            AddPlayerStateEventListener "shot_" & shot_name, m_name & "_" & m_mode & "_complete", "ShotGroupEventHandler", m_priority, Array("complete", Me)
+            AddPlayerStateEventListener "shot_" & shot_name, m_name & "_" & m_mode & "_complete", -1, "ShotGroupEventHandler", m_priority, Array("complete", Me)
         Next
     End Sub
  

@@ -15,8 +15,8 @@ Class GlfPushTransition
     Private m_text_color
 
     ' Properties
-    Public Property Get Name(): Name = m_name: End Property
-    Public Property Let Name(value): m_name = value: End Property
+    'Public Property Get Name(): Name = m_name: End Property
+    'Public Property Let Name(value): m_name = value: End Property
 
     Public Property Let OutputLength(value): m_output_length = value: End Property
     Public Property Get OutputLength(): OutputLength = m_output_length: End Property
@@ -40,8 +40,8 @@ Class GlfPushTransition
     Public Property Get TotalSteps(): TotalSteps = m_total_steps: End Property
 
     ' Initialize the class
-    Public Function Init(name, output_length, collapse_dots, collapse_commas, use_dots_for_commas, config)
-        m_name = "transition_" & name
+    Public Function Init(output_length, collapse_dots, collapse_commas, use_dots_for_commas, config)
+        'm_name = "transition_" & name
         m_output_length = output_length
         m_collapse_dots = collapse_dots
         m_collapse_commas = collapse_commas

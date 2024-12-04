@@ -119,8 +119,8 @@ Sub Glf_BcpUpdate()
                 case "monitor_start"
                     Dim category : category = message.GetValue("category")
                     If category = "player_vars" Then
-                        AddPlayerStateEventListener "score", "bcp_player_var_score", "Glf_BcpSendPlayerVar", 1000, Null
-                        AddPlayerStateEventListener "current_ball", "bcp_player_var_ball", "Glf_BcpSendPlayerVar", 1000, Null
+                        AddPlayerStateEventListener "score", "bcp_player_var_score_0", 0, "Glf_BcpSendPlayerVar", 1000, Null
+                        AddPlayerStateEventListener "current_ball", "bcp_player_var_ball_0", 0, "Glf_BcpSendPlayerVar", 1000, Null
                     End If
                 case "register_trigger"
                     eventName = message.GetValue("event")

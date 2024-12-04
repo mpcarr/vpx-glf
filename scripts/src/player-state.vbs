@@ -10,36 +10,49 @@ Function GetPlayerState(key)
     End If
 End Function
 
-Function GetPlayerScore(player)
+Function GetPlayerStateForPlayer(player, key)
     dim p
     Select Case player
-        Case 1:
+        Case 0:
             p = "PLAYER 1"
-        Case 2:
+        Case 1:
             p = "PLAYER 2"
-        Case 3:
+        Case 2:
             p = "PLAYER 3"
-        Case 4:
+        Case 3:
             p = "PLAYER 4"
     End Select
 
     If glf_playerState.Exists(p) Then
-        GetPlayerScore = glf_playerState(p)(SCORE)
+        GetPlayerStateForPlayer = glf_playerState(p)(key)
     Else
-        GetPlayerScore = 0
+        GetPlayerStateForPlayer = False
     End If
 End Function
 
 Function Getglf_currentPlayerNumber()
     Select Case glf_currentPlayer
         Case "PLAYER 1":
-            Getglf_currentPlayerNumber = 1
+            Getglf_currentPlayerNumber = 0
         Case "PLAYER 2":
-            Getglf_currentPlayerNumber = 2
+            Getglf_currentPlayerNumber = 1
         Case "PLAYER 3":
-            Getglf_currentPlayerNumber = 3
+            Getglf_currentPlayerNumber = 2
         Case "PLAYER 4":
-            Getglf_currentPlayerNumber = 4
+            Getglf_currentPlayerNumber = 3
+    End Select
+End Function
+
+Function Getglf_PlayerName(player)
+    Select Case player
+        Case 0:
+            Getglf_PlayerName = "PLAYER 1"
+        Case 1:
+            Getglf_PlayerName = "PLAYER 2"
+        Case 2:
+            Getglf_PlayerName = "PLAYER 3"
+        Case 3:
+            Getglf_PlayerName = "PLAYER 4"
     End Select
 End Function
 
@@ -65,29 +78,57 @@ Function SetPlayerState(key, value)
     glf_playerState(glf_currentPlayer).Add key, value
     
     If glf_playerEvents.Exists(key) Then
-        FirePlayerEventHandlers key, value, prevValue
+        FirePlayerEventHandlers key, value, prevValue, -1
     End If
     
     SetPlayerState = Null
 End Function
 
-Sub FirePlayerEventHandlers(evt, value, prevValue)
+Function SetPlayerStateByPlayer(key, value, player)
+
+    If IsArray(value) Then
+        If Join(GetPlayerStateForPlayer(player, key)) = Join(value) Then
+            Exit Function
+        End If
+    Else
+        If GetPlayerStateForPlayer(player, key) = value Then
+            Exit Function
+        End If
+    End If   
+    Dim prevValue, player_name
+    player_name = Getglf_PlayerName(player)
+    If glf_playerState(player_name).Exists(key) Then
+        prevValue = glf_playerState(player_name)(key)
+        glf_playerState(player_name).Remove key
+    End If
+    glf_playerState(player_name).Add key, value
+    
+    If glf_playerEvents.Exists(key) Then
+        FirePlayerEventHandlers key, value, prevValue, player
+    End If
+    
+    SetPlayerStateByPlayer = Null
+End Function
+
+Sub FirePlayerEventHandlers(evt, value, prevValue, player)
     If Not glf_playerEvents.Exists(evt) Then
         Exit Sub
     End If    
     Dim k
     Dim handlers : Set handlers = glf_playerEvents(evt)
     For Each k In glf_playerEventsOrder(evt)
-        GetRef(handlers(k(1))(0))(Array(handlers(k(1))(2), Array(evt,value,prevValue)))
+        If handlers(k(1))(3) = player or handlers(k(1))(3) = Getglf_currentPlayerNumber() Then
+            GetRef(handlers(k(1))(0))(Array(handlers(k(1))(2), Array(evt,value,prevValue)))
+        End If
     Next
 End Sub
 
-Sub AddPlayerStateEventListener(evt, key, callbackName, priority, args)
+Sub AddPlayerStateEventListener(evt, key, player, callbackName, priority, args)
     If Not glf_playerEvents.Exists(evt) Then
         glf_playerEvents.Add evt, CreateObject("Scripting.Dictionary")
     End If
     If Not glf_playerEvents(evt).Exists(key) Then
-        glf_playerEvents(evt).Add key, Array(callbackName, priority, args)
+        glf_playerEvents(evt).Add key, Array(callbackName, priority, args, player)
         Sortglf_playerEventsByPriority evt, priority, key, True
     End If
 End Sub
@@ -166,6 +207,6 @@ End Sub
 Sub EmitAllglf_playerEvents()
     Dim key
     For Each key in glf_playerState(glf_currentPlayer).Keys()
-        FirePlayerEventHandlers key, GetPlayerState(key), GetPlayerState(key)
+        FirePlayerEventHandlers key, GetPlayerState(key), GetPlayerState(key), -1
     Next
 End Sub

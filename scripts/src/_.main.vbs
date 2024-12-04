@@ -568,6 +568,7 @@ Public Function Glf_ParseInput(value)
     Select Case VarType(value)
         Case 8 ' vbString
 			tmp = Glf_ReplaceCurrentPlayerAttributes(tmp)
+			tmp = Glf_ReplaceAnyPlayerAttributes(tmp)
 			tmp = Glf_ReplaceDeviceAttributes(tmp)
 			'msgbox tmp
 			If InStr(tmp, " if ") Then
@@ -622,6 +623,7 @@ Public Function Glf_ParseEventInput(value)
 		Glf_ParseEventInput = Array(value, value, Null, event_delay)
 	Else
 		dim conditionReplaced : conditionReplaced = Glf_ReplaceCurrentPlayerAttributes(condition)
+		conditionReplaced = Glf_ReplaceAnyPlayerAttributes(conditionReplaced)
 		conditionReplaced = Glf_ReplaceDeviceAttributes(conditionReplaced)
 		templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
 		templateCode = templateCode & vbTab & "On Error Resume Next" & vbCrLf
@@ -649,6 +651,19 @@ Function Glf_ReplaceCurrentPlayerAttributes(inputString)
     Glf_ReplaceCurrentPlayerAttributes = outputString
 End Function
 
+Function Glf_ReplaceAnyPlayerAttributes(inputString)
+    Dim pattern, replacement, regex, outputString
+    pattern = "players\[([0-3]+)\]\.([a-zA-Z0-9_]+)"
+    Set regex = New RegExp
+    regex.Pattern = pattern
+    regex.IgnoreCase = True
+    regex.Global = True
+    replacement = "GetPlayerStateForPlayer($1, ""$2"")"
+    outputString = regex.Replace(inputString, replacement)
+    Set regex = Nothing
+    Glf_ReplaceAnyPlayerAttributes = outputString
+End Function
+
 Function Glf_ReplaceDeviceAttributes(inputString)
     Dim pattern, replacement, regex, outputString
     pattern = "devices\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)"
@@ -661,6 +676,54 @@ Function Glf_ReplaceDeviceAttributes(inputString)
     Set regex = Nothing
     Glf_ReplaceDeviceAttributes = outputString
 End Function
+
+Function Glf_CheckForGetPlayerState(inputString)
+    Dim pattern, regex, matches, match, hasGetPlayerState, attribute, playerNumber
+	inputString = Glf_ReplaceCurrentPlayerAttributes(inputString)
+	inputString = Glf_ReplaceAnyPlayerAttributes(inputString)
+    pattern = "GetPlayerState\(""([a-zA-Z0-9_]+)""\)"
+    Set regex = New RegExp
+    regex.Pattern = pattern
+    regex.IgnoreCase = True
+    regex.Global = False
+    
+    Set matches = regex.Execute(inputString)
+    If matches.Count > 0 Then
+        hasGetPlayerState = True
+		playerNumber = -1 'Current Player
+        attribute = matches(0).SubMatches(0)
+    Else
+        hasGetPlayerState = False
+        attribute = ""
+		playerNumber = Null
+    End If
+
+
+	pattern = "GetPlayerStateForPlayer\(([0-3]), ""([a-zA-Z0-9_]+)""\)"
+    Set regex = New RegExp
+    regex.Pattern = pattern
+    regex.IgnoreCase = True
+    regex.Global = False
+    
+    Set matches = regex.Execute(inputString)
+    If matches.Count > 0 Then
+        hasGetPlayerState = True
+		playerNumber = Int(matches(0).SubMatches(0))
+        attribute = matches(0).SubMatches(1)
+    Else
+        hasGetPlayerState = False
+        attribute = ""
+		playerNumber = Null
+    End If
+
+    Set regex = Nothing
+    Set matches = Nothing
+    
+    Glf_CheckForGetPlayerState = Array(hasGetPlayerState, attribute, playerNumber)
+End Function
+
+
+
 
 Function Glf_ConvertIf(value, retName)
     Dim parts, condition, truePart, falsePart, isVariable
@@ -704,19 +767,56 @@ Function Glf_ConvertCondition(value, retName)
 End Function
 
 Function Glf_FormatValue(value, formatString)
-    Dim padChar, width, result, align
+    Dim padChar, width, result, align, hasCommas
+	
+	If CStr(value) = "False" Then
+		Glf_FormatValue = ""
+		Exit Function
+	End If
 
     ' Default values
     padChar = " " ' Default padding character is space
     align = ">"   ' Default alignment is right
     width = 0     ' Default width is 0 (no padding)
+    hasCommas = False ' Default: No thousand separators
 
+    ' Check for :, in the format string
+    If InStr(formatString, ",") > 0 Then
+        hasCommas = True
+        formatString = Replace(formatString, ",", "") ' Remove , from format string
+    End If
+
+    ' Parse the remaining format string
     If Len(formatString) >= 2 Then
         padChar = Mid(formatString, 1, 1)
         align = Mid(formatString, 2, 1)
         width = CInt(Mid(formatString, 3))
     End If
 
+    ' Format the value
+    If hasCommas And IsNumeric(value) Then
+        ' Add commas as thousand separators
+        Dim numStr, decimalPart
+        numStr = CStr(value)
+        If InStr(numStr, ".") > 0 Then
+            decimalPart = Mid(numStr, InStr(numStr, "."))
+            numStr = Left(numStr, InStr(numStr, ".") - 1)
+        Else
+            decimalPart = ""
+        End If
+
+        Dim i, formattedNum
+        formattedNum = ""
+        For i = Len(numStr) To 1 Step -1
+            formattedNum = Mid(numStr, i, 1) & formattedNum
+            If ((Len(numStr) - i) Mod 3 = 2) And (i > 1) Then
+                formattedNum = "," & formattedNum
+            End If
+        Next
+        value = formattedNum & decimalPart
+    End If
+
+    ' Apply alignment and padding
     Select Case align
         Case ">" ' Right-align with padding
             If Len(value) < width Then
@@ -745,6 +845,7 @@ Function Glf_FormatValue(value, formatString)
 
     Glf_FormatValue = result
 End Function
+
 
 Function glf_ReadShowYAMLFiles()
     Dim fso, folder, file, yamlFiles, fileContent
@@ -1104,7 +1205,7 @@ Function CreateGlfInput(value)
 End Function
 
 Class GlfInput
-	Private m_raw, m_value, m_isGetRef
+	Private m_raw, m_value, m_isGetRef, m_isPlayerState, m_playerStateValue, m_playerStatePlayer
   
     Public Property Get Value() 
 		If m_isGetRef = True Then
@@ -1116,9 +1217,18 @@ Class GlfInput
 
     Public Property Get Raw() : Raw = m_raw : End Property
 
+	Public Property Get IsPlayerState() : IsPlayerState = m_isPlayerState : End Property
+	Public Property Get PlayerStateValue() : PlayerStateValue = m_playerStateValue : End Property		
+	Public Property Get PlayerStatePlayer() : PlayerStatePlayer = m_playerStatePlayer : End Property		
+
+
 	Public default Function init(input)
         m_raw = input
         Dim parsedInput : parsedInput = Glf_ParseInput(input)
+		Dim playerState : playerState = Glf_CheckForGetPlayerState(input)
+		m_isPlayerState = playerState(0)
+		m_playerStateValue = playerState(1)
+		m_playerStatePlayer = playerState(2)
         m_value = parsedInput(0)
         m_isGetRef = parsedInput(2)
 	    Set Init = Me
