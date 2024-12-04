@@ -140,8 +140,8 @@ Class GlfShot
         Next
         For Each evt in m_control_events.Keys
             Dim cEvt
-            For Each cEvt in m_control_events(evt).Events.Keys
-                RemovePinEventListener m_control_events(evt)(cEvt).EventName, m_mode & "_" & m_name & "_control"
+            For Each cEvt in m_control_events(evt).Events().Keys
+                RemovePinEventListener m_control_events(evt).Events()(cEvt).EventName, m_mode & "_" & m_name & "_control"
             Next
         Next
         For Each evt in m_reset_events.Keys
@@ -167,8 +167,8 @@ Class GlfShot
         Next
         For Each evt in m_control_events.Keys
             Dim cEvt
-            For Each cEvt in m_control_events(evt).Events.Keys
-                AddPinEventListener m_control_events(evt)(cEvt).EventName, m_mode & "_" & m_name & "_control", "ShotEventHandler", m_priority, Array("control", Me, m_control_events(evt)(cEvt))
+            For Each cEvt in m_control_events(evt).Events().Keys
+                AddPinEventListener m_control_events(evt).Events()(cEvt).EventName, m_mode & "_" & m_name & "_control", "ShotEventHandler", m_priority, Array("control", Me, m_control_events(evt), m_control_events(evt).Events()(cEvt))
             Next
         Next
         For Each evt in m_reset_events.Keys
@@ -459,6 +459,7 @@ Function ShotEventHandler(args)
     e = args(2)
     Dim evt : evt = ownProps(0)
     Dim shot : Set shot = ownProps(1)
+    dim glfEvent
     Select Case evt
         Case "activate"
             shot.Activate
@@ -473,6 +474,12 @@ Function ShotEventHandler(args)
         Case "advance"
             shot.Advance False
         Case "control"
+            Set glfEvent = ownProps(3)
+            If Not IsNull(glfEvent.Condition) Then
+                If GetRef(glfEvent.Condition)() = False Then
+                    Exit Function
+                End If
+            End If
             shot.Jump ownProps(2).State, ownProps(2).Force, ownProps(2).ForceShow
         Case "reset"
             shot.Reset
