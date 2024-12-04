@@ -62,9 +62,10 @@ Class GlfTimer
         m_ticks = 0
         m_ticks_remaining = 0
         m_tick_interval = 1000
-        m_starting_tick_interval = 1
+        m_starting_tick_interval = 1000
         m_restart_on_complete = False
         m_start_running = False
+        m_start_value = 0
 
         Set m_control_events = CreateObject("Scripting.Dictionary")
         m_running = False
@@ -185,9 +186,9 @@ Class GlfTimer
 
         Dim newValue
         If m_direction = "down" Then
-            newValue = m_ticks - 1
+            newValue = m_ticks - m_tick_interval
         Else
-            newValue = m_ticks + 1
+            newValue = m_ticks + m_tick_interval
         End If
         
         Log "ticking: old value: "& m_ticks & ", new Value: " & newValue & ", target: "& m_end_value
