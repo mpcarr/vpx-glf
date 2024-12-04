@@ -6460,7 +6460,7 @@ Class GlfTimer
     Private m_tick_interval
     Private m_starting_tick_interval
     Private m_max_value
-    Private restart_on_complete
+    Private m_restart_on_complete
     Private m_start_running
 
     Public Property Get Name() : Name = m_name : End Property
@@ -6482,7 +6482,7 @@ Class GlfTimer
     Public Property Let EndValue(value) : m_end_value = value : End Property
     Public Property Let Direction(value) : m_direction = value : End Property
     Public Property Let MaxValue(value) : m_max_value = value : End Property
-    Public Property Let RestartOnComplete(value) : restart_on_complete = value : End Property
+    Public Property Let RestartOnComplete(value) : m_restart_on_complete = value : End Property
     Public Property Let StartRunning(value) : m_start_running = value : End Property
     Public Property Let TickInterval(value)
         m_tick_interval = value
@@ -6505,8 +6505,8 @@ Class GlfTimer
         m_ticks_remaining = 0
         m_tick_interval = 1000
         m_starting_tick_interval = 1
-        restart_on_complete = False
-        start_running = False
+        m_restart_on_complete = False
+        m_start_running = False
 
         Set m_control_events = CreateObject("Scripting.Dictionary")
         m_running = False
