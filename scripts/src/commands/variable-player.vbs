@@ -7,10 +7,10 @@ Class GlfVariablePlayer
 
     Private m_value
 
-    Public Property Get Events(name)
+    Public Property Get Event(name)
         Dim newEvent : Set newEvent = (new GlfVariablePlayerEvent)(name)
         m_events.Add newEvent.BaseEvent.Name, newEvent
-        Set Events = newEvent
+        Set Event = newEvent
     End Property
    
     Public Property Let Debug(value) : m_debug = value : End Property
