@@ -6942,10 +6942,10 @@ Class GlfVariablePlayer
 
     Private m_value
 
-    Public Property Get Events(name)
+    Public Property Get EventName(name)
         Dim newEvent : Set newEvent = (new GlfVariablePlayerEvent)(name)
         m_events.Add newEvent.BaseEvent.Name, newEvent
-        Set Events = newEvent
+        Set EventName = newEvent
     End Property
    
     Public Property Let Debug(value) : m_debug = value : End Property
@@ -6984,13 +6984,14 @@ Class GlfVariablePlayer
         End If
         Dim vKey, v
         For Each vKey in m_events(evt).Variables.Keys
-            Log "Setting Variable " & vKey
             Set v = m_events(evt).Variable(vKey)
             Dim varValue : varValue = v.VariableValue
             Select Case v.Action
                 Case "add"
+                    Log "Add Variable " & vKey & ". New Value: " & CStr(GetPlayerState(vKey) + varValue) & " Old Value: " & CStr(GetPlayerState(vKey))
                     SetPlayerState vKey, GetPlayerState(vKey) + varValue
                 Case "set"
+                    Log "Setting Variable " & vKey & ". New Value: " & CStr(varValue)
                     SetPlayerState vKey, varValue
         End Select
         Next
@@ -9911,8 +9912,10 @@ Function SetPlayerState(key, value)
             Exit Function
         End If
     Else
-        If GetPlayerState(key) = value Then
-            Exit Function
+        If VarType(GetPlayerState(key)) <> vbBoolean Then
+            If GetPlayerState(key) = value Then
+                Exit Function
+            End If
         End If
     End If   
     Dim prevValue
@@ -9921,7 +9924,9 @@ Function SetPlayerState(key, value)
         glf_playerState(glf_currentPlayer).Remove key
     End If
     glf_playerState(glf_currentPlayer).Add key, value
-    
+    If glf_debug_level = "Debug" Then
+        Glf_WriteDebugLog "Player State", "Variable "& key &" changed from " & CStr(prevValue) & " to " & CStr(value)
+    End If
     If glf_playerEvents.Exists(key) Then
         FirePlayerEventHandlers key, value, prevValue, -1
     End If

@@ -66,8 +66,10 @@ Function SetPlayerState(key, value)
             Exit Function
         End If
     Else
-        If GetPlayerState(key) = value Then
-            Exit Function
+        If VarType(GetPlayerState(key)) <> vbBoolean Then
+            If GetPlayerState(key) = value Then
+                Exit Function
+            End If
         End If
     End If   
     Dim prevValue
@@ -76,7 +78,9 @@ Function SetPlayerState(key, value)
         glf_playerState(glf_currentPlayer).Remove key
     End If
     glf_playerState(glf_currentPlayer).Add key, value
-    
+    If glf_debug_level = "Debug" Then
+        Glf_WriteDebugLog "Player State", "Variable "& key &" changed from " & CStr(prevValue) & " to " & CStr(value)
+    End If
     If glf_playerEvents.Exists(key) Then
         FirePlayerEventHandlers key, value, prevValue, -1
     End If

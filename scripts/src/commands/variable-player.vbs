@@ -7,10 +7,10 @@ Class GlfVariablePlayer
 
     Private m_value
 
-    Public Property Get Event(name)
+    Public Property Get EventName(name)
         Dim newEvent : Set newEvent = (new GlfVariablePlayerEvent)(name)
         m_events.Add newEvent.BaseEvent.Name, newEvent
-        Set Event = newEvent
+        Set EventName = newEvent
     End Property
    
     Public Property Let Debug(value) : m_debug = value : End Property
@@ -49,13 +49,14 @@ Class GlfVariablePlayer
         End If
         Dim vKey, v
         For Each vKey in m_events(evt).Variables.Keys
-            Log "Setting Variable " & vKey
             Set v = m_events(evt).Variable(vKey)
             Dim varValue : varValue = v.VariableValue
             Select Case v.Action
                 Case "add"
+                    Log "Add Variable " & vKey & ". New Value: " & CStr(GetPlayerState(vKey) + varValue) & " Old Value: " & CStr(GetPlayerState(vKey))
                     SetPlayerState vKey, GetPlayerState(vKey) + varValue
                 Case "set"
+                    Log "Setting Variable " & vKey & ". New Value: " & CStr(varValue)
                     SetPlayerState vKey, varValue
         End Select
         Next
