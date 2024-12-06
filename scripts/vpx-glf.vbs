@@ -9997,12 +9997,14 @@ Function SetPlayerState(key, value)
     End If
     glf_playerState(glf_currentPlayer).Add key, value
     If glf_debug_level = "Debug" Then
+        Dim p,v : p = prevValue, v = value
         If IsNull(prevValue) Then
-            Glf_WriteDebugLog "Player State", "Variable "& key &" changed from Null to " & CStr(value)
-        Else
-            Glf_WriteDebugLog "Player State", "Variable "& key &" changed from " & CStr(prevValue) & " to " & CStr(value)
+            p=""
         End If
-        
+        If IsNull(value) Then
+            v=""
+        End If
+        Glf_WriteDebugLog "Player State", "Variable "& key &" changed from " & CStr(p) & " to " & CStr(v)
     End If
     If glf_playerEvents.Exists(key) Then
         FirePlayerEventHandlers key, value, prevValue, -1
