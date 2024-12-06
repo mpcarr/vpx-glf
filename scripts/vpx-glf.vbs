@@ -6123,7 +6123,7 @@ Function GlfShowStepHandler(args)
     End If
     If running_show.CurrentStep > running_show.TotalSteps Then
         'End of Show
-        glf_debugLog.WriteToLog "Running Show", "END OF SHOW"
+        'glf_debugLog.WriteToLog "Running Show", "END OF SHOW"
         If running_show.ShowSettings.Loops = -1 Or running_show.ShowSettings.Loops > 1 Then
             If running_show.ShowSettings.Loops > 1 Then
                 running_show.ShowSettings.Loops = running_show.ShowSettings.Loops - 1
@@ -6554,6 +6554,10 @@ Public Function StateMachineTransitionHandler(args)
             If Not IsNull(glf_event.Condition) Then
                 If GetRef(glf_event.Condition)() = True Then
                     state_machine.MakeTransition ownProps(3)
+                Else
+                    If glf_debug_level = "Debug" Then
+                        glf_debugLog.WriteToLog "State machine transition",  "failed condition: " & glf_event.Raw
+                    End If
                 End If
             Else
                 state_machine.MakeTransition ownProps(3)
@@ -7155,7 +7159,7 @@ Sub SetDelay(name, callbackFunc, args, delayInMs)
     Else
         delayQueue.Add executionTime, CreateObject("Scripting.Dictionary")
     End If
-    Glf_WriteDebugLog "Delay", "Adding delay for " & name & ", callback: " & callbackFunc & ", ExecutionTime: " & executionTime
+    'Glf_WriteDebugLog "Delay", "Adding delay for " & name & ", callback: " & callbackFunc & ", ExecutionTime: " & executionTime
     delayQueue(executionTime).Add name, (new DelayObject)(name, callbackFunc, executionTime, args)
     delayQueueMap.Add name, executionTime
     
@@ -7169,12 +7173,12 @@ Function RemoveDelay(name)
     If delayQueueMap.Exists(name) Then
         If delayQueue.Exists(delayQueueMap(name)) Then
             If delayQueue(delayQueueMap(name)).Exists(name) Then
-                Glf_WriteDebugLog "Delay", "Removing delay for " & name & " and  Execution Time: " & delayQueueMap(name)
+                'Glf_WriteDebugLog "Delay", "Removing delay for " & name & " and  Execution Time: " & delayQueueMap(name)
                 delayQueue(delayQueueMap(name)).Remove name
             End If
             delayQueueMap.Remove name
             RemoveDelay = True
-            Glf_WriteDebugLog "Delay", "Removing delay for " & name
+            'Glf_WriteDebugLog "Delay", "Removing delay for " & name
             Exit Function
         End If
     End If
@@ -7188,7 +7192,7 @@ Sub DelayTick()
             For Each key In delayQueue(queueItem).Keys()
                 If IsObject(delayQueue(queueItem)(key)) Then
                     Set delayObject = delayQueue(queueItem)(key)
-                    Glf_WriteDebugLog "Delay", "Executing delay: " & key & ", callback: " & delayObject.Callback
+                    'Glf_WriteDebugLog "Delay", "Executing delay: " & key & ", callback: " & delayObject.Callback
                     GetRef(delayObject.Callback)(delayObject.Args)    
                 End If
             Next

@@ -339,6 +339,10 @@ Public Function StateMachineTransitionHandler(args)
             If Not IsNull(glf_event.Condition) Then
                 If GetRef(glf_event.Condition)() = True Then
                     state_machine.MakeTransition ownProps(3)
+                Else
+                    If glf_debug_level = "Debug" Then
+                        glf_debugLog.WriteToLog "State machine transition",  "failed condition: " & glf_event.Raw
+                    End If
                 End If
             Else
                 state_machine.MakeTransition ownProps(3)
