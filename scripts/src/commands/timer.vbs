@@ -188,9 +188,9 @@ Class GlfTimer
 
         Dim newValue
         If m_direction = "down" Then
-            newValue = m_ticks - m_tick_interval
+            newValue = m_ticks - 1
         Else
-            newValue = m_ticks + m_tick_interval
+            newValue = m_ticks + 1
         End If
         
         Log "ticking: old value: "& m_ticks & ", new Value: " & newValue & ", target: "& m_end_value
