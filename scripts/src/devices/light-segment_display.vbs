@@ -120,27 +120,27 @@ Class GlfLightSegmentDisplay
         Exit Sub
 
 
-        If flashing = "no_flash" Then
-            m_flash_on = True
-        ElseIf flashing = "flash_mask" Then
+        'If flashing = "no_flash" Then
+        '    m_flash_on = True
+        'ElseIf flashing = "flash_mask" Then
             'm_flash_mask = flash_mask.rjust(len(text))
-        End If
+        'End If
 
-        If flashing = "no_flash" or m_flash_on = True or Not IsNull(text) Then
-            If text <> m_display_state Then
-                m_display_state = text
+        'If flashing = "no_flash" or m_flash_on = True or Not IsNull(text) Then
+        '    If text <> m_display_state Then
+        '        m_display_state = text
                 'Set text to lights.
-                If text="" Then
-                    text = Glf_FormatValue(text, " >" & CStr(m_size))
-                Else
-                    text = Right(text, m_size)
-                End If
-                If text <> m_current_text Then
-                    m_current_text = text
-                    UpdateText()
-                End If
-            End If
-        End If
+        '        If text="" Then
+        '            text = Glf_FormatValue(text, " >" & CStr(m_size))
+        '        Else
+        '            text = Right(text, m_size)
+        '        End If
+        '        If text <> m_current_text Then
+        '            m_current_text = text
+        '            UpdateText()
+        '        End If
+        '    End If
+        'End If
     End Sub
 
     Private Sub UpdateDisplay(segment_text, flashing, flash_mask)
@@ -211,8 +211,7 @@ Class GlfLightSegmentDisplay
     End Function
 
     Public Sub AddTextEntry(text, color, flashing, flash_mask, transition, transition_out, priority, key)
-        
-
+    
         If m_update_method = "stack" Then
             m_text_stack.Push text,color,flashing,flash_mask,transition,transition_out,priority,key
             UpdateStack()
@@ -225,19 +224,18 @@ Class GlfLightSegmentDisplay
 
     Public Sub UpdateStack()
 
-        'Sort stack and show top entry on display.
         Dim top_text_stack_entry
         If m_text_stack.IsEmpty() Then
             Set top_text_stack_entry = (new GlfTextStackEntry)(String(m_size, " "),Null,"no_flash","",Null,Null,-999999,"")
         Else
-            Set top_text_stack_entry = m_text_stack.Pop()
+            Set top_text_stack_entry = m_text_stack.Peek()
         End If
 
         Dim previous_text_stack_entry : previous_text_stack_entry = Null
         If Not IsNull(m_current_text_stack_entry) Then
             Set previous_text_stack_entry = m_current_text_stack_entry
             If previous_text_stack_entry.text.IsPlayerState() Then
-                RemovePlayerStateEventListener previous_text_stack_entry.text.PlayerStateValue(), "display"
+                RemovePlayerStateEventListener previous_text_stack_entry.text.PlayerStateValue(), m_name
             End If
         End If
         
@@ -319,7 +317,8 @@ Class GlfLightSegmentDisplay
     End Sub
 
     Public Sub RemoveTextByKey(key)
-
+        m_text_stack.PopByKey key
+        UpdateStack()
     End Sub
 
     Public Sub SetFlashing(flash_type)
@@ -336,7 +335,7 @@ Class GlfLightSegmentDisplay
 
     Public Sub SetSoftwareFlash(enabled)
         m_flash_on = enabled
-        debug.print(m_flashing)
+
         If m_flashing = "no_flash" Then
             Exit Sub
         End If
@@ -344,7 +343,6 @@ Class GlfLightSegmentDisplay
         If IsNull(m_current_state) Then
             Exit Sub
         End If
-        debug.print(m_flash_on)
         'If enabled = True Then
             UpdateText
         'Else

@@ -152,7 +152,7 @@ Class GlfSegmentPlayerEventItem
     Public Property Let Action(input) : m_action = input : End Property
                 
     Public Property Get Expire() : Expire = m_expire : End Property
-    Public Property Let Expire(input) : m_events = input : End Property
+    Public Property Let Expire(input) : m_expire = input : End Property
 
     Public Property Get FlashMask() : FlashMask = m_flash_mask : End Property
     Public Property Let FlashMask(input) : m_flash_mask = input : End Property
@@ -286,6 +286,9 @@ Function SegmentPlayerEventHandler(args)
             SegmentPlayer.Deactivate
         Case "play"
             SegmentPlayer.Play ownProps(3), ownProps(2)
+        Case "remove"
+            RemoveDelay ownProps(2)
+            SegmentPlayer.RemoveTextByKey ownProps(2)
     End Select
     SegmentPlayerEventHandler = Null
 End Function
@@ -312,11 +315,10 @@ Function SegmentPlayerCallbackHandler(evt, segment_item, mode, priority)
             If segment_item.HasTransitionOut() Then
                 Set transition_out = segment_item.TransitionOut
             End If
-            display.AddTextEntry segment_item.Text, segment_item.Color, segment_item.Flashing, segment_item.FlashMask, transition, transition_out, segment_item.Priority, segment_item.Key
+            display.AddTextEntry segment_item.Text, segment_item.Color, segment_item.Flashing, segment_item.FlashMask, transition, transition_out, segment_item.Priority, key
                                 
             If segment_item.Expire > 0 Then
-                'TODO Add delay for remove
-                'SetDelay
+                SetDelay key & "_expire", "SegmentPlayerEventHandler",  Array(Array("remove", display, key)), segment_item.Expire
             End If
 
         ElseIf segment_item.Action = "remove" Then
