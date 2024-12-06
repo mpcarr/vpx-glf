@@ -6226,7 +6226,6 @@ Class GlfStateMachine
     Private m_state
     Private m_persist_state
     Private m_starting_state
-    Private m_show
  
     Public Property Get Name(): Name = m_name: End Property
     Public Property Let Debug(value)
@@ -6324,11 +6323,8 @@ Class GlfStateMachine
 
     Public Sub Disable()
         RemoveHandlers()
+        StopShowForCurrentState()
         m_state = Null
-        If Not IsEmpty(m_show) Then
-            'm_show.Stop()
-            m_show = Empty
-        End If
     End Sub
 
     Public Sub StartState(start_state)
@@ -6376,26 +6372,29 @@ Class GlfStateMachine
             Next
         End If
 
-        If Not IsEmpty(m_show) Then
-            Log "Stopping show " & m_show
-            m_show.Stop()
-            m_show = Empty
-        End If
+        StopShowForCurrentState()
 
         State() = Null
     End Sub
 
     Public Sub RunShowForCurrentState()
-        If IsNull(m_show) Then
-            Exit Sub
-        End If
         Dim state_config : Set state_config = m_states(state)
         If Not IsNull(state_config.ShowWhenActive().Show) Then
             Dim show : Set show = state_config.ShowWhenActive
             Log "Starting show %s" & m_name & "_" & show.Key
             Dim new_running_show
-            
             Set new_running_show = (new GlfRunningShow)(m_mode & "_" & m_name & "_" & state_config.Name & "_" & show.Key, show.Key, show, m_priority, Null, state_config.InternalCacheId)
+        End If
+    End Sub
+
+    Public Sub StopShowForCurrentState()
+        Dim state_config : Set state_config = m_states(state)
+        If Not IsNull(state_config.ShowWhenActive().Show) Then
+            Dim show : Set show = state_config.ShowWhenActive
+            Log "Stopping show %s" & m_name & "_" & show.Key
+            If glf_running_shows.Exists(m_mode & "_" & m_name & "_" & state_config.Name & "_" & show.Key) Then 
+                glf_running_shows(m_mode & "_" & m_name & "_" & state_config.Name & "_" & show.Key).StopRunningShow()
+            End If
         End If
     End Sub
 
