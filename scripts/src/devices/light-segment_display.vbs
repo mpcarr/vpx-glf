@@ -226,7 +226,8 @@ Class GlfLightSegmentDisplay
 
         Dim top_text_stack_entry
         If m_text_stack.IsEmpty() Then
-            Set top_text_stack_entry = (new GlfTextStackEntry)((new GlfInput)(String(m_size, " ")),Null,"no_flash","",Null,Null,-999999,"")
+            Dim empty_text : Set empty_text = (new GlfInput)("""" & String(m_size, " ") & """")
+            Set top_text_stack_entry = (new GlfTextStackEntry)(empty_text,Null,"no_flash","",Null,Null,-999999,"")
         Else
             Set top_text_stack_entry = m_text_stack.Peek()
         End If
