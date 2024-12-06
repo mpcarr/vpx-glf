@@ -6282,6 +6282,9 @@ Class GlfStateMachine
  
     Public Property Get PersistState(): PersistState = m_persist_state : End Property
     Public Property Let PersistState(value) : m_persist_state = value : End Property
+
+    Public Property Get StartingState(): StartingState = m_starting_state : End Property
+    Public Property Let StartingState(value) : m_starting_state = value : End Property
  
     Public default Function init(name, mode)
         m_name = name
