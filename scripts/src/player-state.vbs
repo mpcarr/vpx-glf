@@ -79,7 +79,7 @@ Function SetPlayerState(key, value)
     End If
     glf_playerState(glf_currentPlayer).Add key, value
     If glf_debug_level = "Debug" Then
-        Dim p,v : p = prevValue, v = value
+        Dim p,v : p = prevValue : v = value
         If IsNull(prevValue) Then
             p=""
         End If
