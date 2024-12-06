@@ -8355,21 +8355,7 @@ Class GlfLightSegmentDisplay
         If IsNull(m_current_state) Then
             Exit Sub
         End If
-        'If enabled = True Then
-            UpdateText
-        'Else
-            'if self._flashing == FlashingType.FLASH_MATCH:
-            '# blank the last two chars
-            'self._set_text_internal(self._text.blank_segments(" " * (len(self._text) - 2) + "FF"))
-        'elif self._flashing == FlashingType.FLASH_MASK:
-         '   # use the flash_mask to determine which characters to blank
-          '  self._set_text_internal(self._text.blank_segments(self._flash_mask))
-       ' else:
-        '    self._set_text_internal(self._text.blank_segments("F" * len(self._text)))
-
-       ' End If
-
-        
+        UpdateText        
     End Sub
 
 End Class
