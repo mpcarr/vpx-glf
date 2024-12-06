@@ -194,7 +194,7 @@ Class GlfSegmentPlayerEventItem
         m_action = "add"
         m_expire = 0
         m_flash_mask = Empty
-        m_flashing = "not_set"
+        m_flashing = "no_flash"
         m_key = Empty
         m_transition = Null
         m_transition_out = Null

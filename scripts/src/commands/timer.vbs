@@ -49,6 +49,8 @@ Class GlfTimer
 
     Public Property Get GetValue(value)
         Select Case value
+            Case "ticks"
+                GetValue = m_ticks
             Case "ticks_remaining"
               GetValue = m_ticks_remaining
         End Select

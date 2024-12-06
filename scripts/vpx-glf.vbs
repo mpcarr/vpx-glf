@@ -4125,7 +4125,7 @@ Class GlfSegmentPlayerEventItem
         m_action = "add"
         m_expire = 0
         m_flash_mask = Empty
-        m_flashing = "not_set"
+        m_flashing = "no_flash"
         m_key = Empty
         m_transition = Null
         m_transition_out = Null
@@ -6611,6 +6611,8 @@ Class GlfTimer
 
     Public Property Get GetValue(value)
         Select Case value
+            Case "ticks"
+                GetValue = m_ticks
             Case "ticks_remaining"
               GetValue = m_ticks_remaining
         End Select
@@ -8030,8 +8032,13 @@ Class GlfLightSegmentDisplay
     private m_update_method
     private m_text_stack
     private m_current_text_stack_entry
-    private m_top_key
-    private m_max_priority
+    private m_integrated_commas
+    private m_integrated_dots
+    private m_use_dots_for_commas
+    private m_display_flash_duty
+    private m_display_flash_display_flash_frequency
+
+    Public Property Get Name() : Name = m_name : End Property
 
     Public Property Get SegmentType() : SegmentType = m_segment_type : End Property
     Public Property Let SegmentType(input)
@@ -8059,6 +8066,15 @@ Class GlfLightSegmentDisplay
         CalculateLights()
     End Property
 
+    Public Property Get IntegratedCommas() : IntegratedCommas = m_integrated_commas : End Property
+    Public Property Let IntegratedCommas(input) : m_integrated_commas = input : End Property
+
+    Public Property Get IntegratedDots() : IntegratedDots = m_integrated_dots : End Property
+    Public Property Let IntegratedDots(input) : m_integrated_dots = input : End Property
+
+    Public Property Get UseDotsForCommas() : UseDotsForCommas = m_use_dots_for_commas : End Property
+    Public Property Let UseDotsForCommas(input) : m_use_dots_for_commas = input : End Property
+
     Public default Function init(name)
         m_name = name
         m_flash_on = True
@@ -8079,8 +8095,14 @@ Class GlfLightSegmentDisplay
         m_update_method = "replace"
         m_lights = Array()  
 
-        m_max_priority = -1
-        m_top_key = Empty
+        m_integrated_commas = False
+        m_integrated_dots = False
+        m_use_dots_for_commas = False
+
+        m_display_flash_duty = 30
+        m_display_flash_display_flash_frequency = 60
+
+        SetDelay m_name & "software_flash", "Glf_SegmentDisplaySoftwareFlashEventHandler", Array(True, Me), 100
 
         glf_segment_displays.Add name, Me
         Set Init = Me
@@ -8104,7 +8126,9 @@ Class GlfLightSegmentDisplay
 
     Private Sub SetText(text, flashing, flash_mask)
         'Set a text to the display.
-        
+        Exit Sub
+
+
         If flashing = "no_flash" Then
             m_flash_on = True
         ElseIf flashing = "flash_mask" Then
@@ -8130,15 +8154,20 @@ Class GlfLightSegmentDisplay
 
     Private Sub UpdateDisplay(segment_text, flashing, flash_mask)
         Set m_current_state = segment_text
-        m_current_flashing = flashing
-        m_current_flash_mask = flash_mask
+        m_flashing = flashing
+        'm_current_flash_mask = flash_mask
         SetText m_current_state.ConvertToString(), flashing, flash_mask
+        UpdateText()
     End Sub
 
     Private Sub UpdateText()
         'iterate lights and chars
         Dim mapped_text, segment
-        mapped_text = MapSegmentTextToSegments(m_current_state, m_size, m_segmentmap)
+        If m_flash_on = True Or m_flashing = "no_flash" Then
+            mapped_text = MapSegmentTextToSegments(m_current_state, m_size, m_segmentmap)
+        Else
+            mapped_text = MapSegmentTextToSegments(m_current_state.BlankSegments(String(m_size, "F")), m_size, m_segmentmap)
+        End If
         Dim segment_idx : segment_idx = 1
         For Each segment in mapped_text
             
@@ -8173,12 +8202,7 @@ Class GlfLightSegmentDisplay
             
             
         Next
-        'for char, lights_for_char in zip(mapped_text, self._lights):
-        '    for name, light in lights_for_char.items():
-        '        if getattr(char[0], name):
-        '            light.color(color=char[1], key=self._key)
-        '        else:
-        '            light.remove_from_stack_by_key(key=self._key)
+
     End Sub
 
     Private Function SegmentColor(value)
@@ -8196,9 +8220,9 @@ Class GlfLightSegmentDisplay
             m_text_stack.Push text,color,flashing,flash_mask,transition,transition_out,priority,key
             UpdateStack()
         Else
-            Dim new_text : new_text = Glf_SegmentTextCreateCharacters(text.Value(), m_size, False, False, True, Array())
-            Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,False, False, True) 
-            UpdateDisplay display_text, "no_flash", Empty
+            Dim new_text : new_text = Glf_SegmentTextCreateCharacters(text.Value(), m_size, m_integrated_commas, m_integrated_dots, m_use_dots_for_commas, Array())
+            Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,m_integrated_commas, m_integrated_dots, m_use_dots_for_commas) 
+            UpdateDisplay display_text, flashing, Empty
         End If
     End Sub
 
@@ -8275,24 +8299,16 @@ Class GlfLightSegmentDisplay
                 flash_mask = m_current_state.flash_mask
             End If
 
-            'update colors if specified
-            'if top_text_stack_entry.colors:
-            '    colors = top_text_stack_entry.colors
-            'else:
-            '    colors = self._current_state.text.get_colors()
-
             'update the display
             Dim text_value : text_value = top_text_stack_entry.text.Value()
 
             If text_value = False Then
                 text_value = String(m_size, " ")
             End If
-            Dim new_text : new_text = Glf_SegmentTextCreateCharacters(text_value, m_size, True, True, True, Array())
-            Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,False, False, True) 
-            UpdateDisplay display_text, "no_flash", Empty
+            Dim new_text : new_text = Glf_SegmentTextCreateCharacters(text_value, m_size, m_integrated_commas, m_integrated_dots, m_use_dots_for_commas, Array())
+            Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,m_integrated_commas, m_integrated_dots, m_use_dots_for_commas) 
+            UpdateDisplay display_text, flashing, Empty
         End If
-
-
     End Sub
 
     Public Sub CurrentPlaceholderChanged()
@@ -8300,9 +8316,9 @@ Class GlfLightSegmentDisplay
         If text_value = False Then
             text_value = String(m_size, " ")
         End If
-        Dim new_text : new_text = Glf_SegmentTextCreateCharacters(text_value, m_size, False, False, True, Array())
-        Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,False, False, True) 
-        UpdateDisplay display_text, "no_flash", Empty
+        Dim new_text : new_text = Glf_SegmentTextCreateCharacters(text_value, m_size, m_integrated_commas, m_integrated_dots, m_use_dots_for_commas, Array())
+        Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,m_integrated_commas, m_integrated_dots, m_use_dots_for_commas) 
+        UpdateDisplay display_text, m_current_text_stack_entry.flashing, Empty
     End Sub
 
     Public Sub RemoveTextByKey(key)
@@ -8321,7 +8337,50 @@ Class GlfLightSegmentDisplay
 
     End Sub
 
+    Public Sub SetSoftwareFlash(enabled)
+        m_flash_on = enabled
+        debug.print(m_flashing)
+        If m_flashing = "no_flash" Then
+            Exit Sub
+        End If
+
+        If IsNull(m_current_state) Then
+            Exit Sub
+        End If
+        debug.print(m_flash_on)
+        'If enabled = True Then
+            UpdateText
+        'Else
+            'if self._flashing == FlashingType.FLASH_MATCH:
+            '# blank the last two chars
+            'self._set_text_internal(self._text.blank_segments(" " * (len(self._text) - 2) + "FF"))
+        'elif self._flashing == FlashingType.FLASH_MASK:
+         '   # use the flash_mask to determine which characters to blank
+          '  self._set_text_internal(self._text.blank_segments(self._flash_mask))
+       ' else:
+        '    self._set_text_internal(self._text.blank_segments("F" * len(self._text)))
+
+       ' End If
+
+        
+    End Sub
+
 End Class
+
+Sub Glf_SegmentDisplaySoftwareFlashEventHandler(args)
+    Dim display, enabled
+    Set display = args(1)
+    enabled = args(0)
+    If enabled = True Then
+        SetDelay display.Name & "software_flash", "Glf_SegmentDisplaySoftwareFlashEventHandler", Array(False, display), 100
+        display.SetSoftwareFlash True
+    Else
+        SetDelay display.Name & "software_flash", "Glf_SegmentDisplaySoftwareFlashEventHandler", Array(True, display), 100
+        display.SetSoftwareFlash False
+    End If
+
+    
+End Sub
 
 Sub Glf_SegmentTextStackEventHandler(args)
     Dim ownProps, kwargs
@@ -8468,6 +8527,10 @@ End Class
 Class FourteenSegments
     Public dp, l, m, n, k, j, h, g2, g1, f, e, d, c, b, a, char
 
+    Public Function CloneMapping()
+        Set CloneMapping = (new FourteenSegments)(dp,l,m,n,k,j,h,g2,g1,f,e,d,c,b,a,char)
+    End Function
+
     Public default Function init(dp, l, m, n, k, j, h, g2, g1, f, e, d, c, b, a, char)
         Me.dp = dp
         Me.a = a
@@ -8493,6 +8556,10 @@ End Class
 
 Class SevenSegments
     Public dp, g, f, e, d, c, b, a, char
+
+    Public Function CloneMapping()
+        Set CloneMapping = (new SevenSegments)(dp,g,f,e,d,c,b,a,char)
+    End Function
 
     Public default Function init(dp, g, f, e, d, c, b, a, char)
         Me.dp = dp
@@ -8718,21 +8785,22 @@ Function MapSegmentTextToSegments(text_state, display_width, segment_mapping)
     Dim segments()
     ReDim segments(UBound(text))
 
-    Dim charCode, char, mapping, i
+    Dim charCode, char, mapping, i, new_mapping
     For i = 0 To UBound(text)
         Set char = text(i)
         If segment_mapping.Exists(char("char_code")) Then
             Set mapping = segment_mapping(char("char_code"))
+            Set new_mapping = mapping.CloneMapping()
             If char("dot") = True Then
-                mapping.dp = 1
+                new_mapping.dp = 1
             Else
-                mapping.dp = 0
+                new_mapping.dp = 0
             End If
         Else
-            Set mapping = segment_mapping(Null)
+            Set new_mapping = segment_mapping(Null)
         End If
 
-        Set segments(i) = mapping
+        Set segments(i) = new_mapping
     Next
 
     MapSegmentTextToSegments = segments
@@ -8803,13 +8871,20 @@ Class GlfSegmentDisplayText
     End Function
 
     Public Function BlankSegments(flash_mask)
-        Dim new_text, i, char, mask
+        Dim arrFlashMask, i
+        ReDim arrFlashMask(Len(flash_mask) - 1)
+        For i = 1 To Len(flash_mask)
+            arrFlashMask(i - 1) = Mid(flash_mask, i, 1)
+        Next
+
+
+        Dim new_text, char, mask
         new_text = Array()
     
         ' Iterate over characters and the flash mask
         For i = LBound(m_text) To UBound(m_text)
             Set char = m_text(i)
-            mask = flash_mask(i)
+            mask = arrFlashMask(i)
     
             ' If mask is "F", blank the character
             If mask = "F" Then
@@ -8822,7 +8897,7 @@ Class GlfSegmentDisplayText
     
         ' Create a new GlfSegmentDisplayText object with the updated text
         Dim blanked_text
-        Set blanked_text = (new GlfSegmentDisplayText)(m_embed_dots, m_embed_commas, m_use_dots_for_commas, new_text)
+        Set blanked_text = (new GlfSegmentDisplayText)(new_text, m_embed_commas, m_embed_dots, m_use_dots_for_commas)
         Set BlankSegments = blanked_text
     End Function
     
