@@ -28,9 +28,9 @@ Class GlfTimer
     
 
     Public Property Get ControlEvents()
-        Dim control_event_count : control_event_count = UBound(m_control_events.Keys)    
+        Dim count : count = UBound(m_control_events.Keys) 
         Dim newEvent : Set newEvent = (new GlfTimerControlEvent)()
-        m_control_events.Add name, newEvent
+        m_control_events.Add CStr(count), newEvent
         Set ControlEvents = newEvent
     End Property
     Public Property Get StartValue() : StartValue = m_start_value : End Property

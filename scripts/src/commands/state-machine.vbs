@@ -232,7 +232,7 @@ Class GlfStateMachine
 End Class
  
 Class GlfStateMachineState
-	Private m_name, m_label, m_show_when_active, m_show_tokens, m_events_when_started, m_events_when_stopped, m_internal_cache_id
+	Private m_name, m_label, m_show_when_active, m_events_when_started, m_events_when_stopped, m_internal_cache_id
  
 
     Public Property Get InternalCacheId(): InternalCacheId = m_internal_cache_id: End Property
