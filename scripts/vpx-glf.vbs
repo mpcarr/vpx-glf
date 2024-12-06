@@ -6445,7 +6445,7 @@ Class GlfStateMachine
 End Class
  
 Class GlfStateMachineState
-	Private m_name, m_label, m_show_when_active, m_show_tokens, m_events_when_started, m_events_when_stopped, m_internal_cache_id
+	Private m_name, m_label, m_show_when_active, m_events_when_started, m_events_when_stopped, m_internal_cache_id
  
 
     Public Property Get InternalCacheId(): InternalCacheId = m_internal_cache_id: End Property
@@ -6590,9 +6590,9 @@ Class GlfTimer
     
 
     Public Property Get ControlEvents()
-        Dim control_event_count : control_event_count = UBound(m_control_events.Keys)    
+        Dim count : count = UBound(m_control_events.Keys) 
         Dim newEvent : Set newEvent = (new GlfTimerControlEvent)()
-        m_control_events.Add name, newEvent
+        m_control_events.Add CStr(count), newEvent
         Set ControlEvents = newEvent
     End Property
     Public Property Get StartValue() : StartValue = m_start_value : End Property
@@ -8018,6 +8018,7 @@ Class GlfLightSegmentDisplay
     private m_flash_on
     private m_flashing
     private m_flash_mask
+
     private m_text
     private m_current_text
     private m_display_state
@@ -8155,7 +8156,7 @@ Class GlfLightSegmentDisplay
     Private Sub UpdateDisplay(segment_text, flashing, flash_mask)
         Set m_current_state = segment_text
         m_flashing = flashing
-        'm_current_flash_mask = flash_mask
+        m_flash_mask = flash_mask
         SetText m_current_state.ConvertToString(), flashing, flash_mask
         UpdateText()
     End Sub
@@ -8166,7 +8167,13 @@ Class GlfLightSegmentDisplay
         If m_flash_on = True Or m_flashing = "no_flash" Then
             mapped_text = MapSegmentTextToSegments(m_current_state, m_size, m_segmentmap)
         Else
-            mapped_text = MapSegmentTextToSegments(m_current_state.BlankSegments(String(m_size, "F")), m_size, m_segmentmap)
+            If m_flashing = "mask" Then
+                mapped_text = MapSegmentTextToSegments(m_current_state.BlankSegments(m_flash_mask), m_size, m_segmentmap)
+            ElseIf m_flashing = "match" Then
+                mapped_text = MapSegmentTextToSegments(m_current_state.BlankSegments(String(m_size, "F")), m_size, m_segmentmap)
+            Else
+                mapped_text = MapSegmentTextToSegments(m_current_state.BlankSegments(String(m_size, "F")), m_size, m_segmentmap)
+            End If
         End If
         Dim segment_idx : segment_idx = 1
         For Each segment in mapped_text
@@ -8222,7 +8229,7 @@ Class GlfLightSegmentDisplay
         Else
             Dim new_text : new_text = Glf_SegmentTextCreateCharacters(text.Value(), m_size, m_integrated_commas, m_integrated_dots, m_use_dots_for_commas, Array())
             Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,m_integrated_commas, m_integrated_dots, m_use_dots_for_commas) 
-            UpdateDisplay display_text, flashing, Empty
+            UpdateDisplay display_text, flashing, flash_mask
         End If
     End Sub
 
@@ -8307,7 +8314,7 @@ Class GlfLightSegmentDisplay
             End If
             Dim new_text : new_text = Glf_SegmentTextCreateCharacters(text_value, m_size, m_integrated_commas, m_integrated_dots, m_use_dots_for_commas, Array())
             Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,m_integrated_commas, m_integrated_dots, m_use_dots_for_commas) 
-            UpdateDisplay display_text, flashing, Empty
+            UpdateDisplay display_text, flashing, flash_mask
         End If
     End Sub
 
@@ -8318,7 +8325,7 @@ Class GlfLightSegmentDisplay
         End If
         Dim new_text : new_text = Glf_SegmentTextCreateCharacters(text_value, m_size, m_integrated_commas, m_integrated_dots, m_use_dots_for_commas, Array())
         Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,m_integrated_commas, m_integrated_dots, m_use_dots_for_commas) 
-        UpdateDisplay display_text, m_current_text_stack_entry.flashing, Empty
+        UpdateDisplay display_text, m_current_text_stack_entry.flashing, m_current_text_stack_entry.flash_mask
     End Sub
 
     Public Sub RemoveTextByKey(key)
