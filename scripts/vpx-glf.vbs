@@ -3812,7 +3812,7 @@ Class GlfMultiballs
         DispatchPinEvent m_name & "_shoot_again", kwargs
         
         Log("Ball drained during MB. Requesting a new one")
-        SetDelay m_name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", Me),Null), 1000
+        SetDelay m_name&"_queued_release_" & glf_BIP + balls, "MultiballsHandler" , Array(Array("queue_release", Me, glf_BIP + balls),Null), 1000
 
         BallDrainShootAgain = balls - balls_to_save
     End Function
@@ -3922,7 +3922,7 @@ Function MultiballsHandler(args)
                 Glf_ReleaseBall(Null)
                 SetDelay multiball.Name&"_auto_launch", "MultiballsHandler" , Array(Array("auto_launch", multiball),Null), 500
             Else
-                SetDelay multiball.Name&"_queued_release" & "_" & ownProps(2), "MultiballsHandler" , Array(Array("queue_release", multiball), Null), 1000
+                SetDelay multiball.Name&"_queued_release" & "_" & ownProps(2), "MultiballsHandler" , Array(Array("queue_release", multiball, ownProps(2)), Null), 1000
             End If
         Case "auto_launch"
             If glf_plunger.HasBall = True Then
