@@ -3910,7 +3910,7 @@ Function MultiballsHandler(args)
             multiball.StopMultiball
         Case "grace_period"
             multiball.RunGracePeriod
-        Case "hurry_up_time"
+        Case "hurry_up"
             multiball.RunHurryUp
         Case "drain"
             kwargs = multiball.BallsDrained(kwargs)
