@@ -210,7 +210,8 @@ Class GlfMultiballs
         'msgbox remaining_balls
         Dim x
         For x=1 to remaining_balls
-            SetDelay m_name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", Me),Null), 1000
+            Log "Adding Ball: " & x
+            SetDelay m_name&"_queued_release" & "_" & x, "MultiballsHandler" , Array(Array("queue_release", Me, x),Null), x*1000
         Next
 
         If m_shoot_again.Value = 0 Then
@@ -390,7 +391,7 @@ Function MultiballsHandler(args)
                 Glf_ReleaseBall(Null)
                 SetDelay multiball.Name&"_auto_launch", "MultiballsHandler" , Array(Array("auto_launch", multiball),Null), 500
             Else
-                SetDelay multiball.Name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", multiball), Null), 1000
+                SetDelay multiball.Name&"_queued_release" & "_" & ownProps(2), "MultiballsHandler" , Array(Array("queue_release", multiball), Null), 1000
             End If
         Case "auto_launch"
             If glf_plunger.HasBall = True Then

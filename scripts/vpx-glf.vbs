@@ -3379,7 +3379,7 @@ Class GlfMultiballLocks
         m_priority = mode.Priority
         m_lock_events = Array()
         m_reset_events = Array()
-        m_lock_device = Array()
+        m_lock_device = Empty
         m_balls_to_lock = 0
         m_balls_to_replace = -1
         m_balls_locked = 0
@@ -3400,10 +3400,12 @@ Class GlfMultiballLocks
 
     Public Sub Enable()
         Log "Enabling"
-        AddPinEventListener "balldevice_" & m_lock_device & "_ball_enter", m_mode & "_" & name & "_lock", "MultiballLocksHandler", m_priority, Array("lock", me, m_lock_device)
+        If Not IsEmpty(m_lock_device) Then
+            AddPinEventListener "balldevice_" & m_lock_device & "_ball_enter", m_mode & "_" & name & "_lock", "MultiballLocksHandler", m_priority, Array("lock", me, m_lock_device)
+        End If
         Dim evt
         For Each evt in m_lock_events
-            AddPinEventListener evt, m_name & "_ball_locked", "MultiballLocksHandler", m_priority, Array("lock", Me, Null)
+            AddPinEventListener evt, m_name & "_ball_locked", "MultiballLocksHandler", m_priority, Array("virtual_lock", Me, Null)
         Next
         For Each evt in m_reset_events
             AddPinEventListener evt, m_name & "_reset", "MultiballLocksHandler", m_priority, Array("reset", Me)
@@ -3412,7 +3414,9 @@ Class GlfMultiballLocks
 
     Public Sub Disable()
         Log "Disabling"
-        RemovePinEventListener "balldevice_" & m_lock_device & "_ball_enter", m_mode & "_" & name & "_lock"
+        If Not IsEmpty(m_lock_device) Then
+            RemovePinEventListener "balldevice_" & m_lock_device & "_ball_enter", m_mode & "_" & name & "_lock"
+        End If
         Dim evt
         For Each evt in m_lock_events
             RemovePinEventListener evt, m_name & "_ball_locked"
@@ -3498,6 +3502,8 @@ Function MultiballLocksHandler(args)
             multiball.Disable
         Case "lock"
             kwargs = multiball.Lock(ownProps(2), kwargs)
+        Case "virtual_lock"
+            multiball.Lock Null, 1
         Case "reset"
             multiball.Reset
         Case "queue_release"
@@ -3732,7 +3738,8 @@ Class GlfMultiballs
         'msgbox remaining_balls
         Dim x
         For x=1 to remaining_balls
-            SetDelay m_name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", Me),Null), 1000
+            Log "Adding Ball: " & x
+            SetDelay m_name&"_queued_release" & "_" & x, "MultiballsHandler" , Array(Array("queue_release", Me, x),Null), x*1000
         Next
 
         If m_shoot_again.Value = 0 Then
@@ -3912,7 +3919,7 @@ Function MultiballsHandler(args)
                 Glf_ReleaseBall(Null)
                 SetDelay multiball.Name&"_auto_launch", "MultiballsHandler" , Array(Array("auto_launch", multiball),Null), 500
             Else
-                SetDelay multiball.Name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", multiball), Null), 1000
+                SetDelay multiball.Name&"_queued_release" & "_" & ownProps(2), "MultiballsHandler" , Array(Array("queue_release", multiball), Null), 1000
             End If
         Case "auto_launch"
             If glf_plunger.HasBall = True Then

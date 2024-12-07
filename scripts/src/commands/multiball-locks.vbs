@@ -38,7 +38,7 @@ Class GlfMultiballLocks
         m_priority = mode.Priority
         m_lock_events = Array()
         m_reset_events = Array()
-        m_lock_device = Array()
+        m_lock_device = Empty
         m_balls_to_lock = 0
         m_balls_to_replace = -1
         m_balls_locked = 0
@@ -59,10 +59,12 @@ Class GlfMultiballLocks
 
     Public Sub Enable()
         Log "Enabling"
-        AddPinEventListener "balldevice_" & m_lock_device & "_ball_enter", m_mode & "_" & name & "_lock", "MultiballLocksHandler", m_priority, Array("lock", me, m_lock_device)
+        If Not IsEmpty(m_lock_device) Then
+            AddPinEventListener "balldevice_" & m_lock_device & "_ball_enter", m_mode & "_" & name & "_lock", "MultiballLocksHandler", m_priority, Array("lock", me, m_lock_device)
+        End If
         Dim evt
         For Each evt in m_lock_events
-            AddPinEventListener evt, m_name & "_ball_locked", "MultiballLocksHandler", m_priority, Array("lock", Me, Null)
+            AddPinEventListener evt, m_name & "_ball_locked", "MultiballLocksHandler", m_priority, Array("virtual_lock", Me, Null)
         Next
         For Each evt in m_reset_events
             AddPinEventListener evt, m_name & "_reset", "MultiballLocksHandler", m_priority, Array("reset", Me)
@@ -71,7 +73,9 @@ Class GlfMultiballLocks
 
     Public Sub Disable()
         Log "Disabling"
-        RemovePinEventListener "balldevice_" & m_lock_device & "_ball_enter", m_mode & "_" & name & "_lock"
+        If Not IsEmpty(m_lock_device) Then
+            RemovePinEventListener "balldevice_" & m_lock_device & "_ball_enter", m_mode & "_" & name & "_lock"
+        End If
         Dim evt
         For Each evt in m_lock_events
             RemovePinEventListener evt, m_name & "_ball_locked"
@@ -157,6 +161,8 @@ Function MultiballLocksHandler(args)
             multiball.Disable
         Case "lock"
             kwargs = multiball.Lock(ownProps(2), kwargs)
+        Case "virtual_lock"
+            multiball.Lock Null, 1
         Case "reset"
             multiball.Reset
         Case "queue_release"
