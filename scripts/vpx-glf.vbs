@@ -3832,7 +3832,10 @@ Class GlfMultiballs
     Public Sub Reset()
         Log "Resetting multiball: " & m_name
         DispatchPinEvent m_name & "_reset_event", Null
-        ' Add reset logic here
+
+        Disable()
+        m_shoot_again_enabled = False
+        m_balls_added_live = 0
     End Sub
 
     Public Sub AddABall()
@@ -3901,7 +3904,7 @@ Function MultiballsHandler(args)
         Case "start"
             multiball.Start
         Case "reset"
-            'multiball.Reset
+            multiball.Reset
         Case "add_a_ball"
             'multiball.AddABall
         Case "start_or_add_a_ball"
