@@ -3652,6 +3652,8 @@ Class GlfMultiballs
     Public Sub Disable()
         Log "Disabling " & m_name
         m_enabled = False
+        m_balls_added_live = 0
+        m_shoot_again_enabled = False
         StopMultiball()
         Dim evt
         For Each evt in m_start_events.Keys
@@ -3776,7 +3778,7 @@ Class GlfMultiballs
         End If
         If hurry_up_time_ms > 0 Then
             m_hurry_up_enabled = True
-            SetDelay m_name&"hurry_up", "MultiballsHandler" , Array(Array("hurry_up", Me),Null), shoot_again_ms - hurry_up_time_ms
+            SetDelay m_name&"_hurry_up", "MultiballsHandler" , Array(Array("hurry_up", Me),Null), shoot_again_ms - hurry_up_time_ms
         End If
     End Sub
 
