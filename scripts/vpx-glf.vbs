@@ -2412,7 +2412,7 @@ Class GlfLightPlayer
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener evt, m_mode & "_light_player_play", "LightPlayerEventHandler", -m_priority, Array("play", Me, m_events(evt), evt)
+            AddPinEventListener evt, m_mode & "_light_player_play", "LightPlayerEventHandler", m_priority, Array("play", Me, m_events(evt), evt)
         Next
     End Sub
 
@@ -2802,8 +2802,8 @@ Class GlfBaseModeDevice
         Set m_enable_events = CreateObject("Scripting.Dictionary")
         Set m_disable_events = CreateObject("Scripting.Dictionary")
 
-        AddPinEventListener m_mode.Name & "_starting", m_device & "_" & m_parent.Name & "_activate", "BaseModeDeviceEventHandler", m_priority, Array("activate", Me)
-        AddPinEventListener m_mode.Name & "_stopping", m_device & "_" & m_parent.Name & "_deactivate", "BaseModeDeviceEventHandler", m_priority, Array("deactivate", Me)
+        AddPinEventListener m_mode.Name & "_starting", m_device & "_" & m_parent.Name & "_activate", "BaseModeDeviceEventHandler", m_priority+1, Array("activate", Me)
+        AddPinEventListener m_mode.Name & "_stopping", m_device & "_" & m_parent.Name & "_deactivate", "BaseModeDeviceEventHandler", m_priority-1, Array("deactivate", Me)
         Set Init = Me
 	End Function
 
@@ -2833,7 +2833,7 @@ Class GlfBaseModeDevice
 
     Public Sub Log(message)
         If m_debug = True Then
-            glf_debugLog.WriteToLog m_mode.Name & m_device & "_" & m_parent.Name, message
+            glf_debugLog.WriteToLog m_mode.Name & "_" & m_device & "_" & m_parent.Name, message
         End If
     End Sub
 End Class
@@ -3557,6 +3557,7 @@ Class GlfMultiballs
     Private m_balls_live_target
     Private m_enabled
     Private m_shoot_again_enabled
+    Private m_queued_balls
     Private m_debug
 
     Public Property Get Name(): Name = m_name: End Property
@@ -3584,6 +3585,7 @@ Class GlfMultiballs
     End Property
     Public Property Let StartOrAddABallEvents(value): m_start_or_add_a_ball_events = value: End Property
     Public Property Let StopEvents(value): m_stop_events = value: End Property
+        
     Public Property Let Debug(value): m_debug = value: End Property
 
     Public default Function init(name, mode)
@@ -3609,6 +3611,7 @@ Class GlfMultiballs
         m_replace_balls_in_play = False
         m_balls_added_live = 0
         m_balls_live_target = 0
+        m_queued_balls = 0
         m_enabled = False
         m_shoot_again_enabled = False
         m_grace_period_enabled = False
@@ -3653,6 +3656,7 @@ Class GlfMultiballs
         Log "Disabling " & m_name
         m_enabled = False
         m_balls_added_live = 0
+        m_balls_live_target = 0
         m_shoot_again_enabled = False
         StopMultiball()
         Dim evt
@@ -3672,6 +3676,7 @@ Class GlfMultiballs
             RemovePinEventListener evt, m_name & "_stop"
         Next
         RemovePinEventListener "ball_drain", m_name & "_ball_drain"
+        RemoveDelay m_name & "_queued_release"
     End Sub
     
     Private Sub HandleBallsInPlayAndBallsLive()
@@ -3702,7 +3707,7 @@ Class GlfMultiballs
         If m_shoot_again_enabled Then
             balls = BallDrainShootAgain(balls)
         Else
-            balls = BallDrainCountBalls(balls)
+            BallDrainCountBalls(balls)
         End If
         BallsDrained = balls
     End Function
@@ -3736,13 +3741,9 @@ Class GlfMultiballs
         End If
 
         'request remaining balls
-        Dim remaining_balls : remaining_balls = (m_balls_added_live - balls_added)
-        'msgbox remaining_balls
-        Dim x
-        For x=1 to remaining_balls
-            Log "Adding Ball: " & x
-            SetDelay m_name&"_queued_release" & "_" & x, "MultiballsHandler" , Array(Array("queue_release", Me, x),Null), x*1000
-        Next
+        m_queued_balls = (m_balls_added_live - balls_added)
+        SetDelay m_name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", Me),Null), 1000
+        
 
         If m_shoot_again.Value = 0 Then
             'No shoot again. Just stop multiball right away
@@ -3814,14 +3815,15 @@ Class GlfMultiballs
         DispatchPinEvent m_name & "_shoot_again", kwargs
         
         Log("Ball drained during MB. Requesting a new one")
-        SetDelay m_name&"_queued_release_" & glf_BIP + balls, "MultiballsHandler" , Array(Array("queue_release", Me, glf_BIP + balls),Null), 1000
+        m_queued_balls = m_queued_balls + 1
+        SetDelay m_name&"_queued_release_" & m_queued_balls, "MultiballsHandler" , Array(Array("queue_release", Me, m_queued_balls),Null), 1000
 
         BallDrainShootAgain = balls - balls_to_save
     End Function
 
     Function BallDrainCountBalls(balls):
         DispatchPinEvent m_name & "_ball_lost", Null
-        If not glf_gameStarted or (glf_BIP - balls) < 1 Then
+        If not glf_gameStarted or (glf_BIP - balls) = 1 Then
             m_balls_added_live = 0
             m_balls_live_target = 0
             DispatchPinEvent m_name & "_ended", Null
@@ -3838,6 +3840,7 @@ Class GlfMultiballs
         Disable()
         m_shoot_again_enabled = False
         m_balls_added_live = 0
+        m_balls_live_target = 0
     End Sub
 
     Public Sub AddABall()
@@ -3869,8 +3872,15 @@ Class GlfMultiballs
             RunHurryUp()
         End If
 
+        RemoveDelay m_name & "_queued_release"
+
         DispatchPinEvent m_name & "_shoot_again_ended", Null
     End Sub
+
+    Public Function ReleaseQueuedBalls()
+        m_queued_balls = m_queued_balls - 1
+        ReleaseQueuedBalls = m_queued_balls
+    End Function
 
     Private Sub Log(message)
         If m_debug = True Then
@@ -3920,11 +3930,16 @@ Function MultiballsHandler(args)
         Case "drain"
             kwargs = multiball.BallsDrained(kwargs)
         Case "queue_release"
-            If glf_plunger.HasBall = False And ballInReleasePostion = True Then
+            If glf_plunger.HasBall = False And ballInReleasePostion = True And glf_plunger.IncomingBalls = 0 Then
                 Glf_ReleaseBall(Null)
+                debug.print("RELEASE")
                 SetDelay multiball.Name&"_auto_launch", "MultiballsHandler" , Array(Array("auto_launch", multiball),Null), 500
+                If multiball.ReleaseQueuedBalls() > 0 Then
+                    SetDelay multiball.Name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", multiball), Null), 1000    
+                End If
             Else
-                SetDelay multiball.Name&"_queued_release" & "_" & ownProps(2), "MultiballsHandler" , Array(Array("queue_release", multiball, ownProps(2)), Null), 1000
+                debug.print("RE QUE")
+                SetDelay multiball.Name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", multiball), Null), 1000
             End If
         Case "auto_launch"
             If glf_plunger.HasBall = True Then
@@ -7380,6 +7395,7 @@ Class GlfBallDevice
     Public Property Get Balls(): Balls = m_balls_in_device : End Property
 
     Public Property Let AddIncomingBalls(value) : m_incoming_balls = m_incoming_balls + value : End Property
+    Public Property Get IncomingBalls() : IncomingBalls = m_incoming_balls : End Property
 
     Public Property Let EjectCallback(value) : m_eject_callback = value : End Property
     Public Property Let EjectEnableTime(value) : m_eject_enable_time = value : End Property
@@ -7545,7 +7561,9 @@ Class GlfBallDevice
 End Class
 
 Function BallDeviceEventHandler(args)
-    Dim ownProps, ball : ownProps = args(0) : Set ball = args(1) 
+    Dim ownProps, ball
+    ownProps = args(0)
+    Set ball = args(1) 
     Dim evt : evt = ownProps(0)
     Dim ballDevice : Set ballDevice = ownProps(1)
     Dim switch

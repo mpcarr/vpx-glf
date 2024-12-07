@@ -44,6 +44,7 @@ Class GlfBallDevice
     Public Property Get Balls(): Balls = m_balls_in_device : End Property
 
     Public Property Let AddIncomingBalls(value) : m_incoming_balls = m_incoming_balls + value : End Property
+    Public Property Get IncomingBalls() : IncomingBalls = m_incoming_balls : End Property
 
     Public Property Let EjectCallback(value) : m_eject_callback = value : End Property
     Public Property Let EjectEnableTime(value) : m_eject_enable_time = value : End Property
@@ -209,7 +210,9 @@ Class GlfBallDevice
 End Class
 
 Function BallDeviceEventHandler(args)
-    Dim ownProps, ball : ownProps = args(0) : Set ball = args(1) 
+    Dim ownProps, ball
+    ownProps = args(0)
+    Set ball = args(1) 
     Dim evt : evt = ownProps(0)
     Dim ballDevice : Set ballDevice = ownProps(1)
     Dim switch
