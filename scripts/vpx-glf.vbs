@@ -7459,7 +7459,12 @@ Class GlfBallDevice
 
     Public Sub BallEntering(ball, switch)
         Log "Ball Entering" 
-        SetDelay m_name & "_" & switch & "_ball_enter", "BallDeviceEventHandler", Array(Array("ball_enter", Me, switch), ball), m_entrance_count_delay
+        Log m_default_device
+        If m_default_device = False Then
+            SetDelay m_name & "_" & switch & "_ball_enter", "BallDeviceEventHandler", Array(Array("ball_enter", Me, switch), ball), m_entrance_count_delay
+        Else
+            BallEnter ball, switch
+        End If
     End Sub
 
     Public Sub BallEnter(ball, switch)
