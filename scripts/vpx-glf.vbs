@@ -3957,6 +3957,97 @@ Function MultiballsHandler(args)
 End Function
 
 
+
+Class GlfRandomEventPlayer
+
+    Private m_priority
+    Private m_mode
+    Private m_debug
+    private m_base_device
+    Private m_events
+    Private m_eventValues
+
+    Public Property Get Name() : Name = "random_event_player" : End Property
+    Public Property Let Debug(value)
+        m_debug = value
+    End Property
+
+    Public Property Get Events(value)
+        Dim newEvent : Set newEvent = (new GlfRandomEvent)(value)
+        m_events.Add newEvent.Raw, newEvent
+        Set Events = newEvent
+    End Property
+
+	Public default Function init(mode)
+        m_mode = mode.Name
+        m_priority = mode.Priority
+
+        Set m_events = CreateObject("Scripting.Dictionary")
+        Set m_base_device = (new GlfBaseModeDevice)(mode, "random_event_player", Me)
+        Set Init = Me
+	End Function
+
+    Public Sub Activate()
+        Dim evt
+        For Each evt In m_events.Keys()
+            AddPinEventListener m_events(evt).EventName, m_mode & "_" & evt & "_event_player_play", "RandomEventPlayerEventHandler", m_priority, Array("play", Me, evt)
+        Next
+    End Sub
+
+    Public Sub Deactivate()
+        Dim evt
+        For Each evt In m_events.Keys()
+            RemovePinEventListener m_events(evt).EventName, m_mode & "_" & evt & "_event_player_play"
+        Next
+    End Sub
+
+    Public Sub FireEvent(evt)
+        If Not IsNull(m_events(evt).Condition) Then
+            'msgbox m_events(evt).Condition
+            If GetRef(m_events(evt).Condition)() = False Then
+                Exit Sub
+            End If
+        End If
+        Dim evtValue
+        For Each evtValue In m_eventValues(evt)
+            DispatchPinEvent evtValue, Null
+        Next
+    End Sub
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
+    End Sub
+
+    Public Function ToYaml()
+        Dim yaml : yaml = ""
+        ToYaml = yaml
+    End Function
+
+End Class
+
+Function RandomEventPlayerEventHandler(args)
+    
+    Dim ownProps, kwargs : ownProps = args(0)
+    If IsObject(args(1)) Then
+        Set kwargs = args(1)
+    Else
+        kwargs = args(1) 
+    End If
+    Dim evt : evt = ownProps(0)
+    Dim eventPlayer : Set eventPlayer = ownProps(1)
+    Select Case evt
+        Case "play"
+            eventPlayer.FireEvent ownProps(2)
+    End Select
+    If IsObject(args(1)) Then
+        Set RandomEventPlayerEventHandler = kwargs
+    Else
+        RandomEventPlayerEventHandler = kwargs
+    End If
+End Function
+
 Class GlfSegmentDisplayPlayer
 
     Private m_priority
@@ -9480,6 +9571,35 @@ Class GlfEvent
 
 End Class
 
+Class GlfRandomEvent
+	Private m_raw, m_name, m_event, m_condition, m_delay
+  
+    Public Property Get Name() : Name = m_name : End Property
+    Public Property Get EventName() : EventName = m_event : End Property
+    Public Property Get Condition() : Condition = m_condition : End Property
+    Public Property Get Delay() : Delay = m_delay : End Property
+    Public Property Get Raw() : Raw = m_raw : End Property
+
+    Public Function Evaluate()
+        If Not IsNull(m_condition) Then
+            Evaluate = GetRef(m_condition)()
+        Else
+            Evaluate = True
+        End If
+    End Function
+
+	Public default Function init(evt)
+        m_raw = evt
+        Dim parsedEvent : parsedEvent = Glf_ParseEventInput(evt)
+        m_name = parsedEvent(0)
+        m_event = parsedEvent(1)
+        m_condition = parsedEvent(2)
+        m_delay = parsedEvent(3)
+	    Set Init = Me
+	End Function
+
+End Class
+
 
 '******************************************************
 '*****  Player Setup                               ****
@@ -9730,9 +9850,7 @@ Dim glf_dispatch_q : Set glf_dispatch_q = CreateObject("Scripting.Dictionary")
 Sub DispatchPinEvent(e, kwargs)
     If glf_dispatch_parent > 0 Then
         'There's already a dispatch running.
-        If Not glf_dispatch_q.Exists(e) Then
-            glf_dispatch_q.Add e, kwargs
-        End If
+        glf_dispatch_q.Add UBound(glf_dispatch_q.Keys()), Array(e,kwargs)
     Else
 
         If Not glf_pinEvents.Exists(e) Then
@@ -9767,7 +9885,8 @@ Sub DispatchPinEvent(e, kwargs)
         glf_dispatch_q.RemoveAll()
         Dim i
         For i=0 To UBound(keys)
-            DispatchPinEvent keys(i), items(i)
+            Dim item : item = items(i)
+            DispatchPinEvent item(0), item(1)
         Next
     End If
 End Sub
