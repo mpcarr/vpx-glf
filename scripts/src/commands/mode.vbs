@@ -21,6 +21,7 @@ Class Mode
     Private m_showplayer
     Private m_variableplayer
     Private m_eventplayer
+    Private m_random_event_player
     Private m_shot_profiles
     Private m_sequence_shots
     Private m_state_machines
@@ -47,6 +48,7 @@ Class Mode
         Set SegmentDisplayPlayer = m_segment_display_player
     End Property
     Public Property Get EventPlayer() : Set EventPlayer = m_eventplayer: End Property
+    Public Property Get RandomEventPlayer() : Set RandomEventPlayer = m_random_event_player : End Property
     Public Property Get VariablePlayer(): Set VariablePlayer = m_variableplayer: End Property
 
     Public Property Get ShotProfiles(name)
@@ -222,6 +224,9 @@ Class Mode
         If Not IsNull(m_eventplayer) Then
             m_eventplayer.Debug = value
         End If
+        If Not IsNull(m_random_event_player) Then
+            m_random_event_player.Debug = value
+        End If
         If Not IsNull(m_showplayer) Then
             m_showplayer.Debug = value
         End If
@@ -231,8 +236,6 @@ Class Mode
         If Not IsNull(m_variableplayer) Then
             m_variableplayer.Debug = value
         End If
-
-
     End Property
 
 	Public default Function init(name, priority)
@@ -257,6 +260,7 @@ Class Mode
         m_showplayer = Null
         m_segment_display_player = Null
         Set m_eventplayer = (new GlfEventPlayer)(Me)
+        Set m_random_event_player = (new GlfRandomEventPlayer)(Me)
         Set m_variableplayer = (new GlfVariablePlayer)(Me)
         Dim newEvent : Set newEvent = (new GlfEvent)("ball_ended")
         AddPinEventListener newEvent.EventName, m_name & "_stop", "ModeEventHandler", m_priority+1, Array("stop", Me, newEvent)
