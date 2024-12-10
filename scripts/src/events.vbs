@@ -40,6 +40,7 @@ Class GlfRandomEvent
     Private m_force_all
     Private m_force_different
     Private m_disable_random
+    Private m_total_weights
 
     Public Property Let FallbackEvent(value) : m_fallback_event = value : End Property
     Public Property Let ForceAll(value) : m_force_all = value : End Property
@@ -62,6 +63,7 @@ Class GlfRandomEvent
         m_force_all = True
         m_force_different = True
         m_disable_random = False
+        m_total_weights = 0
         Set m_events = CreateObject("Scripting.Dictionary")
         Set m_weights = CreateObject("Scripting.Dictionary")
         Set m_eventIndexMap = CreateObject("Scripting.Dictionary")
@@ -72,6 +74,7 @@ Class GlfRandomEvent
         Dim newEvent : Set newEvent = (new GlfEvent)(evt)
         m_events.Add newEvent.Raw, newEvent
         m_weights.Add newEvent.Raw, weight
+        m_total_weights = m_total_weights + weight
         m_eventIndexMap.Add newEvent.Raw, UBound(m_events.Keys)
     End Sub
 
@@ -79,7 +82,7 @@ Class GlfRandomEvent
 
         Dim valid_events, event_to_fire
         Dim event_keys, event_items
-        Dim i, count
+        Dim i, count, key
         
         Set valid_events = CreateObject("Scripting.Dictionary")
         event_keys = m_events.Keys
@@ -130,10 +133,29 @@ Class GlfRandomEvent
         End If
 
         'Random Selection From remaining valid events
-        Dim randomIdx
+        Dim chosenKey
         If m_disable_random = False Then
+            Dim total_weight
+            For Each key In valid_events.Keys
+                total_weight = total_weight + m_weights(key)
+            Next
+
             Randomize
-            randomIdx = Int(Rnd() * (UBound(valid_events.Keys)-LBound(valid_events.Keys) + 1) + LBound(valid_events.Keys))
+            'randomIdx = Int(Rnd() * (UBound(valid_events.Keys)-LBound(valid_events.Keys) + 1) + LBound(valid_events.Keys))
+            Dim randVal
+            randVal = Rnd() * total_weight
+            Dim cumulativeWeight
+            cumulativeWeight = 0
+            
+            For Each key In valid_events.Keys
+                cumulativeWeight = cumulativeWeight + m_weights(key)
+                If randVal <= cumulativeWeight Then
+                    chosenKey = key
+                    Exit For
+                End If
+            Next
+
+
         Else
             event_keys = m_events.Keys
             count = 0
@@ -144,11 +166,11 @@ Class GlfRandomEvent
                     End If
                 End If
             Next
-            randomIdx = 0
+            chosenKey = valid_events.keys()(0)
         End If
         
-        SetPlayerState "random_" & m_mode & "_" & m_key & "_last", valid_events.Items()(randomIdx).Raw
-        SetPlayerState "random_" & m_mode & "_" & m_key & "_" & valid_events.Items()(randomIdx).Raw, True
+        SetPlayerState "random_" & m_mode & "_" & m_key & "_last", valid_events(chosenKey).Raw
+        SetPlayerState "random_" & m_mode & "_" & m_key & "_" & valid_events(chosenKey).Raw, True
 
         event_keys = m_events.Keys
         count = 0
@@ -163,7 +185,7 @@ Class GlfRandomEvent
             Next
         End If
 
-        GetNextRandomEvent = valid_events.Items()(randomIdx).EventName
+        GetNextRandomEvent = valid_events(chosenKey).EventName
 
     End Function
 

@@ -52,6 +52,7 @@ Class GlfRandomEventPlayer
         Dim event_to_fire
         event_to_fire = m_eventValues(evt).GetNextRandomEvent()
         If Not IsEmpty(event_to_fire) Then
+            msgbox event_to_fire
             DispatchPinEvent event_to_fire, Null
         End If
     End Sub
