@@ -94,11 +94,11 @@ Class GlfLightPlayer
     End Sub
 
     Public Sub Play(evt, lights)
-        LightPlayerCallbackHandler evt, Array(lights.LightSeq), m_name, m_priority
+        LightPlayerCallbackHandler evt, Array(lights.LightSeq), m_name, m_priority, True, 1
     End Sub
 
     Public Sub PlayOff(evt, lights)
-        LightPlayerCallbackHandler evt, Null, m_name, m_priority
+        LightPlayerCallbackHandler evt, Array(lights.LightSeq), m_name, m_priority, False, 1
     End Sub
 
     Private Sub Log(message)
@@ -194,11 +194,34 @@ Class GlfLightPlayerItem
 
 End Class
 
-Function LightPlayerCallbackHandler(key, lights, mode, priority)
-        
+Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
+    
+    Dim lightStack
     Dim lightParts, light
-    If IsNull(lights) Then
-        
+    If play = False Then
+        For Each light in lights(0)
+            lightParts = Split(light,"|")
+            Set lightStack = glf_lightStacks(lightParts(0))
+            If Not lightStack.IsEmpty() Then
+                glf_debugLog.WriteToLog "LightPlayer", "Removing Light " & lightParts(0)
+                lightStack.PopByKey(mode & "_" & key)
+                Dim show_key
+                For Each show_key in glf_running_shows.Keys
+                    If Left(show_key, Len("fade_" & mode & "_" & key & "_" & lightParts(0))) = "fade_" & mode & "_" & key & "_" & lightParts(0) Then
+                        glf_running_shows(show_key).StopRunningShow()
+                    End If
+                Next
+                If Not lightStack.IsEmpty() Then
+                    ' Set the light to the next color on the stack
+                    Dim nextColor
+                    Set nextColor = lightStack.Peek()
+                    Glf_SetLight lightParts(0), nextColor("Color")
+                Else
+                    ' Turn off the light since there's nothing on the stack
+                    Glf_SetLight lightParts(0), "000000"
+                End If
+            End If
+        Next
         glf_debugLog.WriteToLog "LightPlayer", "Removing Light Seq" & mode & "_" & key
     Else
         If UBound(lights) = -1 Then
@@ -210,7 +233,7 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority)
             glf_debugLog.WriteToLog "LightPlayer", "Lights not an array!?"
         End If
         'glf_debugLog.WriteToLog "LightPlayer", "Adding Light Seq" & Join(lights) & ". Key:" & mode & "_" & key
-        Dim lightStack
+        
         For Each light in lights(0)
             lightParts = Split(light,"|")
             
@@ -238,35 +261,40 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority)
             End If
 
             If Not IsEmpty(oldColor) And Ubound(lightParts)=3 Then
-                'FadeMs
-                Dim fadeSeq
-                fadeSeq = Glf_FadeRGB(lightParts(0), oldColor, lightParts(2), 10)
-                glf_debugLog.WriteToLog "LightPlayer", "Fade Light Seq" & Join(fadeSeq)
-                'Need to create a temp show to transition from current light to desination
-
+                If lightParts(3) <> "" Then
+                    'FadeMs
+                    Dim cache_name, new_running_show
+                    cache_name = "fade_" & mode & "_" & key & "_" & lightParts(0) & "_" & oldColor & "_" & lightParts(2) 
+                    If glf_cached_shows.Exists(cache_name & "__-1") Then
+                        Set show_settings = (new GlfShowPlayerItem)()
+                        show_settings.Show = cache_name
+                        show_settings.Loops = 1
+                        Set new_running_show = (new GlfRunningShow)(cache_name, show_settings.Key, show_settings, priority, Null, Null)
+                    Else
+                        'Build a show for this transition
+                        Dim show : Set show = CreateGlfShow(cache_name)
+                        Dim fadeSeq, i, step_duration
+                        fadeSeq = Glf_FadeRGB(lightParts(0), oldColor, lightParts(2), 10)
+                        step_duration = (lightParts(3) / 10)/1000
+                        For i=0 to UBound(fadeSeq)
+                            With show
+                                With .AddStep(Null, Null, step_duration)
+                                    .Lights = Array(fadeSeq(i))
+                                End With
+                            End With
+                        Next
+                        'MsgBox "temp_fade_player_" & lightParts(0)
+                        cached_show = Glf_ConvertShow(show, Null)
+                        glf_cached_shows.Add cache_name & "__-1", cached_show
+                        Set show_settings = (new GlfShowPlayerItem)()
+                        show_settings.Show = cache_name
+                        show_settings.Loops = 1
+                        show_settings.Speed = speed
+                        Set new_running_show = (new GlfRunningShow)(cache_name, show_settings.Key, show_settings, priority, Null, Null)
+                    End If
+                End If
             End If
         Next
-        
-        'TODO - Refactor this, this is the light fading. need to handle this differently
-        'For Each light in lights(0)
-        '    lightParts = Split(light, "|")
-        '    If IsArray(lightParts) Then
-        '        If IsNull(lightCtrl.GetLightIdx(lightParts(0))) Then
-        '           Dim tagLight, tagLights
-        '            tagLights = lightCtrl.GetLightsForTag(lightParts(0))
-        '            For Each tagLight in tagLights
-        '                ProcessLight tagLight, lightParts, key
-        '                If UBound(lightParts) = 2 Then
-        '                    lightCtrl.FadeLightToColor tagLight, lightParts(1), lightParts(2), mode & "_" & key & "_" & tagLight, priority
-        '                End If
-        '            Next
-        '        Else
-        '            If UBound(lightParts) = 2 Then
-        '                lightCtrl.FadeLightToColor lightParts(0), lightParts(1), lightParts(2), mode & "_" & key & "_" & lightParts(0), priority
-        '            End If
-        '        End If
-        '    End If
-        'Next
     End If
 End Function
 

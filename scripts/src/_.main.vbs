@@ -418,6 +418,7 @@ Public Sub Glf_KeyDown(ByVal keycode)
 		End If
 
 		If KeyCode = StagedLeftFlipperKey Then
+			msgbox "we"
 			DispatchPinEvent "s_left_staged_flipper_key_active", Null
 		End If
 		
@@ -545,8 +546,9 @@ Public Function Glf_SetLight(light, color)
 		rgbColor = glf_lightColorLookup(color)
 	End If
 	
-
+	
 	If IsNull(color) Then
+		glf_debugLog.WriteToLog "SetLight", "Turning Light Off"
 		glf_lightNames(light).Color = rgb(0,0,0)
 	Else
 		glf_lightNames(light).Color = rgbColor
@@ -1058,11 +1060,19 @@ Function Glf_ConvertShow(show, tokens)
 		For Each light in showStep.Lights
 			lightParts = Split(light, "|")
 			Dim lightColor : lightColor = ""
-			If Ubound(lightParts) = 2 Then 
+			Dim fadeMs : fadeMs = ""
+			If Ubound(lightParts) >= 2 Then 
 				If IsNull(Glf_IsToken(lightParts(2))) Then
 					lightColor = lightParts(2)
 				Else
 					lightColor = tokens(Glf_IsToken(lightParts(2)))
+				End If
+				If UBound(lightParts) = 3 Then
+					If IsNull(Glf_IsToken(lightParts(3))) Then
+						fadeMs = "|" & lightParts(3)
+					Else
+						fadeMs = "|" & tokens(Glf_IsToken(lightParts(3)))
+					End If
 				End If
 			End If
 
@@ -1072,9 +1082,9 @@ Function Glf_ConvertShow(show, tokens)
 					tagLights = glf_lightTags("T_"&lightParts(0)).Keys()
 					For Each tagLight in tagLights
 						If UBound(lightParts) >=1 Then
-							seqArray(x) = tagLight & "|"&lightParts(1)&"|" & AdjustHexColor(lightColor, lightParts(1))
+							seqArray(x) = tagLight & "|"&lightParts(1)&"|" & AdjustHexColor(lightColor, lightParts(1)) & fadeMs
 						Else
-							seqArray(x) = tagLight & "|"&lightParts(1)
+							seqArray(x) = tagLight & "|"&lightParts(1) & "|000000|" & fadeMs
 						End If
 						If Not lightsInShow.Exists(tagLight) Then
 							lightsInShow.Add tagLight, True
@@ -1084,9 +1094,9 @@ Function Glf_ConvertShow(show, tokens)
 				Else
 					If IsNull(token) Then
 						If UBound(lightParts) >= 1 Then
-							seqArray(x) = lightParts(0) & "|"&lightParts(1)&"|"&AdjustHexColor(lightColor, lightParts(1))
+							seqArray(x) = lightParts(0) & "|"&lightParts(1)&"|"&AdjustHexColor(lightColor, lightParts(1)) & fadeMs
 						Else
-							seqArray(x) = lightParts(0) & "|"&lightParts(1)
+							seqArray(x) = lightParts(0) & "|"&lightParts(1) & "|000000" & fadeMs
 						End If
 						If Not lightsInShow.Exists(lightParts(0)) Then
 							lightsInShow.Add lightParts(0), True
@@ -1099,9 +1109,9 @@ Function Glf_ConvertShow(show, tokens)
 							tagLights = glf_lightTags("T_"&tokens(token)).Keys()
 							For Each tagLight in tagLights
 								If UBound(lightParts) >=1 Then
-									seqArray(x) = tagLight & "|"&lightParts(1)&"|"&AdjustHexColor(lightColor, lightParts(1))
+									seqArray(x) = tagLight & "|"&lightParts(1)&"|"&AdjustHexColor(lightColor, lightParts(1)) & fadeMs
 								Else
-									seqArray(x) = tagLight & "|"&lightParts(1)
+									seqArray(x) = tagLight & "|"&lightParts(1) & "|000000" & fadeMs
 								End If
 								If Not lightsInShow.Exists(tagLight) Then
 									lightsInShow.Add tagLight, True
@@ -1110,9 +1120,9 @@ Function Glf_ConvertShow(show, tokens)
 							Next
 						Else
 							If UBound(lightParts) >= 1 Then
-								seqArray(x) = tokens(token) & "|"&lightParts(1)&"|"&AdjustHexColor(lightColor, lightParts(1))
+								seqArray(x) = tokens(token) & "|"&lightParts(1)&"|"&AdjustHexColor(lightColor, lightParts(1)) & fadeMs
 							Else
-								seqArray(x) = tokens(token) & "|"&lightParts(1)
+								seqArray(x) = tokens(token) & "|"&lightParts(1) & "|000000" & fadeMs
 							End If
 							If Not lightsInShow.Exists(tokens(token)) Then
 								lightsInShow.Add tokens(token), True
@@ -1316,6 +1326,12 @@ End With
 With CreateGlfShow("led_color")
 	With .AddStep(Null, Null, -1)
 		.Lights = Array("(lights)|100|(color)")
+	End With
+End With
+
+With CreateGlfShow("fade_led_color")
+	With .AddStep(Null, Null, -1)
+		.Lights = Array("(lights)|100|(color)|(fade)")
 	End With
 End With
 

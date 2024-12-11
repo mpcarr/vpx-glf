@@ -198,9 +198,15 @@ Class GlfRunningShow
             Set lightStack = glf_lightStacks(light)
             
             If Not lightStack.IsEmpty() Then
-                ' Pop the current top color
                 lightStack.PopByKey(m_show_name & "_" & m_key)
             End If
+
+            Dim show_key
+            For Each show_key in glf_running_shows.Keys
+                If Left(show_key, Len("fade_" & m_show_name & "_" & m_key & "_" & light)) = "fade_" & m_show_name & "_" & m_key & "_" & light Then
+                    glf_running_shows(show_key).StopRunningShow()
+                End If
+            Next
             
             If Not lightStack.IsEmpty() Then
                 ' Set the light to the next color on the stack
@@ -233,10 +239,10 @@ Function GlfShowStepHandler(args)
             cached_show = glf_cached_shows(running_show.CacheName)
             cached_show_seq = cached_show(0)
         Else
-            msgbox "show not cached! Problem with caching"
+            msgbox running_show.CacheName & " show not cached! Problem with caching"
         End If
 '        glf_debugLog.WriteToLog "Running Show", join(cached_show(running_show.CurrentStep))
-        LightPlayerCallbackHandler running_show.Key, Array(cached_show_seq(running_show.CurrentStep)), running_show.ShowName, running_show.Priority + running_show.ShowSettings.Priority
+        LightPlayerCallbackHandler running_show.Key, Array(cached_show_seq(running_show.CurrentStep)), running_show.ShowName, running_show.Priority + running_show.ShowSettings.Priority, True, running_show.ShowSettings.Speed
     End If
     If nextStep.Duration = -1 Then
         'glf_debugLog.WriteToLog "Running Show", "HOLD"
