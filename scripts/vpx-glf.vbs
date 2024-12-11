@@ -6160,6 +6160,7 @@ Class GlfRunningShow
     Private m_total_steps
     Private m_tokens
     Private m_internal_cache_id
+    Private m_loops
 
     Public Property Get CacheName(): CacheName = m_show_name & "_" & m_internal_cache_id & "_" & ShowSettings.InternalCacheId: End Property
     Public Property Get Tokens(): Set Tokens = m_tokens : End Property
@@ -6178,9 +6179,15 @@ Class GlfRunningShow
 
     Public Property Get ShowName(): ShowName = m_show_name: End Property
     Public Property Let ShowName(input): m_show_name = input: End Property
+
+    Public Property Get Loops(): Loops = m_loops: End Property
+    Public Property Let Loops(input): m_loops = input: End Property
         
     Public Property Get ShowSettings(): Set ShowSettings = m_show_settings: End Property
-    Public Property Let ShowSettings(input): Set m_show_settings = input: End Property
+    Public Property Let ShowSettings(input)
+        Set m_show_settings = input
+        m_loops = m_show_settings.Loops
+    End Property
     
     Public default Function init(rname, rkey, show_settings, priority, tokens, cache_id)
         m_show_name = rname
@@ -6188,6 +6195,7 @@ Class GlfRunningShow
         m_current_step = 0
         m_priority = priority
         m_internal_cache_id = cache_id
+        m_loops=show_settings.Loops
         Set m_show_settings = show_settings
 
         Dim key
@@ -6295,9 +6303,9 @@ Function GlfShowStepHandler(args)
     If running_show.CurrentStep > running_show.TotalSteps Then
         'End of Show
         'glf_debugLog.WriteToLog "Running Show", "END OF SHOW"
-        If running_show.ShowSettings.Loops = -1 Or running_show.ShowSettings.Loops > 1 Then
-            If running_show.ShowSettings.Loops > 1 Then
-                running_show.ShowSettings.Loops = running_show.ShowSettings.Loops - 1
+        If running_show.Loops = -1 Or running_show.Loops > 1 Then
+            If running_show.Loops > 1 Then
+                running_show.Loops = running_show.Loops - 1
             End If
             running_show.CurrentStep = 0
             SetDelay running_show.ShowName & "_" & running_show.Key, "GlfShowStepHandler", Array(running_show), (nextStep.Duration / running_show.ShowSettings.Speed) * 1000
