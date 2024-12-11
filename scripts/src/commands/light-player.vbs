@@ -80,11 +80,11 @@ Class GlfLightPlayer
                 If Not glf_lightNames.Exists(lightName) Then
                     tagLights = glf_lightTags("T_"&lightName).Keys()
                     For Each tagLight in tagLights
-                        seqArray(x) = tagLight & "|100|" & light.Color
+                        seqArray(x) = tagLight & "|100|" & light.Color & "|" & light.Fade
                         x=x+1
                     Next
                 Else
-                    seqArray(x) = lightName & "|100|" & light.Color
+                    seqArray(x) = lightName & "|100|" & light.Color & "|" & light.Fade
                     x=x+1
                 End If
             Next
@@ -215,15 +215,19 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority)
             lightParts = Split(light,"|")
             
             Set lightStack = glf_lightStacks(lightParts(0))
+            Dim oldColor : oldColor = Empty
+
             
             If lightStack.IsEmpty() Then
+                oldColor = "000000"
                 ' If stack is empty, push the color onto the stack and set the light color
                 lightStack.Push mode & "_" & key, lightParts(2), priority
                 Glf_SetLight lightParts(0), lightParts(2)
             Else
                 Dim current
-                Set current = lightStack.Peek()
+                Set current = lightStack.Peek()                
                 If priority >= current("Priority") Then
+                    oldColor = current("Color")
                     ' If the new priority is higher, push it onto the stack and change the light color
                     lightStack.Push mode & "_" & key, lightParts(2), priority
                     Glf_SetLight lightParts(0), lightParts(2)
@@ -231,6 +235,15 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority)
                     ' Otherwise, just push it onto the stack without changing the light color
                     lightStack.Push mode & "_" & key, lightParts(2), priority
                 End If
+            End If
+
+            If Not IsEmpty(oldColor) And Ubound(lightParts)=3 Then
+                'FadeMs
+                Dim fadeSeq
+                fadeSeq = Glf_FadeRGB(lightParts(0), oldColor, lightParts(2), 10)
+                glf_debugLog.WriteToLog "LightPlayer", "Fade Light Seq" & Join(fadeSeq)
+                'Need to create a temp show to transition from current light to desination
+
             End If
         Next
         

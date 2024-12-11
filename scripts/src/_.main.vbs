@@ -1236,6 +1236,42 @@ Class GlfInput
 
 End Class
 
+Function Glf_FadeRGB(light, color1, color2, steps)
+
+	Dim r1, g1, b1, r2, g2, b2
+	Dim i
+	Dim r, g, b
+	color1 = clng( RGB( Glf_HexToInt(Left(color1, 2)), Glf_HexToInt(Mid(color1, 3, 2)), Glf_HexToInt(Right(color1, 2)))  )
+	color2 = clng( RGB( Glf_HexToInt(Left(color2, 2)), Glf_HexToInt(Mid(color2, 3, 2)), Glf_HexToInt(Right(color2, 2)))  )
+	
+	r1 = color1 Mod 256
+	g1 = (color1 \ 256) Mod 256
+	b1 = (color1 \ (256 * 256)) Mod 256
+
+	r2 = color2 Mod 256
+	g2 = (color2 \ 256) Mod 256
+	b2 = (color2 \ (256 * 256)) Mod 256
+
+	ReDim outputArray(steps - 1)
+	For i = 0 To steps - 1
+		r = r1 + (r2 - r1) * i / (steps - 1)
+		g = g1 + (g2 - g1) * i / (steps - 1)
+		b = b1 + (b2 - b1) * i / (steps - 1)
+		outputArray(i) = light & "|100|" & Glf_RGBToHex(CInt(r), CInt(g), CInt(b))
+	Next
+	Glf_FadeRGB = outputArray
+End Function
+
+Function Glf_RGBToHex(r, g, b)
+	Glf_RGBToHex = Right("0" & Hex(r), 2) & _
+	Right("0" & Hex(g), 2) & _
+	Right("0" & Hex(b), 2)
+End Function
+
+Private Function Glf_HexToInt(hex)
+	Glf_HexToInt = CInt("&H" & hex)
+End Function
+
 '******************************************************
 '*****   GLF Shows 		                           ****
 '******************************************************

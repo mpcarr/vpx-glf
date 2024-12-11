@@ -1236,6 +1236,42 @@ Class GlfInput
 
 End Class
 
+Function Glf_FadeRGB(light, color1, color2, steps)
+
+	Dim r1, g1, b1, r2, g2, b2
+	Dim i
+	Dim r, g, b
+	color1 = clng( RGB( Glf_HexToInt(Left(color1, 2)), Glf_HexToInt(Mid(color1, 3, 2)), Glf_HexToInt(Right(color1, 2)))  )
+	color2 = clng( RGB( Glf_HexToInt(Left(color2, 2)), Glf_HexToInt(Mid(color2, 3, 2)), Glf_HexToInt(Right(color2, 2)))  )
+	
+	r1 = color1 Mod 256
+	g1 = (color1 \ 256) Mod 256
+	b1 = (color1 \ (256 * 256)) Mod 256
+
+	r2 = color2 Mod 256
+	g2 = (color2 \ 256) Mod 256
+	b2 = (color2 \ (256 * 256)) Mod 256
+
+	ReDim outputArray(steps - 1)
+	For i = 0 To steps - 1
+		r = r1 + (r2 - r1) * i / (steps - 1)
+		g = g1 + (g2 - g1) * i / (steps - 1)
+		b = b1 + (b2 - b1) * i / (steps - 1)
+		outputArray(i) = light & "|100|" & Glf_RGBToHex(CInt(r), CInt(g), CInt(b))
+	Next
+	Glf_FadeRGB = outputArray
+End Function
+
+Function Glf_RGBToHex(r, g, b)
+	Glf_RGBToHex = Right("0" & Hex(r), 2) & _
+	Right("0" & Hex(g), 2) & _
+	Right("0" & Hex(b), 2)
+End Function
+
+Private Function Glf_HexToInt(hex)
+	Glf_HexToInt = CInt("&H" & hex)
+End Function
+
 '******************************************************
 '*****   GLF Shows 		                           ****
 '******************************************************
@@ -2455,11 +2491,11 @@ Class GlfLightPlayer
                 If Not glf_lightNames.Exists(lightName) Then
                     tagLights = glf_lightTags("T_"&lightName).Keys()
                     For Each tagLight in tagLights
-                        seqArray(x) = tagLight & "|100|" & light.Color
+                        seqArray(x) = tagLight & "|100|" & light.Color & "|" & light.Fade
                         x=x+1
                     Next
                 Else
-                    seqArray(x) = lightName & "|100|" & light.Color
+                    seqArray(x) = lightName & "|100|" & light.Color & "|" & light.Fade
                     x=x+1
                 End If
             Next
@@ -2590,15 +2626,19 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority)
             lightParts = Split(light,"|")
             
             Set lightStack = glf_lightStacks(lightParts(0))
+            Dim oldColor : oldColor = Empty
+
             
             If lightStack.IsEmpty() Then
+                oldColor = "000000"
                 ' If stack is empty, push the color onto the stack and set the light color
                 lightStack.Push mode & "_" & key, lightParts(2), priority
                 Glf_SetLight lightParts(0), lightParts(2)
             Else
                 Dim current
-                Set current = lightStack.Peek()
+                Set current = lightStack.Peek()                
                 If priority >= current("Priority") Then
+                    oldColor = current("Color")
                     ' If the new priority is higher, push it onto the stack and change the light color
                     lightStack.Push mode & "_" & key, lightParts(2), priority
                     Glf_SetLight lightParts(0), lightParts(2)
@@ -2606,6 +2646,15 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority)
                     ' Otherwise, just push it onto the stack without changing the light color
                     lightStack.Push mode & "_" & key, lightParts(2), priority
                 End If
+            End If
+
+            If Not IsEmpty(oldColor) And Ubound(lightParts)=3 Then
+                'FadeMs
+                Dim fadeSeq
+                fadeSeq = Glf_FadeRGB(lightParts(0), oldColor, lightParts(2), 10)
+                glf_debugLog.WriteToLog "LightPlayer", "Fade Light Seq" & Join(fadeSeq)
+                'Need to create a temp show to transition from current light to desination
+
             End If
         Next
         
@@ -7027,7 +7076,12 @@ End Class
 
 Function TimerEventHandler(args)
     
-    Dim ownProps, kwargs : ownProps = args(0) : kwargs = args(1) 
+    Dim ownProps, kwargs : ownProps = args(0)
+    If IsObject(args(1)) Then
+        Set kwargs = args(1)
+    Else
+        kwargs = args(1) 
+    End If
     Dim evt : evt = ownProps(0)
     Dim timer : Set timer = ownProps(1)
     
@@ -7038,7 +7092,11 @@ Function TimerEventHandler(args)
         Case "tick"
             timer.Tick 
     End Select
-    TimerEventHandler = kwargs
+    If IsObject(args(1)) Then
+        Set TimerEventHandler = kwargs
+    Else
+        TimerEventHandler = kwargs
+    End If
 End Function
 
 Class GlfTimerControlEvent

@@ -335,7 +335,12 @@ End Class
 
 Function TimerEventHandler(args)
     
-    Dim ownProps, kwargs : ownProps = args(0) : kwargs = args(1) 
+    Dim ownProps, kwargs : ownProps = args(0)
+    If IsObject(args(1)) Then
+        Set kwargs = args(1)
+    Else
+        kwargs = args(1) 
+    End If
     Dim evt : evt = ownProps(0)
     Dim timer : Set timer = ownProps(1)
     
@@ -346,7 +351,11 @@ Function TimerEventHandler(args)
         Case "tick"
             timer.Tick 
     End Select
-    TimerEventHandler = kwargs
+    If IsObject(args(1)) Then
+        Set TimerEventHandler = kwargs
+    Else
+        TimerEventHandler = kwargs
+    End If
 End Function
 
 Class GlfTimerControlEvent
