@@ -1268,6 +1268,7 @@ Function Glf_FadeRGB(light, color1, color2, steps)
 		b = b1 + (b2 - b1) * i / (steps - 1)
 		outputArray(i) = light & "|100|" & Glf_RGBToHex(CInt(r), CInt(g), CInt(b))
 	Next
+	
 	Glf_FadeRGB = outputArray
 End Function
 
@@ -1312,6 +1313,8 @@ With CreateGlfShow("flash")
 		.Lights = Array("(lights)|100|000000")
 	End With
 End With
+
+
 
 With CreateGlfShow("flash_color")
 	With .AddStep(Null, Null, 1)
@@ -2666,7 +2669,6 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
             Set lightStack = glf_lightStacks(lightParts(0))
             Dim oldColor : oldColor = Empty
 
-            
             If lightStack.IsEmpty() Then
                 oldColor = "000000"
                 ' If stack is empty, push the color onto the stack and set the light color
@@ -2695,13 +2697,19 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
                         Set show_settings = (new GlfShowPlayerItem)()
                         show_settings.Show = cache_name
                         show_settings.Loops = 1
-                        Set new_running_show = (new GlfRunningShow)(cache_name, show_settings.Key, show_settings, priority, Null, Null)
+                        show_settings.Speed = speed
+                        Set new_running_show = (new GlfRunningShow)(cache_name, show_settings.Key, show_settings, priority+1, Null, Null)
                     Else
                         'Build a show for this transition
                         Dim show : Set show = CreateGlfShow(cache_name)
-                        Dim fadeSeq, i, step_duration
-                        fadeSeq = Glf_FadeRGB(lightParts(0), oldColor, lightParts(2), 10)
-                        step_duration = (lightParts(3) / 10)/1000
+                        Dim fadeSeq, i, step_duration, step_number
+                        step_number = lightParts(3) / 20
+                        If step_number < 10 Then
+                            step_number = 10
+                        End If
+                        step_number = 10
+                        fadeSeq = Glf_FadeRGB(lightParts(0), oldColor, lightParts(2), step_number)
+                        step_duration = (lightParts(3) / step_number)/1000
                         For i=0 to UBound(fadeSeq)
                             With show
                                 With .AddStep(Null, Null, step_duration)
@@ -2716,7 +2724,7 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
                         show_settings.Show = cache_name
                         show_settings.Loops = 1
                         show_settings.Speed = speed
-                        Set new_running_show = (new GlfRunningShow)(cache_name, show_settings.Key, show_settings, priority, Null, Null)
+                        Set new_running_show = (new GlfRunningShow)(cache_name, show_settings.Key, show_settings, priority+1, Null, Null)
                     End If
                 End If
             End If
@@ -6305,7 +6313,6 @@ Class GlfRunningShow
             
             If Not lightStack.IsEmpty() Then
                 ' Set the light to the next color on the stack
-                lightStack.PrintStackOrder
                 Dim nextColor
                 Set nextColor = lightStack.Peek()
                 Glf_SetLight light, nextColor("Color")
@@ -6338,6 +6345,18 @@ Function GlfShowStepHandler(args)
             msgbox running_show.CacheName & " show not cached! Problem with caching"
         End If
 '        glf_debugLog.WriteToLog "Running Show", join(cached_show(running_show.CurrentStep))
+        'At this point, any fades add by this show for the lights in this step need to be remove
+        Dim light
+        For Each light in cached_show_seq(running_show.CurrentStep)
+            lightParts = Split(light,"|")
+            Dim show_key
+            For Each show_key in glf_running_shows.Keys
+                If Left(show_key, Len("fade_" & running_show.ShowName & "_" & running_show.Key & "_" & lightParts(0))) = "fade_" & running_show.ShowName & "_" & running_show.Key & "_" & lightParts(0) Then
+                    glf_running_shows(show_key).StopRunningShow()
+                End If
+            Next
+        Next
+        
         LightPlayerCallbackHandler running_show.Key, Array(cached_show_seq(running_show.CurrentStep)), running_show.ShowName, running_show.Priority + running_show.ShowSettings.Priority, True, running_show.ShowSettings.Speed
     End If
     If nextStep.Duration = -1 Then

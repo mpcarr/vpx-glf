@@ -210,7 +210,6 @@ Class GlfRunningShow
             
             If Not lightStack.IsEmpty() Then
                 ' Set the light to the next color on the stack
-                lightStack.PrintStackOrder
                 Dim nextColor
                 Set nextColor = lightStack.Peek()
                 Glf_SetLight light, nextColor("Color")
@@ -243,6 +242,18 @@ Function GlfShowStepHandler(args)
             msgbox running_show.CacheName & " show not cached! Problem with caching"
         End If
 '        glf_debugLog.WriteToLog "Running Show", join(cached_show(running_show.CurrentStep))
+        'At this point, any fades add by this show for the lights in this step need to be remove
+        Dim light
+        For Each light in cached_show_seq(running_show.CurrentStep)
+            lightParts = Split(light,"|")
+            Dim show_key
+            For Each show_key in glf_running_shows.Keys
+                If Left(show_key, Len("fade_" & running_show.ShowName & "_" & running_show.Key & "_" & lightParts(0))) = "fade_" & running_show.ShowName & "_" & running_show.Key & "_" & lightParts(0) Then
+                    glf_running_shows(show_key).StopRunningShow()
+                End If
+            Next
+        Next
+        
         LightPlayerCallbackHandler running_show.Key, Array(cached_show_seq(running_show.CurrentStep)), running_show.ShowName, running_show.Priority + running_show.ShowSettings.Priority, True, running_show.ShowSettings.Speed
     End If
     If nextStep.Duration = -1 Then

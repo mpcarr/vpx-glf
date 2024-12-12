@@ -1268,6 +1268,7 @@ Function Glf_FadeRGB(light, color1, color2, steps)
 		b = b1 + (b2 - b1) * i / (steps - 1)
 		outputArray(i) = light & "|100|" & Glf_RGBToHex(CInt(r), CInt(g), CInt(b))
 	Next
+	
 	Glf_FadeRGB = outputArray
 End Function
 
@@ -1312,6 +1313,8 @@ With CreateGlfShow("flash")
 		.Lights = Array("(lights)|100|000000")
 	End With
 End With
+
+
 
 With CreateGlfShow("flash_color")
 	With .AddStep(Null, Null, 1)

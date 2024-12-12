@@ -240,7 +240,6 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
             Set lightStack = glf_lightStacks(lightParts(0))
             Dim oldColor : oldColor = Empty
 
-            
             If lightStack.IsEmpty() Then
                 oldColor = "000000"
                 ' If stack is empty, push the color onto the stack and set the light color
@@ -269,13 +268,19 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
                         Set show_settings = (new GlfShowPlayerItem)()
                         show_settings.Show = cache_name
                         show_settings.Loops = 1
-                        Set new_running_show = (new GlfRunningShow)(cache_name, show_settings.Key, show_settings, priority, Null, Null)
+                        show_settings.Speed = speed
+                        Set new_running_show = (new GlfRunningShow)(cache_name, show_settings.Key, show_settings, priority+1, Null, Null)
                     Else
                         'Build a show for this transition
                         Dim show : Set show = CreateGlfShow(cache_name)
-                        Dim fadeSeq, i, step_duration
-                        fadeSeq = Glf_FadeRGB(lightParts(0), oldColor, lightParts(2), 10)
-                        step_duration = (lightParts(3) / 10)/1000
+                        Dim fadeSeq, i, step_duration, step_number
+                        step_number = lightParts(3) / 20
+                        If step_number < 10 Then
+                            step_number = 10
+                        End If
+                        step_number = 10
+                        fadeSeq = Glf_FadeRGB(lightParts(0), oldColor, lightParts(2), step_number)
+                        step_duration = (lightParts(3) / step_number)/1000
                         For i=0 to UBound(fadeSeq)
                             With show
                                 With .AddStep(Null, Null, step_duration)
@@ -290,7 +295,7 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
                         show_settings.Show = cache_name
                         show_settings.Loops = 1
                         show_settings.Speed = speed
-                        Set new_running_show = (new GlfRunningShow)(cache_name, show_settings.Key, show_settings, priority, Null, Null)
+                        Set new_running_show = (new GlfRunningShow)(cache_name, show_settings.Key, show_settings, priority+1, Null, Null)
                     End If
                 End If
             End If
