@@ -6344,7 +6344,7 @@ Function GlfShowStepHandler(args)
         End If
 '        glf_debugLog.WriteToLog "Running Show", join(cached_show(running_show.CurrentStep))
         'At this point, any fades add by this show for the lights in this step need to be remove
-        Dim light
+        Dim light, lightParts
         For Each light in cached_show_seq(running_show.CurrentStep)
             lightParts = Split(light,"|")
             Dim show_key
