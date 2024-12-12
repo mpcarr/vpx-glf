@@ -2689,7 +2689,7 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
             If Not IsEmpty(oldColor) And Ubound(lightParts)=3 Then
                 If lightParts(3) <> "" Then
                     'FadeMs
-                    Dim cache_name, new_running_show
+                    Dim cache_name, new_running_show,cached_show,show_settings
                     cache_name = "fade_" & mode & "_" & key & "_" & lightParts(0) & "_" & oldColor & "_" & lightParts(2) 
                     If glf_cached_shows.Exists(cache_name & "__-1") Then
                         Set show_settings = (new GlfShowPlayerItem)()
