@@ -418,7 +418,6 @@ Public Sub Glf_KeyDown(ByVal keycode)
 		End If
 
 		If KeyCode = StagedLeftFlipperKey Then
-			msgbox "we"
 			DispatchPinEvent "s_left_staged_flipper_key_active", Null
 		End If
 		
