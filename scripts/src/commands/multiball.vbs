@@ -404,13 +404,11 @@ Function MultiballsHandler(args)
         Case "queue_release"
             If glf_plunger.HasBall = False And ballInReleasePostion = True And glf_plunger.IncomingBalls = 0 Then
                 Glf_ReleaseBall(Null)
-                debug.print("RELEASE")
                 SetDelay multiball.Name&"_auto_launch", "MultiballsHandler" , Array(Array("auto_launch", multiball),Null), 500
                 If multiball.ReleaseQueuedBalls() > 0 Then
                     SetDelay multiball.Name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", multiball), Null), 1000    
                 End If
             Else
-                debug.print("RE QUE")
                 SetDelay multiball.Name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", multiball), Null), 1000
             End If
         Case "auto_launch"

@@ -203,7 +203,7 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
             lightParts = Split(light,"|")
             Set lightStack = glf_lightStacks(lightParts(0))
             If Not lightStack.IsEmpty() Then
-                glf_debugLog.WriteToLog "LightPlayer", "Removing Light " & lightParts(0)
+                'glf_debugLog.WriteToLog "LightPlayer", "Removing Light " & lightParts(0)
                 lightStack.PopByKey(mode & "_" & key)
                 Dim show_key
                 For Each show_key in glf_running_shows.Keys
@@ -222,7 +222,7 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
                 End If
             End If
         Next
-        glf_debugLog.WriteToLog "LightPlayer", "Removing Light Seq" & mode & "_" & key
+        'glf_debugLog.WriteToLog "LightPlayer", "Removing Light Seq" & mode & "_" & key
     Else
         If UBound(lights) = -1 Then
             Exit Function
@@ -230,7 +230,7 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
         If IsArray(lights) Then
             'glf_debugLog.WriteToLog "LightPlayer", "Adding Light Seq" & Join(lights) & ". Key:" & mode & "_" & key    
         Else
-            glf_debugLog.WriteToLog "LightPlayer", "Lights not an array!?"
+            'glf_debugLog.WriteToLog "LightPlayer", "Lights not an array!?"
         End If
         'glf_debugLog.WriteToLog "LightPlayer", "Adding Light Seq" & Join(lights) & ". Key:" & mode & "_" & key
         
@@ -274,11 +274,11 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
                         'Build a show for this transition
                         Dim show : Set show = CreateGlfShow(cache_name)
                         Dim fadeSeq, i, step_duration, step_number
-                        step_number = lightParts(3) / 20
-                        If step_number < 10 Then
-                            step_number = 10
-                        End If
-                        step_number = 10
+                        step_number = lightParts(3) * 0.01
+                        'If step_number < 10 Then
+                        '    step_number = 10
+                        'End If
+                        step_number = step_number + 2
                         fadeSeq = Glf_FadeRGB(lightParts(0), oldColor, lightParts(2), step_number)
                         step_duration = (lightParts(3) / step_number)/1000
                         For i=0 to UBound(fadeSeq)
