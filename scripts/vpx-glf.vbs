@@ -2769,16 +2769,6 @@ Class GlfLightStack
         End If
     End Sub
 
-    ' Pop the top color from the stack
-    Public Function Pop()
-        If UBound(stack) >= 0 Then
-            Set Pop = stack(UBound(stack))
-            ReDim Preserve stack(UBound(stack) - 1)
-        Else
-            Set Pop = Nothing
-        End If
-    End Function
-
     Public Function PopByKey(key)
         Dim i, removedItem, found
         found = False
@@ -2815,7 +2805,7 @@ Class GlfLightStack
     ' Get the current top color without popping it
     Public Function Peek()
         If UBound(stack) >= 0 Then
-            Set Peek = stack(UBound(stack))
+            Set Peek = stack(LBound(stack))
         Else
             Set Peek = Nothing
         End If
@@ -4191,7 +4181,7 @@ Class GlfSegmentDisplayPlayer
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener evt, m_mode & "_segment_player_play", "SegmentPlayerEventHandler", -m_priority, Array("play", Me, m_events(evt), evt)
+            AddPinEventListener evt, m_mode & "_segment_player_play", "SegmentPlayerEventHandler", m_priority, Array("play", Me, m_events(evt), evt)
         Next
     End Sub
 
@@ -5949,7 +5939,7 @@ Class GlfShowPlayer
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener m_events(evt).EventName , m_mode & "_" & m_eventValues(evt).Key & "_show_player_play", "ShowPlayerEventHandler", -m_priority, Array("play", Me, evt)
+            AddPinEventListener m_events(evt).EventName , m_mode & "_" & m_eventValues(evt).Key & "_show_player_play", "ShowPlayerEventHandler", m_priority, Array("play", Me, evt)
         Next
     End Sub
 
@@ -6315,6 +6305,7 @@ Class GlfRunningShow
             
             If Not lightStack.IsEmpty() Then
                 ' Set the light to the next color on the stack
+                lightStack.PrintStackOrder
                 Dim nextColor
                 Set nextColor = lightStack.Peek()
                 Glf_SetLight light, nextColor("Color")

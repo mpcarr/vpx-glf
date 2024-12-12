@@ -343,16 +343,6 @@ Class GlfLightStack
         End If
     End Sub
 
-    ' Pop the top color from the stack
-    Public Function Pop()
-        If UBound(stack) >= 0 Then
-            Set Pop = stack(UBound(stack))
-            ReDim Preserve stack(UBound(stack) - 1)
-        Else
-            Set Pop = Nothing
-        End If
-    End Function
-
     Public Function PopByKey(key)
         Dim i, removedItem, found
         found = False
@@ -389,7 +379,7 @@ Class GlfLightStack
     ' Get the current top color without popping it
     Public Function Peek()
         If UBound(stack) >= 0 Then
-            Set Peek = stack(UBound(stack))
+            Set Peek = stack(LBound(stack))
         Else
             Set Peek = Nothing
         End If

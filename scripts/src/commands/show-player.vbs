@@ -37,7 +37,7 @@ Class GlfShowPlayer
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener m_events(evt).EventName , m_mode & "_" & m_eventValues(evt).Key & "_show_player_play", "ShowPlayerEventHandler", -m_priority, Array("play", Me, evt)
+            AddPinEventListener m_events(evt).EventName , m_mode & "_" & m_eventValues(evt).Key & "_show_player_play", "ShowPlayerEventHandler", m_priority, Array("play", Me, evt)
         Next
     End Sub
 

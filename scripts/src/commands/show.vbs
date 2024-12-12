@@ -210,6 +210,7 @@ Class GlfRunningShow
             
             If Not lightStack.IsEmpty() Then
                 ' Set the light to the next color on the stack
+                lightStack.PrintStackOrder
                 Dim nextColor
                 Set nextColor = lightStack.Peek()
                 Glf_SetLight light, nextColor("Color")
