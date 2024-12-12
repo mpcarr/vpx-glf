@@ -425,4 +425,12 @@ Class GlfLightStack
             Next
         Next
     End Sub
+
+    Public Sub PrintStackOrder()
+        Dim i
+        Debug.Print "Stack Order:" 
+        For i = LBound(stack) To UBound(stack)
+            Debug.Print "Key: " & stack(i)("Key") & ", Color: " & stack(i)("Color") & ", Priority: " & stack(i)("Priority")
+        Next
+    End Sub
 End Class

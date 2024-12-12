@@ -4,21 +4,22 @@ Class GlfShowPlayer
     Private m_priority
     Private m_mode
     Private m_events
+    Private m_eventValues
     Private m_debug
     Private m_name
     Private m_value
     private m_base_device
 
     Public Property Get Name() : Name = "show_player" : End Property
-    Public Property Get EventShows() : EventShows = m_events.Items() : End Property
+    Public Property Get EventShows() : EventShows = m_eventValues.Items() : End Property
     Public Property Get Events(name)
-        If m_events.Exists(name) Then
-            Set Events = m_events(name)
-        Else
-            Dim new_event : Set new_event = (new GlfShowPlayerItem)()
-            m_events.Add name, new_event
-            Set Events = new_event
-        End If
+
+        Dim newEvent : Set newEvent = (new GlfEvent)(name)
+        m_events.Add newEvent.Raw, newEvent
+        Dim new_show : Set new_show = (new GlfShowPlayerItem)()
+        m_eventValues.Add newEvent.Raw, new_show
+        Set Events = new_show
+        
     End Property
     Public Property Let Debug(value) : m_debug = value : End Property
 
@@ -28,6 +29,7 @@ Class GlfShowPlayer
         m_priority = mode.Priority
         m_debug = False
         Set m_events = CreateObject("Scripting.Dictionary")
+        Set m_eventValues = CreateObject("Scripting.Dictionary")
         Set m_base_device = (new GlfBaseModeDevice)(mode, "show_player", Me)
         Set Init = Me
 	End Function
@@ -35,24 +37,26 @@ Class GlfShowPlayer
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener evt , m_mode & "_" & m_events(evt).Key & "_show_player_play", "ShowPlayerEventHandler", -m_priority, Array("play", Me, m_events(evt), evt)
+            AddPinEventListener m_events(evt).EventName , m_mode & "_" & m_eventValues(evt).Key & "_show_player_play", "ShowPlayerEventHandler", -m_priority, Array("play", Me, evt)
         Next
     End Sub
 
     Public Sub Deactivate()
         Dim evt
         For Each evt In m_events.Keys()
-            RemovePinEventListener evt, m_mode & "_" & m_events(evt).Key & "_show_player_play"
-            PlayOff m_events(evt).Key
+            RemovePinEventListener m_events(evt).EventName, m_mode & "_" & m_eventValues(evt).Key & "_show_player_play"
+            PlayOff m_eventValues(evt).Key
         Next
     End Sub
 
-    Public Sub Play(evt, show)
-        If show.Action = "stop" Then
-           PlayOff show.Key
-        Else
-            Dim new_running_show
-            Set new_running_show = (new GlfRunningShow)(m_name & "_" & show.Key, show.Key, show, m_priority, Null, Null)
+    Public Sub Play(evt)
+        If m_events(evt).Evaluate() Then
+            If m_eventValues(evt).Action = "stop" Then
+                PlayOff m_eventValues(evt).Key
+            Else
+                Dim new_running_show
+                Set new_running_show = (new GlfRunningShow)(m_name & "_" & m_eventValues(evt).Key, m_eventValues(evt).Key, m_eventValues(evt), m_priority, Null, Null)
+            End If
         End If
     End Sub
 
@@ -94,7 +98,7 @@ Function ShowPlayerEventHandler(args)
         Case "deactivate"
             ShowPlayer.Deactivate
         Case "play"
-            ShowPlayer.Play ownProps(3), ownProps(2)
+            ShowPlayer.Play ownProps(2)
     End Select
     ShowPlayerEventHandler = Null
 End Function
