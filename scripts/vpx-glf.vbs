@@ -8756,16 +8756,6 @@ Class GlfTextStack
         End If
     End Sub
 
-    ' Pop the top entry from the stack
-    Public Function Pop()
-        If UBound(stack) >= 0 Then
-            Set Pop = stack(UBound(stack))
-            ReDim Preserve stack(UBound(stack) - 1)
-        Else
-            Set Pop = Nothing
-        End If
-    End Function
-
     ' Pop a specific entry from the stack by key
     Public Function PopByKey(key)
         Dim i, removedItem, found
