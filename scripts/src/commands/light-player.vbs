@@ -278,7 +278,10 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
                         'If step_number < 10 Then
                         '    step_number = 10
                         'End If
-                        step_number = step_number + 2
+                        step_number = Round(step_number, 0) + 2
+                        If step_number<4 Then
+                            step_number = 4
+                        End If 
                         fadeSeq = Glf_FadeRGB(lightParts(0), oldColor, lightParts(2), step_number)
                         step_duration = (lightParts(3) / step_number)/1000
                         For i=0 to UBound(fadeSeq)

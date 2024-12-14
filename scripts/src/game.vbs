@@ -38,6 +38,11 @@ Function Glf_InitNewPlayer()
     state.Add GLF_SCORE, -1
     state.Add GLF_INITIALS, ""
     state.Add GLF_CURRENT_BALL, 1
+
+    Dim i
+    For i=0 To UBound(glf_initialVars.Keys())
+        state.Add glf_initialVars.Keys()(i), glf_initialVars.Items()(i)
+    Next
     Set Glf_InitNewPlayer = state
 End Function
 

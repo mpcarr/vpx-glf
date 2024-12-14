@@ -37,6 +37,7 @@ Dim glf_droptargets : Set glf_droptargets = CreateObject("Scripting.Dictionary")
 Dim glf_multiball_locks : Set glf_multiball_locks = CreateObject("Scripting.Dictionary")
 Dim glf_multiballs : Set glf_multiballs = CreateObject("Scripting.Dictionary")
 Dim glf_shows : Set glf_shows = CreateObject("Scripting.Dictionary")
+Dim glf_initialVars : Set glf_initialVars = CreateObject("Scripting.Dictionary")
 
 
 
@@ -723,8 +724,34 @@ Function Glf_CheckForGetPlayerState(inputString)
     Glf_CheckForGetPlayerState = Array(hasGetPlayerState, attribute, playerNumber)
 End Function
 
+Function Glf_CheckForDeviceState(inputString)
+    Dim pattern, regex, matches, match, hasDeviceState, attribute, deviceType, deviceName
+	'inputString = Glf_ReplaceDeviceAttributes(inputString)
+    pattern = "devices\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)"
+    Set regex = New RegExp
+    regex.Pattern = pattern
+    regex.IgnoreCase = True
+    regex.Global = False
+    Set matches = regex.Execute(inputString)
+    If matches.Count > 0 Then
+        hasDeviceState = True
+		deviceType = matches(0).SubMatches(0)
+		deviceType = Left(deviceType, Len(deviceType)-1)
+        deviceName = matches(0).SubMatches(1)
+		attribute = matches(0).SubMatches(2)
+		attribute = Left(attribute, Len(attribute)-1)
+    Else
+        hasDeviceState = False
+        deviceType = Empty
+		deviceName = Empty
+		attribute = Empty
+    End If
 
-
+    Set regex = Nothing
+    Set matches = Nothing
+    
+    Glf_CheckForDeviceState = Array(hasDeviceState, deviceType, deviceName, attribute)
+End Function
 
 Function Glf_ConvertIf(value, retName)
     Dim parts, condition, truePart, falsePart, isVariable
@@ -847,6 +874,9 @@ Function Glf_FormatValue(value, formatString)
     Glf_FormatValue = result
 End Function
 
+Public Sub Glf_SetInitialPlayerVar(variable_name, initial_value)
+	glf_initialVars.Add variable_name, initial_value
+End Sub
 
 Function glf_ReadShowYAMLFiles()
     Dim fso, folder, file, yamlFiles, fileContent
@@ -1214,7 +1244,7 @@ Function CreateGlfInput(value)
 End Function
 
 Class GlfInput
-	Private m_raw, m_value, m_isGetRef, m_isPlayerState, m_playerStateValue, m_playerStatePlayer
+	Private m_raw, m_value, m_isGetRef, m_isPlayerState, m_playerStateValue, m_playerStatePlayer, m_isDeviceState, m_deviceStateDeviceType, m_deviceStateDeviceName, m_deviceStateDeviceAttr
   
     Public Property Get Value() 
 		If m_isGetRef = True Then
@@ -1230,7 +1260,9 @@ Class GlfInput
 	Public Property Get PlayerStateValue() : PlayerStateValue = m_playerStateValue : End Property		
 	Public Property Get PlayerStatePlayer() : PlayerStatePlayer = m_playerStatePlayer : End Property		
 
-
+	Public Property Get IsDeviceState() : IsDeviceState = m_isDeviceState : End Property
+	Public Property Get DeviceStateEvent() : DeviceStateEvent = m_deviceStateDeviceType & "_" & m_deviceStateDeviceName & "_" & m_deviceStateDeviceAttr : End Property
+		
 	Public default Function init(input)
         m_raw = input
         Dim parsedInput : parsedInput = Glf_ParseInput(input)
@@ -1238,6 +1270,12 @@ Class GlfInput
 		m_isPlayerState = playerState(0)
 		m_playerStateValue = playerState(1)
 		m_playerStatePlayer = playerState(2)
+		Dim deviceState : deviceState = Glf_CheckForDeviceState(input)
+		m_isDeviceState = deviceState(0)
+		m_deviceStateDeviceType = deviceState(1)
+		m_deviceStateDeviceName = deviceState(2)
+		m_deviceStateDeviceAttr = deviceState(3)
+		
         m_value = parsedInput(0)
         m_isGetRef = parsedInput(2)
 	    Set Init = Me

@@ -237,6 +237,8 @@ Class GlfLightSegmentDisplay
             Set previous_text_stack_entry = m_current_text_stack_entry
             If previous_text_stack_entry.text.IsPlayerState() Then
                 RemovePlayerStateEventListener previous_text_stack_entry.text.PlayerStateValue(), m_name
+            ElseIf previous_text_stack_entry.text.IsDeviceState() Then
+                RemovePinEventListener top_text_stack_entry.text.DeviceStateEvent() , m_name
             End If
         End If
         
@@ -284,6 +286,8 @@ Class GlfLightSegmentDisplay
             'no transition - subscribe to text template changes and update display
             If top_text_stack_entry.text.IsPlayerState() Then
                 AddPlayerStateEventListener top_text_stack_entry.text.PlayerStateValue(), m_name, top_text_stack_entry.text.PlayerStatePlayer(), "Glf_SegmentTextStackEventHandler", top_text_stack_entry.priority, Me
+            ElseIf top_text_stack_entry.text.IsDeviceState() Then
+                AddPinEventListener top_text_stack_entry.text.DeviceStateEvent() , m_name, "Glf_SegmentTextStackEventHandler", top_text_stack_entry.priority, Me
             End If
 
             'set any flashing state specified in the entry
@@ -365,13 +369,13 @@ Sub Glf_SegmentDisplaySoftwareFlashEventHandler(args)
 End Sub
 
 Sub Glf_SegmentTextStackEventHandler(args)
-    Dim ownProps, kwargs
-    Set ownProps = args(0) 
-    kwargs = args(1) 
-    Dim player_var : player_var = kwargs(0)
-    Dim value : value = kwargs(1)
-    Dim prevValue : prevValue = kwargs(2)
-    ownProps.CurrentPlaceholderChanged()
+    Dim segment
+    Set segment = args(0) 
+    'kwargs = args(1) 
+    'Dim player_var : player_var = kwargs(0)
+    'Dim value : value = kwargs(1)
+    'Dim prevValue : prevValue = kwargs(2)
+    segment.CurrentPlaceholderChanged()
 End Sub
 
 

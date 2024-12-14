@@ -37,6 +37,7 @@ Dim glf_droptargets : Set glf_droptargets = CreateObject("Scripting.Dictionary")
 Dim glf_multiball_locks : Set glf_multiball_locks = CreateObject("Scripting.Dictionary")
 Dim glf_multiballs : Set glf_multiballs = CreateObject("Scripting.Dictionary")
 Dim glf_shows : Set glf_shows = CreateObject("Scripting.Dictionary")
+Dim glf_initialVars : Set glf_initialVars = CreateObject("Scripting.Dictionary")
 
 
 
@@ -723,8 +724,34 @@ Function Glf_CheckForGetPlayerState(inputString)
     Glf_CheckForGetPlayerState = Array(hasGetPlayerState, attribute, playerNumber)
 End Function
 
+Function Glf_CheckForDeviceState(inputString)
+    Dim pattern, regex, matches, match, hasDeviceState, attribute, deviceType, deviceName
+	'inputString = Glf_ReplaceDeviceAttributes(inputString)
+    pattern = "devices\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)"
+    Set regex = New RegExp
+    regex.Pattern = pattern
+    regex.IgnoreCase = True
+    regex.Global = False
+    Set matches = regex.Execute(inputString)
+    If matches.Count > 0 Then
+        hasDeviceState = True
+		deviceType = matches(0).SubMatches(0)
+		deviceType = Left(deviceType, Len(deviceType)-1)
+        deviceName = matches(0).SubMatches(1)
+		attribute = matches(0).SubMatches(2)
+		attribute = Left(attribute, Len(attribute)-1)
+    Else
+        hasDeviceState = False
+        deviceType = Empty
+		deviceName = Empty
+		attribute = Empty
+    End If
 
-
+    Set regex = Nothing
+    Set matches = Nothing
+    
+    Glf_CheckForDeviceState = Array(hasDeviceState, deviceType, deviceName, attribute)
+End Function
 
 Function Glf_ConvertIf(value, retName)
     Dim parts, condition, truePart, falsePart, isVariable
@@ -847,6 +874,9 @@ Function Glf_FormatValue(value, formatString)
     Glf_FormatValue = result
 End Function
 
+Public Sub Glf_SetInitialPlayerVar(variable_name, initial_value)
+	glf_initialVars.Add variable_name, initial_value
+End Sub
 
 Function glf_ReadShowYAMLFiles()
     Dim fso, folder, file, yamlFiles, fileContent
@@ -1214,7 +1244,7 @@ Function CreateGlfInput(value)
 End Function
 
 Class GlfInput
-	Private m_raw, m_value, m_isGetRef, m_isPlayerState, m_playerStateValue, m_playerStatePlayer
+	Private m_raw, m_value, m_isGetRef, m_isPlayerState, m_playerStateValue, m_playerStatePlayer, m_isDeviceState, m_deviceStateDeviceType, m_deviceStateDeviceName, m_deviceStateDeviceAttr
   
     Public Property Get Value() 
 		If m_isGetRef = True Then
@@ -1230,7 +1260,9 @@ Class GlfInput
 	Public Property Get PlayerStateValue() : PlayerStateValue = m_playerStateValue : End Property		
 	Public Property Get PlayerStatePlayer() : PlayerStatePlayer = m_playerStatePlayer : End Property		
 
-
+	Public Property Get IsDeviceState() : IsDeviceState = m_isDeviceState : End Property
+	Public Property Get DeviceStateEvent() : DeviceStateEvent = m_deviceStateDeviceType & "_" & m_deviceStateDeviceName & "_" & m_deviceStateDeviceAttr : End Property
+		
 	Public default Function init(input)
         m_raw = input
         Dim parsedInput : parsedInput = Glf_ParseInput(input)
@@ -1238,6 +1270,12 @@ Class GlfInput
 		m_isPlayerState = playerState(0)
 		m_playerStateValue = playerState(1)
 		m_playerStatePlayer = playerState(2)
+		Dim deviceState : deviceState = Glf_CheckForDeviceState(input)
+		m_isDeviceState = deviceState(0)
+		m_deviceStateDeviceType = deviceState(1)
+		m_deviceStateDeviceName = deviceState(2)
+		m_deviceStateDeviceAttr = deviceState(3)
+		
         m_value = parsedInput(0)
         m_isGetRef = parsedInput(2)
 	    Set Init = Me
@@ -2707,7 +2745,10 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
                         'If step_number < 10 Then
                         '    step_number = 10
                         'End If
-                        step_number = step_number + 2
+                        step_number = Round(step_number, 0) + 2
+                        If step_number<4 Then
+                            step_number = 4
+                        End If 
                         fadeSeq = Glf_FadeRGB(lightParts(0), oldColor, lightParts(2), step_number)
                         step_duration = (lightParts(3) / step_number)/1000
                         For i=0 to UBound(fadeSeq)
@@ -3476,7 +3517,7 @@ Class GlfMultiballLocks
     Public Property Let Debug(value) : m_debug = value : End Property
 
 	Public default Function init(name, mode)
-        m_name = "multiball_locks_" & name
+        m_name = "multiball_lock_" & name
         m_mode = mode.Name
         m_priority = mode.Priority
         m_lock_events = Array()
@@ -3485,7 +3526,7 @@ Class GlfMultiballLocks
         m_balls_to_lock = 0
         m_balls_to_replace = -1
         m_balls_locked = 0
-        Set m_base_device = (new GlfBaseModeDevice)(mode, "multiball_locks", Me)
+        Set m_base_device = (new GlfBaseModeDevice)(mode, "multiball_lock", Me)
         glf_multiball_locks.Add name, Me
         Set Init = Me
 	End Function
@@ -6854,8 +6895,8 @@ Class GlfTimer
     Public Property Get StartValue() : StartValue = m_start_value : End Property
     Public Property Get EndValue() : EndValue = m_end_value : End Property
     Public Property Get Direction() : Direction = m_direction : End Property
-    Public Property Let StartValue(value) : m_start_value = value : End Property
-    Public Property Let EndValue(value) : m_end_value = value : End Property
+    Public Property Let StartValue(value) : Set m_start_value = CreateGlfInput(value) : End Property
+    Public Property Let EndValue(value) : Set m_end_value = CreateGlfInput(value) : End Property
     Public Property Let Direction(value) : m_direction = value : End Property
     Public Property Let MaxValue(value) : m_max_value = value : End Property
     Public Property Let RestartOnComplete(value) : m_restart_on_complete = value : End Property
@@ -6885,7 +6926,8 @@ Class GlfTimer
         m_starting_tick_interval = 1000
         m_restart_on_complete = False
         m_start_running = False
-        m_start_value = 0
+        Set m_start_value = CreateGlfInput(0)
+        Set m_end_value = CreateGlfInput(-1)
 
         Set m_control_events = CreateObject("Scripting.Dictionary")
         m_running = False
@@ -6902,9 +6944,9 @@ Class GlfTimer
         For Each evt in m_control_events.Keys
             AddPinEventListener m_control_events(evt).EventName, m_name & "_action", "TimerEventHandler", m_priority, Array("action", Me, m_control_events(evt))
         Next
-        m_ticks = m_start_value
+        m_ticks = m_start_value.Value
         m_ticks_remaining = m_ticks
-        If m_start_running Then
+        If m_start_running = True Then
             StartTimer()
         End If
     End Sub
@@ -6923,11 +6965,11 @@ Class GlfTimer
         dim value : value = controlEvent.Value
         Select Case controlEvent.Action
             Case "add"
-                Add GetRef(value(0))()
+                Add value
             Case "subtract"
-                Subtract GetRef(value(0))()
+                Subtract value
             Case "jump"
-                Jump GetRef(value(0))()
+                Jump value
             Case "start"
                 StartTimer()
             Case "stop"
@@ -6937,11 +6979,11 @@ Class GlfTimer
             Case "restart"
                 Restart()
             Case "pause"
-                Pause GetRef(value(0))()
+                Pause value
             Case "set_tick_interval"
-                SetTickInterval GetRef(value(0))()
+                SetTickInterval value
             Case "change_tick_interval"
-                ChangeTickInterval GetRef(value(0))()
+                ChangeTickInterval value
             Case "reset_tick_interval"
                 SetTickInterval m_starting_tick_interval
         End Select
@@ -7011,7 +7053,7 @@ Class GlfTimer
             newValue = m_ticks + 1
         End If
         
-        Log "ticking: old value: "& m_ticks & ", new Value: " & newValue & ", target: "& m_end_value
+        Log "ticking: old value: "& m_ticks & ", new Value: " & newValue & ", target: "& m_end_value.Value
         m_ticks = newValue
         If Not PostTickEvents() Then
             SetDelay m_name & "_tick", "TimerEventHandler", Array(Array("tick", Me), Null), m_tick_interval    
@@ -7022,22 +7064,22 @@ Class GlfTimer
 
         ' Checks to see if this timer is done. Automatically called anytime the
         ' timer's value changes.
-        Log "Checking to see if timer is done. Ticks: "&m_ticks&", End Value: "&m_end_value&", Direction: "& m_direction
+        Log "Checking to see if timer is done. Ticks: "&m_ticks&", End Value: "&m_end_value.Value&", Direction: "& m_direction
 
-        if m_direction = "up" And Not IsEmpty(m_end_value) And m_ticks >= m_end_value Then
+        if m_direction = "up" And m_end_value.Value<>-1 And m_ticks >= m_end_value.Value Then
             TimerComplete()
             CheckForDone = True
             Exit Function
         End If
 
-        If m_direction = "down" And m_ticks <= m_end_value Then
+        If m_direction = "down" And m_ticks <= m_end_value.Value Then
             TimerComplete()
             CheckForDone = True
             Exit Function
         End If
 
-        If Not IsEmpty(m_end_value) Then 
-            m_ticks_remaining = abs(m_end_value - m_ticks)
+        If m_end_value.Value<>-1 Then 
+            m_ticks_remaining = abs(m_end_value.Value - m_ticks)
         End If
         Log "Timer is not done"
 
@@ -7073,8 +7115,8 @@ Class GlfTimer
     End Sub
 
     Private Sub Reset
-        Log "Resetting timer. New value: "& m_start_value
-        Jump m_start_value
+        Log "Resetting timer. New value: "& m_start_value.Value
+        Jump m_start_value.Value
     End Sub
 
     Private Sub Jump(timer_value)
@@ -7186,16 +7228,20 @@ Class GlfTimerControlEvent
     Public Property Let Action(input): m_action = input : End Property
 
     Public Property Get Value()
-        Value = m_value
+        If Not IsNull(m_value) Then
+            Value = m_value.Value
+        Else
+            Value = 0
+        End If
     End Property
     Public Property Let Value(input)
-        m_value = Glf_ParseInput(input)
+        Set m_value = CreateGlfInput(input)
     End Property
 
 	Public default Function init()
         m_event = Empty
         m_action = Empty
-        m_value = Empty
+        m_value = Null
 	    Set Init = Me
 	End Function
 
@@ -8520,6 +8566,8 @@ Class GlfLightSegmentDisplay
             Set previous_text_stack_entry = m_current_text_stack_entry
             If previous_text_stack_entry.text.IsPlayerState() Then
                 RemovePlayerStateEventListener previous_text_stack_entry.text.PlayerStateValue(), m_name
+            ElseIf previous_text_stack_entry.text.IsDeviceState() Then
+                RemovePinEventListener top_text_stack_entry.text.DeviceStateEvent() , m_name
             End If
         End If
         
@@ -8567,6 +8615,8 @@ Class GlfLightSegmentDisplay
             'no transition - subscribe to text template changes and update display
             If top_text_stack_entry.text.IsPlayerState() Then
                 AddPlayerStateEventListener top_text_stack_entry.text.PlayerStateValue(), m_name, top_text_stack_entry.text.PlayerStatePlayer(), "Glf_SegmentTextStackEventHandler", top_text_stack_entry.priority, Me
+            ElseIf top_text_stack_entry.text.IsDeviceState() Then
+                AddPinEventListener top_text_stack_entry.text.DeviceStateEvent() , m_name, "Glf_SegmentTextStackEventHandler", top_text_stack_entry.priority, Me
             End If
 
             'set any flashing state specified in the entry
@@ -8648,13 +8698,13 @@ Sub Glf_SegmentDisplaySoftwareFlashEventHandler(args)
 End Sub
 
 Sub Glf_SegmentTextStackEventHandler(args)
-    Dim ownProps, kwargs
-    Set ownProps = args(0) 
-    kwargs = args(1) 
-    Dim player_var : player_var = kwargs(0)
-    Dim value : value = kwargs(1)
-    Dim prevValue : prevValue = kwargs(2)
-    ownProps.CurrentPlaceholderChanged()
+    Dim segment
+    Set segment = args(0) 
+    'kwargs = args(1) 
+    'Dim player_var : player_var = kwargs(0)
+    'Dim value : value = kwargs(1)
+    'Dim prevValue : prevValue = kwargs(2)
+    segment.CurrentPlaceholderChanged()
 End Sub
 
 
@@ -9924,6 +9974,11 @@ Function Glf_InitNewPlayer()
     state.Add GLF_SCORE, -1
     state.Add GLF_INITIALS, ""
     state.Add GLF_CURRENT_BALL, 1
+
+    Dim i
+    For i=0 To UBound(glf_initialVars.Keys())
+        state.Add glf_initialVars.Keys()(i), glf_initialVars.Items()(i)
+    Next
     Set Glf_InitNewPlayer = state
 End Function
 

@@ -33,7 +33,7 @@ Class GlfMultiballLocks
     Public Property Let Debug(value) : m_debug = value : End Property
 
 	Public default Function init(name, mode)
-        m_name = "multiball_locks_" & name
+        m_name = "multiball_lock_" & name
         m_mode = mode.Name
         m_priority = mode.Priority
         m_lock_events = Array()
@@ -42,7 +42,7 @@ Class GlfMultiballLocks
         m_balls_to_lock = 0
         m_balls_to_replace = -1
         m_balls_locked = 0
-        Set m_base_device = (new GlfBaseModeDevice)(mode, "multiball_locks", Me)
+        Set m_base_device = (new GlfBaseModeDevice)(mode, "multiball_lock", Me)
         glf_multiball_locks.Add name, Me
         Set Init = Me
 	End Function
