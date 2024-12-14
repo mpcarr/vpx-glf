@@ -462,8 +462,8 @@ Class GlfTextStack
 
     ' Peek at the top entry of the stack without popping it
     Public Function Peek()
-        If UBound(stack) >= 0 Then
-            Set Peek = stack(UBound(stack))
+        If LBound(stack) >= 0 Then
+            Set Peek = stack(LBound(stack))
         Else
             Set Peek = Nothing
         End If
