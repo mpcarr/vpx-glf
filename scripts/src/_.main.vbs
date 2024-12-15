@@ -42,6 +42,8 @@ Dim glf_initialVars : Set glf_initialVars = CreateObject("Scripting.Dictionary")
 
 
 Dim bcpController : bcpController = Null
+Dim glf_debugBcpController : glf_debugBcpController = Null
+Dim useGlfBCPMonitor : useGlfBCPMonitor = False
 Dim useBCP : useBCP = False
 Dim bcpPort : bcpPort = 5050
 Dim bcpExeName : bcpExeName = ""
@@ -62,6 +64,10 @@ Dim glf_ball1, glf_ball2, glf_ball3, glf_ball4, glf_ball5, glf_ball6, glf_ball7,
 
 Public Sub Glf_ConnectToBCPMediaController
     Set bcpController = (new GlfVpxBcpController)(bcpPort, bcpExeName)
+End Sub
+
+Public Sub Glf_ConnectToDebugBCPMediaController
+    Set glf_debugBcpController = (new GlfMonitorBcpController)(5051, "glf_monitor")
 End Sub
 
 Public Sub Glf_WriteDebugLog(name, message)
@@ -376,12 +382,32 @@ Sub Glf_Options(ByVal eventId)
 			bcpController = Null
 		End If
 	End If
+
+	Dim glfuseDebugBCP : glfuseDebugBCP = Table1.Option("Glf Montior", 0, 1, 1, 0, 0, Array("Off", "On"))
+	If glfuseDebugBCP = 1 Then
+		useGlfBCPMonitor = True
+		If IsNull(glf_debugBcpController) Then
+			Glf_ConnectToDebugBCPMediaController
+		End If
+	Else
+		useGlfBCPMonitor = False
+		If Not IsNull(glf_debugBcpController) Then
+			glf_debugBcpController.Disconnect
+			glf_debugBcpController = Null
+		End If
+	End If
+
+	
 End Sub
 
 Public Sub Glf_Exit()
 	If Not IsNull(bcpController) Then
 		bcpController.Disconnect
 		bcpController = Null
+	End If
+	If Not IsNull(glf_debugBcpController) Then
+		glf_debugBcpController.Disconnect
+		glf_debugBcpController = Null
 	End If
 	If glf_debugEnabled = True Then
 		glf_debugLog.DisableLogs
@@ -489,6 +515,7 @@ Public Sub Glf_GameTimer_Timer()
 	If (gametime - glf_lastBcpExecutionTime) >= 300 Then
         glf_lastBcpExecutionTime = gametime
 		Glf_BcpUpdate
+		Glf_MonitorBcpUpdate
     End If
 
 End Sub

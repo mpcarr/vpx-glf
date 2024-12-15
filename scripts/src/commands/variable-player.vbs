@@ -27,6 +27,7 @@ Class GlfVariablePlayer
 	End Function
 
     Public Sub Activate()
+        Log "Activating"
         Dim evt
         For Each evt In m_events.Keys()
             AddPinEventListener m_events(evt).BaseEvent.EventName, m_mode & "_variable_player_play", "VariablePlayerEventHandler", m_priority, Array("play", Me, evt)
@@ -34,6 +35,7 @@ Class GlfVariablePlayer
     End Sub
 
     Public Sub Deactivate()
+        Log "Deactivating"
         Dim evt
         For Each evt In m_events.Keys()
             RemovePinEventListener m_events(evt).BaseEvent.EventName, m_mode & "_variable_player_play"

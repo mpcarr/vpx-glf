@@ -42,6 +42,8 @@ Dim glf_initialVars : Set glf_initialVars = CreateObject("Scripting.Dictionary")
 
 
 Dim bcpController : bcpController = Null
+Dim glf_debugBcpController : glf_debugBcpController = Null
+Dim useGlfBCPMonitor : useGlfBCPMonitor = False
 Dim useBCP : useBCP = False
 Dim bcpPort : bcpPort = 5050
 Dim bcpExeName : bcpExeName = ""
@@ -62,6 +64,10 @@ Dim glf_ball1, glf_ball2, glf_ball3, glf_ball4, glf_ball5, glf_ball6, glf_ball7,
 
 Public Sub Glf_ConnectToBCPMediaController
     Set bcpController = (new GlfVpxBcpController)(bcpPort, bcpExeName)
+End Sub
+
+Public Sub Glf_ConnectToDebugBCPMediaController
+    Set glf_debugBcpController = (new GlfMonitorBcpController)(5051, "glf_monitor")
 End Sub
 
 Public Sub Glf_WriteDebugLog(name, message)
@@ -376,12 +382,32 @@ Sub Glf_Options(ByVal eventId)
 			bcpController = Null
 		End If
 	End If
+
+	Dim glfuseDebugBCP : glfuseDebugBCP = Table1.Option("Glf Montior", 0, 1, 1, 0, 0, Array("Off", "On"))
+	If glfuseDebugBCP = 1 Then
+		useGlfBCPMonitor = True
+		If IsNull(glf_debugBcpController) Then
+			Glf_ConnectToDebugBCPMediaController
+		End If
+	Else
+		useGlfBCPMonitor = False
+		If Not IsNull(glf_debugBcpController) Then
+			glf_debugBcpController.Disconnect
+			glf_debugBcpController = Null
+		End If
+	End If
+
+	
 End Sub
 
 Public Sub Glf_Exit()
 	If Not IsNull(bcpController) Then
 		bcpController.Disconnect
 		bcpController = Null
+	End If
+	If Not IsNull(glf_debugBcpController) Then
+		glf_debugBcpController.Disconnect
+		glf_debugBcpController = Null
 	End If
 	If glf_debugEnabled = True Then
 		glf_debugLog.DisableLogs
@@ -489,6 +515,7 @@ Public Sub Glf_GameTimer_Timer()
 	If (gametime - glf_lastBcpExecutionTime) >= 300 Then
         glf_lastBcpExecutionTime = gametime
 		Glf_BcpUpdate
+		Glf_MonitorBcpUpdate
     End If
 
 End Sub
@@ -1584,6 +1611,75 @@ Sub Glf_BcpUpdate()
                     End If
                 case "register_trigger"
                     eventName = message.GetValue("event")
+            End Select
+        Next
+    End If
+End Sub
+
+'*****************************************************************************************************************************************
+'  Vpx Glf Bcp Controller
+'*****************************************************************************************************************************************
+
+
+'*****************************************************************************************************************************************
+'  Glf Monitor Bcp Controller
+'*****************************************************************************************************************************************
+
+Class GlfMonitorBcpController
+
+    Private m_bcpController, m_connected
+
+    Public default Function init(port, backboxCommand)
+        On Error Resume Next
+        Set m_bcpController = CreateObject("vpx_bcp_server.VpxBcpController")
+        m_bcpController.Connect port, backboxCommand
+        m_connected = True
+        If Err Then MsgBox("Can not start VPX BCP Controller") : m_connected = False
+        Set Init = Me
+	End Function
+
+	Public Sub Send(commandMessage)
+		If m_connected = True Then
+            m_bcpController.Send commandMessage
+        End If
+	End Sub
+
+    Public Function GetMessages
+		If m_connected Then
+            GetMessages = m_bcpController.GetMessages
+        End If
+	End Function
+
+    Public Sub Reset()
+		If m_connected Then
+            m_bcpController.Send "reset"
+            m_bcpController.Send "trigger?json={""name"": ""slides_play"", ""settings"": {""monitor"": {""action"": ""play"", ""expire"": 0}}, ""context"": """", ""priority"": 1}"
+        End If
+	End Sub
+
+    Public Sub Disconnect()
+        If m_connected Then
+            m_bcpController.Disconnect()
+            m_connected = False
+        End If
+    End Sub
+End Class
+
+Sub Glf_MonitorBcpUpdate()
+    If IsNull(glf_debugBcpController) Then
+        Exit Sub
+    End If
+    Dim messages : messages = glf_debugBcpController.GetMessages()
+    If IsEmpty(messages) Then
+        Exit Sub
+    End If
+    If IsArray(messages) and UBound(messages)>-1 Then
+        Dim message, parameters, parameter, eventName
+        For Each message in messages
+            'debug.print(message.Command)
+            Select Case message.Command
+                case "hello"
+                    glf_debugBcpController.Reset
             End Select
         Next
     End If
@@ -3270,8 +3366,7 @@ Class Mode
         Set m_eventplayer = (new GlfEventPlayer)(Me)
         Set m_random_event_player = (new GlfRandomEventPlayer)(Me)
         Set m_variableplayer = (new GlfVariablePlayer)(Me)
-        Dim newEvent : Set newEvent = (new GlfEvent)("ball_ended")
-        AddPinEventListener newEvent.EventName, m_name & "_stop", "ModeEventHandler", m_priority+1, Array("stop", Me, newEvent)
+
         Set Init = Me
 	End Function
 
@@ -7275,6 +7370,7 @@ Class GlfVariablePlayer
 	End Function
 
     Public Sub Activate()
+        Log "Activating"
         Dim evt
         For Each evt In m_events.Keys()
             AddPinEventListener m_events(evt).BaseEvent.EventName, m_mode & "_variable_player_play", "VariablePlayerEventHandler", m_priority, Array("play", Me, evt)
@@ -7282,6 +7378,7 @@ Class GlfVariablePlayer
     End Sub
 
     Public Sub Deactivate()
+        Log "Deactivating"
         Dim evt
         For Each evt In m_events.Keys()
             RemovePinEventListener m_events(evt).BaseEvent.EventName, m_mode & "_variable_player_play"
