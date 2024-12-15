@@ -313,7 +313,7 @@ Class GlfLightSegmentDisplay
 
     Public Sub CurrentPlaceholderChanged()
         Dim text_value : text_value = m_current_text_stack_entry.text.Value()
-        msgbox text_value
+        'msgbox text_value
         If text_value = False Then
             text_value = String(m_size, " ")
         End If

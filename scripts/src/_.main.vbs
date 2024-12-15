@@ -975,7 +975,7 @@ Sub glf_ConvertYamlShowToGlfShow(yamlFilePath)
 
         End If
     Next
-    msgbox Len(stepLights)
+    'msgbox Len(stepLights)
     ' Close the final step and the show
 	If Len(stepLights) = 0 Then
 		output = output & vbTab & vbTab & ".Lights = Array()" & vbCrLf

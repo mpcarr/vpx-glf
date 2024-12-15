@@ -975,7 +975,7 @@ Sub glf_ConvertYamlShowToGlfShow(yamlFilePath)
 
         End If
     Next
-    msgbox Len(stepLights)
+    'msgbox Len(stepLights)
     ' Close the final step and the show
 	If Len(stepLights) = 0 Then
 		output = output & vbTab & vbTab & ".Lights = Array()" & vbCrLf
@@ -8642,7 +8642,7 @@ Class GlfLightSegmentDisplay
 
     Public Sub CurrentPlaceholderChanged()
         Dim text_value : text_value = m_current_text_stack_entry.text.Value()
-        msgbox text_value
+        'msgbox text_value
         If text_value = False Then
             text_value = String(m_size, " ")
         End If
