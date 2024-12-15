@@ -2370,12 +2370,8 @@ Class GlfEventPlayer
     private m_base_device
     Private m_events
     Private m_eventValues
-    Private m_debug
 
     Public Property Get Name() : Name = "event_player" : End Property
-    Public Property Let Debug(value)
-        m_debug = value
-    End Property
 
     Public Property Get Events() : Set Events = m_events : End Property
     Public Property Let Debug(value) : m_debug = value : End Property
@@ -2420,7 +2416,7 @@ Class GlfEventPlayer
         End If
         Dim evtValue
         For Each evtValue In m_eventValues(evt)
-            Log "Dispatching Event: " evtValue
+            Log "Dispatching Event: " & evtValue
             DispatchPinEvent evtValue, Null
         Next
     End Sub
