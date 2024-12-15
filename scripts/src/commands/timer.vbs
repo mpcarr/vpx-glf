@@ -87,6 +87,7 @@ Class GlfTimer
         Next
         m_ticks = m_start_value.Value
         m_ticks_remaining = m_ticks
+        Log "Activating Timer"
         If m_start_running = True Then
             StartTimer()
         End If
@@ -344,7 +345,7 @@ Function TimerEventHandler(args)
     End If
     Dim evt : evt = ownProps(0)
     Dim timer : Set timer = ownProps(1)
-    
+    'debug.print "TimerEventHandler: " & timer.Name & ": " & evt
     Select Case evt
         Case "action"
             Dim controlEvent : Set controlEvent = ownProps(2)

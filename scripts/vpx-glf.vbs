@@ -2418,13 +2418,14 @@ Class GlfEventPlayer
         End If
         Dim evtValue
         For Each evtValue In m_eventValues(evt)
+            Log "Dispatching Event: " evtValue
             DispatchPinEvent evtValue, Null
         Next
     End Sub
 
     Private Sub Log(message)
         If m_debug = True Then
-            glf_debugLog.WriteToLog m_name, message
+            glf_debugLog.WriteToLog m_mode & "_event_player", message
         End If
     End Sub
 
@@ -6946,6 +6947,7 @@ Class GlfTimer
         Next
         m_ticks = m_start_value.Value
         m_ticks_remaining = m_ticks
+        Log "Activating Timer"
         If m_start_running = True Then
             StartTimer()
         End If
@@ -7203,7 +7205,7 @@ Function TimerEventHandler(args)
     End If
     Dim evt : evt = ownProps(0)
     Dim timer : Set timer = ownProps(1)
-    
+    'debug.print "TimerEventHandler: " & timer.Name & ": " & evt
     Select Case evt
         Case "action"
             Dim controlEvent : Set controlEvent = ownProps(2)
@@ -8556,7 +8558,7 @@ Class GlfLightSegmentDisplay
         Dim top_text_stack_entry
         If m_text_stack.IsEmpty() Then
             Dim empty_text : Set empty_text = (new GlfInput)("""" & String(m_size, " ") & """")
-            Set top_text_stack_entry = (new GlfTextStackEntry)(empty_text,Null,"no_flash","",Null,Null,-999999,"")
+            Set top_text_stack_entry = (new GlfTextStackEntry)(empty_text,Null,"no_flash","",Null,Null,999999,"")
         Else
             Set top_text_stack_entry = m_text_stack.Peek()
         End If
@@ -8642,6 +8644,7 @@ Class GlfLightSegmentDisplay
 
     Public Sub CurrentPlaceholderChanged()
         Dim text_value : text_value = m_current_text_stack_entry.text.Value()
+        msgbox text_value
         If text_value = False Then
             text_value = String(m_size, " ")
         End If
@@ -8791,8 +8794,8 @@ Class GlfTextStack
 
     ' Peek at the top entry of the stack without popping it
     Public Function Peek()
-        If LBound(stack) >= 0 Then
-            Set Peek = stack(LBound(stack))
+        If UBound(stack) >= 0 Then
+            Set Peek = stack(UBound(stack))
         Else
             Set Peek = Nothing
         End If

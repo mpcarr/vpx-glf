@@ -227,7 +227,7 @@ Class GlfLightSegmentDisplay
         Dim top_text_stack_entry
         If m_text_stack.IsEmpty() Then
             Dim empty_text : Set empty_text = (new GlfInput)("""" & String(m_size, " ") & """")
-            Set top_text_stack_entry = (new GlfTextStackEntry)(empty_text,Null,"no_flash","",Null,Null,-999999,"")
+            Set top_text_stack_entry = (new GlfTextStackEntry)(empty_text,Null,"no_flash","",Null,Null,999999,"")
         Else
             Set top_text_stack_entry = m_text_stack.Peek()
         End If
@@ -313,6 +313,7 @@ Class GlfLightSegmentDisplay
 
     Public Sub CurrentPlaceholderChanged()
         Dim text_value : text_value = m_current_text_stack_entry.text.Value()
+        msgbox text_value
         If text_value = False Then
             text_value = String(m_size, " ")
         End If
@@ -462,8 +463,8 @@ Class GlfTextStack
 
     ' Peek at the top entry of the stack without popping it
     Public Function Peek()
-        If LBound(stack) >= 0 Then
-            Set Peek = stack(LBound(stack))
+        If UBound(stack) >= 0 Then
+            Set Peek = stack(UBound(stack))
         Else
             Set Peek = Nothing
         End If

@@ -56,13 +56,14 @@ Class GlfEventPlayer
         End If
         Dim evtValue
         For Each evtValue In m_eventValues(evt)
+            Log "Dispatching Event: " evtValue
             DispatchPinEvent evtValue, Null
         Next
     End Sub
 
     Private Sub Log(message)
         If m_debug = True Then
-            glf_debugLog.WriteToLog m_name, message
+            glf_debugLog.WriteToLog m_mode & "_event_player", message
         End If
     End Sub
 
