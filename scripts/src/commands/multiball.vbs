@@ -33,6 +33,12 @@ Class GlfMultiballs
     Private m_debug
 
     Public Property Get Name(): Name = m_name: End Property
+    Public Property Get GetValue(value)
+        Select Case value
+            Case "enabled":
+                GetValue = m_enabled
+        End Select
+    End Property
 
     Public Property Let BallCount(value): Set m_ball_count = CreateGlfInput(value): End Property
     Public Property Let AddABallEvents(value): m_add_a_ball_events = value: End Property
@@ -214,17 +220,18 @@ Class GlfMultiballs
 
         'request remaining balls
         m_queued_balls = (m_balls_added_live - balls_added)
-        SetDelay m_name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", Me),Null), 1000
-        
+        If m_queued_balls > 0 Then
+            SetDelay m_name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", Me),Null), 1000
+        End If
 
         If m_shoot_again.Value = 0 Then
             'No shoot again. Just stop multiball right away
             StopMultiball()
         else
             'Enable shoot again
-            AddPinEventListener "ball_drain", m_name & "_ball_drain", "MultiballsHandler", m_priority, Array("drain", Me)
             TimerStart()
         End If
+        AddPinEventListener "ball_drain", m_name & "_ball_drain", "MultiballsHandler", m_priority, Array("drain", Me)
 
         Dim kwargs : Set kwargs = GlfKwargs()
         With kwargs
@@ -295,7 +302,8 @@ Class GlfMultiballs
 
     Function BallDrainCountBalls(balls):
         DispatchPinEvent m_name & "_ball_lost", Null
-        If not glf_gameStarted or (glf_BIP - balls) = 1 Then
+        Log "WOW OWL: " & glf_BIP - balls
+        If not glf_gameStarted or (glf_BIP - balls) = 0 Then
             m_balls_added_live = 0
             m_balls_live_target = 0
             DispatchPinEvent m_name & "_ended", Null

@@ -108,7 +108,6 @@ Class GlfBallDevice
 
     Public Sub BallEntering(ball, switch)
         Log "Ball Entering" 
-        Log m_default_device
         If m_default_device = False Then
             SetDelay m_name & "_" & switch & "_ball_enter", "BallDeviceEventHandler", Array(Array("ball_enter", Me, switch), ball), m_entrance_count_delay
         Else
@@ -117,7 +116,7 @@ Class GlfBallDevice
     End Sub
 
     Public Sub BallEnter(ball, switch)
-        RemoveDelay m_name & "_eject_timeout"
+        RemoveDelay m_name & "_switch" & switch & "_eject_timeout"
         Set m_balls(switch) = ball
         m_balls_in_device = m_balls_in_device + 1
         Log "Ball Entered" 
@@ -142,14 +141,14 @@ Class GlfBallDevice
         m_balls_in_device = m_balls_in_device - 1
         DispatchPinEvent m_name & "_ball_exiting", Null
         If m_mechanical_eject = True And m_eject_timeout > 0 Then
-            SetDelay m_name & "_eject_timeout", "BallDeviceEventHandler", Array(Array("eject_timeout", Me), ball), m_eject_timeout
+            SetDelay m_name & "_switch" & switch & "_eject_timeout", "BallDeviceEventHandler", Array(Array("eject_timeout", Me), ball), m_eject_timeout
         End If
         Log "Ball Exiting"
     End Sub
 
     Public Sub BallExitSuccess(ball)
         m_ejecting = False
-        RemoveDelay m_name & "_eject_timeout"
+
         If m_incoming_balls > 0 Then
             m_incoming_balls = m_incoming_balls - 1
         End If
@@ -174,7 +173,7 @@ Class GlfBallDevice
         If Not IsNull(m_eject_callback) Then
             If Not IsNull(m_balls(0)) Then
                 Log "Ejecting."
-                SetDelay m_name & "_eject_timeout", "BallDeviceEventHandler", Array(Array("eject_timeout", Me), m_balls(0)), m_eject_timeout
+                SetDelay m_name & "_switch0_eject_timeout", "BallDeviceEventHandler", Array(Array("eject_timeout", Me), m_balls(0)), m_eject_timeout
                 m_ejecting = True
             
                 GetRef(m_eject_callback)(m_balls(0))
@@ -221,6 +220,7 @@ Function BallDeviceEventHandler(args)
     Dim evt : evt = ownProps(0)
     Dim ballDevice : Set ballDevice = ownProps(1)
     Dim switch
+    debug.print "Ball Device: " & ballDevice.Name & ". Event: " & evt
     Select Case evt
         Case "ball_entering"
             switch = ownProps(2)

@@ -84,7 +84,7 @@ Class GlfStateMachine
         Set m_transitions = CreateObject("Scripting.Dictionary")
  
         Set m_base_device = (new GlfBaseModeDevice)(mode, "state_machine", Me)
- 
+        glf_state_machines.Add name, Me
         Set Init = Me
     End Function
 

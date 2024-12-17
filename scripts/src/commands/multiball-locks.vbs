@@ -13,11 +13,14 @@ Class GlfMultiballLocks
     Private m_balls_to_replace
     Private m_lock_events
     Private m_reset_events
+    Private m_enabled
     Private m_debug
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get GetValue(value)
         Select Case value
+            Case "enabled":
+                GetValue = m_enabled
             Case "locked_balls":
                 GetValue = m_balls_locked
         End Select
@@ -41,6 +44,7 @@ Class GlfMultiballLocks
         m_lock_device = Empty
         m_balls_to_lock = 0
         m_balls_to_replace = -1
+        m_enabled = False
         m_balls_locked = 0
         Set m_base_device = (new GlfBaseModeDevice)(mode, "multiball_lock", Me)
         glf_multiball_locks.Add name, Me
@@ -59,6 +63,7 @@ Class GlfMultiballLocks
 
     Public Sub Enable()
         Log "Enabling"
+        m_enabled = True
         If Not IsEmpty(m_lock_device) Then
             AddPinEventListener "balldevice_" & m_lock_device & "_ball_enter", m_mode & "_" & name & "_lock", "MultiballLocksHandler", m_priority, Array("lock", me, m_lock_device)
         End If
@@ -73,6 +78,7 @@ Class GlfMultiballLocks
 
     Public Sub Disable()
         Log "Disabling"
+        m_enabled = False
         If Not IsEmpty(m_lock_device) Then
             RemovePinEventListener "balldevice_" & m_lock_device & "_ball_enter", m_mode & "_" & name & "_lock"
         End If
@@ -129,6 +135,7 @@ Class GlfMultiballLocks
     End Function
 
     Public Sub Reset
+        Log "Resetting multiball lock count"
         SetPlayerState m_name & "_balls_locked", 0
     End Sub
 

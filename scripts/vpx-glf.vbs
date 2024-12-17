@@ -25,7 +25,7 @@ Dim glf_lightNames : Set glf_lightNames = CreateObject("Scripting.Dictionary")
 Dim glf_modes : Set glf_modes = CreateObject("Scripting.Dictionary")
 Dim glf_timers : Set glf_timers = CreateObject("Scripting.Dictionary")
 
-
+Dim glf_state_machines : Set glf_state_machines = CreateObject("Scripting.Dictionary")
 Dim glf_ball_devices : Set glf_ball_devices = CreateObject("Scripting.Dictionary")
 Dim glf_diverters : Set glf_diverters = CreateObject("Scripting.Dictionary")
 Dim glf_flippers : Set glf_flippers = CreateObject("Scripting.Dictionary")
@@ -38,8 +38,6 @@ Dim glf_multiball_locks : Set glf_multiball_locks = CreateObject("Scripting.Dict
 Dim glf_multiballs : Set glf_multiballs = CreateObject("Scripting.Dictionary")
 Dim glf_shows : Set glf_shows = CreateObject("Scripting.Dictionary")
 Dim glf_initialVars : Set glf_initialVars = CreateObject("Scripting.Dictionary")
-
-
 
 Dim bcpController : bcpController = Null
 Dim glf_debugBcpController : glf_debugBcpController = Null
@@ -3591,11 +3589,14 @@ Class GlfMultiballLocks
     Private m_balls_to_replace
     Private m_lock_events
     Private m_reset_events
+    Private m_enabled
     Private m_debug
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get GetValue(value)
         Select Case value
+            Case "enabled":
+                GetValue = m_enabled
             Case "locked_balls":
                 GetValue = m_balls_locked
         End Select
@@ -3619,6 +3620,7 @@ Class GlfMultiballLocks
         m_lock_device = Empty
         m_balls_to_lock = 0
         m_balls_to_replace = -1
+        m_enabled = False
         m_balls_locked = 0
         Set m_base_device = (new GlfBaseModeDevice)(mode, "multiball_lock", Me)
         glf_multiball_locks.Add name, Me
@@ -3637,6 +3639,7 @@ Class GlfMultiballLocks
 
     Public Sub Enable()
         Log "Enabling"
+        m_enabled = True
         If Not IsEmpty(m_lock_device) Then
             AddPinEventListener "balldevice_" & m_lock_device & "_ball_enter", m_mode & "_" & name & "_lock", "MultiballLocksHandler", m_priority, Array("lock", me, m_lock_device)
         End If
@@ -3651,6 +3654,7 @@ Class GlfMultiballLocks
 
     Public Sub Disable()
         Log "Disabling"
+        m_enabled = False
         If Not IsEmpty(m_lock_device) Then
             RemovePinEventListener "balldevice_" & m_lock_device & "_ball_enter", m_mode & "_" & name & "_lock"
         End If
@@ -3707,6 +3711,7 @@ Class GlfMultiballLocks
     End Function
 
     Public Sub Reset
+        Log "Resetting multiball lock count"
         SetPlayerState m_name & "_balls_locked", 0
     End Sub
 
@@ -3798,6 +3803,12 @@ Class GlfMultiballs
     Private m_debug
 
     Public Property Get Name(): Name = m_name: End Property
+    Public Property Get GetValue(value)
+        Select Case value
+            Case "enabled":
+                GetValue = m_enabled
+        End Select
+    End Property
 
     Public Property Let BallCount(value): Set m_ball_count = CreateGlfInput(value): End Property
     Public Property Let AddABallEvents(value): m_add_a_ball_events = value: End Property
@@ -3979,17 +3990,18 @@ Class GlfMultiballs
 
         'request remaining balls
         m_queued_balls = (m_balls_added_live - balls_added)
-        SetDelay m_name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", Me),Null), 1000
-        
+        If m_queued_balls > 0 Then
+            SetDelay m_name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", Me),Null), 1000
+        End If
 
         If m_shoot_again.Value = 0 Then
             'No shoot again. Just stop multiball right away
             StopMultiball()
         else
             'Enable shoot again
-            AddPinEventListener "ball_drain", m_name & "_ball_drain", "MultiballsHandler", m_priority, Array("drain", Me)
             TimerStart()
         End If
+        AddPinEventListener "ball_drain", m_name & "_ball_drain", "MultiballsHandler", m_priority, Array("drain", Me)
 
         Dim kwargs : Set kwargs = GlfKwargs()
         With kwargs
@@ -4060,7 +4072,8 @@ Class GlfMultiballs
 
     Function BallDrainCountBalls(balls):
         DispatchPinEvent m_name & "_ball_lost", Null
-        If not glf_gameStarted or (glf_BIP - balls) = 1 Then
+        Log "WOW OWL: " & glf_BIP - balls
+        If not glf_gameStarted or (glf_BIP - balls) = 0 Then
             m_balls_added_live = 0
             m_balls_live_target = 0
             DispatchPinEvent m_name & "_ended", Null
@@ -6682,7 +6695,7 @@ Class GlfStateMachine
         Set m_transitions = CreateObject("Scripting.Dictionary")
  
         Set m_base_device = (new GlfBaseModeDevice)(mode, "state_machine", Me)
- 
+        glf_state_machines.Add name, Me
         Set Init = Me
     End Function
 
@@ -7832,7 +7845,6 @@ Class GlfBallDevice
 
     Public Sub BallEntering(ball, switch)
         Log "Ball Entering" 
-        Log m_default_device
         If m_default_device = False Then
             SetDelay m_name & "_" & switch & "_ball_enter", "BallDeviceEventHandler", Array(Array("ball_enter", Me, switch), ball), m_entrance_count_delay
         Else
@@ -7841,7 +7853,7 @@ Class GlfBallDevice
     End Sub
 
     Public Sub BallEnter(ball, switch)
-        RemoveDelay m_name & "_eject_timeout"
+        RemoveDelay m_name & "_switch" & switch & "_eject_timeout"
         Set m_balls(switch) = ball
         m_balls_in_device = m_balls_in_device + 1
         Log "Ball Entered" 
@@ -7866,14 +7878,14 @@ Class GlfBallDevice
         m_balls_in_device = m_balls_in_device - 1
         DispatchPinEvent m_name & "_ball_exiting", Null
         If m_mechanical_eject = True And m_eject_timeout > 0 Then
-            SetDelay m_name & "_eject_timeout", "BallDeviceEventHandler", Array(Array("eject_timeout", Me), ball), m_eject_timeout
+            SetDelay m_name & "_switch" & switch & "_eject_timeout", "BallDeviceEventHandler", Array(Array("eject_timeout", Me), ball), m_eject_timeout
         End If
         Log "Ball Exiting"
     End Sub
 
     Public Sub BallExitSuccess(ball)
         m_ejecting = False
-        RemoveDelay m_name & "_eject_timeout"
+
         If m_incoming_balls > 0 Then
             m_incoming_balls = m_incoming_balls - 1
         End If
@@ -7898,7 +7910,7 @@ Class GlfBallDevice
         If Not IsNull(m_eject_callback) Then
             If Not IsNull(m_balls(0)) Then
                 Log "Ejecting."
-                SetDelay m_name & "_eject_timeout", "BallDeviceEventHandler", Array(Array("eject_timeout", Me), m_balls(0)), m_eject_timeout
+                SetDelay m_name & "_switch0_eject_timeout", "BallDeviceEventHandler", Array(Array("eject_timeout", Me), m_balls(0)), m_eject_timeout
                 m_ejecting = True
             
                 GetRef(m_eject_callback)(m_balls(0))
@@ -7945,6 +7957,7 @@ Function BallDeviceEventHandler(args)
     Dim evt : evt = ownProps(0)
     Dim ballDevice : Set ballDevice = ownProps(1)
     Dim switch
+    debug.print "Ball Device: " & ballDevice.Name & ". Event: " & evt
     Select Case evt
         Case "ball_entering"
             switch = ownProps(2)
