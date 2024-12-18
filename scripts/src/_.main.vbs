@@ -38,6 +38,8 @@ Dim glf_multiball_locks : Set glf_multiball_locks = CreateObject("Scripting.Dict
 Dim glf_multiballs : Set glf_multiballs = CreateObject("Scripting.Dictionary")
 Dim glf_shows : Set glf_shows = CreateObject("Scripting.Dictionary")
 Dim glf_initialVars : Set glf_initialVars = CreateObject("Scripting.Dictionary")
+Dim glf_dispatch_await : Set glf_dispatch_await = CreateObject("Scripting.Dictionary")
+
 
 Dim bcpController : bcpController = Null
 Dim glf_debugBcpController : glf_debugBcpController = Null
@@ -74,8 +76,19 @@ Public Sub Glf_WriteDebugLog(name, message)
 	End If
 End Sub
 
+Public Function SwitchHandler(handler, args)
+	SwitchHandler = False
+	Select Case handler
+		Case "BaseModeDeviceEventHandler"
+			BaseModeDeviceEventHandler args
+			SwitchHandler = True
+	End Select
+
+End Function
+
 Public Sub Glf_Init()
 	Glf_Options Null 'Force Options Check
+
 
 	If glf_troughSize > 0 Then : swTrough1.DestroyBall : Set glf_ball1 = swTrough1.CreateSizedballWithMass(Ballsize / 2,Ballmass) : gBot = Array(glf_ball1) : Set glf_lastTroughSw = swTrough1 : End If
 	If glf_troughSize > 1 Then : swTrough2.DestroyBall : Set glf_ball2 = swTrough2.CreateSizedballWithMass(Ballsize / 2,Ballmass) : gBot = Array(glf_ball1, glf_ball2) : Set glf_lastTroughSw = swTrough2 : End If
@@ -506,16 +519,43 @@ glf_lastLightUpdateExecutionTime = 0
 
 Public Sub Glf_GameTimer_Timer()
 
+	If (gametime - glf_lastEventExecutionTime) > 25 Then
+		debug.print "Slow GLF Frame: " & gametime - glf_lastEventExecutionTime & ". Dispatch Count: " & glf_frame_dispatch_count & ". Handler Count: " & glf_frame_handler_count
+	End If
+	glf_frame_dispatch_count = 0
+	glf_frame_handler_count = 0
+	glf_temp1 = 0
+
+	Dim i, key, keys
+	keys = glf_dispatch_await.Keys()
+	For Each key in keys
+		'debug.print key
+		If Not IsArray(glf_dispatch_await(key)) Then
+			RunDispatchPinEvent key, glf_dispatch_await(key)
+		Else
+			DispatchPinHandlers key, glf_dispatch_await(key)
+		End If
+		glf_dispatch_await.Remove key
+		i = i + 1
+		If i=5 Then
+			Exit For
+		End If
+	Next
+
+	DelayTick
     'If (gametime - glf_lastEventExecutionTime) >= 33 Then
-     '   glf_lastEventExecutionTime = gametime
-		DelayTick
+	 	'Dim gtime : gtime = gametime
+		
+		'If gametime-gtime > 20 Then
+		'	debug.print "slow frame: " & gametime-gtime
+		'End If
     'End If
 	If (gametime - glf_lastBcpExecutionTime) >= 300 Then
         glf_lastBcpExecutionTime = gametime
 		Glf_BcpUpdate
 		Glf_MonitorBcpUpdate
     End If
-
+	glf_lastEventExecutionTime = gametime
 End Sub
 
 Public Function Glf_RegisterLights()
@@ -562,7 +602,7 @@ Public Function Glf_RegisterLights()
 End Function
 
 Public Function Glf_SetLight(light, color)
-	
+
 	Dim rgbColor
 	If glf_lightColorLookup.Exists(color) Then
 		rgbColor = glf_lightColorLookup(color)

@@ -71,8 +71,13 @@ Sub Glf_StartGame()
         bcpController.PlaySlide "base", "base", 1000
         bcpController.SendPlayerVariable "number", 1, 0
     End If
-    DispatchPinEvent GLF_GAME_STARTED, Null
+    SetDelay GLF_GAME_STARTED, "Glf_DispatchGameStarted", Null, 50
+    'DispatchPinEvent GLF_GAME_STARTED, Null
 End Sub
+
+Public Function Glf_DispatchGameStarted(args)
+    DispatchPinEvent GLF_GAME_STARTED, Null
+End Function
 
 
 '******************************************************
@@ -82,8 +87,8 @@ End Sub
 '****************************
 ' Release Ball
 ' Event Listeners:  
-AddPinEventListener GLF_GAME_STARTED, "start_game_release_ball",   "Glf_ReleaseBall", 1000, True
-AddPinEventListener GLF_NEXT_PLAYER, "next_player_release_ball",   "Glf_ReleaseBall", 1000, True
+AddPinEventListener GLF_GAME_STARTED, "start_game_release_ball",   "Glf_ReleaseBall", 20, True
+AddPinEventListener GLF_NEXT_PLAYER, "next_player_release_ball",   "Glf_ReleaseBall", 20, True
 '
 '*****************************
 Function Glf_ReleaseBall(args)
