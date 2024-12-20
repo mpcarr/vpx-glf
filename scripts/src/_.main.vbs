@@ -39,6 +39,7 @@ Dim glf_multiballs : Set glf_multiballs = CreateObject("Scripting.Dictionary")
 Dim glf_shows : Set glf_shows = CreateObject("Scripting.Dictionary")
 Dim glf_initialVars : Set glf_initialVars = CreateObject("Scripting.Dictionary")
 Dim glf_dispatch_await : Set glf_dispatch_await = CreateObject("Scripting.Dictionary")
+Dim glf_dispatch_handlers_await : Set glf_dispatch_handlers_await = CreateObject("Scripting.Dictionary")
 
 
 Dim bcpController : bcpController = Null
@@ -50,6 +51,7 @@ Dim bcpExeName : bcpExeName = ""
 Dim glf_BIP : glf_BIP = 0
 Dim glf_FuncCount : glf_FuncCount = 0
 Dim glf_SeqCount : glf_SeqCount = 0
+Dim glf_max_dispatch : glf_max_dispatch = 25
 
 Dim glf_ballsPerGame : glf_ballsPerGame = 3
 Dim glf_troughSize : glf_troughSize = tnob
@@ -380,6 +382,9 @@ Sub Glf_Options(ByVal eventId)
 		glf_debug_level = "Info"
 	End If
 
+	Dim glfMaxDispatch : glfMaxDispatch = Table1.Option("Glf Frame Dispatch", 1, 10, 1, 5, 0, Array("5", "10", "15", "20", "25", "30", "35", "40", "45", "50"))
+	glf_max_dispatch = glfMaxDispatch*5
+
 	Dim glfuseBCP : glfuseBCP = Table1.Option("Glf Backbox Control Protocol", 0, 1, 1, 0, 0, Array("Off", "On"))
 	If glfuseBCP = 1 Then
 		useBCP = True
@@ -428,35 +433,35 @@ End Sub
 Public Sub Glf_KeyDown(ByVal keycode)
     If glf_gameStarted = True Then
 		If keycode = LeftFlipperKey Then
-			DispatchPinEvent "s_left_flipper_active", Null
+			RunAutoFireDispatchPinEvent "s_left_flipper_active", Null
 		End If
 		
 		If keycode = RightFlipperKey Then
-			DispatchPinEvent "s_right_flipper_active", Null
+			RunAutoFireDispatchPinEvent "s_right_flipper_active", Null
 		End If
 		
 		If keycode = LockbarKey Then
-			DispatchPinEvent "s_lockbar_key_active", Null
+			RunAutoFireDispatchPinEvent "s_lockbar_key_active", Null
 		End If
 
 		If KeyCode = PlungerKey Then
-			DispatchPinEvent "s_plunger_key_active", Null
+			RunAutoFireDispatchPinEvent "s_plunger_key_active", Null
 		End If
 
 		If KeyCode = LeftMagnaSave Then
-			DispatchPinEvent "s_left_magna_key_active", Null
+			RunAutoFireDispatchPinEvent "s_left_magna_key_active", Null
 		End If
 
 		If KeyCode = RightMagnaSave Then
-			DispatchPinEvent "s_right_magna_key_active", Null
+			RunAutoFireDispatchPinEvent "s_right_magna_key_active", Null
 		End If
 
 		If KeyCode = StagedRightFlipperKey Then
-			DispatchPinEvent "s_right_staged_flipper_key_active", Null
+			RunAutoFireDispatchPinEvent "s_right_staged_flipper_key_active", Null
 		End If
 
 		If KeyCode = StagedLeftFlipperKey Then
-			DispatchPinEvent "s_left_staged_flipper_key_active", Null
+			RunAutoFireDispatchPinEvent "s_left_staged_flipper_key_active", Null
 		End If
 		
 		
@@ -478,35 +483,35 @@ End Sub
 Public Sub Glf_KeyUp(ByVal keycode)
 	If glf_gameStarted = True Then
 		If KeyCode = PlungerKey Then
-			DispatchPinEvent "s_plunger_key_inactive", Null
+			RunAutoFireDispatchPinEvent "s_plunger_key_inactive", Null
 		End If
 
 		If keycode = LeftFlipperKey Then
-			DispatchPinEvent "s_left_flipper_inactive", Null
+			RunAutoFireDispatchPinEvent "s_left_flipper_inactive", Null
 		End If
 		
 		If keycode = RightFlipperKey Then
-			DispatchPinEvent "s_right_flipper_inactive", Null
+			RunAutoFireDispatchPinEvent "s_right_flipper_inactive", Null
 		End If
 
 		If keycode = LockbarKey Then
-			DispatchPinEvent "s_lockbar_key_inactive", Null
+			RunAutoFireDispatchPinEvent "s_lockbar_key_inactive", Null
 		End If
 
 		If KeyCode = LeftMagnaSave Then
-			DispatchPinEvent "s_left_magna_key_inactive", Null
+			RunAutoFireDispatchPinEvent "s_left_magna_key_inactive", Null
 		End If
 
 		If KeyCode = RightMagnaSave Then
-			DispatchPinEvent "s_right_magna_key_inactive", Null
+			RunAutoFireDispatchPinEvent "s_right_magna_key_inactive", Null
 		End If
 
 		If KeyCode = StagedRightFlipperKey Then
-			DispatchPinEvent "s_right_staged_flipper_key_inactive", Null
+			RunAutoFireDispatchPinEvent "s_right_staged_flipper_key_inactive", Null
 		End If
 
 		If KeyCode = StagedLeftFlipperKey Then
-			DispatchPinEvent "s_left_staged_flipper_key_inactive", Null
+			RunAutoFireDispatchPinEvent "s_left_staged_flipper_key_inactive", Null
 		End If
 		
 	End If
@@ -520,36 +525,34 @@ glf_lastLightUpdateExecutionTime = 0
 Public Sub Glf_GameTimer_Timer()
 
 	If (gametime - glf_lastEventExecutionTime) > 25 Then
-		debug.print "Slow GLF Frame: " & gametime - glf_lastEventExecutionTime & ". Dispatch Count: " & glf_frame_dispatch_count & ". Handler Count: " & glf_frame_handler_count
+		'debug.print "Slow GLF Frame: " & gametime - glf_lastEventExecutionTime & ". Dispatch Count: " & glf_frame_dispatch_count & ". Handler Count: " & glf_frame_handler_count
 	End If
 	glf_frame_dispatch_count = 0
 	glf_frame_handler_count = 0
-	glf_temp1 = 0
+	'glf_temp1 = 0
 
 	Dim i, key, keys
-	keys = glf_dispatch_await.Keys()
-	For Each key in keys
-		'debug.print key
-		If Not IsArray(glf_dispatch_await(key)) Then
+	i = 0
+	keys = glf_dispatch_handlers_await.Keys()
+	i = Glf_RunHandlers(i)
+	If i<glf_max_dispatch Then
+		keys = glf_dispatch_await.Keys()
+		For Each key in keys
 			RunDispatchPinEvent key, glf_dispatch_await(key)
-		Else
-			DispatchPinHandlers key, glf_dispatch_await(key)
-		End If
-		glf_dispatch_await.Remove key
-		i = i + 1
-		If i=5 Then
-			Exit For
-		End If
-	Next
+			glf_dispatch_await.Remove key
+			If UBound(glf_dispatch_handlers_await.Keys())>-1 Then
+				'Handlers were added, process those first.
+				i = Glf_RunHandlers(i)
+			End If
+			i = i + 1
+			If i>=glf_max_dispatch Then
+				Exit For
+			End If
+		Next
+	End If
 
 	DelayTick
-    'If (gametime - glf_lastEventExecutionTime) >= 33 Then
-	 	'Dim gtime : gtime = gametime
-		
-		'If gametime-gtime > 20 Then
-		'	debug.print "slow frame: " & gametime-gtime
-		'End If
-    'End If
+    
 	If (gametime - glf_lastBcpExecutionTime) >= 300 Then
         glf_lastBcpExecutionTime = gametime
 		Glf_BcpUpdate
@@ -557,6 +560,20 @@ Public Sub Glf_GameTimer_Timer()
     End If
 	glf_lastEventExecutionTime = gametime
 End Sub
+
+Public Function Glf_RunHandlers(i)
+	Dim key, keys
+	keys = glf_dispatch_handlers_await.Keys()
+	For Each key in keys
+		DispatchPinHandlers key, glf_dispatch_handlers_await(key)
+		glf_dispatch_handlers_await.Remove key
+		i = i + 1
+		If i=glf_max_dispatch Then
+			Exit For
+		End If
+	Next
+	Glf_RunHandlers = i
+End Function
 
 Public Function Glf_RegisterLights()
 

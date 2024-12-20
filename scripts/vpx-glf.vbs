@@ -38,6 +38,9 @@ Dim glf_multiball_locks : Set glf_multiball_locks = CreateObject("Scripting.Dict
 Dim glf_multiballs : Set glf_multiballs = CreateObject("Scripting.Dictionary")
 Dim glf_shows : Set glf_shows = CreateObject("Scripting.Dictionary")
 Dim glf_initialVars : Set glf_initialVars = CreateObject("Scripting.Dictionary")
+Dim glf_dispatch_await : Set glf_dispatch_await = CreateObject("Scripting.Dictionary")
+Dim glf_dispatch_handlers_await : Set glf_dispatch_handlers_await = CreateObject("Scripting.Dictionary")
+
 
 Dim bcpController : bcpController = Null
 Dim glf_debugBcpController : glf_debugBcpController = Null
@@ -48,6 +51,7 @@ Dim bcpExeName : bcpExeName = ""
 Dim glf_BIP : glf_BIP = 0
 Dim glf_FuncCount : glf_FuncCount = 0
 Dim glf_SeqCount : glf_SeqCount = 0
+Dim glf_max_dispatch : glf_max_dispatch = 25
 
 Dim glf_ballsPerGame : glf_ballsPerGame = 3
 Dim glf_troughSize : glf_troughSize = tnob
@@ -74,8 +78,19 @@ Public Sub Glf_WriteDebugLog(name, message)
 	End If
 End Sub
 
+Public Function SwitchHandler(handler, args)
+	SwitchHandler = False
+	Select Case handler
+		Case "BaseModeDeviceEventHandler"
+			BaseModeDeviceEventHandler args
+			SwitchHandler = True
+	End Select
+
+End Function
+
 Public Sub Glf_Init()
 	Glf_Options Null 'Force Options Check
+
 
 	If glf_troughSize > 0 Then : swTrough1.DestroyBall : Set glf_ball1 = swTrough1.CreateSizedballWithMass(Ballsize / 2,Ballmass) : gBot = Array(glf_ball1) : Set glf_lastTroughSw = swTrough1 : End If
 	If glf_troughSize > 1 Then : swTrough2.DestroyBall : Set glf_ball2 = swTrough2.CreateSizedballWithMass(Ballsize / 2,Ballmass) : gBot = Array(glf_ball1, glf_ball2) : Set glf_lastTroughSw = swTrough2 : End If
@@ -367,6 +382,9 @@ Sub Glf_Options(ByVal eventId)
 		glf_debug_level = "Info"
 	End If
 
+	Dim glfMaxDispatch : glfMaxDispatch = Table1.Option("Glf Frame Dispatch", 1, 10, 1, 5, 0, Array("5", "10", "15", "20", "25", "30", "35", "40", "45", "50"))
+	glf_max_dispatch = glfMaxDispatch*5
+
 	Dim glfuseBCP : glfuseBCP = Table1.Option("Glf Backbox Control Protocol", 0, 1, 1, 0, 0, Array("Off", "On"))
 	If glfuseBCP = 1 Then
 		useBCP = True
@@ -415,35 +433,35 @@ End Sub
 Public Sub Glf_KeyDown(ByVal keycode)
     If glf_gameStarted = True Then
 		If keycode = LeftFlipperKey Then
-			DispatchPinEvent "s_left_flipper_active", Null
+			RunAutoFireDispatchPinEvent "s_left_flipper_active", Null
 		End If
 		
 		If keycode = RightFlipperKey Then
-			DispatchPinEvent "s_right_flipper_active", Null
+			RunAutoFireDispatchPinEvent "s_right_flipper_active", Null
 		End If
 		
 		If keycode = LockbarKey Then
-			DispatchPinEvent "s_lockbar_key_active", Null
+			RunAutoFireDispatchPinEvent "s_lockbar_key_active", Null
 		End If
 
 		If KeyCode = PlungerKey Then
-			DispatchPinEvent "s_plunger_key_active", Null
+			RunAutoFireDispatchPinEvent "s_plunger_key_active", Null
 		End If
 
 		If KeyCode = LeftMagnaSave Then
-			DispatchPinEvent "s_left_magna_key_active", Null
+			RunAutoFireDispatchPinEvent "s_left_magna_key_active", Null
 		End If
 
 		If KeyCode = RightMagnaSave Then
-			DispatchPinEvent "s_right_magna_key_active", Null
+			RunAutoFireDispatchPinEvent "s_right_magna_key_active", Null
 		End If
 
 		If KeyCode = StagedRightFlipperKey Then
-			DispatchPinEvent "s_right_staged_flipper_key_active", Null
+			RunAutoFireDispatchPinEvent "s_right_staged_flipper_key_active", Null
 		End If
 
 		If KeyCode = StagedLeftFlipperKey Then
-			DispatchPinEvent "s_left_staged_flipper_key_active", Null
+			RunAutoFireDispatchPinEvent "s_left_staged_flipper_key_active", Null
 		End If
 		
 		
@@ -465,35 +483,35 @@ End Sub
 Public Sub Glf_KeyUp(ByVal keycode)
 	If glf_gameStarted = True Then
 		If KeyCode = PlungerKey Then
-			DispatchPinEvent "s_plunger_key_inactive", Null
+			RunAutoFireDispatchPinEvent "s_plunger_key_inactive", Null
 		End If
 
 		If keycode = LeftFlipperKey Then
-			DispatchPinEvent "s_left_flipper_inactive", Null
+			RunAutoFireDispatchPinEvent "s_left_flipper_inactive", Null
 		End If
 		
 		If keycode = RightFlipperKey Then
-			DispatchPinEvent "s_right_flipper_inactive", Null
+			RunAutoFireDispatchPinEvent "s_right_flipper_inactive", Null
 		End If
 
 		If keycode = LockbarKey Then
-			DispatchPinEvent "s_lockbar_key_inactive", Null
+			RunAutoFireDispatchPinEvent "s_lockbar_key_inactive", Null
 		End If
 
 		If KeyCode = LeftMagnaSave Then
-			DispatchPinEvent "s_left_magna_key_inactive", Null
+			RunAutoFireDispatchPinEvent "s_left_magna_key_inactive", Null
 		End If
 
 		If KeyCode = RightMagnaSave Then
-			DispatchPinEvent "s_right_magna_key_inactive", Null
+			RunAutoFireDispatchPinEvent "s_right_magna_key_inactive", Null
 		End If
 
 		If KeyCode = StagedRightFlipperKey Then
-			DispatchPinEvent "s_right_staged_flipper_key_inactive", Null
+			RunAutoFireDispatchPinEvent "s_right_staged_flipper_key_inactive", Null
 		End If
 
 		If KeyCode = StagedLeftFlipperKey Then
-			DispatchPinEvent "s_left_staged_flipper_key_inactive", Null
+			RunAutoFireDispatchPinEvent "s_left_staged_flipper_key_inactive", Null
 		End If
 		
 	End If
@@ -506,17 +524,56 @@ glf_lastLightUpdateExecutionTime = 0
 
 Public Sub Glf_GameTimer_Timer()
 
-    'If (gametime - glf_lastEventExecutionTime) >= 33 Then
-     '   glf_lastEventExecutionTime = gametime
-		DelayTick
-    'End If
+	If (gametime - glf_lastEventExecutionTime) > 25 Then
+		'debug.print "Slow GLF Frame: " & gametime - glf_lastEventExecutionTime & ". Dispatch Count: " & glf_frame_dispatch_count & ". Handler Count: " & glf_frame_handler_count
+	End If
+	glf_frame_dispatch_count = 0
+	glf_frame_handler_count = 0
+	'glf_temp1 = 0
+
+	Dim i, key, keys
+	i = 0
+	keys = glf_dispatch_handlers_await.Keys()
+	i = Glf_RunHandlers(i)
+	If i<glf_max_dispatch Then
+		keys = glf_dispatch_await.Keys()
+		For Each key in keys
+			RunDispatchPinEvent key, glf_dispatch_await(key)
+			glf_dispatch_await.Remove key
+			If UBound(glf_dispatch_handlers_await.Keys())>-1 Then
+				'Handlers were added, process those first.
+				i = Glf_RunHandlers(i)
+			End If
+			i = i + 1
+			If i>=glf_max_dispatch Then
+				Exit For
+			End If
+		Next
+	End If
+
+	DelayTick
+    
 	If (gametime - glf_lastBcpExecutionTime) >= 300 Then
         glf_lastBcpExecutionTime = gametime
 		Glf_BcpUpdate
 		Glf_MonitorBcpUpdate
     End If
-
+	glf_lastEventExecutionTime = gametime
 End Sub
+
+Public Function Glf_RunHandlers(i)
+	Dim key, keys
+	keys = glf_dispatch_handlers_await.Keys()
+	For Each key in keys
+		DispatchPinHandlers key, glf_dispatch_handlers_await(key)
+		glf_dispatch_handlers_await.Remove key
+		i = i + 1
+		If i=glf_max_dispatch Then
+			Exit For
+		End If
+	Next
+	Glf_RunHandlers = i
+End Function
 
 Public Function Glf_RegisterLights()
 
@@ -562,7 +619,7 @@ Public Function Glf_RegisterLights()
 End Function
 
 Public Function Glf_SetLight(light, color)
-	
+
 	Dim rgbColor
 	If glf_lightColorLookup.Exists(color) Then
 		rgbColor = glf_lightColorLookup(color)
@@ -2597,6 +2654,7 @@ Class GlfLightPlayer
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
+            Log "Adding Event Listener for event: " & evt
             AddPinEventListener evt, m_mode & "_light_player_play", "LightPlayerEventHandler", m_priority, Array("play", Me, m_events(evt), evt)
         Next
     End Sub
@@ -10108,8 +10166,13 @@ Sub Glf_StartGame()
         bcpController.PlaySlide "base", "base", 1000
         bcpController.SendPlayerVariable "number", 1, 0
     End If
-    DispatchPinEvent GLF_GAME_STARTED, Null
+    SetDelay GLF_GAME_STARTED, "Glf_DispatchGameStarted", Null, 50
+    'DispatchPinEvent GLF_GAME_STARTED, Null
 End Sub
+
+Public Function Glf_DispatchGameStarted(args)
+    DispatchPinEvent GLF_GAME_STARTED, Null
+End Function
 
 
 '******************************************************
@@ -10119,8 +10182,8 @@ End Sub
 '****************************
 ' Release Ball
 ' Event Listeners:  
-AddPinEventListener GLF_GAME_STARTED, "start_game_release_ball",   "Glf_ReleaseBall", 1000, True
-AddPinEventListener GLF_NEXT_PLAYER, "next_player_release_ball",   "Glf_ReleaseBall", 1000, True
+AddPinEventListener GLF_GAME_STARTED, "start_game_release_ball",   "Glf_ReleaseBall", 20, True
+AddPinEventListener GLF_NEXT_PLAYER, "next_player_release_ball",   "Glf_ReleaseBall", 20, True
 '
 '*****************************
 Function Glf_ReleaseBall(args)
@@ -10288,48 +10351,88 @@ Dim glf_lastPinEvent : glf_lastPinEvent = Null
 Dim glf_dispatch_parent : glf_dispatch_parent = 0
 Dim glf_dispatch_q : Set glf_dispatch_q = CreateObject("Scripting.Dictionary")
 
+Dim glf_frame_dispatch_count : glf_frame_dispatch_count = 0
+Dim glf_frame_handler_count : glf_frame_handler_count = 0
+
 Sub DispatchPinEvent(e, kwargs)
-    If glf_dispatch_parent > 0 Then
-        'There's already a dispatch running.
-        glf_dispatch_q.Add UBound(glf_dispatch_q.Keys()), Array(e,kwargs)
-    Else
-
-        If Not glf_pinEvents.Exists(e) Then
-            Glf_WriteDebugLog "DispatchPinEvent", e & " has no listeners"
-            Exit Sub
-        End If
-        glf_dispatch_parent = glf_dispatch_parent + 1 'Increment the parent count
-
-        If Not Glf_EventBlocks.Exists(e) Then
-            Glf_EventBlocks.Add e, CreateObject("Scripting.Dictionary")
-        End If
-        glf_lastPinEvent = e
-        Dim k
-        Dim handlers : Set handlers = glf_pinEvents(e)
-        Glf_WriteDebugLog "DispatchPinEvent", e
-        Dim handler
-        For Each k In glf_pinEventsOrder(e)
-            Glf_WriteDebugLog "DispatchPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
-            If handlers.Exists(k(1)) Then
-                handler = handlers(k(1))
-                GetRef(handler(0))(Array(handler(2), kwargs, e))
-            Else
-                Glf_WriteDebugLog "DispatchPinEvent_"&e, "Handler does not exist: " & k(1)
-            End If
-        Next
-        Glf_EventBlocks(e).RemoveAll
-
-        glf_dispatch_parent = glf_dispatch_parent - 1 'Handlers finsihed, reduce count.Add
-        'process any q items
-        Dim keys : keys =  glf_dispatch_q.Keys()
-        Dim items : items = glf_dispatch_q.Items()
-        glf_dispatch_q.RemoveAll()
-        Dim i
-        For i=0 To UBound(keys)
-            Dim item : item = items(i)
-            DispatchPinEvent item(0), item(1)
-        Next
+    If glf_dispatch_await.Exists(e) Then
+        glf_dispatch_await.Remove e
     End If
+    glf_dispatch_await.Add e, kwargs
+End Sub
+
+Sub DispatchPinHandlers(e, args)
+    Dim handler : handler = args(0)
+    glf_frame_handler_count = glf_frame_handler_count + 1
+    GetRef(handler(0))(Array(handler(2), args(1), args(2)))
+End Sub
+
+Sub RunDispatchPinEvent(e, kwargs)
+
+    If Not glf_pinEvents.Exists(e) Then
+        Glf_WriteDebugLog "DispatchPinEvent", e & " has no listeners"
+        Exit Sub
+    End If
+
+    If Not Glf_EventBlocks.Exists(e) Then
+        Glf_EventBlocks.Add e, CreateObject("Scripting.Dictionary")
+    End If
+    glf_lastPinEvent = e
+    Dim k
+    Dim handlers : Set handlers = glf_pinEvents(e)
+    Glf_WriteDebugLog "DispatchPinEvent", e
+    Dim handler
+    For Each k In glf_pinEventsOrder(e)
+        Glf_WriteDebugLog "DispatchPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
+        If handlers.Exists(k(1)) Then
+            handler = handlers(k(1))
+            glf_frame_dispatch_count = glf_frame_dispatch_count + 1
+            'debug.print "Adding Handler for: " & e&"_"&k(1)
+            glf_dispatch_handlers_await.Add e&"_"&k(1), Array(handler, kwargs, e)
+            'If SwitchHandler(handler(0), Array(handler(2), kwargs, e)) = False Then
+                'debug.print e&"_"&k(1)
+                'GetRef(handler(0))(Array(handler(2), kwargs, e))
+            'End If
+        Else
+            Glf_WriteDebugLog "DispatchPinEvent_"&e, "Handler does not exist: " & k(1)
+        End If
+    Next
+    Glf_EventBlocks(e).RemoveAll
+
+End Sub
+
+Sub RunAutoFireDispatchPinEvent(e, kwargs)
+
+    If Not glf_pinEvents.Exists(e) Then
+        Glf_WriteDebugLog "DispatchPinEvent", e & " has no listeners"
+        Exit Sub
+    End If
+
+    If Not Glf_EventBlocks.Exists(e) Then
+        Glf_EventBlocks.Add e, CreateObject("Scripting.Dictionary")
+    End If
+    glf_lastPinEvent = e
+    Dim k
+    Dim handlers : Set handlers = glf_pinEvents(e)
+    Glf_WriteDebugLog "DispatchPinEvent", e
+    Dim handler
+    For Each k In glf_pinEventsOrder(e)
+        Glf_WriteDebugLog "DispatchPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
+        If handlers.Exists(k(1)) Then
+            handler = handlers(k(1))
+            glf_frame_dispatch_count = glf_frame_dispatch_count + 1
+            'debug.print "Adding Handler for: " & e&"_"&k(1)
+            'glf_dispatch_handlers_await.Add e&"_"&k(1), Array(handler, kwargs, e)
+            'If SwitchHandler(handler(0), Array(handler(2), kwargs, e)) = False Then
+                'debug.print e&"_"&k(1)
+                GetRef(handler(0))(Array(handler(2), kwargs, e))
+            'End If
+        Else
+            Glf_WriteDebugLog "DispatchPinEvent_"&e, "Handler does not exist: " & k(1)
+        End If
+    Next
+    Glf_EventBlocks(e).RemoveAll
+
 End Sub
 
 Function DispatchRelayPinEvent(e, kwargs)
@@ -10603,6 +10706,9 @@ Function SetPlayerState(key, value)
             v=""
         End If
         Glf_WriteDebugLog "Player State", "Variable "& key &" changed from " & CStr(p) & " to " & CStr(v)
+    End If
+    If Not IsNull(glf_debugBcpController) Then
+        glf_debugBcpController.Send "glf_monitor?name=glf_player_state&key="&key&"&new_value="&value&"&oldValue="&prevValue
     End If
     If glf_playerEvents.Exists(key) Then
         FirePlayerEventHandlers key, value, prevValue, -1

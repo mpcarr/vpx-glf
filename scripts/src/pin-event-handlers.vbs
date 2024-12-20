@@ -42,10 +42,44 @@ Sub RunDispatchPinEvent(e, kwargs)
             handler = handlers(k(1))
             glf_frame_dispatch_count = glf_frame_dispatch_count + 1
             'debug.print "Adding Handler for: " & e&"_"&k(1)
-            glf_dispatch_await.Add e&"_"&k(1), Array(handler, kwargs, e)
+            glf_dispatch_handlers_await.Add e&"_"&k(1), Array(handler, kwargs, e)
             'If SwitchHandler(handler(0), Array(handler(2), kwargs, e)) = False Then
                 'debug.print e&"_"&k(1)
                 'GetRef(handler(0))(Array(handler(2), kwargs, e))
+            'End If
+        Else
+            Glf_WriteDebugLog "DispatchPinEvent_"&e, "Handler does not exist: " & k(1)
+        End If
+    Next
+    Glf_EventBlocks(e).RemoveAll
+
+End Sub
+
+Sub RunAutoFireDispatchPinEvent(e, kwargs)
+
+    If Not glf_pinEvents.Exists(e) Then
+        Glf_WriteDebugLog "DispatchPinEvent", e & " has no listeners"
+        Exit Sub
+    End If
+
+    If Not Glf_EventBlocks.Exists(e) Then
+        Glf_EventBlocks.Add e, CreateObject("Scripting.Dictionary")
+    End If
+    glf_lastPinEvent = e
+    Dim k
+    Dim handlers : Set handlers = glf_pinEvents(e)
+    Glf_WriteDebugLog "DispatchPinEvent", e
+    Dim handler
+    For Each k In glf_pinEventsOrder(e)
+        Glf_WriteDebugLog "DispatchPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
+        If handlers.Exists(k(1)) Then
+            handler = handlers(k(1))
+            glf_frame_dispatch_count = glf_frame_dispatch_count + 1
+            'debug.print "Adding Handler for: " & e&"_"&k(1)
+            'glf_dispatch_handlers_await.Add e&"_"&k(1), Array(handler, kwargs, e)
+            'If SwitchHandler(handler(0), Array(handler(2), kwargs, e)) = False Then
+                'debug.print e&"_"&k(1)
+                GetRef(handler(0))(Array(handler(2), kwargs, e))
             'End If
         Else
             Glf_WriteDebugLog "DispatchPinEvent_"&e, "Handler does not exist: " & k(1)
