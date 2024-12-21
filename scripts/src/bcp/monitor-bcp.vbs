@@ -6,7 +6,7 @@
 
 Class GlfMonitorBcpController
 
-    Private m_bcpController, m_connected
+    Private m_bcpController, m_connected, m_isInMonitor
 
     Public default Function init(port, backboxCommand)
         On Error Resume Next
@@ -16,6 +16,14 @@ Class GlfMonitorBcpController
         If Err Then MsgBox("Can not start VPX BCP Controller") : m_connected = False
         Set Init = Me
 	End Function
+
+    Public Function IsInMonitior()
+        If m_connected = True And m_isInMonitor = True Then
+            IsInMonitior=True
+        Else
+            IsInMonitior=False
+        End If
+    End Function
 
 	Public Sub Send(commandMessage)
 		If m_connected = True Then
@@ -33,6 +41,7 @@ Class GlfMonitorBcpController
 		If m_connected Then
             m_bcpController.Send "reset"
             m_bcpController.Send "trigger?json={""name"": ""slides_play"", ""settings"": {""monitor"": {""action"": ""play"", ""expire"": 0}}, ""context"": """", ""priority"": 1}"
+            m_isInMonitor = True
         End If
 	End Sub
 
@@ -48,6 +57,17 @@ Sub Glf_MonitorBcpUpdate()
     If IsNull(glf_debugBcpController) Then
         Exit Sub
     End If
+
+    'Send Updates
+    If glf_debugBcpController.IsInMonitior Then
+        glf_debugBcpController.Send "glf_monitor?json={""name"": ""glf_player_state"",""changes"": ["&glf_monitor_player_state&"]}"
+        glf_monitor_player_state = ""
+
+        glf_debugBcpController.Send "glf_monitor?json={""name"": ""glf_monitor_modes"",""changes"": ["&glf_monitor_modes&"]}"
+        glf_monitor_modes = ""
+    End If
+    
+
     Dim messages : messages = glf_debugBcpController.GetMessages()
     If IsEmpty(messages) Then
         Exit Sub

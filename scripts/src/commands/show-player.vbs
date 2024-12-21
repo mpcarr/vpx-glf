@@ -12,13 +12,13 @@ Class GlfShowPlayer
 
     Public Property Get Name() : Name = "show_player" : End Property
     Public Property Get EventShows() : EventShows = m_eventValues.Items() : End Property
-    Public Property Get Events(name)
+    Public Property Get EventName(name)
 
         Dim newEvent : Set newEvent = (new GlfEvent)(name)
         m_events.Add newEvent.Raw, newEvent
         Dim new_show : Set new_show = (new GlfShowPlayerItem)()
         m_eventValues.Add newEvent.Raw, new_show
-        Set Events = new_show
+        Set EventName = new_show
         
     End Property
     Public Property Let Debug(value) : m_debug = value : End Property

@@ -12,13 +12,13 @@ Class GlfLightPlayer
     Public Property Get Name() : Name = m_name : End Property
     
     Public Property Get EventNames() : EventNames = m_events.Keys() : End Property    
-    Public Property Get Events(name)
+    Public Property Get EventName(name)
         If m_events.Exists(name) Then
-            Set Events = m_events(name)
+            Set EventName = m_events(name)
         Else
             Dim new_event : Set new_event = (new GlfLightPlayerEventItem)()
             m_events.Add name, new_event
-            Set Events = new_event
+            Set EventName = new_event
         End If
     End Property
 

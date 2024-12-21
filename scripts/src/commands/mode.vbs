@@ -262,7 +262,7 @@ Class Mode
         Set m_eventplayer = (new GlfEventPlayer)(Me)
         Set m_random_event_player = (new GlfRandomEventPlayer)(Me)
         Set m_variableplayer = (new GlfVariablePlayer)(Me)
-
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&m_name&""", ""value"": ""init""},"
         Set Init = Me
 	End Function
 
@@ -271,6 +271,7 @@ Class Mode
         m_started=True
         DispatchPinEvent m_name & "_starting", Null
         DispatchPinEvent m_name & "_started", Null
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&m_name&""", ""value"": ""started""},"
         Log "Started"
     End Sub
 
@@ -280,6 +281,7 @@ Class Mode
             Log "Stopping"
             DispatchPinEvent m_name & "_stopping", Null
             DispatchPinEvent m_name & "_stopped", Null
+            glf_monitor_modes = glf_monitor_modes & "{""mode"": """&m_name&""", ""value"": ""stopped""},"
             Log "Stopped"
         End If
     End Sub

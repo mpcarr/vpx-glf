@@ -44,6 +44,9 @@ Dim glf_dispatch_handlers_await : Set glf_dispatch_handlers_await = CreateObject
 
 Dim bcpController : bcpController = Null
 Dim glf_debugBcpController : glf_debugBcpController = Null
+Dim glf_monitor_player_state : glf_monitor_player_state = ""
+Dim glf_monitor_modes : glf_monitor_modes = ""
+
 Dim useGlfBCPMonitor : useGlfBCPMonitor = False
 Dim useBCP : useBCP = False
 Dim bcpPort : bcpPort = 5050
@@ -1682,7 +1685,7 @@ End Sub
 
 Class GlfMonitorBcpController
 
-    Private m_bcpController, m_connected
+    Private m_bcpController, m_connected, m_isInMonitor
 
     Public default Function init(port, backboxCommand)
         On Error Resume Next
@@ -1692,6 +1695,14 @@ Class GlfMonitorBcpController
         If Err Then MsgBox("Can not start VPX BCP Controller") : m_connected = False
         Set Init = Me
 	End Function
+
+    Public Function IsInMonitior()
+        If m_connected = True And m_isInMonitor = True Then
+            IsInMonitior=True
+        Else
+            IsInMonitior=False
+        End If
+    End Function
 
 	Public Sub Send(commandMessage)
 		If m_connected = True Then
@@ -1709,6 +1720,7 @@ Class GlfMonitorBcpController
 		If m_connected Then
             m_bcpController.Send "reset"
             m_bcpController.Send "trigger?json={""name"": ""slides_play"", ""settings"": {""monitor"": {""action"": ""play"", ""expire"": 0}}, ""context"": """", ""priority"": 1}"
+            m_isInMonitor = True
         End If
 	End Sub
 
@@ -1724,6 +1736,17 @@ Sub Glf_MonitorBcpUpdate()
     If IsNull(glf_debugBcpController) Then
         Exit Sub
     End If
+
+    'Send Updates
+    If glf_debugBcpController.IsInMonitior Then
+        glf_debugBcpController.Send "glf_monitor?json={""name"": ""glf_player_state"",""changes"": ["&glf_monitor_player_state&"]}"
+        glf_monitor_player_state = ""
+
+        glf_debugBcpController.Send "glf_monitor?json={""name"": ""glf_monitor_modes"",""changes"": ["&glf_monitor_modes&"]}"
+        glf_monitor_modes = ""
+    End If
+    
+
     Dim messages : messages = glf_debugBcpController.GetMessages()
     If IsEmpty(messages) Then
         Exit Sub
@@ -2629,13 +2652,13 @@ Class GlfLightPlayer
     Public Property Get Name() : Name = m_name : End Property
     
     Public Property Get EventNames() : EventNames = m_events.Keys() : End Property    
-    Public Property Get Events(name)
+    Public Property Get EventName(name)
         If m_events.Exists(name) Then
-            Set Events = m_events(name)
+            Set EventName = m_events(name)
         Else
             Dim new_event : Set new_event = (new GlfLightPlayerEventItem)()
             m_events.Add name, new_event
-            Set Events = new_event
+            Set EventName = new_event
         End If
     End Property
 
@@ -3422,7 +3445,7 @@ Class Mode
         Set m_eventplayer = (new GlfEventPlayer)(Me)
         Set m_random_event_player = (new GlfRandomEventPlayer)(Me)
         Set m_variableplayer = (new GlfVariablePlayer)(Me)
-
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&m_name&""", ""value"": ""init""},"
         Set Init = Me
 	End Function
 
@@ -3431,6 +3454,7 @@ Class Mode
         m_started=True
         DispatchPinEvent m_name & "_starting", Null
         DispatchPinEvent m_name & "_started", Null
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&m_name&""", ""value"": ""started""},"
         Log "Started"
     End Sub
 
@@ -3440,6 +3464,7 @@ Class Mode
             Log "Stopping"
             DispatchPinEvent m_name & "_stopping", Null
             DispatchPinEvent m_name & "_stopped", Null
+            glf_monitor_modes = glf_monitor_modes & "{""mode"": """&m_name&""", ""value"": ""stopped""},"
             Log "Stopped"
         End If
     End Sub
@@ -4316,6 +4341,7 @@ Class GlfRandomEventPlayer
         Dim event_to_fire
         event_to_fire = m_eventValues(evt).GetNextRandomEvent()
         If Not IsEmpty(event_to_fire) Then
+            Log "Dispatching Event: " & event_to_fire
             DispatchPinEvent event_to_fire, Null
         End If
     End Sub
@@ -6126,13 +6152,13 @@ Class GlfShowPlayer
 
     Public Property Get Name() : Name = "show_player" : End Property
     Public Property Get EventShows() : EventShows = m_eventValues.Items() : End Property
-    Public Property Get Events(name)
+    Public Property Get EventName(name)
 
         Dim newEvent : Set newEvent = (new GlfEvent)(name)
         m_events.Add newEvent.Raw, newEvent
         Dim new_show : Set new_show = (new GlfShowPlayerItem)()
         m_eventValues.Add newEvent.Raw, new_show
-        Set Events = new_show
+        Set EventName = new_show
         
     End Property
     Public Property Let Debug(value) : m_debug = value : End Property
@@ -10708,7 +10734,7 @@ Function SetPlayerState(key, value)
         Glf_WriteDebugLog "Player State", "Variable "& key &" changed from " & CStr(p) & " to " & CStr(v)
     End If
     If Not IsNull(glf_debugBcpController) Then
-        glf_debugBcpController.Send "glf_monitor?name=glf_player_state&key="&key&"&new_value="&value&"&oldValue="&prevValue
+        glf_monitor_player_state = glf_monitor_player_state & "{""key"": """&key&""", ""value"": """&value&"""},"
     End If
     If glf_playerEvents.Exists(key) Then
         FirePlayerEventHandlers key, value, prevValue, -1
