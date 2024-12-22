@@ -41,6 +41,13 @@ Class GlfMonitorBcpController
 		If m_connected Then
             m_bcpController.Send "reset"
             m_bcpController.Send "trigger?json={""name"": ""slides_play"", ""settings"": {""monitor"": {""action"": ""play"", ""expire"": 0}}, ""context"": """", ""priority"": 1}"
+            
+            Dim mode, mode_json
+            mode_json = ""
+            For Each mode in glf_modes.Items()
+                mode_json ="{""mode"": """&mode.Name&""", ""value"": """&mode.Status&""", ""debug"": " & mode.IsDebug & "}," 
+            Next
+            m_bcpController.Send "glf_monitor?json={""name"": ""glf_monitor_modes"", ""changes"": [" & mode_json & "]}"
             m_isInMonitor = True
         End If
 	End Sub
@@ -75,10 +82,26 @@ Sub Glf_MonitorBcpUpdate()
     If IsArray(messages) and UBound(messages)>-1 Then
         Dim message, parameters, parameter, eventName
         For Each message in messages
-            'debug.print(message.Command)
+            debug.print(message.Command)
             Select Case message.Command
                 case "hello"
                     glf_debugBcpController.Reset
+                case "trigger"
+                    eventName = message.GetValue("name")
+                    debug.print eventName
+                    If eventName = "glf_monitor_debug_mode" Then
+                        Dim mode_name : mode_name = message.GetValue("mode")
+                        If Not IsNull(GlfModes(mode_name)) Then
+                            debug.print("got mode")
+                            If GlfModes(mode_name).IsDebug = 1 Then
+                                debug.print("Turning off debug")
+                                GlfModes(mode_name).Debug = False
+                            Else
+                                debug.print("Turning on debug")
+                                GlfModes(mode_name).Debug = True
+                            End If
+                        End If
+                    End If
             End Select
         Next
     End If

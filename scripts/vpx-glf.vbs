@@ -1720,6 +1720,13 @@ Class GlfMonitorBcpController
 		If m_connected Then
             m_bcpController.Send "reset"
             m_bcpController.Send "trigger?json={""name"": ""slides_play"", ""settings"": {""monitor"": {""action"": ""play"", ""expire"": 0}}, ""context"": """", ""priority"": 1}"
+            
+            Dim mode, mode_json
+            mode_json = ""
+            For Each mode in glf_modes.Items()
+                mode_json ="{""mode"": """&mode.Name&""", ""value"": """&mode.Status&""", ""debug"": " & mode.IsDebug & "}," 
+            Next
+            m_bcpController.Send "glf_monitor?json={""name"": ""glf_monitor_modes"", ""changes"": [" & mode_json & "]}"
             m_isInMonitor = True
         End If
 	End Sub
@@ -1754,10 +1761,26 @@ Sub Glf_MonitorBcpUpdate()
     If IsArray(messages) and UBound(messages)>-1 Then
         Dim message, parameters, parameter, eventName
         For Each message in messages
-            'debug.print(message.Command)
+            debug.print(message.Command)
             Select Case message.Command
                 case "hello"
                     glf_debugBcpController.Reset
+                case "trigger"
+                    eventName = message.GetValue("name")
+                    debug.print eventName
+                    If eventName = "glf_monitor_debug_mode" Then
+                        Dim mode_name : mode_name = message.GetValue("mode")
+                        If Not IsNull(GlfModes(mode_name)) Then
+                            debug.print("got mode")
+                            If GlfModes(mode_name).IsDebug = 1 Then
+                                debug.print("Turning off debug")
+                                GlfModes(mode_name).Debug = False
+                            Else
+                                debug.print("Turning on debug")
+                                GlfModes(mode_name).Debug = True
+                            End If
+                        End If
+                    End If
             End Select
         Next
     End If
@@ -3110,7 +3133,9 @@ Class GlfBaseModeDevice
         m_priority = mode.Priority
         m_device = device
         Set m_parent = parent
-        m_debug = mode.Debug
+        If mode.IsDebug = 1 Then
+            m_debug = True
+        End If
 
         Set m_enable_events = CreateObject("Scripting.Dictionary")
         Set m_disable_events = CreateObject("Scripting.Dictionary")
@@ -3211,7 +3236,13 @@ Class Mode
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get Priority(): Priority = m_priority: End Property
-    Public Property Get Debug(): Debug = m_debug: End Property
+    Public Property Get Status()
+        If m_started Then
+            Status = "started"
+        Else
+            Status = "stopped"
+        End If
+    End Property
     Public Property Get LightPlayer()
         If IsNull(m_lightplayer) Then
             Set m_lightplayer = (new GlfLightPlayer)(Me)
@@ -3365,6 +3396,13 @@ Class Mode
         Next
     End Property
 
+    Public Property Get IsDebug()
+        If m_debug = True Then
+            IsDebug = 1
+        Else
+            IsDebug = 0
+        End If
+    End Property
     Public Property Let Debug(value)
         m_debug = value
         Dim config_item
@@ -3392,9 +3430,6 @@ Class Mode
         For Each config_item in m_ballholds.Items()
             config_item.Debug = value
         Next
-        For Each config_item in m_shot_profiles.Items()
-            config_item.Debug = value
-        Next
         For Each config_item in m_sequence_shots.Items()
             config_item.Debug = value
         Next
@@ -3419,6 +3454,7 @@ Class Mode
         If Not IsNull(m_variableplayer) Then
             m_variableplayer.Debug = value
         End If
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&Name&""", ""value"": """&Status&""", ""debug"": " & IsDebug & "},"
     End Property
 
 	Public default Function init(name, priority)
@@ -3445,7 +3481,6 @@ Class Mode
         Set m_eventplayer = (new GlfEventPlayer)(Me)
         Set m_random_event_player = (new GlfRandomEventPlayer)(Me)
         Set m_variableplayer = (new GlfVariablePlayer)(Me)
-        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&m_name&""", ""value"": ""init""},"
         Set Init = Me
 	End Function
 
@@ -3454,7 +3489,7 @@ Class Mode
         m_started=True
         DispatchPinEvent m_name & "_starting", Null
         DispatchPinEvent m_name & "_started", Null
-        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&m_name&""", ""value"": ""started""},"
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&Name&""", ""value"": """&Status&""", ""debug"": " & IsDebug & "},"
         Log "Started"
     End Sub
 
@@ -3464,7 +3499,7 @@ Class Mode
             Log "Stopping"
             DispatchPinEvent m_name & "_stopping", Null
             DispatchPinEvent m_name & "_stopped", Null
-            glf_monitor_modes = glf_monitor_modes & "{""mode"": """&m_name&""", ""value"": ""stopped""},"
+            glf_monitor_modes = glf_monitor_modes & "{""mode"": """&Name&""", ""value"": """&Status&""", ""debug"": " & IsDebug & "},"
             Log "Stopped"
         End If
     End Sub

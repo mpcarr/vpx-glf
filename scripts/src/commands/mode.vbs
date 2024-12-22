@@ -28,7 +28,13 @@ Class Mode
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get Priority(): Priority = m_priority: End Property
-    Public Property Get Debug(): Debug = m_debug: End Property
+    Public Property Get Status()
+        If m_started Then
+            Status = "started"
+        Else
+            Status = "stopped"
+        End If
+    End Property
     Public Property Get LightPlayer()
         If IsNull(m_lightplayer) Then
             Set m_lightplayer = (new GlfLightPlayer)(Me)
@@ -182,6 +188,13 @@ Class Mode
         Next
     End Property
 
+    Public Property Get IsDebug()
+        If m_debug = True Then
+            IsDebug = 1
+        Else
+            IsDebug = 0
+        End If
+    End Property
     Public Property Let Debug(value)
         m_debug = value
         Dim config_item
@@ -209,9 +222,6 @@ Class Mode
         For Each config_item in m_ballholds.Items()
             config_item.Debug = value
         Next
-        For Each config_item in m_shot_profiles.Items()
-            config_item.Debug = value
-        Next
         For Each config_item in m_sequence_shots.Items()
             config_item.Debug = value
         Next
@@ -236,6 +246,7 @@ Class Mode
         If Not IsNull(m_variableplayer) Then
             m_variableplayer.Debug = value
         End If
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&Name&""", ""value"": """&Status&""", ""debug"": " & IsDebug & "},"
     End Property
 
 	Public default Function init(name, priority)
@@ -262,7 +273,6 @@ Class Mode
         Set m_eventplayer = (new GlfEventPlayer)(Me)
         Set m_random_event_player = (new GlfRandomEventPlayer)(Me)
         Set m_variableplayer = (new GlfVariablePlayer)(Me)
-        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&m_name&""", ""value"": ""init""},"
         Set Init = Me
 	End Function
 
@@ -271,7 +281,7 @@ Class Mode
         m_started=True
         DispatchPinEvent m_name & "_starting", Null
         DispatchPinEvent m_name & "_started", Null
-        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&m_name&""", ""value"": ""started""},"
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&Name&""", ""value"": """&Status&""", ""debug"": " & IsDebug & "},"
         Log "Started"
     End Sub
 
@@ -281,7 +291,7 @@ Class Mode
             Log "Stopping"
             DispatchPinEvent m_name & "_stopping", Null
             DispatchPinEvent m_name & "_stopped", Null
-            glf_monitor_modes = glf_monitor_modes & "{""mode"": """&m_name&""", ""value"": ""stopped""},"
+            glf_monitor_modes = glf_monitor_modes & "{""mode"": """&Name&""", ""value"": """&Status&""", ""debug"": " & IsDebug & "},"
             Log "Stopped"
         End If
     End Sub

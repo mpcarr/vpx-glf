@@ -34,7 +34,9 @@ Class GlfBaseModeDevice
         m_priority = mode.Priority
         m_device = device
         Set m_parent = parent
-        m_debug = mode.Debug
+        If mode.IsDebug = 1 Then
+            m_debug = True
+        End If
 
         Set m_enable_events = CreateObject("Scripting.Dictionary")
         Set m_disable_events = CreateObject("Scripting.Dictionary")
