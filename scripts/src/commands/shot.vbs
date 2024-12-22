@@ -25,6 +25,7 @@ Class GlfShot
     Public Property Get Name(): Name = m_name: End Property
     Public Property Let Debug(value)
         m_debug = value
+        m_base_device.Debug = value
     End Property
     Public Property Get Profile(): Profile = m_profile: End Property
     Public Property Get ShotKey(): ShotKey = m_name & "_" & m_profile: End Property

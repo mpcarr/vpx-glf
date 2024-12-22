@@ -64,7 +64,10 @@ Class GlfMultiballs
     Public Property Let StartOrAddABallEvents(value): m_start_or_add_a_ball_events = value: End Property
     Public Property Let StopEvents(value): m_stop_events = value: End Property
         
-    Public Property Let Debug(value): m_debug = value: End Property
+    Public Property Let Debug(value)
+        m_debug = value
+        m_base_device.Debug = value
+    End Property
 
     Public default Function init(name, mode)
         m_name = "multiball_" & name

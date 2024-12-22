@@ -12,6 +12,7 @@ Class GlfRandomEventPlayer
     Public Property Get Name() : Name = "random_event_player" : End Property
     Public Property Let Debug(value)
         m_debug = value
+        m_base_device.Debug = value
     End Property
 
     Public Property Get EventName(value)

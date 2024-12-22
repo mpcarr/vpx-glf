@@ -38,7 +38,9 @@ Class BallSave
     End Property
     Public Property Let AutoLaunch(value) : m_auto_launch = value : End Property
     Public Property Let BallsToSave(value) : m_balls_to_save = value : End Property
-    Public Property Let Debug(value) : m_debug = value : End Property
+    Public Property Let Debug(value)
+        m_debug = value
+    End Property
 
 	Public default Function init(name, mode)
         m_name = "ball_save_" & name

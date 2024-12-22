@@ -33,7 +33,10 @@ Class GlfMultiballLocks
     Public Property Let LockEvents(value) : m_lock_events = value : End Property
     Public Property Let ResetEvents(value) : m_reset_events = value : End Property
     Public Property Let BallsToReplace(value) : m_balls_to_replace = value : End Property
-    Public Property Let Debug(value) : m_debug = value : End Property
+    Public Property Let Debug(value)
+        m_debug = value
+        m_base_device.Debug = value
+    End Property
 
 	Public default Function init(name, mode)
         m_name = "multiball_lock_" & name

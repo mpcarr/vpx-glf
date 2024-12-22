@@ -244,6 +244,7 @@ Class Mode
             m_segment_display_player.Debug = value
         End If
         If Not IsNull(m_variableplayer) Then
+            msgbox value
             m_variableplayer.Debug = value
         End If
         glf_monitor_modes = glf_monitor_modes & "{""mode"": """&Name&""", ""value"": """&Status&""", ""debug"": " & IsDebug & "},"

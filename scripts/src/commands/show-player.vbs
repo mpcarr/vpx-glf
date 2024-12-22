@@ -21,7 +21,10 @@ Class GlfShowPlayer
         Set EventName = new_show
         
     End Property
-    Public Property Let Debug(value) : m_debug = value : End Property
+    Public Property Let Debug(value)
+        m_debug = value
+        m_base_device.Debug = value
+    End Property
 
 	Public default Function init(mode)
         m_name = "show_player_" & mode.name

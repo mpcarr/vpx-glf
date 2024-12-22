@@ -1811,6 +1811,7 @@ Class GlfBallHold
     Public Property Get Name() : Name = m_name : End Property
     Public Property Let Debug(value)
         m_debug = value
+        m_base_device.Debug = value
     End Property
 
     Public Property Let EnableEvents(value) : m_base_device.EnableEvents = value : End Property
@@ -2204,7 +2205,9 @@ Class BallSave
     End Property
     Public Property Let AutoLaunch(value) : m_auto_launch = value : End Property
     Public Property Let BallsToSave(value) : m_balls_to_save = value : End Property
-    Public Property Let Debug(value) : m_debug = value : End Property
+    Public Property Let Debug(value)
+        m_debug = value
+    End Property
 
 	Public default Function init(name, mode)
         m_name = "ball_save_" & name
@@ -2571,7 +2574,10 @@ Class GlfEventPlayer
     Public Property Get Name() : Name = "event_player" : End Property
 
     Public Property Get Events() : Set Events = m_events : End Property
-    Public Property Let Debug(value) : m_debug = value : End Property
+    Public Property Let Debug(value)
+        m_debug = value
+        m_base_device.Debug = value
+    End Property
 
 	Public default Function init(mode)
         m_mode = mode.Name
@@ -2685,7 +2691,10 @@ Class GlfLightPlayer
         End If
     End Property
 
-    Public Property Let Debug(value) : m_debug = value : End Property
+    Public Property Let Debug(value)
+        m_debug = value
+        m_base_device.Debug = value
+    End Property
 
 	Public default Function init(mode)
         m_name = "light_player_" & mode.name
@@ -3452,6 +3461,7 @@ Class Mode
             m_segment_display_player.Debug = value
         End If
         If Not IsNull(m_variableplayer) Then
+            msgbox value
             m_variableplayer.Debug = value
         End If
         glf_monitor_modes = glf_monitor_modes & "{""mode"": """&Name&""", ""value"": """&Status&""", ""debug"": " & IsDebug & "},"
@@ -3727,7 +3737,10 @@ Class GlfMultiballLocks
     Public Property Let LockEvents(value) : m_lock_events = value : End Property
     Public Property Let ResetEvents(value) : m_reset_events = value : End Property
     Public Property Let BallsToReplace(value) : m_balls_to_replace = value : End Property
-    Public Property Let Debug(value) : m_debug = value : End Property
+    Public Property Let Debug(value)
+        m_debug = value
+        m_base_device.Debug = value
+    End Property
 
 	Public default Function init(name, mode)
         m_name = "multiball_lock_" & name
@@ -3952,7 +3965,10 @@ Class GlfMultiballs
     Public Property Let StartOrAddABallEvents(value): m_start_or_add_a_ball_events = value: End Property
     Public Property Let StopEvents(value): m_stop_events = value: End Property
         
-    Public Property Let Debug(value): m_debug = value: End Property
+    Public Property Let Debug(value)
+        m_debug = value
+        m_base_device.Debug = value
+    End Property
 
     Public default Function init(name, mode)
         m_name = "multiball_" & name
@@ -4336,6 +4352,7 @@ Class GlfRandomEventPlayer
     Public Property Get Name() : Name = "random_event_player" : End Property
     Public Property Let Debug(value)
         m_debug = value
+        m_base_device.Debug = value
     End Property
 
     Public Property Get EventName(value)
@@ -4427,6 +4444,7 @@ Class GlfSegmentDisplayPlayer
     Public Property Get Name() : Name = "segment_player" : End Property
     Public Property Let Debug(value)
         m_debug = value
+        m_base_device.Debug = value
     End Property
     
 
@@ -4784,6 +4802,7 @@ Class GlfSequenceShots
     Public Property Get Name(): Name = m_name: End Property
     Public Property Let Debug(value)
         m_debug = value
+        m_base_device.Debug = value
     End Property
     
     Public Property Get GetValue(value)
@@ -5118,6 +5137,7 @@ Class GlfShotGroup
     
     Public Property Let Debug(value)
         m_debug = value
+        m_base_device.Debug = value
     End Property
 
     Public Property Get CommonState()
@@ -5674,6 +5694,7 @@ Class GlfShot
     Public Property Get Name(): Name = m_name: End Property
     Public Property Let Debug(value)
         m_debug = value
+        m_base_device.Debug = value
     End Property
     Public Property Get Profile(): Profile = m_profile: End Property
     Public Property Get ShotKey(): ShotKey = m_name & "_" & m_profile: End Property
@@ -6196,7 +6217,10 @@ Class GlfShowPlayer
         Set EventName = new_show
         
     End Property
-    Public Property Let Debug(value) : m_debug = value : End Property
+    Public Property Let Debug(value)
+        m_debug = value
+        m_base_device.Debug = value
+    End Property
 
 	Public default Function init(mode)
         m_name = "show_player_" & mode.name
@@ -6745,6 +6769,7 @@ Class GlfStateMachine
     Public Property Get Name(): Name = m_name: End Property
     Public Property Let Debug(value)
         m_debug = value
+        m_base_device.Debug = value
     End Property
     
         
@@ -7109,6 +7134,7 @@ Class GlfTimer
     Public Property Get Name() : Name = m_name : End Property
     Public Property Let Debug(value)
         m_debug = value
+        m_base_device.Debug = value
     End Property
     
 

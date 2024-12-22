@@ -15,6 +15,7 @@ Class GlfStateMachine
     Public Property Get Name(): Name = m_name: End Property
     Public Property Let Debug(value)
         m_debug = value
+        m_base_device.Debug = value
     End Property
     
         

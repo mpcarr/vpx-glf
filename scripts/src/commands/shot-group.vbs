@@ -23,6 +23,7 @@ Class GlfShotGroup
     
     Public Property Let Debug(value)
         m_debug = value
+        m_base_device.Debug = value
     End Property
 
     Public Property Get CommonState()
