@@ -4383,7 +4383,7 @@ Class GlfRandomEventPlayer
 
     Private Sub Log(message)
         If m_debug = True Then
-            glf_debugLog.WriteToLog m_name, message
+            glf_debugLog.WriteToLog m_mode & "_random_event_player", message
         End If
     End Sub
 
