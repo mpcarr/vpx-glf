@@ -111,6 +111,7 @@ Class GlfRunningShow
     Private m_tokens
     Private m_internal_cache_id
     Private m_loops
+    Private m_shows_added
 
     Public Property Get CacheName(): CacheName = m_show_name & "_" & m_internal_cache_id & "_" & ShowSettings.InternalCacheId: End Property
     Public Property Get Tokens(): Set Tokens = m_tokens : End Property
@@ -138,6 +139,21 @@ Class GlfRunningShow
         Set m_show_settings = input
         m_loops = m_show_settings.Loops
     End Property
+
+    Public Property Get ShowsAdded()
+        If IsNull(m_shows_added) Then
+            ShowsAdded = Null
+        Else
+            Set ShowsAdded = m_shows_added
+        End If
+    End Property
+    Public Property Let ShowsAdded(input)
+        If IsNull(input) Then
+            m_shows_added = Null
+        Else
+            Set m_shows_added = input
+        End If
+    End Property
     
     Public default Function init(rname, rkey, show_settings, priority, tokens, cache_id)
         m_show_name = rname
@@ -147,7 +163,7 @@ Class GlfRunningShow
         m_internal_cache_id = cache_id
         m_loops=show_settings.Loops
         Set m_show_settings = show_settings
-
+        m_shows_added = Null
         Dim key
         Dim mergedTokens : Set mergedTokens = CreateObject("Scripting.Dictionary")
         If Not IsNull(m_show_settings.Tokens) Then
@@ -242,20 +258,38 @@ Function GlfShowStepHandler(args)
             msgbox running_show.CacheName & " show not cached! Problem with caching"
         End If
 '        glf_debugLog.WriteToLog "Running Show", join(cached_show(running_show.CurrentStep))
-        'At this point, any fades add by this show for the lights in this step need to be remove
-        Dim light, lightParts
-        For Each light in cached_show_seq(running_show.CurrentStep)
-            lightParts = Split(light,"|")
-            Dim show_key
-            For Each show_key in glf_running_shows.Keys
-                If Left(show_key, Len("fade_" & running_show.ShowName & "_" & running_show.Key & "_" & lightParts(0))) = "fade_" & running_show.ShowName & "_" & running_show.Key & "_" & lightParts(0) Then
-                    glf_running_shows(show_key).StopRunningShow()
+        'At this point, any fades added by this show for the lights in this step need to be remove
+        
+        
+        'Dim light, lightParts
+        'For Each light in cached_show_seq(running_show.CurrentStep)
+        '    lightParts = Split(light,"|")
+        '    Dim show_key
+        '    For Each show_key in glf_running_shows.Keys
+        '        If Left(show_key, Len("fade_" & running_show.ShowName & "_" & running_show.Key & "_" & lightParts(0))) = "fade_" & running_show.ShowName & "_" & running_show.Key & "_" & lightParts(0) Then
+        '            glf_running_shows(show_key).StopRunningShow()
+        '        End If
+        '    Next
+        'Next
+
+        If Not IsNull(running_show.ShowsAdded) Then
+            Dim show_added
+            For Each show_added in running_show.ShowsAdded.Keys()
+                If glf_running_shows.Exists(show_added) Then 
+                    glf_running_shows(show_added).StopRunningShow()
                 End If
             Next
-        Next
-        
-        LightPlayerCallbackHandler running_show.Key, Array(cached_show_seq(running_show.CurrentStep)), running_show.ShowName, running_show.Priority + running_show.ShowSettings.Priority, True, running_show.ShowSettings.Speed
+            running_show.ShowsAdded = Null
+        End If  
+
+        Dim shows_added
+        Set shows_added = LightPlayerCallbackHandler(running_show.Key, Array(cached_show_seq(running_show.CurrentStep)), running_show.ShowName, running_show.Priority + running_show.ShowSettings.Priority, True, running_show.ShowSettings.Speed)
+        If IsObject(shows_added) Then
+            'Fade shows were added, log them agains the current show.
+            running_show.ShowsAdded = shows_added
+        End If
     End If
+
     If nextStep.Duration = -1 Then
         'glf_debugLog.WriteToLog "Running Show", "HOLD"
         Exit Function

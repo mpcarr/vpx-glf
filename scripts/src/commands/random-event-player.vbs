@@ -14,6 +14,9 @@ Class GlfRandomEventPlayer
         m_debug = value
         m_base_device.Debug = value
     End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
+    End Property
 
     Public Property Get EventName(value)
         

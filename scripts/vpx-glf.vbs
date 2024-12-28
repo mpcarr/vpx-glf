@@ -41,11 +41,11 @@ Dim glf_initialVars : Set glf_initialVars = CreateObject("Scripting.Dictionary")
 Dim glf_dispatch_await : Set glf_dispatch_await = CreateObject("Scripting.Dictionary")
 Dim glf_dispatch_handlers_await : Set glf_dispatch_handlers_await = CreateObject("Scripting.Dictionary")
 
-
 Dim bcpController : bcpController = Null
 Dim glf_debugBcpController : glf_debugBcpController = Null
 Dim glf_monitor_player_state : glf_monitor_player_state = ""
 Dim glf_monitor_modes : glf_monitor_modes = ""
+Dim glf_monitor_event_stream : glf_monitor_event_stream = ""
 
 Dim useGlfBCPMonitor : useGlfBCPMonitor = False
 Dim useBCP : useBCP = False
@@ -1721,12 +1721,10 @@ Class GlfMonitorBcpController
             m_bcpController.Send "reset"
             m_bcpController.Send "trigger?json={""name"": ""slides_play"", ""settings"": {""monitor"": {""action"": ""play"", ""expire"": 0}}, ""context"": """", ""priority"": 1}"
             
-            Dim mode, mode_json
-            mode_json = ""
+            Dim mode
             For Each mode in glf_modes.Items()
-                mode_json ="{""mode"": """&mode.Name&""", ""value"": """&mode.Status&""", ""debug"": " & mode.IsDebug & "}," 
+                glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """&mode.Status&""", ""debug"": " & mode.IsDebug & "}," 
             Next
-            m_bcpController.Send "glf_monitor?json={""name"": ""glf_monitor_modes"", ""changes"": [" & mode_json & "]}"
             m_isInMonitor = True
         End If
 	End Sub
@@ -1738,6 +1736,77 @@ Class GlfMonitorBcpController
         End If
     End Sub
 End Class
+
+Sub Glf_MonitorModeUpdate(mode)
+    If IsNull(glf_debugBcpController) Then
+        Exit Sub
+    End If
+    glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """&mode.Status&""", ""debug"": " & mode.IsDebug & "},"
+    Dim config_item
+    For Each config_item in mode.BallSavesItems()
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & config_item.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & config_item.Name & """},"
+    Next
+    For Each config_item in mode.CountersItems()
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & config_item.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & config_item.Name & """},"
+    Next
+    For Each config_item in mode.TimersItems()
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & config_item.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & config_item.Name & """},"
+    Next
+    For Each config_item in mode.MultiballLocksItems()
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & config_item.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & config_item.Name & """},"
+    Next
+    For Each config_item in mode.MultiballsItems()
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & config_item.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & config_item.Name & """},"
+    Next
+    For Each config_item in mode.ModeShots()
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & config_item.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & config_item.Name & """},"
+    Next
+    For Each config_item in mode.ShotGroupsItems()
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & config_item.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & config_item.Name & """},"
+    Next
+    For Each config_item in mode.BallHoldsItems()
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & config_item.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & config_item.Name & """},"
+    Next
+    For Each config_item in mode.SequenceShotsItems()
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & config_item.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & config_item.Name & """},"
+    Next
+    For Each config_item in mode.ModeStateMachines()
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & config_item.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & config_item.Name & """},"
+    Next
+    If Not IsNull(mode.LightPlayer) Then
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.LightPlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.LightPlayer.Name & """},"
+    End If
+    If Not IsNull(mode.EventPlayer) Then
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.EventPlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.EventPlayer.Name & """},"
+    End If
+    If Not IsNull(mode.RandomEventPlayer) Then
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.RandomEventPlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.RandomEventPlayer.Name & """},"
+    End If
+    If Not IsNull(mode.ShowPlayer) Then
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.ShowPlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.ShowPlayer.Name & """},"
+    End If
+    If Not IsNull(mode.SegmentDisplayPlayer) Then
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.SegmentDisplayPlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.SegmentDisplayPlayer.Name & """},"
+    End If
+    If Not IsNull(mode.VariablePlayer) Then
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.VariablePlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.VariablePlayer.Name & """},"
+    End If
+End Sub
+
+Sub Glf_MonitorPlayerStateUpdate(key, value)
+    If IsNull(glf_debugBcpController) Then
+        Exit Sub
+    End If    
+    glf_monitor_player_state = glf_monitor_player_state & "{""key"": """&key&""", ""value"": """&value&"""},"
+End Sub
+
+Sub Glf_MonitorEventStream(label, message)
+    If IsNull(glf_debugBcpController) Then
+        Exit Sub
+    End If
+    glf_monitor_event_stream = glf_monitor_event_stream & "{""label"": """&label&""", ""message"": """&message&"""},"
+End Sub
+
 
 Sub Glf_MonitorBcpUpdate()
     If IsNull(glf_debugBcpController) Then
@@ -1751,6 +1820,9 @@ Sub Glf_MonitorBcpUpdate()
 
         glf_debugBcpController.Send "glf_monitor?json={""name"": ""glf_monitor_modes"",""changes"": ["&glf_monitor_modes&"]}"
         glf_monitor_modes = ""
+
+        glf_debugBcpController.Send "glf_monitor?json={""name"": ""glf_event_stream"",""changes"": ["&glf_monitor_event_stream&"]}"
+        glf_monitor_event_stream = ""
     End If
     
 
@@ -1788,7 +1860,7 @@ End Sub
 
 '*****************************************************************************************************************************************
 '  Vpx Glf Bcp Controller
-'*****************************************************************************************************************************************
+'*****************************************************************************************************************************************a
 
 
 Class GlfBallHold
@@ -1812,6 +1884,9 @@ Class GlfBallHold
     Public Property Let Debug(value)
         m_debug = value
         m_base_device.Debug = value
+    End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
     End Property
 
     Public Property Let EnableEvents(value) : m_base_device.EnableEvents = value : End Property
@@ -2205,6 +2280,9 @@ Class BallSave
     End Property
     Public Property Let AutoLaunch(value) : m_auto_launch = value : End Property
     Public Property Let BallsToSave(value) : m_balls_to_save = value : End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
+    End Property
     Public Property Let Debug(value)
         m_debug = value
     End Property
@@ -2452,6 +2530,9 @@ Class GlfCounter
     Public Property Let EventsWhenComplete(value) : m_events_when_complete = value : End Property
     Public Property Let PersistState(value) : m_persist_state = value : End Property
     Public Property Let Debug(value) : m_debug = value : End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
+    End Property
 
 	Public default Function init(name, mode)
         m_name = "counter_" & name
@@ -2578,6 +2659,9 @@ Class GlfEventPlayer
         m_debug = value
         m_base_device.Debug = value
     End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
+    End Property
 
 	Public default Function init(mode)
         m_mode = mode.Name
@@ -2694,6 +2778,9 @@ Class GlfLightPlayer
     Public Property Let Debug(value)
         m_debug = value
         m_base_device.Debug = value
+    End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
     End Property
 
 	Public default Function init(mode)
@@ -2868,7 +2955,7 @@ Class GlfLightPlayerItem
 End Class
 
 Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
-    
+    Dim shows_added
     Dim lightStack
     Dim lightParts, light
     If play = False Then
@@ -2895,6 +2982,7 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
                 End If
             End If
         Next
+        Exit Function
         'glf_debugLog.WriteToLog "LightPlayer", "Removing Light Seq" & mode & "_" & key
     Else
         If UBound(lights) = -1 Then
@@ -2906,7 +2994,7 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
             'glf_debugLog.WriteToLog "LightPlayer", "Lights not an array!?"
         End If
         'glf_debugLog.WriteToLog "LightPlayer", "Adding Light Seq" & Join(lights) & ". Key:" & mode & "_" & key
-        
+        Set shows_added = CreateObject("Scripting.Dictionary")
         For Each light in lights(0)
             lightParts = Split(light,"|")
             
@@ -2931,12 +3019,13 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
                     lightStack.Push mode & "_" & key, lightParts(2), priority
                 End If
             End If
-
+            
             If Not IsEmpty(oldColor) And Ubound(lightParts)=3 Then
                 If lightParts(3) <> "" Then
                     'FadeMs
                     Dim cache_name, new_running_show,cached_show,show_settings
                     cache_name = "fade_" & mode & "_" & key & "_" & lightParts(0) & "_" & oldColor & "_" & lightParts(2) 
+                    shows_added.Add cache_name, True
                     If glf_cached_shows.Exists(cache_name & "__-1") Then
                         Set show_settings = (new GlfShowPlayerItem)()
                         show_settings.Show = cache_name
@@ -2977,6 +3066,7 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
             End If
         Next
     End If
+    Set LightPlayerCallbackHandler = shows_added
 End Function
 
 Function LightPlayerEventHandler(args)
@@ -3136,6 +3226,9 @@ Class GlfBaseModeDevice
     Public Property Get Mode(): Set Mode = m_mode: End Property
 
     Public Property Let Debug(value) : m_debug = value : End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
+    End Property
 
 	Public default Function init(mode, device, parent)
         Set m_mode = mode
@@ -3285,6 +3378,7 @@ Class Mode
         End If
     End Property
 
+    Public Property Get BallSavesItems() : BallSavesItems = m_ballsaves.Items() : End Property
     Public Property Get BallSaves(name)
         If m_ballsaves.Exists(name) Then
             Set BallSaves = m_ballsaves(name)
@@ -3295,6 +3389,7 @@ Class Mode
         End If
     End Property
 
+    Public Property Get TimersItems() : TimersItems = m_timers.Items() : End Property
     Public Property Get Timers(name)
         If m_timers.Exists(name) Then
             Set Timers = m_timers(name)
@@ -3305,6 +3400,7 @@ Class Mode
         End If
     End Property
 
+    Public Property Get CountersItems() : CountersItems = m_counters.Items() : End Property
     Public Property Get Counters(name)
         If m_counters.Exists(name) Then
             Set Counters = m_counters(name)
@@ -3315,6 +3411,7 @@ Class Mode
         End If
     End Property
 
+    Public Property Get MultiballLocksItems() : MultiballLocksItems = m_multiball_locks.Items() : End Property
     Public Property Get MultiballLocks(name)
         If m_multiball_locks.Exists(name) Then
             Set MultiballLocks = m_multiball_locks(name)
@@ -3325,6 +3422,7 @@ Class Mode
         End If
     End Property
 
+    Public Property Get MultiballsItems() : MultiballsItems = m_multiballs.Items() : End Property
     Public Property Get Multiballs(name)
         If m_multiballs.Exists(name) Then
             Set Multiballs = m_multiballs(name)
@@ -3335,6 +3433,7 @@ Class Mode
         End If
     End Property
 
+    Public Property Get SequenceShotsItems() : SequenceShotsItems = m_sequence_shots.Items() : End Property
     Public Property Get SequenceShots(name)
         If m_sequence_shots.Exists(name) Then
             Set SequenceShots = m_sequence_shots(name)
@@ -3367,6 +3466,7 @@ Class Mode
         End If
     End Property
 
+    Public Property Get ShotGroupsItems() : ShotGroupsItems = m_shot_groups.Items() : End Property
     Public Property Get ShotGroups(name)
         If m_shot_groups.Exists(name) Then
             Set ShotGroups = m_shot_groups(name)
@@ -3377,6 +3477,7 @@ Class Mode
         End If
     End Property
 
+    Public Property Get BallHoldsItems() : BallHoldsItems = m_ballholds.Items() : End Property
     Public Property Get BallHolds(name)
         If m_ballholds.Exists(name) Then
             Set BallHolds = m_shots(name)
@@ -3461,10 +3562,9 @@ Class Mode
             m_segment_display_player.Debug = value
         End If
         If Not IsNull(m_variableplayer) Then
-            msgbox value
             m_variableplayer.Debug = value
         End If
-        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&Name&""", ""value"": """&Status&""", ""debug"": " & IsDebug & "},"
+        Glf_MonitorModeUpdate Me
     End Property
 
 	Public default Function init(name, priority)
@@ -3491,6 +3591,7 @@ Class Mode
         Set m_eventplayer = (new GlfEventPlayer)(Me)
         Set m_random_event_player = (new GlfRandomEventPlayer)(Me)
         Set m_variableplayer = (new GlfVariablePlayer)(Me)
+        Glf_MonitorModeUpdate Me
         Set Init = Me
 	End Function
 
@@ -3499,7 +3600,7 @@ Class Mode
         m_started=True
         DispatchPinEvent m_name & "_starting", Null
         DispatchPinEvent m_name & "_started", Null
-        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&Name&""", ""value"": """&Status&""", ""debug"": " & IsDebug & "},"
+        Glf_MonitorModeUpdate Me
         Log "Started"
     End Sub
 
@@ -3509,7 +3610,7 @@ Class Mode
             Log "Stopping"
             DispatchPinEvent m_name & "_stopping", Null
             DispatchPinEvent m_name & "_stopped", Null
-            glf_monitor_modes = glf_monitor_modes & "{""mode"": """&Name&""", ""value"": """&Status&""", ""debug"": " & IsDebug & "},"
+            Glf_MonitorModeUpdate Me
             Log "Stopped"
         End If
     End Sub
@@ -3741,6 +3842,9 @@ Class GlfMultiballLocks
         m_debug = value
         m_base_device.Debug = value
     End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
+    End Property
 
 	Public default Function init(name, mode)
         m_name = "multiball_lock_" & name
@@ -3968,6 +4072,9 @@ Class GlfMultiballs
     Public Property Let Debug(value)
         m_debug = value
         m_base_device.Debug = value
+    End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
     End Property
 
     Public default Function init(name, mode)
@@ -4206,7 +4313,6 @@ Class GlfMultiballs
 
     Function BallDrainCountBalls(balls):
         DispatchPinEvent m_name & "_ball_lost", Null
-        Log "WOW OWL: " & glf_BIP - balls
         If not glf_gameStarted or (glf_BIP - balls) = 0 Then
             m_balls_added_live = 0
             m_balls_live_target = 0
@@ -4354,6 +4460,9 @@ Class GlfRandomEventPlayer
         m_debug = value
         m_base_device.Debug = value
     End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
+    End Property
 
     Public Property Get EventName(value)
         
@@ -4445,6 +4554,9 @@ Class GlfSegmentDisplayPlayer
     Public Property Let Debug(value)
         m_debug = value
         m_base_device.Debug = value
+    End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
     End Property
     
 
@@ -4804,6 +4916,9 @@ Class GlfSequenceShots
         m_debug = value
         m_base_device.Debug = value
     End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
+    End Property
     
     Public Property Get GetValue(value)
         Select Case value
@@ -5138,6 +5253,9 @@ Class GlfShotGroup
     Public Property Let Debug(value)
         m_debug = value
         m_base_device.Debug = value
+    End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
     End Property
 
     Public Property Get CommonState()
@@ -5696,6 +5814,9 @@ Class GlfShot
         m_debug = value
         m_base_device.Debug = value
     End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
+    End Property
     Public Property Get Profile(): Profile = m_profile: End Property
     Public Property Get ShotKey(): ShotKey = m_name & "_" & m_profile: End Property
     Public Property Get State(): State = m_state: End Property
@@ -6221,6 +6342,9 @@ Class GlfShowPlayer
         m_debug = value
         m_base_device.Debug = value
     End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
+    End Property
 
 	Public default Function init(mode)
         m_name = "show_player_" & mode.name
@@ -6503,6 +6627,7 @@ Class GlfRunningShow
     Private m_tokens
     Private m_internal_cache_id
     Private m_loops
+    Private m_shows_added
 
     Public Property Get CacheName(): CacheName = m_show_name & "_" & m_internal_cache_id & "_" & ShowSettings.InternalCacheId: End Property
     Public Property Get Tokens(): Set Tokens = m_tokens : End Property
@@ -6530,6 +6655,21 @@ Class GlfRunningShow
         Set m_show_settings = input
         m_loops = m_show_settings.Loops
     End Property
+
+    Public Property Get ShowsAdded()
+        If IsNull(m_shows_added) Then
+            ShowsAdded = Null
+        Else
+            Set ShowsAdded = m_shows_added
+        End If
+    End Property
+    Public Property Let ShowsAdded(input)
+        If IsNull(input) Then
+            m_shows_added = Null
+        Else
+            Set m_shows_added = input
+        End If
+    End Property
     
     Public default Function init(rname, rkey, show_settings, priority, tokens, cache_id)
         m_show_name = rname
@@ -6539,7 +6679,7 @@ Class GlfRunningShow
         m_internal_cache_id = cache_id
         m_loops=show_settings.Loops
         Set m_show_settings = show_settings
-
+        m_shows_added = Null
         Dim key
         Dim mergedTokens : Set mergedTokens = CreateObject("Scripting.Dictionary")
         If Not IsNull(m_show_settings.Tokens) Then
@@ -6634,20 +6774,38 @@ Function GlfShowStepHandler(args)
             msgbox running_show.CacheName & " show not cached! Problem with caching"
         End If
 '        glf_debugLog.WriteToLog "Running Show", join(cached_show(running_show.CurrentStep))
-        'At this point, any fades add by this show for the lights in this step need to be remove
-        Dim light, lightParts
-        For Each light in cached_show_seq(running_show.CurrentStep)
-            lightParts = Split(light,"|")
-            Dim show_key
-            For Each show_key in glf_running_shows.Keys
-                If Left(show_key, Len("fade_" & running_show.ShowName & "_" & running_show.Key & "_" & lightParts(0))) = "fade_" & running_show.ShowName & "_" & running_show.Key & "_" & lightParts(0) Then
-                    glf_running_shows(show_key).StopRunningShow()
+        'At this point, any fades added by this show for the lights in this step need to be remove
+        
+        
+        'Dim light, lightParts
+        'For Each light in cached_show_seq(running_show.CurrentStep)
+        '    lightParts = Split(light,"|")
+        '    Dim show_key
+        '    For Each show_key in glf_running_shows.Keys
+        '        If Left(show_key, Len("fade_" & running_show.ShowName & "_" & running_show.Key & "_" & lightParts(0))) = "fade_" & running_show.ShowName & "_" & running_show.Key & "_" & lightParts(0) Then
+        '            glf_running_shows(show_key).StopRunningShow()
+        '        End If
+        '    Next
+        'Next
+
+        If Not IsNull(running_show.ShowsAdded) Then
+            Dim show_added
+            For Each show_added in running_show.ShowsAdded.Keys()
+                If glf_running_shows.Exists(show_added) Then 
+                    glf_running_shows(show_added).StopRunningShow()
                 End If
             Next
-        Next
-        
-        LightPlayerCallbackHandler running_show.Key, Array(cached_show_seq(running_show.CurrentStep)), running_show.ShowName, running_show.Priority + running_show.ShowSettings.Priority, True, running_show.ShowSettings.Speed
+            running_show.ShowsAdded = Null
+        End If  
+
+        Dim shows_added
+        Set shows_added = LightPlayerCallbackHandler(running_show.Key, Array(cached_show_seq(running_show.CurrentStep)), running_show.ShowName, running_show.Priority + running_show.ShowSettings.Priority, True, running_show.ShowSettings.Speed)
+        If IsObject(shows_added) Then
+            'Fade shows were added, log them agains the current show.
+            running_show.ShowsAdded = shows_added
+        End If
     End If
+
     If nextStep.Duration = -1 Then
         'glf_debugLog.WriteToLog "Running Show", "HOLD"
         Exit Function
@@ -6770,6 +6928,9 @@ Class GlfStateMachine
     Public Property Let Debug(value)
         m_debug = value
         m_base_device.Debug = value
+    End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
     End Property
     
         
@@ -7136,6 +7297,9 @@ Class GlfTimer
         m_debug = value
         m_base_device.Debug = value
     End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
+    End Property
     
 
     Public Property Get ControlEvents()
@@ -7194,7 +7358,7 @@ Class GlfTimer
     Public Sub Activate()
         Dim evt
         For Each evt in m_control_events.Keys
-            AddPinEventListener m_control_events(evt).EventName, m_name & "_action", "TimerEventHandler", m_priority, Array("action", Me, m_control_events(evt))
+            AddPinEventListener m_control_events(evt).EventName.EventName, m_name & "_action", "TimerEventHandler", m_priority, Array("action", Me, m_control_events(evt))
         Next
         m_ticks = m_start_value.Value
         m_ticks_remaining = m_ticks
@@ -7207,13 +7371,19 @@ Class GlfTimer
     Public Sub Deactivate()
         Dim evt
         For Each evt in m_control_events.Keys
-            RemovePinEventListener m_control_events(evt).EventName, m_name & "_action"
+            RemovePinEventListener m_control_events(evt).EventName.EventName, m_name & "_action"
         Next
         RemoveDelay m_name & "_tick"
         m_running = False
     End Sub
 
     Public Sub Action(controlEvent)
+
+        If Not IsNull(controlEvent.EventName) Then
+            If controlEvent.EventName().Evaluate() = False Then
+                Exit Sub
+            End IF
+        End If
 
         dim value : value = controlEvent.Value
         Select Case controlEvent.Action
@@ -7474,8 +7644,11 @@ End Function
 Class GlfTimerControlEvent
 	Private m_event, m_action, m_value
   
-	Public Property Get EventName(): EventName = m_event: End Property
-    Public Property Let EventName(input): m_event = input: End Property
+	Public Property Get EventName(): Set EventName = m_event: End Property
+    Public Property Let EventName(input)
+        Dim newEvent : Set newEvent = (new GlfEvent)(input)
+        Set m_event = newEvent
+    End Property
 
     Public Property Get Action(): Action = m_action : End Property
     Public Property Let Action(input): m_action = input : End Property
@@ -7492,7 +7665,7 @@ Class GlfTimerControlEvent
     End Property
 
 	Public default Function init()
-        m_event = Empty
+        m_event = Null
         m_action = Empty
         m_value = Null
 	    Set Init = Me
@@ -7502,11 +7675,15 @@ End Class
 Class GlfVariablePlayer
 
     Private m_priority
+    Private m_name
     Private m_mode
     Private m_events
     Private m_debug
 
     Private m_value
+
+    Public Property Get Name() : Name = m_name : End Property
+
 
     Public Property Get EventName(name)
         Dim newEvent : Set newEvent = (new GlfVariablePlayerEvent)(name)
@@ -7515,8 +7692,12 @@ Class GlfVariablePlayer
     End Property
    
     Public Property Let Debug(value) : m_debug = value : End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
+    End Property
 
 	Public default Function init(mode)
+        m_name = "variable_player_" & mode.name
         m_mode = mode.Name
         m_priority = mode.Priority
 
@@ -8098,16 +8279,17 @@ End Class
 Function BallDeviceEventHandler(args)
     Dim ownProps, ball
     ownProps = args(0)
-    Set ball = args(1) 
     Dim evt : evt = ownProps(0)
     Dim ballDevice : Set ballDevice = ownProps(1)
     Dim switch
     debug.print "Ball Device: " & ballDevice.Name & ". Event: " & evt
     Select Case evt
         Case "ball_entering"
+            Set ball = args(1)
             switch = ownProps(2)
             ballDevice.BallEntering ball, switch
         Case "ball_enter"
+            Set ball = args(1)
             switch = ownProps(2)
             ballDevice.BallEnter ball, switch
         Case "ball_eject"
@@ -8117,9 +8299,11 @@ Function BallDeviceEventHandler(args)
         Case "ball_exiting"
             switch = ownProps(2)
             If RemoveDelay(ballDevice.Name & "_" & switch & "_ball_enter") = False Then
+                Set ball = args(1)
                 ballDevice.BallExiting ball, switch
             End If
         Case "eject_timeout"
+            Set ball = args(1)
             ballDevice.BallExitSuccess ball
         Case "eject_enable_complete"
             ballDevice.EjectEnableComplete
@@ -10425,6 +10609,7 @@ Class GlfDebugLogFile
 			TxtFileStream.WriteLine FormattedMsg
 			Debug.Print label & ": " & message
 		End If
+		Glf_MonitorEventStream label, message
 	End Sub
 End Class
 
@@ -10794,9 +10979,7 @@ Function SetPlayerState(key, value)
         End If
         Glf_WriteDebugLog "Player State", "Variable "& key &" changed from " & CStr(p) & " to " & CStr(v)
     End If
-    If Not IsNull(glf_debugBcpController) Then
-        glf_monitor_player_state = glf_monitor_player_state & "{""key"": """&key&""", ""value"": """&value&"""},"
-    End If
+    Glf_MonitorPlayerStateUpdate key, value
     If glf_playerEvents.Exists(key) Then
         FirePlayerEventHandlers key, value, prevValue, -1
     End If

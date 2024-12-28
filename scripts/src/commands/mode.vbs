@@ -68,6 +68,7 @@ Class Mode
         End If
     End Property
 
+    Public Property Get BallSavesItems() : BallSavesItems = m_ballsaves.Items() : End Property
     Public Property Get BallSaves(name)
         If m_ballsaves.Exists(name) Then
             Set BallSaves = m_ballsaves(name)
@@ -78,6 +79,7 @@ Class Mode
         End If
     End Property
 
+    Public Property Get TimersItems() : TimersItems = m_timers.Items() : End Property
     Public Property Get Timers(name)
         If m_timers.Exists(name) Then
             Set Timers = m_timers(name)
@@ -88,6 +90,7 @@ Class Mode
         End If
     End Property
 
+    Public Property Get CountersItems() : CountersItems = m_counters.Items() : End Property
     Public Property Get Counters(name)
         If m_counters.Exists(name) Then
             Set Counters = m_counters(name)
@@ -98,6 +101,7 @@ Class Mode
         End If
     End Property
 
+    Public Property Get MultiballLocksItems() : MultiballLocksItems = m_multiball_locks.Items() : End Property
     Public Property Get MultiballLocks(name)
         If m_multiball_locks.Exists(name) Then
             Set MultiballLocks = m_multiball_locks(name)
@@ -108,6 +112,7 @@ Class Mode
         End If
     End Property
 
+    Public Property Get MultiballsItems() : MultiballsItems = m_multiballs.Items() : End Property
     Public Property Get Multiballs(name)
         If m_multiballs.Exists(name) Then
             Set Multiballs = m_multiballs(name)
@@ -118,6 +123,7 @@ Class Mode
         End If
     End Property
 
+    Public Property Get SequenceShotsItems() : SequenceShotsItems = m_sequence_shots.Items() : End Property
     Public Property Get SequenceShots(name)
         If m_sequence_shots.Exists(name) Then
             Set SequenceShots = m_sequence_shots(name)
@@ -150,6 +156,7 @@ Class Mode
         End If
     End Property
 
+    Public Property Get ShotGroupsItems() : ShotGroupsItems = m_shot_groups.Items() : End Property
     Public Property Get ShotGroups(name)
         If m_shot_groups.Exists(name) Then
             Set ShotGroups = m_shot_groups(name)
@@ -160,6 +167,7 @@ Class Mode
         End If
     End Property
 
+    Public Property Get BallHoldsItems() : BallHoldsItems = m_ballholds.Items() : End Property
     Public Property Get BallHolds(name)
         If m_ballholds.Exists(name) Then
             Set BallHolds = m_shots(name)
@@ -244,10 +252,9 @@ Class Mode
             m_segment_display_player.Debug = value
         End If
         If Not IsNull(m_variableplayer) Then
-            msgbox value
             m_variableplayer.Debug = value
         End If
-        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&Name&""", ""value"": """&Status&""", ""debug"": " & IsDebug & "},"
+        Glf_MonitorModeUpdate Me
     End Property
 
 	Public default Function init(name, priority)
@@ -274,6 +281,7 @@ Class Mode
         Set m_eventplayer = (new GlfEventPlayer)(Me)
         Set m_random_event_player = (new GlfRandomEventPlayer)(Me)
         Set m_variableplayer = (new GlfVariablePlayer)(Me)
+        Glf_MonitorModeUpdate Me
         Set Init = Me
 	End Function
 
@@ -282,7 +290,7 @@ Class Mode
         m_started=True
         DispatchPinEvent m_name & "_starting", Null
         DispatchPinEvent m_name & "_started", Null
-        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&Name&""", ""value"": """&Status&""", ""debug"": " & IsDebug & "},"
+        Glf_MonitorModeUpdate Me
         Log "Started"
     End Sub
 
@@ -292,7 +300,7 @@ Class Mode
             Log "Stopping"
             DispatchPinEvent m_name & "_stopping", Null
             DispatchPinEvent m_name & "_stopped", Null
-            glf_monitor_modes = glf_monitor_modes & "{""mode"": """&Name&""", ""value"": """&Status&""", ""debug"": " & IsDebug & "},"
+            Glf_MonitorModeUpdate Me
             Log "Stopped"
         End If
     End Sub

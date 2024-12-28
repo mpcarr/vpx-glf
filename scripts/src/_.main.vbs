@@ -41,11 +41,11 @@ Dim glf_initialVars : Set glf_initialVars = CreateObject("Scripting.Dictionary")
 Dim glf_dispatch_await : Set glf_dispatch_await = CreateObject("Scripting.Dictionary")
 Dim glf_dispatch_handlers_await : Set glf_dispatch_handlers_await = CreateObject("Scripting.Dictionary")
 
-
 Dim bcpController : bcpController = Null
 Dim glf_debugBcpController : glf_debugBcpController = Null
 Dim glf_monitor_player_state : glf_monitor_player_state = ""
 Dim glf_monitor_modes : glf_monitor_modes = ""
+Dim glf_monitor_event_stream : glf_monitor_event_stream = ""
 
 Dim useGlfBCPMonitor : useGlfBCPMonitor = False
 Dim useBCP : useBCP = False

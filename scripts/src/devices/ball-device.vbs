@@ -216,16 +216,17 @@ End Class
 Function BallDeviceEventHandler(args)
     Dim ownProps, ball
     ownProps = args(0)
-    Set ball = args(1) 
     Dim evt : evt = ownProps(0)
     Dim ballDevice : Set ballDevice = ownProps(1)
     Dim switch
     debug.print "Ball Device: " & ballDevice.Name & ". Event: " & evt
     Select Case evt
         Case "ball_entering"
+            Set ball = args(1)
             switch = ownProps(2)
             ballDevice.BallEntering ball, switch
         Case "ball_enter"
+            Set ball = args(1)
             switch = ownProps(2)
             ballDevice.BallEnter ball, switch
         Case "ball_eject"
@@ -235,9 +236,11 @@ Function BallDeviceEventHandler(args)
         Case "ball_exiting"
             switch = ownProps(2)
             If RemoveDelay(ballDevice.Name & "_" & switch & "_ball_enter") = False Then
+                Set ball = args(1)
                 ballDevice.BallExiting ball, switch
             End If
         Case "eject_timeout"
+            Set ball = args(1)
             ballDevice.BallExitSuccess ball
         Case "eject_enable_complete"
             ballDevice.EjectEnableComplete

@@ -26,6 +26,9 @@ Class GlfTimer
         m_debug = value
         m_base_device.Debug = value
     End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
+    End Property
     
 
     Public Property Get ControlEvents()
@@ -84,7 +87,7 @@ Class GlfTimer
     Public Sub Activate()
         Dim evt
         For Each evt in m_control_events.Keys
-            AddPinEventListener m_control_events(evt).EventName, m_name & "_action", "TimerEventHandler", m_priority, Array("action", Me, m_control_events(evt))
+            AddPinEventListener m_control_events(evt).EventName.EventName, m_name & "_action", "TimerEventHandler", m_priority, Array("action", Me, m_control_events(evt))
         Next
         m_ticks = m_start_value.Value
         m_ticks_remaining = m_ticks
@@ -97,13 +100,19 @@ Class GlfTimer
     Public Sub Deactivate()
         Dim evt
         For Each evt in m_control_events.Keys
-            RemovePinEventListener m_control_events(evt).EventName, m_name & "_action"
+            RemovePinEventListener m_control_events(evt).EventName.EventName, m_name & "_action"
         Next
         RemoveDelay m_name & "_tick"
         m_running = False
     End Sub
 
     Public Sub Action(controlEvent)
+
+        If Not IsNull(controlEvent.EventName) Then
+            If controlEvent.EventName().Evaluate() = False Then
+                Exit Sub
+            End IF
+        End If
 
         dim value : value = controlEvent.Value
         Select Case controlEvent.Action
@@ -364,8 +373,11 @@ End Function
 Class GlfTimerControlEvent
 	Private m_event, m_action, m_value
   
-	Public Property Get EventName(): EventName = m_event: End Property
-    Public Property Let EventName(input): m_event = input: End Property
+	Public Property Get EventName(): Set EventName = m_event: End Property
+    Public Property Let EventName(input)
+        Dim newEvent : Set newEvent = (new GlfEvent)(input)
+        Set m_event = newEvent
+    End Property
 
     Public Property Get Action(): Action = m_action : End Property
     Public Property Let Action(input): m_action = input : End Property
@@ -382,7 +394,7 @@ Class GlfTimerControlEvent
     End Property
 
 	Public default Function init()
-        m_event = Empty
+        m_event = Null
         m_action = Empty
         m_value = Null
 	    Set Init = Me

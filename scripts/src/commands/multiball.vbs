@@ -68,6 +68,9 @@ Class GlfMultiballs
         m_debug = value
         m_base_device.Debug = value
     End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
+    End Property
 
     Public default Function init(name, mode)
         m_name = "multiball_" & name
@@ -305,7 +308,6 @@ Class GlfMultiballs
 
     Function BallDrainCountBalls(balls):
         DispatchPinEvent m_name & "_ball_lost", Null
-        Log "WOW OWL: " & glf_BIP - balls
         If not glf_gameStarted or (glf_BIP - balls) = 0 Then
             m_balls_added_live = 0
             m_balls_live_target = 0

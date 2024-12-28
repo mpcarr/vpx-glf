@@ -68,6 +68,7 @@ Class GlfDebugLogFile
 			TxtFileStream.WriteLine FormattedMsg
 			Debug.Print label & ": " & message
 		End If
+		Glf_MonitorEventStream label, message
 	End Sub
 End Class
 

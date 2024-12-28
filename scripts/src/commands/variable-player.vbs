@@ -1,11 +1,15 @@
 Class GlfVariablePlayer
 
     Private m_priority
+    Private m_name
     Private m_mode
     Private m_events
     Private m_debug
 
     Private m_value
+
+    Public Property Get Name() : Name = m_name : End Property
+
 
     Public Property Get EventName(name)
         Dim newEvent : Set newEvent = (new GlfVariablePlayerEvent)(name)
@@ -14,8 +18,12 @@ Class GlfVariablePlayer
     End Property
    
     Public Property Let Debug(value) : m_debug = value : End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
+    End Property
 
 	Public default Function init(mode)
+        m_name = "variable_player_" & mode.name
         m_mode = mode.Name
         m_priority = mode.Priority
 

@@ -27,6 +27,9 @@ Class GlfShot
         m_debug = value
         m_base_device.Debug = value
     End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
+    End Property
     Public Property Get Profile(): Profile = m_profile: End Property
     Public Property Get ShotKey(): ShotKey = m_name & "_" & m_profile: End Property
     Public Property Get State(): State = m_state: End Property

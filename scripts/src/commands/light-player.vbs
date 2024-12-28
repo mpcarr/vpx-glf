@@ -26,6 +26,9 @@ Class GlfLightPlayer
         m_debug = value
         m_base_device.Debug = value
     End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
+    End Property
 
 	Public default Function init(mode)
         m_name = "light_player_" & mode.name
@@ -199,7 +202,7 @@ Class GlfLightPlayerItem
 End Class
 
 Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
-    
+    Dim shows_added
     Dim lightStack
     Dim lightParts, light
     If play = False Then
@@ -226,6 +229,7 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
                 End If
             End If
         Next
+        Exit Function
         'glf_debugLog.WriteToLog "LightPlayer", "Removing Light Seq" & mode & "_" & key
     Else
         If UBound(lights) = -1 Then
@@ -237,7 +241,7 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
             'glf_debugLog.WriteToLog "LightPlayer", "Lights not an array!?"
         End If
         'glf_debugLog.WriteToLog "LightPlayer", "Adding Light Seq" & Join(lights) & ". Key:" & mode & "_" & key
-        
+        Set shows_added = CreateObject("Scripting.Dictionary")
         For Each light in lights(0)
             lightParts = Split(light,"|")
             
@@ -262,12 +266,13 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
                     lightStack.Push mode & "_" & key, lightParts(2), priority
                 End If
             End If
-
+            
             If Not IsEmpty(oldColor) And Ubound(lightParts)=3 Then
                 If lightParts(3) <> "" Then
                     'FadeMs
                     Dim cache_name, new_running_show,cached_show,show_settings
                     cache_name = "fade_" & mode & "_" & key & "_" & lightParts(0) & "_" & oldColor & "_" & lightParts(2) 
+                    shows_added.Add cache_name, True
                     If glf_cached_shows.Exists(cache_name & "__-1") Then
                         Set show_settings = (new GlfShowPlayerItem)()
                         show_settings.Show = cache_name
@@ -308,6 +313,7 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
             End If
         Next
     End If
+    Set LightPlayerCallbackHandler = shows_added
 End Function
 
 Function LightPlayerEventHandler(args)

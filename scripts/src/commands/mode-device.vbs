@@ -28,6 +28,9 @@ Class GlfBaseModeDevice
     Public Property Get Mode(): Set Mode = m_mode: End Property
 
     Public Property Let Debug(value) : m_debug = value : End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
+    End Property
 
 	Public default Function init(mode, device, parent)
         Set m_mode = mode
