@@ -94,6 +94,7 @@ AddPinEventListener GLF_NEXT_PLAYER, "next_player_release_ball",   "Glf_ReleaseB
 Function Glf_ReleaseBall(args)
     If Not IsNull(args) Then
         If args(0) = True Then
+            glf_BIP = glf_BIP + 1
             DispatchPinEvent GLF_BALL_STARTED, Null
             If useBcp Then
                 bcpController.SendPlayerVariable GLF_CURRENT_BALL, GetPlayerState(GLF_CURRENT_BALL), GetPlayerState(GLF_CURRENT_BALL)-1
@@ -106,7 +107,6 @@ Function Glf_ReleaseBall(args)
     swTrough1.kick 90, 10
     DispatchPinEvent "trough_eject", Null
     Glf_WriteDebugLog "Release Ball", "Just Kicked"
-    glf_BIP = glf_BIP + 1
 End Function
 
 
@@ -124,6 +124,9 @@ Function Glf_Drain(args)
     If ballsToSave <= 0 Then
         Exit Function
     End If
+
+    glf_BIP = glf_BIP - 1
+    glf_debugLog.WriteToLog "Trough", "Ball Drained: BIP: " & glf_BIP
 
     If glf_BIP > 0 Then
         Exit Function

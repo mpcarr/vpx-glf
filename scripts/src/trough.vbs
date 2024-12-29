@@ -60,7 +60,6 @@ End Sub
 Sub Drain_Hit
 	UpdateTrough
     If glf_gameStarted = True Then
-        glf_BIP = glf_BIP - 1
         DispatchRelayPinEvent GLF_BALL_DRAIN, 1
     End If
 End Sub

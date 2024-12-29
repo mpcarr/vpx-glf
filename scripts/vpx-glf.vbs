@@ -3930,7 +3930,7 @@ Class GlfMultiballLocks
                 glf_ball_devices(device).Eject()
             Else
                 If m_balls_to_replace = -1 Or balls_locked <= m_balls_to_replace Then
-                    glf_BIP = glf_BIP - 1
+                    'glf_BIP = glf_BIP - 1
                     SetDelay m_name & "_queued_release", "MultiballLocksHandler" , Array(Array("queue_release", Me),Null), 1000
                 End If
             End If
@@ -4179,6 +4179,7 @@ Class GlfMultiballs
         m_balls_added_live = 0 
         Dim ball_count_value : ball_count_value = m_ball_count.Value
         If m_ball_count_type = "total" Then
+            Log "glf_BIP: " & glf_BIP
             If ball_count_value > glf_BIP Then
                 m_balls_added_live = ball_count_value - glf_BIP
                 'glf_BIP = m_ball_count
@@ -4222,12 +4223,13 @@ Class GlfMultiballs
         'eject balls from locks
         If Not IsEmpty(m_ball_lock) Then
             Dim available_balls : available_balls = glf_ball_devices(m_ball_lock).Balls()
-            glf_BIP = glf_BIP + available_balls
             If available_balls > 0 Then
                 glf_ball_devices(m_ball_lock).EjectAll()
             End If
             balls_added = available_balls
         End If
+
+        glf_BIP = m_balls_live_target
 
         'request remaining balls
         m_queued_balls = (m_balls_added_live - balls_added)
@@ -4288,8 +4290,15 @@ Class GlfMultiballs
     Public Function BallDrainShootAgain(balls):
         Dim balls_to_save, kwargs
 
-        balls_to_save = m_balls_live_target - glf_BIP + balls
+        If balls = 0 Then
+            BallDrainShootAgain = balls
+            Exit Function
+        End If
 
+        balls_to_save = m_balls_live_target - balls
+
+        Log "Balls to save: " & balls_to_save & ". Balls live target: " & m_balls_live_target & ". Balls in Play: " & glf_BIP & ". Balls Drained: " & balls
+        
         If balls_to_save <= 0 Then
             BallDrainShootAgain = balls
         End If
@@ -4306,14 +4315,14 @@ Class GlfMultiballs
         
         Log("Ball drained during MB. Requesting a new one")
         m_queued_balls = m_queued_balls + 1
-        SetDelay m_name&"_queued_release_" & m_queued_balls, "MultiballsHandler" , Array(Array("queue_release", Me, m_queued_balls),Null), 1000
+        SetDelay m_name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", Me, m_queued_balls),Null), 1000
 
         BallDrainShootAgain = balls - balls_to_save
     End Function
 
     Function BallDrainCountBalls(balls):
         DispatchPinEvent m_name & "_ball_lost", Null
-        If not glf_gameStarted or (glf_BIP - balls) = 0 Then
+        If not glf_gameStarted or (glf_BIP - balls) = 1 Then
             m_balls_added_live = 0
             m_balls_live_target = 0
             DispatchPinEvent m_name & "_ended", Null
@@ -4367,8 +4376,13 @@ Class GlfMultiballs
         DispatchPinEvent m_name & "_shoot_again_ended", Null
     End Sub
 
+    Public Function QueuedBalls()
+        QueuedBalls = m_queued_balls
+    End Function
+
     Public Function ReleaseQueuedBalls()
         m_queued_balls = m_queued_balls - 1
+        Log "Queued Balls: " & m_queued_balls
         ReleaseQueuedBalls = m_queued_balls
     End Function
 
@@ -4420,14 +4434,16 @@ Function MultiballsHandler(args)
         Case "drain"
             kwargs = multiball.BallsDrained(kwargs)
         Case "queue_release"
-            If glf_plunger.HasBall = False And ballInReleasePostion = True And glf_plunger.IncomingBalls = 0 Then
-                Glf_ReleaseBall(Null)
-                SetDelay multiball.Name&"_auto_launch", "MultiballsHandler" , Array(Array("auto_launch", multiball),Null), 500
-                If multiball.ReleaseQueuedBalls() > 0 Then
-                    SetDelay multiball.Name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", multiball), Null), 1000    
+            If multiball.QueuedBalls() > 0 Then
+                If glf_plunger.HasBall = False And ballInReleasePostion = True And glf_plunger.IncomingBalls = 0 Then
+                    Glf_ReleaseBall(Null)
+                    SetDelay multiball.Name&"_auto_launch", "MultiballsHandler" , Array(Array("auto_launch", multiball),Null), 500
+                    If multiball.ReleaseQueuedBalls() > 0 Then
+                        SetDelay multiball.Name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", multiball), Null), 1000    
+                    End If
+                Else
+                    SetDelay multiball.Name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", multiball), Null), 1000
                 End If
-            Else
-                SetDelay multiball.Name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", multiball), Null), 1000
             End If
         Case "auto_launch"
             If glf_plunger.HasBall = True Then
@@ -10460,6 +10476,7 @@ AddPinEventListener GLF_NEXT_PLAYER, "next_player_release_ball",   "Glf_ReleaseB
 Function Glf_ReleaseBall(args)
     If Not IsNull(args) Then
         If args(0) = True Then
+            glf_BIP = glf_BIP + 1
             DispatchPinEvent GLF_BALL_STARTED, Null
             If useBcp Then
                 bcpController.SendPlayerVariable GLF_CURRENT_BALL, GetPlayerState(GLF_CURRENT_BALL), GetPlayerState(GLF_CURRENT_BALL)-1
@@ -10472,7 +10489,6 @@ Function Glf_ReleaseBall(args)
     swTrough1.kick 90, 10
     DispatchPinEvent "trough_eject", Null
     Glf_WriteDebugLog "Release Ball", "Just Kicked"
-    glf_BIP = glf_BIP + 1
 End Function
 
 
@@ -10490,6 +10506,9 @@ Function Glf_Drain(args)
     If ballsToSave <= 0 Then
         Exit Function
     End If
+
+    glf_BIP = glf_BIP - 1
+    glf_debugLog.WriteToLog "Trough", "Ball Drained: BIP: " & glf_BIP
 
     If glf_BIP > 0 Then
         Exit Function
@@ -11175,7 +11194,6 @@ End Sub
 Sub Drain_Hit
 	UpdateTrough
     If glf_gameStarted = True Then
-        glf_BIP = glf_BIP - 1
         DispatchRelayPinEvent GLF_BALL_DRAIN, 1
     End If
 End Sub
