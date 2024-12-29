@@ -111,7 +111,7 @@ End Function
 
 
 '****************************
-' End Of Ball
+' Ball Drain
 ' Event Listeners:      
     AddPinEventListener GLF_BALL_DRAIN, "ball_drain", "Glf_Drain", 20, Null
 '
@@ -135,6 +135,17 @@ Function Glf_Drain(args)
     DispatchPinEvent GLF_BALL_WILL_END, Null
     DispatchPinEvent GLF_BALL_ENDING, Null
     DispatchPinEvent GLF_BALL_ENDED, Null
+    
+End Function
+
+'****************************
+' End Of Ball
+' Event Listeners:      
+AddPinEventListener GLF_BALL_ENDED, "end_of_ball", "Glf_EndOfBall", 20, Null
+'
+'*****************************
+Function Glf_EndOfBall(args)
+
     SetPlayerState GLF_CURRENT_BALL, GetPlayerState(GLF_CURRENT_BALL) + 1
 
     Dim previousPlayerNumber : previousPlayerNumber = Getglf_currentPlayerNumber()
@@ -164,13 +175,22 @@ Function Glf_Drain(args)
     End If
     If GetPlayerState(GLF_CURRENT_BALL) > glf_ballsPerGame Then
         DispatchPinEvent GLF_GAME_OVER, Null
-        glf_gameStarted = False
-        glf_currentPlayer = Null
-        glf_playerState.RemoveAll()
     Else
         SetDelay "end_of_ball_delay", "EndOfBallNextPlayer", Null, 1000 
     End If
     
+End Function
+
+'****************************
+' Game Over
+' Event Listeners:      
+AddPinEventListener GLF_GAME_OVER, "glf_game_over", "Glf_GameOver", 20, Null
+'
+'*****************************
+Function Glf_GameOver(args)
+    glf_gameStarted = False
+    glf_currentPlayer = Null
+    glf_playerState.RemoveAll()
 End Function
 
 Public Function EndOfBallNextPlayer(args)
