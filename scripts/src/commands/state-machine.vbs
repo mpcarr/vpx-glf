@@ -45,6 +45,7 @@ Class GlfStateMachine
     Public Property Let State(value)
         If m_persist_state = True Then
             SetPlayerState m_player_var_name, value
+            m_state = value
         Else
             m_state = value
         End If
