@@ -25,7 +25,7 @@ Class GlfStateMachine
     Public Property Get GetValue(value)
         Select Case value
             Case "state":
-                GetValue = m_state
+                GetValue = State()
         End Select
     End Property
 
