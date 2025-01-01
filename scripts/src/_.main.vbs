@@ -67,11 +67,11 @@ Dim glf_debug_level : glf_debug_level = "Info"
 Glf_RegisterLights()
 Dim glf_ball1, glf_ball2, glf_ball3, glf_ball4, glf_ball5, glf_ball6, glf_ball7, glf_ball8	
 
-Public Sub Glf_ConnectToBCPMediaController
+Public Sub Glf_ConnectToBCPMediaController()
     Set bcpController = (new GlfVpxBcpController)(bcpPort, bcpExeName)
 End Sub
 
-Public Sub Glf_ConnectToDebugBCPMediaController
+Public Sub Glf_ConnectToDebugBCPMediaController(args)
     Set glf_debugBcpController = (new GlfMonitorBcpController)(5051, "glf_monitor.exe")
 End Sub
 
@@ -403,12 +403,12 @@ Sub Glf_Options(ByVal eventId)
 	End If
 
 	Dim glfuseDebugBCP : glfuseDebugBCP = Table1.Option("Glf Montior", 0, 1, 1, 0, 0, Array("Off", "On"))
-	If glfuseDebugBCP = 1 Then
+	If glfuseDebugBCP = 1 And useGlfBCPMonitor = False Then
 		useGlfBCPMonitor = True
 		If IsNull(glf_debugBcpController) Then
-			Glf_ConnectToDebugBCPMediaController
+			SetDelay "start_glf_montior", "Glf_ConnectToDebugBCPMediaController", Null, 500
 		End If
-	Else
+	ElseIf glfuseDebugBCP = 0 And useGlfBCPMonitor = True Then
 		useGlfBCPMonitor = False
 		If Not IsNull(glf_debugBcpController) Then
 			glf_debugBcpController.Disconnect
