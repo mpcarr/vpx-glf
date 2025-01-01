@@ -31,6 +31,7 @@ Sub RunDispatchPinEvent(e, kwargs)
     If Not Glf_EventBlocks.Exists(e) Then
         Glf_EventBlocks.Add e, CreateObject("Scripting.Dictionary")
     End If
+
     glf_lastPinEvent = e
     Dim k
     Dim handlers : Set handlers = glf_pinEvents(e)
@@ -51,8 +52,6 @@ Sub RunDispatchPinEvent(e, kwargs)
             Glf_WriteDebugLog "DispatchPinEvent_"&e, "Handler does not exist: " & k(1)
         End If
     Next
-    Glf_EventBlocks(e).RemoveAll
-
 End Sub
 
 Sub RunAutoFireDispatchPinEvent(e, kwargs)

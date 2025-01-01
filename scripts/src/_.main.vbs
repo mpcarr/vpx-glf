@@ -565,16 +565,26 @@ Public Sub Glf_GameTimer_Timer()
 End Sub
 
 Public Function Glf_RunHandlers(i)
-	Dim key, keys
+	Dim key, keys, args
 	keys = glf_dispatch_handlers_await.Keys()
+	If UBound(keys) = -1 Then
+		Glf_RunHandlers = i
+		Exit Function
+	End If
 	For Each key in keys
-		DispatchPinHandlers key, glf_dispatch_handlers_await(key)
+		args = glf_dispatch_handlers_await(key)
+		DispatchPinHandlers key, args
 		glf_dispatch_handlers_await.Remove key
 		i = i + 1
 		If i=glf_max_dispatch Then
 			Exit For
 		End If
 	Next
+	If Ubound(glf_dispatch_handlers_await.Keys())=-1 Then
+		'Finished processing Handlers for current event.
+		'Remove any blocks for this event.
+		Glf_EventBlocks(args(2)).RemoveAll
+	End If
 	Glf_RunHandlers = i
 End Function
 
