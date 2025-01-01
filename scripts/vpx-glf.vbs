@@ -1561,7 +1561,7 @@ Class GlfVpxBcpController
 
     Public default Function init(port, backboxCommand)
         On Error Resume Next
-        Set m_bcpController = CreateObject("vpx_bcp_server.VpxBcpController")
+        Set m_bcpController = CreateObject("vpx_bcp_controller.VpxBcpController")
         m_bcpController.Connect port, backboxCommand
         m_connected = True
         If Err Then MsgBox("Can not start VPX BCP Controller") : m_connected = False
