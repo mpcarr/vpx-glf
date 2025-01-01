@@ -402,11 +402,11 @@ Sub Glf_Options(ByVal eventId)
 		End If
 	End If
 
-	Dim glfuseDebugBCP : glfuseDebugBCP = Table1.Option("Glf Montior", 0, 1, 1, 0, 0, Array("Off", "On"))
+	Dim glfuseDebugBCP : glfuseDebugBCP = Table1.Option("Glf Monitor", 0, 1, 1, 0, 0, Array("Off", "On"))
 	If glfuseDebugBCP = 1 And useGlfBCPMonitor = False Then
 		useGlfBCPMonitor = True
 		If IsNull(glf_debugBcpController) Then
-			SetDelay "start_glf_montior", "Glf_ConnectToDebugBCPMediaController", Null, 500
+			SetDelay "start_glf_monitor", "Glf_ConnectToDebugBCPMediaController", Null, 500
 		End If
 	ElseIf glfuseDebugBCP = 0 And useGlfBCPMonitor = True Then
 		useGlfBCPMonitor = False
