@@ -10501,6 +10501,7 @@ Function Glf_InitNewPlayer()
     Dim i
     For i=0 To UBound(glf_initialVars.Keys())
         state.Add glf_initialVars.Keys()(i), glf_initialVars.Items()(i)
+        Glf_MonitorPlayerStateUpdate glf_initialVars.Keys()(i), glf_initialVars.Items()(i)
     Next
     Set Glf_InitNewPlayer = state
 End Function
