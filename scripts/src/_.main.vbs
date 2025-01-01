@@ -72,7 +72,7 @@ Public Sub Glf_ConnectToBCPMediaController
 End Sub
 
 Public Sub Glf_ConnectToDebugBCPMediaController
-    Set glf_debugBcpController = (new GlfMonitorBcpController)(5051, "glf_monitor")
+    Set glf_debugBcpController = (new GlfMonitorBcpController)(5051, "glf_monitor.exe")
 End Sub
 
 Public Sub Glf_WriteDebugLog(name, message)

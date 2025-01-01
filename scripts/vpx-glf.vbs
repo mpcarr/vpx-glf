@@ -72,7 +72,7 @@ Public Sub Glf_ConnectToBCPMediaController
 End Sub
 
 Public Sub Glf_ConnectToDebugBCPMediaController
-    Set glf_debugBcpController = (new GlfMonitorBcpController)(5051, "glf_monitor")
+    Set glf_debugBcpController = (new GlfMonitorBcpController)(5051, "glf_monitor.exe")
 End Sub
 
 Public Sub Glf_WriteDebugLog(name, message)
@@ -1723,7 +1723,7 @@ Class GlfMonitorBcpController
             
             Dim mode
             For Each mode in glf_modes.Items()
-                glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """&mode.Status&""", ""debug"": " & mode.IsDebug & "}," 
+                Glf_MonitorModeUpdate mode
             Next
             m_isInMonitor = True
         End If
@@ -1839,9 +1839,11 @@ Sub Glf_MonitorBcpUpdate()
                     glf_debugBcpController.Reset
                 case "trigger"
                     eventName = message.GetValue("name")
+                    Dim mode_name, device_name
                     debug.print eventName
                     If eventName = "glf_monitor_debug_mode" Then
-                        Dim mode_name : mode_name = message.GetValue("mode")
+                        mode_name = message.GetValue("mode")
+                        debug.print mode_name
                         If Not IsNull(GlfModes(mode_name)) Then
                             debug.print("got mode")
                             If GlfModes(mode_name).IsDebug = 1 Then
@@ -1850,6 +1852,73 @@ Sub Glf_MonitorBcpUpdate()
                             Else
                                 debug.print("Turning on debug")
                                 GlfModes(mode_name).Debug = True
+                            End If
+                        End If
+                    End If
+                    If eventName = "glf_monitor_debug_mode_device" Then
+                        mode_name = message.GetValue("mode")
+                        device_name = message.GetValue("mode_device")
+                        device_name = Replace(device_name, mode_name & "_", "")
+                        debug.print mode_name
+                        debug.print device_name
+                        If Not IsNull(GlfModes(mode_name)) Then
+                            debug.print("got mode")
+                            Dim config_item, mode, is_debug
+                            is_debug = message.GetValue("debug")
+                            debug.print is_debug
+                            If is_debug = "bool:true" Then
+                                is_debug = True
+                            Else
+                                is_debug = False
+                            End If
+                            Set mode = GlfModes(mode_name)
+                            For Each config_item in mode.BallSavesItems()
+                                If config_item.Name = device_name Then : config_item.Debug = is_debug : End If
+                            Next
+                            For Each config_item in mode.CountersItems()
+                                If config_item.Name = device_name Then : config_item.Debug = is_debug : End If
+                            Next
+                            For Each config_item in mode.TimersItems()
+                                If config_item.Name = device_name Then : config_item.Debug = is_debug : End If
+                            Next
+                            For Each config_item in mode.MultiballLocksItems()
+                                If config_item.Name = device_name Then : config_item.Debug = is_debug : End If
+                            Next
+                            For Each config_item in mode.MultiballsItems()
+                                If config_item.Name = device_name Then : config_item.Debug = is_debug : End If
+                            Next
+                            For Each config_item in mode.ModeShots()
+                                If config_item.Name = device_name Then : config_item.Debug = is_debug : End If
+                            Next
+                            For Each config_item in mode.ShotGroupsItems()
+                                If config_item.Name = device_name Then : config_item.Debug = is_debug : End If
+                            Next
+                            For Each config_item in mode.BallHoldsItems()
+                                If config_item.Name = device_name Then : config_item.Debug = is_debug : End If
+                            Next
+                            For Each config_item in mode.SequenceShotsItems()
+                                If config_item.Name = device_name Then : config_item.Debug = is_debug : End If
+                            Next
+                            For Each config_item in mode.ModeStateMachines()
+                                If config_item.Name = device_name Then : config_item.Debug = is_debug : End If
+                            Next
+                            If Not IsNull(mode.LightPlayer) Then
+                                If mode.LightPlayer.Name = device_name Then : mode.LightPlayer.Debug = is_debug : End If
+                            End If
+                            If Not IsNull(mode.EventPlayer) Then
+                                If mode.EventPlayer.Name = device_name Then : mode.EventPlayer.Debug = is_debug : End If
+                            End If
+                            If Not IsNull(mode.RandomEventPlayer) Then
+                                If mode.RandomEventPlayer.Name = device_name Then : mode.RandomEventPlayer.Debug = is_debug : End If
+                            End If
+                            If Not IsNull(mode.ShowPlayer) Then
+                                If mode.ShowPlayer.Name = device_name Then : mode.ShowPlayer.Debug = is_debug : End If
+                            End If
+                            If Not IsNull(mode.SegmentDisplayPlayer) Then
+                                If mode.SegmentDisplayPlayer.Name = device_name Then : mode.SegmentDisplayPlayer.Debug = is_debug : End If
+                            End If
+                            If Not IsNull(mode.VariablePlayer) Then
+                                If mode.VariablePlayer.Name = device_name Then : mode.VariablePlayer.Debug = is_debug : End If
                             End If
                         End If
                     End If
