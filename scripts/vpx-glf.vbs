@@ -72,7 +72,7 @@ Public Sub Glf_ConnectToBCPMediaController()
 End Sub
 
 Public Sub Glf_ConnectToDebugBCPMediaController(args)
-    Set glf_debugBcpController = (new GlfMonitorBcpController)(5051, "glf_monitor.exe")
+    Set glf_debugBcpController = (new GlfMonitorBcpController)(5051, "debug") '"glf_monitor.exe")
 End Sub
 
 Public Sub Glf_WriteDebugLog(name, message)
@@ -1175,6 +1175,7 @@ Function Glf_ConvertShow(show, tokens)
 			lightParts = Split(light, "|")
 			Dim lightColor : lightColor = ""
 			Dim fadeMs : fadeMs = ""
+			Dim intensity
 			If Ubound(lightParts) >= 2 Then 
 				If IsNull(Glf_IsToken(lightParts(2))) Then
 					lightColor = lightParts(2)
@@ -1192,13 +1193,18 @@ Function Glf_ConvertShow(show, tokens)
 
 			If IsArray(lightParts) Then
 				token = Glf_IsToken(lightParts(0))
+				If IsNull(Glf_IsToken(lightParts(1))) Then
+					intensity = lightParts(1)
+				Else
+					intensity = tokens(Glf_IsToken(lightParts(1)))
+				End If
 				If IsNull(token) And Not glf_lightNames.Exists(lightParts(0)) Then
 					tagLights = glf_lightTags("T_"&lightParts(0)).Keys()
 					For Each tagLight in tagLights
 						If UBound(lightParts) >=1 Then
-							seqArray(x) = tagLight & "|"&lightParts(1)&"|" & AdjustHexColor(lightColor, lightParts(1)) & fadeMs
+							seqArray(x) = tagLight & "|"&intensity&"|" & AdjustHexColor(lightColor, intensity) & fadeMs
 						Else
-							seqArray(x) = tagLight & "|"&lightParts(1) & "|000000|" & fadeMs
+							seqArray(x) = tagLight & "|"&intensity & "|000000|" & fadeMs
 						End If
 						If Not lightsInShow.Exists(tagLight) Then
 							lightsInShow.Add tagLight, True
@@ -1208,9 +1214,9 @@ Function Glf_ConvertShow(show, tokens)
 				Else
 					If IsNull(token) Then
 						If UBound(lightParts) >= 1 Then
-							seqArray(x) = lightParts(0) & "|"&lightParts(1)&"|"&AdjustHexColor(lightColor, lightParts(1)) & fadeMs
+							seqArray(x) = lightParts(0) & "|"&intensity&"|"&AdjustHexColor(lightColor, intensity) & fadeMs
 						Else
-							seqArray(x) = lightParts(0) & "|"&lightParts(1) & "|000000" & fadeMs
+							seqArray(x) = lightParts(0) & "|"&intensity & "|000000" & fadeMs
 						End If
 						If Not lightsInShow.Exists(lightParts(0)) Then
 							lightsInShow.Add lightParts(0), True
@@ -1223,9 +1229,9 @@ Function Glf_ConvertShow(show, tokens)
 							tagLights = glf_lightTags("T_"&tokens(token)).Keys()
 							For Each tagLight in tagLights
 								If UBound(lightParts) >=1 Then
-									seqArray(x) = tagLight & "|"&lightParts(1)&"|"&AdjustHexColor(lightColor, lightParts(1)) & fadeMs
+									seqArray(x) = tagLight & "|"&intensity&"|"&AdjustHexColor(lightColor, intensity) & fadeMs
 								Else
-									seqArray(x) = tagLight & "|"&lightParts(1) & "|000000" & fadeMs
+									seqArray(x) = tagLight & "|"&intensity & "|000000" & fadeMs
 								End If
 								If Not lightsInShow.Exists(tagLight) Then
 									lightsInShow.Add tagLight, True
@@ -1234,9 +1240,9 @@ Function Glf_ConvertShow(show, tokens)
 							Next
 						Else
 							If UBound(lightParts) >= 1 Then
-								seqArray(x) = tokens(token) & "|"&lightParts(1)&"|"&AdjustHexColor(lightColor, lightParts(1)) & fadeMs
+								seqArray(x) = tokens(token) & "|"&intensity&"|"&AdjustHexColor(lightColor, intensity) & fadeMs
 							Else
-								seqArray(x) = tokens(token) & "|"&lightParts(1) & "|000000" & fadeMs
+								seqArray(x) = tokens(token) & "|"&intensity & "|000000" & fadeMs
 							End If
 							If Not lightsInShow.Exists(tokens(token)) Then
 								lightsInShow.Add tokens(token), True
@@ -1689,7 +1695,7 @@ Class GlfMonitorBcpController
 
     Public default Function init(port, backboxCommand)
         On Error Resume Next
-        Set m_bcpController = CreateObject("vpx_bcp_server.VpxBcpController")
+        Set m_bcpController = CreateObject("vpx_bcp_controller.VpxBcpController")
         m_bcpController.Connect port, backboxCommand
         m_connected = True
         If Err Then MsgBox("Can not start VPX BCP Controller") : m_connected = False
@@ -7165,6 +7171,7 @@ Class GlfStateMachine
     End Sub
 
     Public Sub RunShowForCurrentState()
+        Log state
         Dim state_config : Set state_config = m_states(state)
         If Not IsNull(state_config.ShowWhenActive().Show) Then
             Dim show : Set show = state_config.ShowWhenActive

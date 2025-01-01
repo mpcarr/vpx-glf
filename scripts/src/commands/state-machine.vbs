@@ -168,6 +168,7 @@ Class GlfStateMachine
     End Sub
 
     Public Sub RunShowForCurrentState()
+        Log state
         Dim state_config : Set state_config = m_states(state)
         If Not IsNull(state_config.ShowWhenActive().Show) Then
             Dim show : Set show = state_config.ShowWhenActive
