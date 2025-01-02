@@ -15,6 +15,7 @@ Class BallSave
     Private m_in_grace
     Private m_in_hurry_up
     Private m_hurry_up_time
+    private m_base_device
     Private m_debug
 
     Public Property Get Name(): Name = m_name: End Property
@@ -22,13 +23,9 @@ Class BallSave
     Public Property Let ActiveTime(value) : m_active_time = Glf_ParseInput(value) : End Property
     Public Property Let GracePeriod(value) : m_grace_period = Glf_ParseInput(value) : End Property
     Public Property Let HurryUpTime(value) : m_hurry_up_time = Glf_ParseInput(value) : End Property
-    Public Property Let EnableEvents(value)
-        Dim x
-        For x=0 to UBound(value)
-            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-            m_enable_events.Add newEvent.Name, newEvent
-        Next
-    End Property
+    Public Property Let EnableEvents(value) : m_base_device.EnableEvents = value : End Property
+    Public Property Let DisableEvents(value) : m_base_device.DisableEvents = value : End Property
+
     Public Property Let TimerStartEvents(value)
         Dim x
         For x=0 to UBound(value)
@@ -43,6 +40,7 @@ Class BallSave
     End Property
     Public Property Let Debug(value)
         m_debug = value
+        m_base_device.Debug = value
     End Property
 
 	Public default Function init(name, mode)
@@ -58,16 +56,12 @@ Class BallSave
         m_enabled = False
         m_timer_started = False
         m_debug = False
-        AddPinEventListener m_mode & "_starting", m_name & "_activate", "BallSaveEventHandler", mode.Priority, Array("activate", Me)
-        AddPinEventListener m_mode & "_stopping", m_name & "_deactivate", "BallSaveEventHandler", mode.Priority, Array("deactivate", Me)
-	  Set Init = Me
+        Set m_base_device = (new GlfBaseModeDevice)(mode, "ball_save", Me)
+	    Set Init = Me
 	End Function
 
     Public Sub Activate()
         Dim evt
-        For Each evt in m_enable_events.Keys
-            AddPinEventListener m_enable_events(evt).EventName, m_name & "_enable", "BallSaveEventHandler", 1000, Array("enable", Me, evt)
-        Next
         For Each evt in m_timer_start_events.Keys
             AddPinEventListener m_timer_start_events(evt).EventName, m_name & "_timer_start", "BallSaveEventHandler", 1000, Array("timer_start", Me, evt)
         Next
@@ -76,22 +70,14 @@ Class BallSave
     Public Sub Deactivate()
         Disable()
         Dim evt
-        For Each evt in m_enable_events.Keys
-            RemovePinEventListener m_enable_events(evt).EventName, m_name & "_enable"
-        Next
         For Each evt in m_timer_start_events.Keys
             RemovePinEventListener m_timer_start_events(evt).EventName, m_name & "_timer_start"
         Next
     End Sub
 
-    Public Sub Enable(evt)
+    Public Sub Enable()
         If m_enabled = True Then
             Exit Sub
-        End If
-        If Not IsNull(m_enable_events(evt).Condition) Then
-            If GetRef(m_enable_events(evt).Condition)() = False Then
-                Exit Sub
-            End If
         End If
         m_enabled = True
         m_saving_balls = m_balls_to_save
@@ -210,8 +196,9 @@ Class BallSave
 End Class
 
 Function BallSaveEventHandler(args)
-    Dim ownProps, ballsToSave : ownProps = args(0) : ballsToSave = args(1) 
+    Dim ownProps, ballsToSave : ownProps = args(0)
     Dim evt : evt = ownProps(0)
+    ballsToSave = args(1) 
     Dim ballSave : Set ballSave = ownProps(1)
     Select Case evt
         Case "activate"
