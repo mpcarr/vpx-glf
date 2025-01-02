@@ -82,7 +82,12 @@ End Class
 
 
 Function BaseModeDeviceEventHandler(args)
-    Dim ownProps, kwargs : ownProps = args(0) : kwargs = args(1) 
+    Dim ownProps, kwargs : ownProps = args(0)
+    If IsObject(args(1)) Then
+        Set kwargs = args(1)
+    Else
+        kwargs = args(1) 
+    End If
     Dim evt : evt = ownProps(0)
     Dim device : Set device = ownProps(1)
     Dim glfEvent
@@ -108,5 +113,9 @@ Function BaseModeDeviceEventHandler(args)
             End If
             device.Disable
     End Select
-    BaseModeDeviceEventHandler = kwargs
+    If IsObject(args(1)) Then
+        Set BaseModeDeviceEventHandler = kwargs
+    Else
+        BaseModeDeviceEventHandler = kwargs
+    End If
 End Function

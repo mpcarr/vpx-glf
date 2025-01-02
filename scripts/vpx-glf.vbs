@@ -2342,6 +2342,7 @@ Class BallSave
     Private m_in_grace
     Private m_in_hurry_up
     Private m_hurry_up_time
+    private m_base_device
     Private m_debug
 
     Public Property Get Name(): Name = m_name: End Property
@@ -2349,13 +2350,9 @@ Class BallSave
     Public Property Let ActiveTime(value) : m_active_time = Glf_ParseInput(value) : End Property
     Public Property Let GracePeriod(value) : m_grace_period = Glf_ParseInput(value) : End Property
     Public Property Let HurryUpTime(value) : m_hurry_up_time = Glf_ParseInput(value) : End Property
-    Public Property Let EnableEvents(value)
-        Dim x
-        For x=0 to UBound(value)
-            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-            m_enable_events.Add newEvent.Name, newEvent
-        Next
-    End Property
+    Public Property Let EnableEvents(value) : m_base_device.EnableEvents = value : End Property
+    Public Property Let DisableEvents(value) : m_base_device.DisableEvents = value : End Property
+
     Public Property Let TimerStartEvents(value)
         Dim x
         For x=0 to UBound(value)
@@ -2370,6 +2367,7 @@ Class BallSave
     End Property
     Public Property Let Debug(value)
         m_debug = value
+        m_base_device.Debug = value
     End Property
 
 	Public default Function init(name, mode)
@@ -2385,16 +2383,12 @@ Class BallSave
         m_enabled = False
         m_timer_started = False
         m_debug = False
-        AddPinEventListener m_mode & "_starting", m_name & "_activate", "BallSaveEventHandler", mode.Priority, Array("activate", Me)
-        AddPinEventListener m_mode & "_stopping", m_name & "_deactivate", "BallSaveEventHandler", mode.Priority, Array("deactivate", Me)
-	  Set Init = Me
+        Set m_base_device = (new GlfBaseModeDevice)(mode, "ball_save", Me)
+	    Set Init = Me
 	End Function
 
     Public Sub Activate()
         Dim evt
-        For Each evt in m_enable_events.Keys
-            AddPinEventListener m_enable_events(evt).EventName, m_name & "_enable", "BallSaveEventHandler", 1000, Array("enable", Me, evt)
-        Next
         For Each evt in m_timer_start_events.Keys
             AddPinEventListener m_timer_start_events(evt).EventName, m_name & "_timer_start", "BallSaveEventHandler", 1000, Array("timer_start", Me, evt)
         Next
@@ -2403,22 +2397,14 @@ Class BallSave
     Public Sub Deactivate()
         Disable()
         Dim evt
-        For Each evt in m_enable_events.Keys
-            RemovePinEventListener m_enable_events(evt).EventName, m_name & "_enable"
-        Next
         For Each evt in m_timer_start_events.Keys
             RemovePinEventListener m_timer_start_events(evt).EventName, m_name & "_timer_start"
         Next
     End Sub
 
-    Public Sub Enable(evt)
+    Public Sub Enable()
         If m_enabled = True Then
             Exit Sub
-        End If
-        If Not IsNull(m_enable_events(evt).Condition) Then
-            If GetRef(m_enable_events(evt).Condition)() = False Then
-                Exit Sub
-            End If
         End If
         m_enabled = True
         m_saving_balls = m_balls_to_save
@@ -2537,8 +2523,9 @@ Class BallSave
 End Class
 
 Function BallSaveEventHandler(args)
-    Dim ownProps, ballsToSave : ownProps = args(0) : ballsToSave = args(1) 
+    Dim ownProps, ballsToSave : ownProps = args(0)
     Dim evt : evt = ownProps(0)
+    ballsToSave = args(1) 
     Dim ballSave : Set ballSave = ownProps(1)
     Select Case evt
         Case "activate"
@@ -3365,7 +3352,12 @@ End Class
 
 
 Function BaseModeDeviceEventHandler(args)
-    Dim ownProps, kwargs : ownProps = args(0) : kwargs = args(1) 
+    Dim ownProps, kwargs : ownProps = args(0)
+    If IsObject(args(1)) Then
+        Set kwargs = args(1)
+    Else
+        kwargs = args(1) 
+    End If
     Dim evt : evt = ownProps(0)
     Dim device : Set device = ownProps(1)
     Dim glfEvent
@@ -3391,7 +3383,11 @@ Function BaseModeDeviceEventHandler(args)
             End If
             device.Disable
     End Select
-    BaseModeDeviceEventHandler = kwargs
+    If IsObject(args(1)) Then
+        Set BaseModeDeviceEventHandler = kwargs
+    Else
+        BaseModeDeviceEventHandler = kwargs
+    End If
 End Function
 
 Class Mode
@@ -3677,27 +3673,35 @@ Class Mode
         Set m_random_event_player = (new GlfRandomEventPlayer)(Me)
         Set m_variableplayer = (new GlfVariablePlayer)(Me)
         Glf_MonitorModeUpdate Me
+        AddPinEventListener m_name & "_starting", m_mode & "_starting_end", "ModeEventHandler", -99, Array("started", Me, "")
+        AddPinEventListener m_name & "_stopping", m_mode & "_stopping_end", "ModeEventHandler", -99, Array("stopped", Me, "")
         Set Init = Me
 	End Function
 
     Public Sub StartMode()
         Log "Starting"
         m_started=True
-        DispatchPinEvent m_name & "_starting", Null
-        DispatchPinEvent m_name & "_started", Null
-        Glf_MonitorModeUpdate Me
-        Log "Started"
+        DispatchQueuePinEvent m_name & "_starting", Null
     End Sub
 
     Public Sub StopMode()
         If m_started = True Then
             m_started = False
             Log "Stopping"
-            DispatchPinEvent m_name & "_stopping", Null
-            DispatchPinEvent m_name & "_stopped", Null
-            Glf_MonitorModeUpdate Me
-            Log "Stopped"
+            DispatchQueuePinEvent m_name & "_stopping", Null
         End If
+    End Sub
+
+    Public Sub Started()
+        DispatchPinEvent m_name & "_started", Null
+        Glf_MonitorModeUpdate Me
+        Log "Started"
+    End Sub
+
+    Public Sub Stopped()
+        DispatchPinEvent m_name & "_stopped", Null
+        Glf_MonitorModeUpdate Me
+        Log "Stopped"
     End Sub
 
     Private Sub Log(message)
@@ -3878,9 +3882,9 @@ Function ModeEventHandler(args)
             End If
             mode.StopMode
         Case "started"
-            DispatchPinEvent mode.Name & "_started", Null
+            mode.Started
         Case "stopped"
-            DispatchPinEvent mode.Name & "_stopped", Null
+            mode.Stopped
     End Select
     If IsObject(args(1)) Then
         Set ModeEventHandler = kwargs

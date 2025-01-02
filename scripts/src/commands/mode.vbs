@@ -282,27 +282,35 @@ Class Mode
         Set m_random_event_player = (new GlfRandomEventPlayer)(Me)
         Set m_variableplayer = (new GlfVariablePlayer)(Me)
         Glf_MonitorModeUpdate Me
+        AddPinEventListener m_name & "_starting", m_mode & "_starting_end", "ModeEventHandler", -99, Array("started", Me, "")
+        AddPinEventListener m_name & "_stopping", m_mode & "_stopping_end", "ModeEventHandler", -99, Array("stopped", Me, "")
         Set Init = Me
 	End Function
 
     Public Sub StartMode()
         Log "Starting"
         m_started=True
-        DispatchPinEvent m_name & "_starting", Null
-        DispatchPinEvent m_name & "_started", Null
-        Glf_MonitorModeUpdate Me
-        Log "Started"
+        DispatchQueuePinEvent m_name & "_starting", Null
     End Sub
 
     Public Sub StopMode()
         If m_started = True Then
             m_started = False
             Log "Stopping"
-            DispatchPinEvent m_name & "_stopping", Null
-            DispatchPinEvent m_name & "_stopped", Null
-            Glf_MonitorModeUpdate Me
-            Log "Stopped"
+            DispatchQueuePinEvent m_name & "_stopping", Null
         End If
+    End Sub
+
+    Public Sub Started()
+        DispatchPinEvent m_name & "_started", Null
+        Glf_MonitorModeUpdate Me
+        Log "Started"
+    End Sub
+
+    Public Sub Stopped()
+        DispatchPinEvent m_name & "_stopped", Null
+        Glf_MonitorModeUpdate Me
+        Log "Stopped"
     End Sub
 
     Private Sub Log(message)
@@ -483,9 +491,9 @@ Function ModeEventHandler(args)
             End If
             mode.StopMode
         Case "started"
-            DispatchPinEvent mode.Name & "_started", Null
+            mode.Started
         Case "stopped"
-            DispatchPinEvent mode.Name & "_stopped", Null
+            mode.Stopped
     End Select
     If IsObject(args(1)) Then
         Set ModeEventHandler = kwargs
