@@ -7799,7 +7799,7 @@ Class GlfVariablePlayer
 
     Public Property Get EventName(name)
         Dim newEvent : Set newEvent = (new GlfVariablePlayerEvent)(name)
-        m_events.Add newEvent.BaseEvent.Name, newEvent
+        m_events.Add newEvent.BaseEvent.Raw, newEvent
         Set EventName = newEvent
     End Property
    
