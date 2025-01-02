@@ -19,13 +19,16 @@ Class GlfSegmentDisplayPlayer
     
 
     Public Property Get EventNames() : EventNames = m_events.Keys() : End Property    
-    Public Property Get Events(name)
-        If m_events.Exists(name) Then
-            Set Events = m_events(name)
+    
+    Public Property Get EventName(value)
+        Dim newEvent : Set newEvent = (new GlfEvent)(value)
+
+        If m_events.Exists(newEvent.Raw) Then
+            Set EventName = m_events(newEvent.Raw)
         Else
-            Dim new_event : Set new_event = (new GlfSegmentDisplayPlayerEvent)()
-            m_events.Add name, new_event
-            Set Events = new_event
+            Dim new_segment_event : Set new_segment_event = (new GlfSegmentDisplayPlayerEvent)(newEvent)
+            m_events.Add newEvent.Raw, new_segment_event
+            Set EventName = new_segment_event
         End If
     End Property
 
@@ -42,15 +45,15 @@ Class GlfSegmentDisplayPlayer
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener evt, m_mode & "_segment_player_play", "SegmentPlayerEventHandler", m_priority, Array("play", Me, m_events(evt), evt)
+            AddPinEventListener m_events(evt).GlfEvent.EventName, m_mode & "_segment_player_play", "SegmentPlayerEventHandler", m_priority, Array("play", Me, m_events(evt), m_events(evt).GlfEvent.EventName)
         Next
     End Sub
 
     Public Sub Deactivate()
         Dim evt
         For Each evt In m_events.Keys()
-            RemovePinEventListener evt, m_mode & "_segment_player_play"
-            PlayOff evt, m_events(evt)
+            RemovePinEventListener m_events(evt).GlfEvent.EventName, m_mode & "_segment_player_play"
+            PlayOff m_events(evt).GlfEvent.EventName, m_events(evt)
         Next
     End Sub
 
@@ -100,8 +103,11 @@ End Class
 Class GlfSegmentDisplayPlayerEvent
 
     Private m_items
+    Private m_event
 
     Public Property Get Displays() : Displays = m_items.Items() : End Property
+
+    Public Property Get GlfEvent() : Set GlfEvent = m_event : End Property
 
     Public Property Get Display(value)
         If m_items.Exists(value) Then
@@ -114,8 +120,9 @@ Class GlfSegmentDisplayPlayerEvent
         End If
     End Property
 
-    Public default Function init()
+    Public default Function init(evt)
         Set m_items = CreateObject("Scripting.Dictionary")
+        Set m_event = evt
         Set Init = Me
 	End Function
 
@@ -289,7 +296,9 @@ Function SegmentPlayerEventHandler(args)
         Case "deactivate"
             SegmentPlayer.Deactivate
         Case "play"
-            SegmentPlayer.Play ownProps(3), ownProps(2)
+            If ownProps(2).GlfEvent.Evaluate() Then
+                SegmentPlayer.Play ownProps(3), ownProps(2)
+            End If
         Case "remove"
             RemoveDelay ownProps(2)
             SegmentPlayer.RemoveTextByKey ownProps(2)
