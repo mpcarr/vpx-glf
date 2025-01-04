@@ -78,6 +78,7 @@ End Sub
 Public Sub Glf_WriteDebugLog(name, message)
 	If glf_debug_level = "Debug" Then
 		glf_debugLog.WriteToLog name, message
+		Glf_MonitorEventStream name, message
 	End If
 End Sub
 

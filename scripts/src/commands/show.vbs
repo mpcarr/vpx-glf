@@ -313,6 +313,13 @@ Function GlfShowStepHandler(args)
             SetDelay running_show.ShowName & "_" & running_show.Key, "GlfShowStepHandler", Array(running_show), (nextStep.Duration / running_show.ShowSettings.Speed) * 1000
         Else
 '            glf_debugLog.WriteToLog "Running Show", "STOPPING SHOW, NO Loops"
+            If UBound(running_show.ShowSettings().EventsWhenCompleted) > -1 Then
+                Dim evt_when_completed
+                For Each evt_when_completed in running_show.ShowSettings().EventsWhenCompleted
+                    DispatchPinEvent evt_when_completed, Null
+                Next
+            End If
+            DispatchPinEvent running_show.ShowName & "_" & running_show.Key & "_unblock_queue", Null
             running_show.StopRunningShow()
         End If
     Else

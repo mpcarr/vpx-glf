@@ -55,16 +55,20 @@ Class GlfShowPlayer
         Next
     End Sub
 
-    Public Sub Play(evt)
+    Public Function Play(evt)
+        Play = Empty
         If m_events(evt).Evaluate() Then
             If m_eventValues(evt).Action = "stop" Then
                 PlayOff m_eventValues(evt).Key
             Else
                 Dim new_running_show
                 Set new_running_show = (new GlfRunningShow)(m_name & "_" & m_eventValues(evt).Key, m_eventValues(evt).Key, m_eventValues(evt), m_priority, Null, Null)
+                If m_eventValues(evt).BlockQueue = True Then
+                    Play = m_name & "_" & m_eventValues(evt).Key & "_" & m_eventValues(evt).Key  & "_unblock_queue"
+                End If
             End If
         End If
-    End Sub
+    End Function
 
     Public Sub PlayOff(key)
         If glf_running_shows.Exists(m_name & "_" & key) Then 
@@ -96,6 +100,11 @@ End Class
 
 Function ShowPlayerEventHandler(args)
     Dim ownProps : ownProps = args(0)
+    If IsObject(args(1)) Then
+        Set kwargs = args(1)
+    Else
+        kwargs = args(1) 
+    End If
     Dim evt : evt = ownProps(0)
     Dim ShowPlayer : Set ShowPlayer = ownProps(1)
     Select Case evt
@@ -104,13 +113,23 @@ Function ShowPlayerEventHandler(args)
         Case "deactivate"
             ShowPlayer.Deactivate
         Case "play"
-            ShowPlayer.Play ownProps(2)
+            Dim block_queue
+            block_queue = ShowPlayer.Play(ownProps(2))
+            If Not IsEmpty(block_queue) Then
+                kwargs.Add "wait_for", block_queue
+            End If
     End Select
-    ShowPlayerEventHandler = Null
+    If IsObject(args(1)) Then
+        Set ShowPlayerEventHandler = kwargs
+    Else
+        ShowPlayerEventHandler = kwargs
+    End If
 End Function
 
 Class GlfShowPlayerItem
 	Private m_key, m_show, m_loops, m_speed, m_tokens, m_action, m_syncms, m_duration, m_priority, m_internal_cache_id
+    Private m_block_queue
+    Private m_events_when_completed
   
 	Public Property Get InternalCacheId(): InternalCacheId = m_internal_cache_id: End Property
     Public Property Let InternalCacheId(input): m_internal_cache_id = input: End Property
@@ -145,8 +164,14 @@ Class GlfShowPlayerItem
 	Public Property Let Speed(input): m_speed = input: End Property
 
     Public Property Get SyncMs(): SyncMs = m_syncms: End Property
-    Public Property Let SyncMs(input): m_syncms = input: End Property        
-
+    Public Property Let SyncMs(input): m_syncms = input: End Property      
+        
+    Public Property Get BlockQueue(): BlockQueue = m_block_queue : End Property
+    Public Property Let BlockQueue(input): m_block_queue = input : End Property
+    
+    Public Property Get EventsWhenCompleted(): EventsWhenCompleted = m_events_when_completed : End Property
+    Public Property Let EventsWhenCompleted(input): m_events_when_completed = input: End Property
+            
     Public Property Get Tokens()
         Set Tokens = m_tokens
     End Property        
@@ -191,6 +216,8 @@ Class GlfShowPlayerItem
         m_speed = 1
         m_syncms = 0
         m_show = Null
+        m_block_queue = False
+        m_events_when_completed = Array()
         Set m_tokens = CreateObject("Scripting.Dictionary")
 	    Set Init = Me
 	End Function

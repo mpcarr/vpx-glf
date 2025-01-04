@@ -308,12 +308,13 @@ Class Mode
     End Sub
 
     Public Sub Stopped()
+        'MsgBox m_name & "Stopped"
         DispatchPinEvent m_name & "_stopped", Null
         Glf_MonitorModeUpdate Me
         Log "Stopped"
     End Sub
 
-    Private Sub Log(message)
+    Private Sub Log(message) 
         If m_debug = True Then
             glf_debugLog.WriteToLog m_name, message
         End If

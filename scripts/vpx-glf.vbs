@@ -78,6 +78,7 @@ End Sub
 Public Sub Glf_WriteDebugLog(name, message)
 	If glf_debug_level = "Debug" Then
 		glf_debugLog.WriteToLog name, message
+		Glf_MonitorEventStream name, message
 	End If
 End Sub
 
@@ -3699,12 +3700,13 @@ Class Mode
     End Sub
 
     Public Sub Stopped()
+        'MsgBox m_name & "Stopped"
         DispatchPinEvent m_name & "_stopped", Null
         Glf_MonitorModeUpdate Me
         Log "Stopped"
     End Sub
 
-    Private Sub Log(message)
+    Private Sub Log(message) 
         If m_debug = True Then
             glf_debugLog.WriteToLog m_name, message
         End If
@@ -6486,16 +6488,20 @@ Class GlfShowPlayer
         Next
     End Sub
 
-    Public Sub Play(evt)
+    Public Function Play(evt)
+        Play = Empty
         If m_events(evt).Evaluate() Then
             If m_eventValues(evt).Action = "stop" Then
                 PlayOff m_eventValues(evt).Key
             Else
                 Dim new_running_show
                 Set new_running_show = (new GlfRunningShow)(m_name & "_" & m_eventValues(evt).Key, m_eventValues(evt).Key, m_eventValues(evt), m_priority, Null, Null)
+                If m_eventValues(evt).BlockQueue = True Then
+                    Play = m_name & "_" & m_eventValues(evt).Key & "_" & m_eventValues(evt).Key  & "_unblock_queue"
+                End If
             End If
         End If
-    End Sub
+    End Function
 
     Public Sub PlayOff(key)
         If glf_running_shows.Exists(m_name & "_" & key) Then 
@@ -6527,6 +6533,11 @@ End Class
 
 Function ShowPlayerEventHandler(args)
     Dim ownProps : ownProps = args(0)
+    If IsObject(args(1)) Then
+        Set kwargs = args(1)
+    Else
+        kwargs = args(1) 
+    End If
     Dim evt : evt = ownProps(0)
     Dim ShowPlayer : Set ShowPlayer = ownProps(1)
     Select Case evt
@@ -6535,13 +6546,23 @@ Function ShowPlayerEventHandler(args)
         Case "deactivate"
             ShowPlayer.Deactivate
         Case "play"
-            ShowPlayer.Play ownProps(2)
+            Dim block_queue
+            block_queue = ShowPlayer.Play(ownProps(2))
+            If Not IsEmpty(block_queue) Then
+                kwargs.Add "wait_for", block_queue
+            End If
     End Select
-    ShowPlayerEventHandler = Null
+    If IsObject(args(1)) Then
+        Set ShowPlayerEventHandler = kwargs
+    Else
+        ShowPlayerEventHandler = kwargs
+    End If
 End Function
 
 Class GlfShowPlayerItem
 	Private m_key, m_show, m_loops, m_speed, m_tokens, m_action, m_syncms, m_duration, m_priority, m_internal_cache_id
+    Private m_block_queue
+    Private m_events_when_completed
   
 	Public Property Get InternalCacheId(): InternalCacheId = m_internal_cache_id: End Property
     Public Property Let InternalCacheId(input): m_internal_cache_id = input: End Property
@@ -6576,8 +6597,14 @@ Class GlfShowPlayerItem
 	Public Property Let Speed(input): m_speed = input: End Property
 
     Public Property Get SyncMs(): SyncMs = m_syncms: End Property
-    Public Property Let SyncMs(input): m_syncms = input: End Property        
-
+    Public Property Let SyncMs(input): m_syncms = input: End Property      
+        
+    Public Property Get BlockQueue(): BlockQueue = m_block_queue : End Property
+    Public Property Let BlockQueue(input): m_block_queue = input : End Property
+    
+    Public Property Get EventsWhenCompleted(): EventsWhenCompleted = m_events_when_completed : End Property
+    Public Property Let EventsWhenCompleted(input): m_events_when_completed = input: End Property
+            
     Public Property Get Tokens()
         Set Tokens = m_tokens
     End Property        
@@ -6622,6 +6649,8 @@ Class GlfShowPlayerItem
         m_speed = 1
         m_syncms = 0
         m_show = Null
+        m_block_queue = False
+        m_events_when_completed = Array()
         Set m_tokens = CreateObject("Scripting.Dictionary")
 	    Set Init = Me
 	End Function
@@ -6943,6 +6972,13 @@ Function GlfShowStepHandler(args)
             SetDelay running_show.ShowName & "_" & running_show.Key, "GlfShowStepHandler", Array(running_show), (nextStep.Duration / running_show.ShowSettings.Speed) * 1000
         Else
 '            glf_debugLog.WriteToLog "Running Show", "STOPPING SHOW, NO Loops"
+            If UBound(running_show.ShowSettings().EventsWhenCompleted) > -1 Then
+                Dim evt_when_completed
+                For Each evt_when_completed in running_show.ShowSettings().EventsWhenCompleted
+                    DispatchPinEvent evt_when_completed, Null
+                Next
+            End If
+            DispatchPinEvent running_show.ShowName & "_" & running_show.Key & "_unblock_queue", Null
             running_show.StopRunningShow()
         End If
     Else
@@ -10869,7 +10905,7 @@ End Function
 
 Function DispatchQueuePinEvent(e, kwargs)
     If Not glf_pinEvents.Exists(e) Then
-        Glf_WriteDebugLog "DispatchRelayPinEvent", e & " has no listeners"
+        Glf_WriteDebugLog "DispatchQueuePinEvent", e & " has no listeners"
         Exit Function
     End If
     If Not Glf_EventBlocks.Exists(e) Then
@@ -10881,7 +10917,7 @@ Function DispatchQueuePinEvent(e, kwargs)
     If IsNull(kwargs) Then
         Set kwargs = GlfKwargs()
     End If
-    Glf_WriteDebugLog "DispatchReplayPinEvent", e
+    Glf_WriteDebugLog "DispatchQueuePinEvent", e
     For i=0 to UBound(glf_pinEventsOrder(e))
         k = glf_pinEventsOrder(e)(i)
         Glf_WriteDebugLog "DispatchQueuePinEvent"&e, "key: " & k(1) & ", priority: " & k(0)
@@ -10894,6 +10930,7 @@ Function DispatchQueuePinEvent(e, kwargs)
         Set retArgs = GetRef(handlers(k(1))(0))(Array(handlers(k(1))(2), kwargs, e))
         If retArgs.Exists("wait_for") And i<Ubound(glf_pinEventsOrder(e)) Then
             'pause execution of handlers at index I. 
+            Glf_WriteDebugLog "DispatchQueuePinEvent"&e, k(1) & "_wait_for"
             AddPinEventListener retArgs("wait_for"), k(1) & "_wait_for", "ContinueDispatchQueuePinEvent", k(0), Array(e, kwargs, i+1)
             Exit For
             'add event listener for the wait_for event.
@@ -10912,11 +10949,16 @@ End Function
 Function ContinueDispatchQueuePinEvent(args)
     Dim arrContinue : arrContinue = args(0)
     Dim e : e = arrContinue(0)
-    Dim kwargs : kwargs = arrContinue(1)
+    Dim kwargs
+    If IsObject(arrContinue(1)) Then
+        Set kwargs = arrContinue(1)
+    Else
+        kwargs = arrContinue(1)
+    End If
     Dim idx : idx = arrContinue(2)
     
     If Not glf_pinEvents.Exists(e) Then
-        Glf_WriteDebugLog "DispatchRelayPinEvent", e & " has no listeners"
+        Glf_WriteDebugLog "ContinueDispatchQueuePinEvent", e & " has no listeners"
         Exit Function
     End If
     If Not Glf_EventBlocks.Exists(e) Then
@@ -10925,10 +10967,10 @@ Function ContinueDispatchQueuePinEvent(args)
     glf_lastPinEvent = e
     Dim k,i,retArgs
     Dim handlers : Set handlers = glf_pinEvents(e)
-    Glf_WriteDebugLog "DispatchReplayPinEvent", e
+    Glf_WriteDebugLog "ContinueDispatchQueuePinEvent", e
     For i=idx to UBound(glf_pinEventsOrder(e))
         k = glf_pinEventsOrder(e)(i)
-        Glf_WriteDebugLog "DispatchReplayPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
+        Glf_WriteDebugLog "ContinueDispatchQueuePinEvent"&e, "key: " & k(1) & ", priority: " & k(0)
 
         'Call the handlers.
         'The handlers might return a waitfor command.
