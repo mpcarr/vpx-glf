@@ -10931,7 +10931,9 @@ Function DispatchQueuePinEvent(e, kwargs)
         If retArgs.Exists("wait_for") And i<Ubound(glf_pinEventsOrder(e)) Then
             'pause execution of handlers at index I. 
             Glf_WriteDebugLog "DispatchQueuePinEvent"&e, k(1) & "_wait_for"
-            AddPinEventListener retArgs("wait_for"), k(1) & "_wait_for", "ContinueDispatchQueuePinEvent", k(0), Array(e, kwargs, i+1)
+            Dim wait_for : wait_for = retArgs("wait_for")
+            kwargs.Remove "wait_for" 
+            AddPinEventListener wait_for, k(1) & "_wait_for", "ContinueDispatchQueuePinEvent", k(0), Array(e, kwargs, i+1)
             Exit For
             'add event listener for the wait_for event.
             'pass in the index and handlers from this.
@@ -10956,7 +10958,6 @@ Function ContinueDispatchQueuePinEvent(args)
         kwargs = arrContinue(1)
     End If
     Dim idx : idx = arrContinue(2)
-    
     If Not glf_pinEvents.Exists(e) Then
         Glf_WriteDebugLog "ContinueDispatchQueuePinEvent", e & " has no listeners"
         Exit Function
@@ -10968,8 +10969,9 @@ Function ContinueDispatchQueuePinEvent(args)
     Dim k,i,retArgs
     Dim handlers : Set handlers = glf_pinEvents(e)
     Glf_WriteDebugLog "ContinueDispatchQueuePinEvent", e
-    For i=idx to UBound(glf_pinEventsOrder(e))
-        k = glf_pinEventsOrder(e)(i)
+    Dim glf_dis_events : glf_dis_events = glf_pinEventsOrder(e)
+    For i=idx to UBound(glf_dis_events)
+        k = glf_dis_events(i)
         Glf_WriteDebugLog "ContinueDispatchQueuePinEvent"&e, "key: " & k(1) & ", priority: " & k(0)
 
         'Call the handlers.
@@ -10977,15 +10979,18 @@ Function ContinueDispatchQueuePinEvent(args)
         'If NO wait for command, continue calling handlers.
         'IF wait for command, then AddPinEventListener for the waitfor event. The callback handler needs to be ContinueDispatchQueuePinEvent.
         Set retArgs = GetRef(handlers(k(1))(0))(Array(handlers(k(1))(2), kwargs, e))
-        If retArgs.Exists("wait_for") And i<Ubound(glf_pinEventsOrder(e)) Then
+        If retArgs.Exists("wait_for") And i<Ubound(glf_dis_events) Then
             'pause execution of handlers at index I. 
-            AddPinEventListener retArgs("wait_for"), k(1) & "_wait_for", "ContinueDispatchQueuePinEvent", k(0), Array(e, kwargs, i)
+            Dim wait_for : wait_for = retArgs("wait_for")
+            kwargs.Remove "wait_for" 
+            AddPinEventListener wait_for, k(1) & "_wait_for", "ContinueDispatchQueuePinEvent", k(0), Array(e, kwargs, i)
             Exit For
             'add event listener for the wait_for event.
             'pass in the index and handlers from this.
             'in the handler for resume queue event, process from the index the remaining handlers.
         End If
     Next
+
     Glf_EventBlocks(e).RemoveAll
 End Function
 
