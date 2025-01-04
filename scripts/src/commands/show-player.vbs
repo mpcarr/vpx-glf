@@ -99,7 +99,7 @@ Class GlfShowPlayer
 End Class
 
 Function ShowPlayerEventHandler(args)
-    Dim ownProps : ownProps = args(0)
+    Dim ownProps, kwargs : ownProps = args(0)
     If IsObject(args(1)) Then
         Set kwargs = args(1)
     Else

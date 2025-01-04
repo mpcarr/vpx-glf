@@ -7,7 +7,6 @@ Class Mode
     private m_priority
     Private m_debug
     Private m_started
-
     Private m_ballsaves
     Private m_counters
     Private m_multiball_locks
@@ -282,8 +281,8 @@ Class Mode
         Set m_random_event_player = (new GlfRandomEventPlayer)(Me)
         Set m_variableplayer = (new GlfVariablePlayer)(Me)
         Glf_MonitorModeUpdate Me
-        AddPinEventListener m_name & "_starting", m_mode & "_starting_end", "ModeEventHandler", -99, Array("started", Me, "")
-        AddPinEventListener m_name & "_stopping", m_mode & "_stopping_end", "ModeEventHandler", -99, Array("stopped", Me, "")
+        AddPinEventListener m_name & "_starting", m_name & "_starting_end", "ModeEventHandler", -99, Array("started", Me, "")
+        AddPinEventListener m_name & "_stopping", m_name & "_stopping_end", "ModeEventHandler", -99, Array("stopped", Me, "")
         Set Init = Me
 	End Function
 
