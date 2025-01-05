@@ -53,7 +53,7 @@ Class GlfRandomEventPlayer
     End Sub
 
     Public Sub FireEvent(evt)
-        If m_events(evt).Evalutate() Then
+        If m_events(evt).Evaluate() Then
             Dim event_to_fire
             event_to_fire = m_eventValues(evt).GetNextRandomEvent()
             If Not IsEmpty(event_to_fire) Then
