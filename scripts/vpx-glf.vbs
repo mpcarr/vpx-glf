@@ -4605,11 +4605,13 @@ Class GlfRandomEventPlayer
     End Sub
 
     Public Sub FireEvent(evt)
-        Dim event_to_fire
-        event_to_fire = m_eventValues(evt).GetNextRandomEvent()
-        If Not IsEmpty(event_to_fire) Then
-            Log "Dispatching Event: " & event_to_fire
-            DispatchPinEvent event_to_fire, Null
+        If m_events(evt).Evalutate() Then
+            Dim event_to_fire
+            event_to_fire = m_eventValues(evt).GetNextRandomEvent()
+            If Not IsEmpty(event_to_fire) Then
+                Log "Dispatching Event: " & event_to_fire
+                DispatchPinEvent event_to_fire, Null
+            End If
         End If
     End Sub
 
