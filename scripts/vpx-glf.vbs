@@ -2826,6 +2826,122 @@ Function EventPlayerEventHandler(args)
     End If
 End Function
 
+Class GlfExtraBall
+
+    Private m_name
+    private m_command_name
+    Private m_priority
+    Private m_mode
+    Private m_base_device
+    Private m_debug
+
+    Private m_award_events
+    Private m_max_per_game
+
+    Public Property Get Name(): Name = m_name: End Property
+    Public Property Let Debug(value)
+        m_debug = value
+        m_base_device.Debug = value
+    End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
+    End Property
+    
+    Public Property Get GetValue(value)
+        Select Case value
+            'Case "":
+            '    GetValue = 
+        End Select
+    End Property
+
+    Public Property Let AwardEvents(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_award_events.Add newEvent.Raw, newEvent
+        Next
+    End Property
+
+    Public Property Let MaxPerGame(value) : Set m_max_per_game = CreateGlfInput(value) : End Property
+
+	Public default Function init(name, mode)
+        m_name = "extra_ball_" & name
+        m_command_name = name
+        m_mode = mode.Name
+        m_priority = mode.Priority
+        
+        Set m_award_events = CreateObject("Scripting.Dictionary")
+        Set m_max_per_game = CreateGlfInput(0)
+
+        Glf_SetInitialPlayerVar m_name & "_awarded", 0
+
+        m_debug = False
+        Set m_base_device = (new GlfBaseModeDevice)(mode, "extra_ball", Me)
+        
+        Set Init = Me
+	End Function
+
+    Public Sub Activate()
+        Enable()
+    End Sub
+
+    Public Sub Deactivate()
+        Disable()
+    End Sub
+
+    Public Sub Enable()
+        Log "Enabling"
+        For Each evt in m_award_events.Keys
+            AddPinEventListener m_award_events(evt).EventName, m_name & "_" & evt & "_award", "ExtraBallsHandler", m_priority, Array("award", Me, m_award_events(evt))
+        Next
+    End Sub
+
+    Public Sub Disable()
+        Log "Disabling"
+        For Each evt in m_award_events.Keys
+            RemovePinEventListener m_award_events(evt).EventName, m_name & "_" & evt & "_award"
+        Next
+    End Sub
+
+    Public Sub Award(evt)
+        If evt.Evaluate() Then
+            If GetPlayerState(m_name & "_awarded") < m_max_per_game.Value() Then
+                SetPlayerState "extra_balls", GetPlayerState("extra_balls") + 1
+                SetPlayerState m_name & "_awarded", GetPlayerState(m_name & "_awarded") + 1
+                DispatchPinEvent m_name & "_awarded", Null
+                DispatchPinEvent "extra_ball_awarded", Null
+            End If
+        End If
+    End Sub
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
+    End Sub
+
+End Class
+
+Function ExtraBallsHandler(args)
+    Dim ownProps, kwargs : ownProps = args(0)
+    If IsObject(args(1)) Then
+        Set kwargs = args(1)
+    Else
+        kwargs = args(1) 
+    End If
+    Dim evt : evt = ownProps(0)
+    Dim extra_ball : Set extra_ball = ownProps(1)
+    Select Case evt
+        Case "award"
+            extra_ball.Award ownProps(2)
+    End Select
+    If IsObject(args(1)) Then
+        Set ExtraBallsHandler = kwargs
+    Else
+        ExtraBallsHandler = kwargs
+    End If
+End Function
+
 Class GlfLightPlayer
 
     Private m_priority
@@ -3417,6 +3533,7 @@ Class Mode
     Private m_shot_profiles
     Private m_sequence_shots
     Private m_state_machines
+    Private m_extra_balls
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get Priority(): Priority = m_priority: End Property
@@ -3526,6 +3643,17 @@ Class Mode
         End If
     End Property
 
+    Public Property Get ExtraBallsItems() : ExtraBallsItems = m_extra_balls.Items() : End Property
+    Public Property Get ExtraBalls(name)
+        If m_extra_balls.Exists(name) Then
+            Set ExtraBalls = m_extra_balls(name)
+        Else
+            Dim new_extra_ball : Set new_extra_ball = (new GlfExtraBall)(name, Me)
+            m_extra_balls.Add name, new_extra_ball
+            Set ExtraBalls = new_extra_ball
+        End If
+    End Property
+
     Public Property Get StateMachines(name)
         If m_state_machines.Exists(name) Then
             Set StateMachines = m_state_machines(name)
@@ -3628,6 +3756,9 @@ Class Mode
         For Each config_item in m_state_machines.Items()
             config_item.Debug = value
         Next
+        For Each config_item in m_extra_balls.Items()
+            config_item.Debug = value
+        Next
         If Not IsNull(m_lightplayer) Then
             m_lightplayer.Debug = value
         End If
@@ -3666,7 +3797,8 @@ Class Mode
         Set m_shot_profiles = CreateObject("Scripting.Dictionary")
         Set m_sequence_shots = CreateObject("Scripting.Dictionary")
         Set m_state_machines = CreateObject("Scripting.Dictionary")
-        
+        Set m_extra_balls = CreateObject("Scripting.Dictionary")
+
         m_lightplayer = Null
         m_showplayer = Null
         m_segment_display_player = Null
@@ -10558,7 +10690,7 @@ Function Glf_InitNewPlayer()
     state.Add GLF_SCORE, -1
     state.Add GLF_INITIALS, ""
     state.Add GLF_CURRENT_BALL, 1
-
+    state.Add "extra_balls", 0
     Dim i
     For i=0 To UBound(glf_initialVars.Keys())
         state.Add glf_initialVars.Keys()(i), glf_initialVars.Items()(i)
@@ -10667,6 +10799,14 @@ AddPinEventListener GLF_BALL_ENDED, "end_of_ball", "Glf_EndOfBall", 20, Null
 '*****************************
 Function Glf_EndOfBall(args)
 
+    If GetPlayerState("extra_balls") > 0 Then
+        'self.debug_log("Awarded extra ball to Player %s. Shoot Again", self.player.index + 1)
+        'self.player.extra_balls -= 1
+        SetPlayerState "extra_balls", GetPlayerState("extra_balls") - 1
+        SetDelay "end_of_ball_delay", "EndOfBallNextPlayer", Null, 1000
+        Exit Function
+    End If
+    
     SetPlayerState GLF_CURRENT_BALL, GetPlayerState(GLF_CURRENT_BALL) + 1
 
     Dim previousPlayerNumber : previousPlayerNumber = Getglf_currentPlayerNumber()

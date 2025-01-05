@@ -24,6 +24,7 @@ Class Mode
     Private m_shot_profiles
     Private m_sequence_shots
     Private m_state_machines
+    Private m_extra_balls
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get Priority(): Priority = m_priority: End Property
@@ -133,6 +134,17 @@ Class Mode
         End If
     End Property
 
+    Public Property Get ExtraBallsItems() : ExtraBallsItems = m_extra_balls.Items() : End Property
+    Public Property Get ExtraBalls(name)
+        If m_extra_balls.Exists(name) Then
+            Set ExtraBalls = m_extra_balls(name)
+        Else
+            Dim new_extra_ball : Set new_extra_ball = (new GlfExtraBall)(name, Me)
+            m_extra_balls.Add name, new_extra_ball
+            Set ExtraBalls = new_extra_ball
+        End If
+    End Property
+
     Public Property Get StateMachines(name)
         If m_state_machines.Exists(name) Then
             Set StateMachines = m_state_machines(name)
@@ -235,6 +247,9 @@ Class Mode
         For Each config_item in m_state_machines.Items()
             config_item.Debug = value
         Next
+        For Each config_item in m_extra_balls.Items()
+            config_item.Debug = value
+        Next
         If Not IsNull(m_lightplayer) Then
             m_lightplayer.Debug = value
         End If
@@ -273,7 +288,8 @@ Class Mode
         Set m_shot_profiles = CreateObject("Scripting.Dictionary")
         Set m_sequence_shots = CreateObject("Scripting.Dictionary")
         Set m_state_machines = CreateObject("Scripting.Dictionary")
-        
+        Set m_extra_balls = CreateObject("Scripting.Dictionary")
+
         m_lightplayer = Null
         m_showplayer = Null
         m_segment_display_player = Null

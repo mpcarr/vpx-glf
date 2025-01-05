@@ -38,7 +38,7 @@ Function Glf_InitNewPlayer()
     state.Add GLF_SCORE, -1
     state.Add GLF_INITIALS, ""
     state.Add GLF_CURRENT_BALL, 1
-
+    state.Add "extra_balls", 0
     Dim i
     For i=0 To UBound(glf_initialVars.Keys())
         state.Add glf_initialVars.Keys()(i), glf_initialVars.Items()(i)
@@ -147,6 +147,14 @@ AddPinEventListener GLF_BALL_ENDED, "end_of_ball", "Glf_EndOfBall", 20, Null
 '*****************************
 Function Glf_EndOfBall(args)
 
+    If GetPlayerState("extra_balls") > 0 Then
+        'self.debug_log("Awarded extra ball to Player %s. Shoot Again", self.player.index + 1)
+        'self.player.extra_balls -= 1
+        SetPlayerState "extra_balls", GetPlayerState("extra_balls") - 1
+        SetDelay "end_of_ball_delay", "EndOfBallNextPlayer", Null, 1000
+        Exit Function
+    End If
+    
     SetPlayerState GLF_CURRENT_BALL, GetPlayerState(GLF_CURRENT_BALL) + 1
 
     Dim previousPlayerNumber : previousPlayerNumber = Getglf_currentPlayerNumber()
