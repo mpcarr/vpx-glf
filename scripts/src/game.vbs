@@ -35,10 +35,14 @@ End Sub
 
 Function Glf_InitNewPlayer()
     Dim state : Set state = CreateObject("Scripting.Dictionary")
-    state.Add GLF_SCORE, -1
+    state.Add GLF_SCORE, 0
+    Glf_MonitorPlayerStateUpdate GLF_SCORE, 0
     state.Add GLF_INITIALS, ""
+    Glf_MonitorPlayerStateUpdate GLF_INITIALS, ""
     state.Add GLF_CURRENT_BALL, 1
+    Glf_MonitorPlayerStateUpdate GLF_CURRENT_BALL, 1
     state.Add "extra_balls", 0
+    Glf_MonitorPlayerStateUpdate "extra_balls", 0
     Dim i
     For i=0 To UBound(glf_initialVars.Keys())
         state.Add glf_initialVars.Keys()(i), glf_initialVars.Items()(i)
