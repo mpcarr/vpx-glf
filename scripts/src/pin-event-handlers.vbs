@@ -124,8 +124,9 @@ Function DispatchQueuePinEvent(e, kwargs)
         Set kwargs = GlfKwargs()
     End If
     Glf_WriteDebugLog "DispatchQueuePinEvent", e
-    For i=0 to UBound(glf_pinEventsOrder(e))
-        k = glf_pinEventsOrder(e)(i)
+    Dim glf_dis_events : glf_dis_events = glf_pinEventsOrder(e)
+    For i=0 to UBound(glf_dis_events)
+        k = glf_dis_events(i)
         Glf_WriteDebugLog "DispatchQueuePinEvent"&e, "key: " & k(1) & ", priority: " & k(0)
         'msgbox "DispatchQueuePinEvent: " & e & " , key: " & k(1) & ", priority: " & k(0)
         'msgbox handlers(k(1))(0)
@@ -134,7 +135,7 @@ Function DispatchQueuePinEvent(e, kwargs)
         'If NO wait for command, continue calling handlers.
         'IF wait for command, then AddPinEventListener for the waitfor event. The callback handler needs to be ContinueDispatchQueuePinEvent.
         Set retArgs = GetRef(handlers(k(1))(0))(Array(handlers(k(1))(2), kwargs, e))
-        If retArgs.Exists("wait_for") And i<Ubound(glf_pinEventsOrder(e)) Then
+        If retArgs.Exists("wait_for") And i<Ubound(glf_dis_events) Then
             'pause execution of handlers at index I. 
             Glf_WriteDebugLog "DispatchQueuePinEvent"&e, k(1) & "_wait_for"
             Dim wait_for : wait_for = retArgs("wait_for")
