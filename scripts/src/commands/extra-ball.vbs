@@ -64,6 +64,7 @@ Class GlfExtraBall
 
     Public Sub Enable()
         Log "Enabling"
+        Dim evt
         For Each evt in m_award_events.Keys
             AddPinEventListener m_award_events(evt).EventName, m_name & "_" & evt & "_award", "ExtraBallsHandler", m_priority, Array("award", Me, m_award_events(evt))
         Next
@@ -71,6 +72,7 @@ Class GlfExtraBall
 
     Public Sub Disable()
         Log "Disabling"
+        Dim evt
         For Each evt in m_award_events.Keys
             RemovePinEventListener m_award_events(evt).EventName, m_name & "_" & evt & "_award"
         Next
