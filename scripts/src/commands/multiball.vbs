@@ -160,7 +160,7 @@ Class GlfMultiballs
             RemovePinEventListener evt, m_name & "_stop"
         Next
         RemovePinEventListener "ball_drain", m_name & "_ball_drain"
-        RemoveDelay m_name & "_queued_release"
+        'RemoveDelay m_name & "_queued_release"
     End Sub
     
     Private Sub HandleBallsInPlayAndBallsLive()
@@ -365,8 +365,8 @@ Class GlfMultiballs
             RemoveDelay m_name&"_hurry_up"
             RunHurryUp()
         End If
-
-        RemoveDelay m_name & "_queued_release"
+        Log "Stop Shoot Again, Queued Balls: " & QueuedBalls()
+        'RemoveDelay m_name & "_queued_release"
 
         DispatchPinEvent m_name & "_shoot_again_ended", Null
     End Sub

@@ -78,7 +78,7 @@ End Sub
 Public Sub Glf_WriteDebugLog(name, message)
 	If glf_debug_level = "Debug" Then
 		glf_debugLog.WriteToLog name, message
-		Glf_MonitorEventStream name, message
+		'Glf_MonitorEventStream name, message
 	End If
 End Sub
 
@@ -560,6 +560,7 @@ Public Sub Glf_GameTimer_Timer()
 	If (gametime - glf_lastBcpExecutionTime) >= 300 Then
         glf_lastBcpExecutionTime = gametime
 		Glf_BcpUpdate
+		Glf_MonitorPlayerStateUpdate "GLF BIP", glf_BIP
 		Glf_MonitorBcpUpdate
     End If
 	glf_lastEventExecutionTime = gametime

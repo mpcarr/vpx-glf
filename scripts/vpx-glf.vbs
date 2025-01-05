@@ -78,7 +78,7 @@ End Sub
 Public Sub Glf_WriteDebugLog(name, message)
 	If glf_debug_level = "Debug" Then
 		glf_debugLog.WriteToLog name, message
-		Glf_MonitorEventStream name, message
+		'Glf_MonitorEventStream name, message
 	End If
 End Sub
 
@@ -560,6 +560,7 @@ Public Sub Glf_GameTimer_Timer()
 	If (gametime - glf_lastBcpExecutionTime) >= 300 Then
         glf_lastBcpExecutionTime = gametime
 		Glf_BcpUpdate
+		Glf_MonitorPlayerStateUpdate "GLF BIP", glf_BIP
 		Glf_MonitorBcpUpdate
     End If
 	glf_lastEventExecutionTime = gametime
@@ -4255,7 +4256,7 @@ Class GlfMultiballs
             RemovePinEventListener evt, m_name & "_stop"
         Next
         RemovePinEventListener "ball_drain", m_name & "_ball_drain"
-        RemoveDelay m_name & "_queued_release"
+        'RemoveDelay m_name & "_queued_release"
     End Sub
     
     Private Sub HandleBallsInPlayAndBallsLive()
@@ -4460,8 +4461,8 @@ Class GlfMultiballs
             RemoveDelay m_name&"_hurry_up"
             RunHurryUp()
         End If
-
-        RemoveDelay m_name & "_queued_release"
+        Log "Stop Shoot Again, Queued Balls: " & QueuedBalls()
+        'RemoveDelay m_name & "_queued_release"
 
         DispatchPinEvent m_name & "_shoot_again_ended", Null
     End Sub
