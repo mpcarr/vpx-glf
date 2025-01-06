@@ -7973,6 +7973,7 @@ Class GlfVariablePlayer
     Private m_mode
     Private m_events
     Private m_debug
+    private m_base_device
 
     Private m_value
 
@@ -7985,7 +7986,10 @@ Class GlfVariablePlayer
         Set EventName = newEvent
     End Property
    
-    Public Property Let Debug(value) : m_debug = value : End Property
+    Public Property Let Debug(value)
+        m_debug = value
+        m_base_device.Debug = value
+    End Property
     Public Property Get IsDebug()
         If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
     End Property
@@ -7997,8 +8001,7 @@ Class GlfVariablePlayer
 
         Set m_events = CreateObject("Scripting.Dictionary")
         m_debug = False
-        AddPinEventListener m_mode & "_starting", "variable_player_activate", "VariablePlayerEventHandler", m_priority, Array("activate", Me)
-        AddPinEventListener m_mode & "_stopping", "variable_player_deactivate", "VariablePlayerEventHandler", m_priority, Array("deactivate", Me)
+        Set m_base_device = (new GlfBaseModeDevice)(mode, "variable_player", Me)
         Set Init = Me
 	End Function
 
@@ -8130,10 +8133,6 @@ Function VariablePlayerEventHandler(args)
     Dim evt : evt = ownProps(0)
     Dim variablePlayer : Set variablePlayer = ownProps(1)
     Select Case evt
-        Case "activate"
-            variablePlayer.Activate
-        Case "deactivate"
-            variablePlayer.Deactivate
         Case "play"
             variablePlayer.Play ownProps(2)
     End Select
