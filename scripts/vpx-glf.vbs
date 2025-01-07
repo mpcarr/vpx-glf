@@ -1800,6 +1800,9 @@ Sub Glf_MonitorModeUpdate(mode)
     If Not IsNull(mode.EventPlayer) Then
         glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.EventPlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.EventPlayer.Name & """},"
     End If
+    If Not IsNull(mode.QueueEventPlayer) Then
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.QueueEventPlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.QueueEventPlayer.Name & """},"
+    End If
     If Not IsNull(mode.RandomEventPlayer) Then
         glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.RandomEventPlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.RandomEventPlayer.Name & """},"
     End If
@@ -3537,6 +3540,7 @@ Class Mode
     Private m_showplayer
     Private m_variableplayer
     Private m_eventplayer
+    Private m_queueEventplayer
     Private m_random_event_player
     Private m_shot_profiles
     Private m_sequence_shots
@@ -3571,6 +3575,7 @@ Class Mode
         Set SegmentDisplayPlayer = m_segment_display_player
     End Property
     Public Property Get EventPlayer() : Set EventPlayer = m_eventplayer: End Property
+    Public Property Get QueueEventPlayer() : Set QueueEventPlayer = m_queueEventplayer: End Property
     Public Property Get RandomEventPlayer() : Set RandomEventPlayer = m_random_event_player : End Property
     Public Property Get VariablePlayer(): Set VariablePlayer = m_variableplayer: End Property
 
@@ -3773,6 +3778,9 @@ Class Mode
         If Not IsNull(m_eventplayer) Then
             m_eventplayer.Debug = value
         End If
+        If Not IsNull(m_queueEventplayer) Then
+            m_queueEventplayer.Debug = value
+        End If
         If Not IsNull(m_random_event_player) Then
             m_random_event_player.Debug = value
         End If
@@ -3811,6 +3819,7 @@ Class Mode
         m_showplayer = Null
         m_segment_display_player = Null
         Set m_eventplayer = (new GlfEventPlayer)(Me)
+        Set m_queueEventplayer = (new GlfQueueEventPlayer)(Me)
         Set m_random_event_player = (new GlfRandomEventPlayer)(Me)
         Set m_variableplayer = (new GlfVariablePlayer)(Me)
         Glf_MonitorModeUpdate Me
@@ -4691,6 +4700,116 @@ Function MultiballsHandler(args)
     End If
 End Function
 
+
+
+Class GlfQueueEventPlayer
+
+    Private m_priority
+    Private m_mode
+    Private m_debug
+    private m_base_device
+    Private m_events
+    Private m_eventValues
+
+    Public Property Get Name() : Name = "queue_event_player" : End Property
+
+    Public Property Get Events() : Set Events = m_events : End Property
+    Public Property Let Debug(value)
+        m_debug = value
+        m_base_device.Debug = value
+    End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
+    End Property
+
+	Public default Function init(mode)
+        m_mode = mode.Name
+        m_priority = mode.Priority
+        m_debug = False
+        Set m_events = CreateObject("Scripting.Dictionary")
+        Set m_eventValues = CreateObject("Scripting.Dictionary")
+        Set m_base_device = (new GlfBaseModeDevice)(mode, "queue_event_player", Me)
+        Set Init = Me
+	End Function
+
+    Public Sub Add(key, value)
+        Dim newEvent : Set newEvent = (new GlfEvent)(key)
+        m_events.Add newEvent.Name, newEvent
+        'msgbox newEvent.Name
+        m_eventValues.Add newEvent.Name, value  
+    End Sub
+
+    Public Sub Activate()
+        Dim evt
+        For Each evt In m_events.Keys()
+            AddPinEventListener m_events(evt).EventName, m_mode & "_" & m_events(evt).Name & "_queue_event_player_play", "QueueEventPlayerEventHandler", m_priority, Array("play", Me, evt)
+        Next
+    End Sub
+
+    Public Sub Deactivate()
+        Dim evt
+        For Each evt In m_events.Keys()
+            RemovePinEventListener m_events(evt).EventName, m_mode & "_" & m_events(evt).Name & "_queue_event_player_play"
+        Next
+    End Sub
+
+    Public Sub FireEvent(evt)
+        If Not IsNull(m_events(evt).Condition) Then
+            'msgbox m_events(evt).Condition
+            If GetRef(m_events(evt).Condition)() = False Then
+                Exit Sub
+            End If
+        End If
+        Dim evtValue
+        For Each evtValue In m_eventValues(evt)
+            Log "Dispatching Event: " & evtValue
+            DispatchQueuePinEvent evtValue, Null
+        Next
+    End Sub
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_mode & "_queue_event_player", message
+        End If
+    End Sub
+
+    Public Function ToYaml()
+        Dim yaml
+        Dim evt
+        If UBound(m_events.Keys) > -1 Then
+            For Each key in m_events.keys
+                yaml = yaml & "  " & m_events(key).Raw & ": " & vbCrLf
+                For Each evt in m_eventValues(key)
+                    yaml = yaml & "    - " & evt & vbCrLf
+                Next
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        ToYaml = yaml
+    End Function
+
+End Class
+
+Function QueueEventPlayerEventHandler(args)
+    
+    Dim ownProps, kwargs : ownProps = args(0)
+    If IsObject(args(1)) Then
+        Set kwargs = args(1)
+    Else
+        kwargs = args(1) 
+    End If
+    Dim evt : evt = ownProps(0)
+    Dim eventPlayer : Set eventPlayer = ownProps(1)
+    Select Case evt
+        Case "play"
+            eventPlayer.FireEvent ownProps(2)
+    End Select
+    If IsObject(args(1)) Then
+        Set QueueEventPlayerEventHandler = kwargs
+    Else
+        QueueEventPlayerEventHandler = kwargs
+    End If
+End Function
 
 
 Class GlfRandomEventPlayer
