@@ -77,7 +77,7 @@ Class GlfVariablePlayer
 
     Private Sub Log(message)
         If m_debug = True Then
-            glf_debugLog.WriteToLog m_mode & "_variable_player_play", message
+            glf_debugLog.WriteToLog m_mode & "_variable_player", message
         End If
     End Sub
 End Class

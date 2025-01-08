@@ -93,7 +93,6 @@ Class GlfRandomEvent
                 valid_events.Add event_keys(i), m_events(event_keys(i))
             End If
         Next
-
         event_to_fire = CheckFallback(valid_events)
         If Not IsEmpty(event_to_fire) Then
             GetNextRandomEvent = event_to_fire
