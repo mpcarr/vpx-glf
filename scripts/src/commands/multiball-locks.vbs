@@ -125,7 +125,7 @@ Class GlfMultiballLocks
                 glf_ball_devices(device).Eject()
             Else
                 If m_balls_to_replace = -1 Or balls_locked <= m_balls_to_replace Then
-                    glf_BIP = glf_BIP - 1
+                    ' glf_BIP = glf_BIP - 1
                     SetDelay m_name & "_queued_release", "MultiballLocksHandler" , Array(Array("queue_release", Me),Null), 1000
                 End If
             End If

@@ -40,7 +40,7 @@ Class GlfQueueEventPlayer
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener m_events(evt).EventName, m_mode & "_" & m_events(evt).Name & "_queue_event_player_play", "QueueEventPlayerEventHandler", m_priority, Array("play", Me, evt)
+            AddPinEventListener m_events(evt).EventName, m_mode & "_" & m_events(evt).Name & "_queue_event_player_play", "QueueEventPlayerEventHandler", m_priority+m_events(evt).Priority, Array("play", Me, evt)
         Next
     End Sub
 

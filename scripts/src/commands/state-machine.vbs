@@ -194,7 +194,7 @@ Class GlfStateMachine
         For Each transition in m_transitions.Items()
             If transition.Source.Exists(State()) Then
                 For Each evt in transition.Events.Items()
-                    AddPinEventListener evt.EventName, m_name & "_" & transition.Target & "_" & evt.EventName & "_transition", "StateMachineTransitionHandler", m_priority, Array("transition", Me, evt, transition)
+                    AddPinEventListener evt.EventName, m_name & "_" & transition.Target & "_" & evt.EventName & "_transition", "StateMachineTransitionHandler", m_priority+evt.Priority, Array("transition", Me, evt, transition)
                 Next
             End If
         Next

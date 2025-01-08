@@ -41,7 +41,7 @@ Class GlfVariablePlayer
         Log "Activating"
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener m_events(evt).BaseEvent.EventName, m_mode & "_variable_player_play", "VariablePlayerEventHandler", m_priority, Array("play", Me, evt)
+            AddPinEventListener m_events(evt).BaseEvent.EventName, m_mode & "_variable_player_play", "VariablePlayerEventHandler", m_priority+m_events(evt).BaseEvent.Priority, Array("play", Me, evt)
         Next
     End Sub
 

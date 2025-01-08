@@ -2,6 +2,7 @@ Class BallSave
 
     Private m_name
     Private m_mode
+    Private m_priority
     Private m_active_time
     Private m_grace_period
     Private m_enable_events
@@ -46,6 +47,7 @@ Class BallSave
 	Public default Function init(name, mode)
         m_name = "ball_save_" & name
         m_mode = mode.Name
+        m_priority = mode.Priority
         m_active_time = Null
 	    m_grace_period = Null
         m_hurry_up_time = Null
@@ -63,7 +65,7 @@ Class BallSave
     Public Sub Activate()
         Dim evt
         For Each evt in m_timer_start_events.Keys
-            AddPinEventListener m_timer_start_events(evt).EventName, m_name & "_timer_start", "BallSaveEventHandler", 1000, Array("timer_start", Me, evt)
+            AddPinEventListener m_timer_start_events(evt).EventName, m_name & "_timer_start", "BallSaveEventHandler", m_priority+m_timer_start_events(evt).Priority, Array("timer_start", Me, evt)
         Next
     End Sub
 

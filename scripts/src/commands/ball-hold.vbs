@@ -98,13 +98,13 @@ Class GlfBallHold
         Next
         Dim evt
         For Each evt in m_release_all_events.Keys
-            AddPinEventListener m_release_all_events(evt).EventName, m_mode & "_" & name & "_release_all", "BallHoldsEventHandler", m_priority, Array("release_all", me, m_release_all_events(evt))
+            AddPinEventListener m_release_all_events(evt).EventName, m_mode & "_" & name & "_release_all", "BallHoldsEventHandler", m_priority+m_release_all_events(evt).Priority, Array("release_all", me, m_release_all_events(evt))
         Next
         For Each evt in m_release_one_events.Keys
-            AddPinEventListener m_release_one_events(evt).EventName, m_mode & "_" & name & "_release_one", "BallHoldsEventHandler", m_priority, Array("release_one", me, m_release_one_events(evt))
+            AddPinEventListener m_release_one_events(evt).EventName, m_mode & "_" & name & "_release_one", "BallHoldsEventHandler", m_priority+m_release_one_events(evt).Priority, Array("release_one", me, m_release_one_events(evt))
         Next
         For Each evt in m_release_one_if_full_events.Keys
-            AddPinEventListener m_release_one_if_full_events(evt).EventName, m_mode & "_" & name & "_release_one_if_full", "BallHoldsEventHandler", m_priority, Array("release_one_if_full", me, m_release_one_if_full_events(evt))
+            AddPinEventListener m_release_one_if_full_events(evt).EventName, m_mode & "_" & name & "_release_one_if_full", "BallHoldsEventHandler", m_priority+m_release_one_if_full_events(evt).Priority, Array("release_one_if_full", me, m_release_one_if_full_events(evt))
         Next
     End Sub
 

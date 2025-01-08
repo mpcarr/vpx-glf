@@ -120,7 +120,7 @@ Class GlfMultiballs
         m_enabled = True
         Dim evt
         For Each evt in m_start_events.Keys
-            AddPinEventListener m_start_events(evt).EventName, m_name & "_start", "MultiballsHandler", m_priority, Array("start", Me, m_start_events(evt))
+            AddPinEventListener m_start_events(evt).EventName, m_name & "_start", "MultiballsHandler", m_priority+m_start_events(evt).Priority, Array("start", Me, m_start_events(evt))
         Next
         For Each evt in m_reset_events
             AddPinEventListener evt, m_name & "_reset", "MultiballsHandler", m_priority, Array("reset", Me)
@@ -212,7 +212,7 @@ Class GlfMultiballs
 
         HandleBallsInPlayAndBallsLive()
         Log("Starting multiball with " & m_balls_live_target & " balls (added " & m_balls_added_live & ")")
-
+        msgbox("Starting multiball with " & m_balls_live_target & " balls (added " & m_balls_added_live & ")")    
         Dim balls_added : balls_added = 0
 
         'eject balls from locks

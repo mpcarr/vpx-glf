@@ -711,15 +711,20 @@ Public Function Glf_ParseEventInput(value)
 	Dim templateCode : templateCode = ""
 	Dim parts : parts = Split(value, ":")
 	Dim event_delay : event_delay = 0
+	Dim priority : priority = 0
 	If UBound(parts) = 1 Then
 		value = parts(0)
 		event_delay= parts(1)
 	End If
 
-
 	Dim condition : condition = Glf_IsCondition(value)
 	If IsNull(condition) Then
-		Glf_ParseEventInput = Array(value, value, Null, event_delay)
+		parts = Split(value, ".")
+		If UBound(parts) = 1 Then
+			value = parts(0)
+			priority= parts(1)
+		End If
+		Glf_ParseEventInput = Array(value, value, Null, event_delay, priority)
 	Else
 		dim conditionReplaced : conditionReplaced = Glf_ReplaceCurrentPlayerAttributes(condition)
 		conditionReplaced = Glf_ReplaceAnyPlayerAttributes(conditionReplaced)
@@ -733,7 +738,14 @@ Public Function Glf_ParseEventInput(value)
 		ExecuteGlobal templateCode
 		Dim funcRef : funcRef = "Glf_" & glf_FuncCount
 		glf_FuncCount = glf_FuncCount + 1
-		Glf_ParseEventInput = Array(Replace(value, "{"&condition&"}", funcRef) ,Replace(value, "{"&condition&"}", ""), funcRef, event_delay)
+
+		value = Replace(value, "{"&condition&"}", "")
+		parts = Split(value, ".")
+		If UBound(parts) = 1 Then
+			value = parts(0)
+			priority= parts(1)
+		End If
+		Glf_ParseEventInput = Array(value & funcRef ,value, funcRef, event_delay, priority)
 	End If
 End Function
 
@@ -2057,13 +2069,13 @@ Class GlfBallHold
         Next
         Dim evt
         For Each evt in m_release_all_events.Keys
-            AddPinEventListener m_release_all_events(evt).EventName, m_mode & "_" & name & "_release_all", "BallHoldsEventHandler", m_priority, Array("release_all", me, m_release_all_events(evt))
+            AddPinEventListener m_release_all_events(evt).EventName, m_mode & "_" & name & "_release_all", "BallHoldsEventHandler", m_priority+m_release_all_events(evt).Priority, Array("release_all", me, m_release_all_events(evt))
         Next
         For Each evt in m_release_one_events.Keys
-            AddPinEventListener m_release_one_events(evt).EventName, m_mode & "_" & name & "_release_one", "BallHoldsEventHandler", m_priority, Array("release_one", me, m_release_one_events(evt))
+            AddPinEventListener m_release_one_events(evt).EventName, m_mode & "_" & name & "_release_one", "BallHoldsEventHandler", m_priority+m_release_one_events(evt).Priority, Array("release_one", me, m_release_one_events(evt))
         Next
         For Each evt in m_release_one_if_full_events.Keys
-            AddPinEventListener m_release_one_if_full_events(evt).EventName, m_mode & "_" & name & "_release_one_if_full", "BallHoldsEventHandler", m_priority, Array("release_one_if_full", me, m_release_one_if_full_events(evt))
+            AddPinEventListener m_release_one_if_full_events(evt).EventName, m_mode & "_" & name & "_release_one_if_full", "BallHoldsEventHandler", m_priority+m_release_one_if_full_events(evt).Priority, Array("release_one_if_full", me, m_release_one_if_full_events(evt))
         Next
     End Sub
 
@@ -2340,6 +2352,7 @@ Class BallSave
 
     Private m_name
     Private m_mode
+    Private m_priority
     Private m_active_time
     Private m_grace_period
     Private m_enable_events
@@ -2384,6 +2397,7 @@ Class BallSave
 	Public default Function init(name, mode)
         m_name = "ball_save_" & name
         m_mode = mode.Name
+        m_priority = mode.Priority
         m_active_time = Null
 	    m_grace_period = Null
         m_hurry_up_time = Null
@@ -2401,7 +2415,7 @@ Class BallSave
     Public Sub Activate()
         Dim evt
         For Each evt in m_timer_start_events.Keys
-            AddPinEventListener m_timer_start_events(evt).EventName, m_name & "_timer_start", "BallSaveEventHandler", 1000, Array("timer_start", Me, evt)
+            AddPinEventListener m_timer_start_events(evt).EventName, m_name & "_timer_start", "BallSaveEventHandler", m_priority+m_timer_start_events(evt).Priority, Array("timer_start", Me, evt)
         Next
     End Sub
 
@@ -2652,7 +2666,7 @@ Class GlfCounter
         End If
         Dim evt
         For Each evt in m_enable_events.Keys
-            AddPinEventListener m_enable_events(evt).EventName, m_name & "_enable", "CounterEventHandler", m_priority, Array("enable", Me, evt)
+            AddPinEventListener m_enable_events(evt).EventName, m_name & "_enable", "CounterEventHandler", m_priority+m_enable_events(evt).Priority, Array("enable", Me, evt)
         Next
     End Sub
 
@@ -2671,7 +2685,7 @@ Class GlfCounter
         Log "Enabling"
         Dim evt
         For Each evt in m_count_events.Keys
-            AddPinEventListener m_count_events(evt).EventName, m_name & "_count", "CounterEventHandler", m_priority, Array("count", Me)
+            AddPinEventListener m_count_events(evt).EventName, m_name & "_count", "CounterEventHandler", m_priority+m_count_events(evt).Priority, Array("count", Me)
         Next
     End Sub
 
@@ -2766,7 +2780,7 @@ Class GlfEventPlayer
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener m_events(evt).EventName, m_mode & "_" & m_events(evt).Name & "_event_player_play", "EventPlayerEventHandler", m_priority, Array("play", Me, evt)
+            AddPinEventListener m_events(evt).EventName, m_mode & "_" & m_events(evt).Name & "_event_player_play", "EventPlayerEventHandler", m_priority+m_events(evt).Priority, Array("play", Me, evt)
         Next
     End Sub
 
@@ -2902,7 +2916,7 @@ Class GlfExtraBall
         Log "Enabling"
         Dim evt
         For Each evt in m_award_events.Keys
-            AddPinEventListener m_award_events(evt).EventName, m_name & "_" & evt & "_award", "ExtraBallsHandler", m_priority, Array("award", Me, m_award_events(evt))
+            AddPinEventListener m_award_events(evt).EventName, m_name & "_" & evt & "_award", "ExtraBallsHandler", m_priority+m_award_events(evt).Priority, Array("award", Me, m_award_events(evt))
         Next
     End Sub
 
@@ -3452,10 +3466,10 @@ Class GlfBaseModeDevice
         Log "Activating"
         Dim evt
         For Each evt In m_enable_events.Keys()
-            AddPinEventListener m_enable_events(evt).EventName, m_mode.Name & m_device & "_" & m_parent.Name & "_enable", "BaseModeDeviceEventHandler", m_priority, Array("enable", m_parent, m_enable_events(evt))
+            AddPinEventListener m_enable_events(evt).EventName, m_mode.Name & m_device & "_" & m_parent.Name & "_enable", "BaseModeDeviceEventHandler", m_priority+m_enable_events(evt).Priority, Array("enable", m_parent, m_enable_events(evt))
         Next
         For Each evt In m_disable_events.Keys()
-            AddPinEventListener m_disable_events(evt).EventName, m_mode.Name & m_device & "_" & m_parent.Name & "_disable", "BaseModeDeviceEventHandler", m_priority, Array("disable", m_parent, m_disable_events(evt))
+            AddPinEventListener m_disable_events(evt).EventName, m_mode.Name & m_device & "_" & m_parent.Name & "_disable", "BaseModeDeviceEventHandler", m_priority+m_disable_events(evt).Priority, Array("disable", m_parent, m_disable_events(evt))
         Next
         m_parent.Activate
     End Sub
@@ -3716,7 +3730,7 @@ Class Mode
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
             m_start_events.Add newEvent.Name, newEvent
-            AddPinEventListener newEvent.EventName, m_name & "_start", "ModeEventHandler", m_priority, Array("start", Me, newEvent)
+            AddPinEventListener newEvent.EventName, m_name & "_start", "ModeEventHandler", m_priority+newEvent.Priority, Array("start", Me, newEvent)
         Next
     End Property
     
@@ -3725,7 +3739,7 @@ Class Mode
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
             m_stop_events.Add newEvent.Name, newEvent
-            AddPinEventListener newEvent.EventName, m_name & "_stop", "ModeEventHandler", m_priority+1, Array("stop", Me, newEvent)
+            AddPinEventListener newEvent.EventName, m_name & "_stop", "ModeEventHandler", m_priority+newEvent.Priority+1, Array("stop", Me, newEvent)
         Next
     End Property
 
@@ -4170,7 +4184,7 @@ Class GlfMultiballLocks
                 glf_ball_devices(device).Eject()
             Else
                 If m_balls_to_replace = -1 Or balls_locked <= m_balls_to_replace Then
-                    glf_BIP = glf_BIP - 1
+                    ' glf_BIP = glf_BIP - 1
                     SetDelay m_name & "_queued_release", "MultiballLocksHandler" , Array(Array("queue_release", Me),Null), 1000
                 End If
             End If
@@ -4365,7 +4379,7 @@ Class GlfMultiballs
         m_enabled = True
         Dim evt
         For Each evt in m_start_events.Keys
-            AddPinEventListener m_start_events(evt).EventName, m_name & "_start", "MultiballsHandler", m_priority, Array("start", Me, m_start_events(evt))
+            AddPinEventListener m_start_events(evt).EventName, m_name & "_start", "MultiballsHandler", m_priority+m_start_events(evt).Priority, Array("start", Me, m_start_events(evt))
         Next
         For Each evt in m_reset_events
             AddPinEventListener evt, m_name & "_reset", "MultiballsHandler", m_priority, Array("reset", Me)
@@ -4457,7 +4471,7 @@ Class GlfMultiballs
 
         HandleBallsInPlayAndBallsLive()
         Log("Starting multiball with " & m_balls_live_target & " balls (added " & m_balls_added_live & ")")
-
+        msgbox("Starting multiball with " & m_balls_live_target & " balls (added " & m_balls_added_live & ")")    
         Dim balls_added : balls_added = 0
 
         'eject balls from locks
@@ -4742,7 +4756,7 @@ Class GlfQueueEventPlayer
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener m_events(evt).EventName, m_mode & "_" & m_events(evt).Name & "_queue_event_player_play", "QueueEventPlayerEventHandler", m_priority, Array("play", Me, evt)
+            AddPinEventListener m_events(evt).EventName, m_mode & "_" & m_events(evt).Name & "_queue_event_player_play", "QueueEventPlayerEventHandler", m_priority+m_events(evt).Priority, Array("play", Me, evt)
         Next
     End Sub
 
@@ -4853,7 +4867,7 @@ Class GlfRandomEventPlayer
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener m_events(evt).EventName, m_mode & "_" & evt & "_event_player_play", "RandomEventPlayerEventHandler", m_priority, Array("play", Me, evt)
+            AddPinEventListener m_events(evt).EventName, m_mode & "_" & evt & "_event_player_play", "RandomEventPlayerEventHandler", m_priority+m_events(evt).Priority, Array("play", Me, evt)
         Next
     End Sub
 
@@ -4955,7 +4969,7 @@ Class GlfSegmentDisplayPlayer
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener m_events(evt).GlfEvent.EventName, m_mode & "_segment_player_play", "SegmentPlayerEventHandler", m_priority, Array("play", Me, m_events(evt), m_events(evt).GlfEvent.EventName)
+            AddPinEventListener m_events(evt).GlfEvent.EventName, m_mode & "_segment_player_play", "SegmentPlayerEventHandler", m_priority+m_events(evt).GlfEvent.Priority, Array("play", Me, m_events(evt), m_events(evt).GlfEvent.EventName)
         Next
     End Sub
 
@@ -5391,10 +5405,10 @@ Class GlfSequenceShots
             AddPinEventListener evt & "_active", m_name & "_" & evt & "_advance", "SequenceShotsHandler", m_priority, Array("advance", Me, evt & "_active")
         Next
         For Each evt in m_cancel_events.Keys
-            AddPinEventListener m_cancel_events(evt).EventName, m_name & "_" & evt & "_cancel", "SequenceShotsHandler", m_priority, Array("cancel_event", Me, m_cancel_events(evt))
+            AddPinEventListener m_cancel_events(evt).EventName, m_name & "_" & evt & "_cancel", "SequenceShotsHandler", m_priority+m_cancel_events(evt).Priority, Array("cancel_event", Me, m_cancel_events(evt))
         Next
         For Each evt in m_delay_event_list.Keys
-            AddPinEventListener m_delay_event_list(evt).EventName, m_name & "_" & evt & "_delay", "SequenceShotsHandler", m_priority, Array("delay_event", Me, m_delay_event_list(evt))
+            AddPinEventListener m_delay_event_list(evt).EventName, m_name & "_" & evt & "_delay", "SequenceShotsHandler", m_priority+m_delay_event_list(evt).Priority, Array("delay_event", Me, m_delay_event_list(evt))
         Next
     End Sub
 
@@ -5731,25 +5745,25 @@ Class GlfShotGroup
         Dim evt
         For Each evt in m_enable_rotation_events.Keys()
             m_rotation_enabled = False
-            AddPinEventListener m_enable_rotation_events(evt).EventName, m_name & "_enable_rotation", "ShotGroupEventHandler", m_priority, Array("enable_rotation", Me, evt)
+            AddPinEventListener m_enable_rotation_events(evt).EventName, m_name & "_enable_rotation", "ShotGroupEventHandler", m_priority+m_enable_rotation_events(evt).Priority, Array("enable_rotation", Me, evt)
         Next
         For Each evt in m_disable_rotation_events.Keys()
-            AddPinEventListener m_disable_rotation_events(evt).EventName, m_name & "_disable_rotation", "ShotGroupEventHandler", m_priority, Array("disable_rotation", Me, evt)
+            AddPinEventListener m_disable_rotation_events(evt).EventName, m_name & "_disable_rotation", "ShotGroupEventHandler", m_priority+m_disable_rotation_events(evt).Priority, Array("disable_rotation", Me, evt)
         Next
         For Each evt in m_restart_events.Keys()
-            AddPinEventListener m_restart_events(evt).EventName, m_name & "_restart", "ShotGroupEventHandler", m_priority, Array("restart", Me, evt)
+            AddPinEventListener m_restart_events(evt).EventName, m_name & "_restart", "ShotGroupEventHandler", m_priority+m_restart_events(evt).Priority, Array("restart", Me, evt)
         Next
         For Each evt in m_reset_events.Keys()
-            AddPinEventListener m_reset_events(evt).EventName, m_name & "_reset", "ShotGroupEventHandler", m_priority, Array("reset", Me, evt)
+            AddPinEventListener m_reset_events(evt).EventName, m_name & "_reset", "ShotGroupEventHandler", m_priority+m_reset_events(evt).Priority, Array("reset", Me, evt)
         Next
         For Each evt in m_rotate_events.Keys()
-            AddPinEventListener m_rotate_events(evt).EventName, m_name & "_rotate", "ShotGroupEventHandler", m_priority, Array("rotate", Me, evt)
+            AddPinEventListener m_rotate_events(evt).EventName, m_name & "_rotate", "ShotGroupEventHandler", m_priority+m_rotate_events(evt).Priority, Array("rotate", Me, evt)
         Next
         For Each evt in m_rotate_left_events.Keys()
-            AddPinEventListener m_rotate_left_events(evt).EventName, m_name & "_rotate_left", "ShotGroupEventHandler", m_priority, Array("rotate_left", Me, evt)
+            AddPinEventListener m_rotate_left_events(evt).EventName, m_name & "_rotate_left", "ShotGroupEventHandler", m_priority+m_rotate_left_events(evt).Priority, Array("rotate_left", Me, evt)
         Next
         For Each evt in m_rotate_right_events.Keys()
-            AddPinEventListener m_rotate_right_events(evt).EventName, m_name & "_rotate_right", "ShotGroupEventHandler", m_priority, Array("rotate_right", Me, evt)
+            AddPinEventListener m_rotate_right_events(evt).EventName, m_name & "_rotate_right", "ShotGroupEventHandler", m_priority+m_rotate_right_events(evt).Priority, Array("rotate_right", Me, evt)
         Next
         Dim shot_name
         For Each shot_name in m_shots
@@ -6336,7 +6350,7 @@ Class GlfShot
         For Each evt in m_control_events.Keys
             Dim cEvt
             For Each cEvt in m_control_events(evt).Events().Keys
-                AddPinEventListener m_control_events(evt).Events()(cEvt).EventName, m_mode & "_" & m_name & "_control_" & cEvt, "ShotEventHandler", m_priority, Array("control", Me, m_control_events(evt), m_control_events(evt).Events()(cEvt))
+                AddPinEventListener m_control_events(evt).Events()(cEvt).EventName, m_mode & "_" & m_name & "_control_" & cEvt, "ShotEventHandler", m_priority+m_control_events(evt).Events()(cEvt).Priority, Array("control", Me, m_control_events(evt), m_control_events(evt).Events()(cEvt))
             Next
         Next
         For Each evt in m_reset_events.Keys
@@ -6737,7 +6751,7 @@ Class GlfShowPlayer
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener m_events(evt).EventName , m_mode & "_" & m_eventValues(evt).Key & "_show_player_play", "ShowPlayerEventHandler", m_priority, Array("play", Me, evt)
+            AddPinEventListener m_events(evt).EventName, m_mode & "_" & m_eventValues(evt).Key & "_show_player_play", "ShowPlayerEventHandler", m_priority+m_events(evt).Priority, Array("play", Me, evt)
         Next
     End Sub
 
@@ -7517,7 +7531,7 @@ Class GlfStateMachine
         For Each transition in m_transitions.Items()
             If transition.Source.Exists(State()) Then
                 For Each evt in transition.Events.Items()
-                    AddPinEventListener evt.EventName, m_name & "_" & transition.Target & "_" & evt.EventName & "_transition", "StateMachineTransitionHandler", m_priority, Array("transition", Me, evt, transition)
+                    AddPinEventListener evt.EventName, m_name & "_" & transition.Target & "_" & evt.EventName & "_transition", "StateMachineTransitionHandler", m_priority+evt.Priority, Array("transition", Me, evt, transition)
                 Next
             End If
         Next
@@ -7771,7 +7785,7 @@ Class GlfTimer
     Public Sub Activate()
         Dim evt
         For Each evt in m_control_events.Keys
-            AddPinEventListener m_control_events(evt).EventName.EventName, m_name & "_action", "TimerEventHandler", m_priority, Array("action", Me, m_control_events(evt))
+            AddPinEventListener m_control_events(evt).EventName.EventName, m_name & "_action", "TimerEventHandler", m_priority+m_control_events(evt).EventName.Priority, Array("action", Me, m_control_events(evt))
         Next
         m_ticks = m_start_value.Value
         m_ticks_remaining = m_ticks
@@ -8128,7 +8142,7 @@ Class GlfVariablePlayer
         Log "Activating"
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener m_events(evt).BaseEvent.EventName, m_mode & "_variable_player_play", "VariablePlayerEventHandler", m_priority, Array("play", Me, evt)
+            AddPinEventListener m_events(evt).BaseEvent.EventName, m_mode & "_variable_player_play", "VariablePlayerEventHandler", m_priority+m_events(evt).BaseEvent.Priority, Array("play", Me, evt)
         Next
     End Sub
 
@@ -10574,13 +10588,14 @@ End Class
 
 
 Class GlfEvent
-	Private m_raw, m_name, m_event, m_condition, m_delay
+	Private m_raw, m_name, m_event, m_condition, m_delay, m_priority
   
     Public Property Get Name() : Name = m_name : End Property
     Public Property Get EventName() : EventName = m_event : End Property
     Public Property Get Condition() : Condition = m_condition : End Property
     Public Property Get Delay() : Delay = m_delay : End Property
     Public Property Get Raw() : Raw = m_raw : End Property
+    Public Property Get Priority() : Priority = m_priority : End Property
 
     Public Function Evaluate()
         If Not IsNull(m_condition) Then
@@ -10597,6 +10612,7 @@ Class GlfEvent
         m_event = parsedEvent(1)
         m_condition = parsedEvent(2)
         m_delay = parsedEvent(3)
+        m_priority = parsedEvent(4)
 	    Set Init = Me
 	End Function
 

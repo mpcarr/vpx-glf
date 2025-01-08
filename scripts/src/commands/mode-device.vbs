@@ -53,10 +53,10 @@ Class GlfBaseModeDevice
         Log "Activating"
         Dim evt
         For Each evt In m_enable_events.Keys()
-            AddPinEventListener m_enable_events(evt).EventName, m_mode.Name & m_device & "_" & m_parent.Name & "_enable", "BaseModeDeviceEventHandler", m_priority, Array("enable", m_parent, m_enable_events(evt))
+            AddPinEventListener m_enable_events(evt).EventName, m_mode.Name & m_device & "_" & m_parent.Name & "_enable", "BaseModeDeviceEventHandler", m_priority+m_enable_events(evt).Priority, Array("enable", m_parent, m_enable_events(evt))
         Next
         For Each evt In m_disable_events.Keys()
-            AddPinEventListener m_disable_events(evt).EventName, m_mode.Name & m_device & "_" & m_parent.Name & "_disable", "BaseModeDeviceEventHandler", m_priority, Array("disable", m_parent, m_disable_events(evt))
+            AddPinEventListener m_disable_events(evt).EventName, m_mode.Name & m_device & "_" & m_parent.Name & "_disable", "BaseModeDeviceEventHandler", m_priority+m_disable_events(evt).Priority, Array("disable", m_parent, m_disable_events(evt))
         Next
         m_parent.Activate
     End Sub

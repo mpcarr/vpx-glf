@@ -711,15 +711,20 @@ Public Function Glf_ParseEventInput(value)
 	Dim templateCode : templateCode = ""
 	Dim parts : parts = Split(value, ":")
 	Dim event_delay : event_delay = 0
+	Dim priority : priority = 0
 	If UBound(parts) = 1 Then
 		value = parts(0)
 		event_delay= parts(1)
 	End If
 
-
 	Dim condition : condition = Glf_IsCondition(value)
 	If IsNull(condition) Then
-		Glf_ParseEventInput = Array(value, value, Null, event_delay)
+		parts = Split(value, ".")
+		If UBound(parts) = 1 Then
+			value = parts(0)
+			priority= parts(1)
+		End If
+		Glf_ParseEventInput = Array(value, value, Null, event_delay, priority)
 	Else
 		dim conditionReplaced : conditionReplaced = Glf_ReplaceCurrentPlayerAttributes(condition)
 		conditionReplaced = Glf_ReplaceAnyPlayerAttributes(conditionReplaced)
@@ -733,7 +738,14 @@ Public Function Glf_ParseEventInput(value)
 		ExecuteGlobal templateCode
 		Dim funcRef : funcRef = "Glf_" & glf_FuncCount
 		glf_FuncCount = glf_FuncCount + 1
-		Glf_ParseEventInput = Array(Replace(value, "{"&condition&"}", funcRef) ,Replace(value, "{"&condition&"}", ""), funcRef, event_delay)
+
+		value = Replace(value, "{"&condition&"}", "")
+		parts = Split(value, ".")
+		If UBound(parts) = 1 Then
+			value = parts(0)
+			priority= parts(1)
+		End If
+		Glf_ParseEventInput = Array(value & funcRef ,value, funcRef, event_delay, priority)
 	End If
 End Function
 

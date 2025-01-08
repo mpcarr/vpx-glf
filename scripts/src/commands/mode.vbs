@@ -196,7 +196,7 @@ Class Mode
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
             m_start_events.Add newEvent.Name, newEvent
-            AddPinEventListener newEvent.EventName, m_name & "_start", "ModeEventHandler", m_priority, Array("start", Me, newEvent)
+            AddPinEventListener newEvent.EventName, m_name & "_start", "ModeEventHandler", m_priority+newEvent.Priority, Array("start", Me, newEvent)
         Next
     End Property
     
@@ -205,7 +205,7 @@ Class Mode
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
             m_stop_events.Add newEvent.Name, newEvent
-            AddPinEventListener newEvent.EventName, m_name & "_stop", "ModeEventHandler", m_priority+1, Array("stop", Me, newEvent)
+            AddPinEventListener newEvent.EventName, m_name & "_stop", "ModeEventHandler", m_priority+newEvent.Priority+1, Array("stop", Me, newEvent)
         Next
     End Property
 

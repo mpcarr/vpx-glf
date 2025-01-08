@@ -126,10 +126,10 @@ Class GlfSequenceShots
             AddPinEventListener evt & "_active", m_name & "_" & evt & "_advance", "SequenceShotsHandler", m_priority, Array("advance", Me, evt & "_active")
         Next
         For Each evt in m_cancel_events.Keys
-            AddPinEventListener m_cancel_events(evt).EventName, m_name & "_" & evt & "_cancel", "SequenceShotsHandler", m_priority, Array("cancel_event", Me, m_cancel_events(evt))
+            AddPinEventListener m_cancel_events(evt).EventName, m_name & "_" & evt & "_cancel", "SequenceShotsHandler", m_priority+m_cancel_events(evt).Priority, Array("cancel_event", Me, m_cancel_events(evt))
         Next
         For Each evt in m_delay_event_list.Keys
-            AddPinEventListener m_delay_event_list(evt).EventName, m_name & "_" & evt & "_delay", "SequenceShotsHandler", m_priority, Array("delay_event", Me, m_delay_event_list(evt))
+            AddPinEventListener m_delay_event_list(evt).EventName, m_name & "_" & evt & "_delay", "SequenceShotsHandler", m_priority+m_delay_event_list(evt).Priority, Array("delay_event", Me, m_delay_event_list(evt))
         Next
     End Sub
 

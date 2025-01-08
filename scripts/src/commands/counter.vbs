@@ -74,7 +74,7 @@ Class GlfCounter
         End If
         Dim evt
         For Each evt in m_enable_events.Keys
-            AddPinEventListener m_enable_events(evt).EventName, m_name & "_enable", "CounterEventHandler", m_priority, Array("enable", Me, evt)
+            AddPinEventListener m_enable_events(evt).EventName, m_name & "_enable", "CounterEventHandler", m_priority+m_enable_events(evt).Priority, Array("enable", Me, evt)
         Next
     End Sub
 
@@ -93,7 +93,7 @@ Class GlfCounter
         Log "Enabling"
         Dim evt
         For Each evt in m_count_events.Keys
-            AddPinEventListener m_count_events(evt).EventName, m_name & "_count", "CounterEventHandler", m_priority, Array("count", Me)
+            AddPinEventListener m_count_events(evt).EventName, m_name & "_count", "CounterEventHandler", m_priority+m_count_events(evt).Priority, Array("count", Me)
         Next
     End Sub
 

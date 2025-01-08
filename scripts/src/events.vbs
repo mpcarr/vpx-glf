@@ -1,12 +1,13 @@
 
 Class GlfEvent
-	Private m_raw, m_name, m_event, m_condition, m_delay
+	Private m_raw, m_name, m_event, m_condition, m_delay, m_priority
   
     Public Property Get Name() : Name = m_name : End Property
     Public Property Get EventName() : EventName = m_event : End Property
     Public Property Get Condition() : Condition = m_condition : End Property
     Public Property Get Delay() : Delay = m_delay : End Property
     Public Property Get Raw() : Raw = m_raw : End Property
+    Public Property Get Priority() : Priority = m_priority : End Property
 
     Public Function Evaluate()
         If Not IsNull(m_condition) Then
@@ -23,6 +24,7 @@ Class GlfEvent
         m_event = parsedEvent(1)
         m_condition = parsedEvent(2)
         m_delay = parsedEvent(3)
+        m_priority = parsedEvent(4)
 	    Set Init = Me
 	End Function
 

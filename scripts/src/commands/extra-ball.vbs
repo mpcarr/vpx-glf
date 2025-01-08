@@ -66,7 +66,7 @@ Class GlfExtraBall
         Log "Enabling"
         Dim evt
         For Each evt in m_award_events.Keys
-            AddPinEventListener m_award_events(evt).EventName, m_name & "_" & evt & "_award", "ExtraBallsHandler", m_priority, Array("award", Me, m_award_events(evt))
+            AddPinEventListener m_award_events(evt).EventName, m_name & "_" & evt & "_award", "ExtraBallsHandler", m_priority+m_award_events(evt).Priority, Array("award", Me, m_award_events(evt))
         Next
     End Sub
 

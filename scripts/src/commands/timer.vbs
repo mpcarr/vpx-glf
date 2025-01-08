@@ -87,7 +87,7 @@ Class GlfTimer
     Public Sub Activate()
         Dim evt
         For Each evt in m_control_events.Keys
-            AddPinEventListener m_control_events(evt).EventName.EventName, m_name & "_action", "TimerEventHandler", m_priority, Array("action", Me, m_control_events(evt))
+            AddPinEventListener m_control_events(evt).EventName.EventName, m_name & "_action", "TimerEventHandler", m_priority+m_control_events(evt).EventName.Priority, Array("action", Me, m_control_events(evt))
         Next
         m_ticks = m_start_value.Value
         m_ticks_remaining = m_ticks

@@ -41,7 +41,7 @@ Class GlfRandomEventPlayer
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener m_events(evt).EventName, m_mode & "_" & evt & "_event_player_play", "RandomEventPlayerEventHandler", m_priority, Array("play", Me, evt)
+            AddPinEventListener m_events(evt).EventName, m_mode & "_" & evt & "_event_player_play", "RandomEventPlayerEventHandler", m_priority+m_events(evt).Priority, Array("play", Me, evt)
         Next
     End Sub
 
