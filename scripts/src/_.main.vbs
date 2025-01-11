@@ -40,6 +40,9 @@ Dim glf_shows : Set glf_shows = CreateObject("Scripting.Dictionary")
 Dim glf_initialVars : Set glf_initialVars = CreateObject("Scripting.Dictionary")
 Dim glf_dispatch_await : Set glf_dispatch_await = CreateObject("Scripting.Dictionary")
 Dim glf_dispatch_handlers_await : Set glf_dispatch_handlers_await = CreateObject("Scripting.Dictionary")
+Dim glf_achievements : Set glf_achievements = CreateObject("Scripting.Dictionary")
+Dim glf_sound_buses : Set glf_sound_buses = CreateObject("Scripting.Dictionary")
+
 
 Dim bcpController : bcpController = Null
 Dim glf_debugBcpController : glf_debugBcpController = Null
@@ -55,6 +58,8 @@ Dim glf_BIP : glf_BIP = 0
 Dim glf_FuncCount : glf_FuncCount = 0
 Dim glf_SeqCount : glf_SeqCount = 0
 Dim glf_max_dispatch : glf_max_dispatch = 25
+
+Dim glf_master_volume : glf_master_volume = 0.8
 
 Dim glf_ballsPerGame : glf_ballsPerGame = 3
 Dim glf_troughSize : glf_troughSize = tnob

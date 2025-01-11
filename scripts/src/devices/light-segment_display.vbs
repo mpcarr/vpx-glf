@@ -258,10 +258,10 @@ Class GlfLightSegmentDisplay
         'start transition (if configured)
         Dim flashing, flash_mask
         If Not IsNull(transition_config) Then
-            Dim transition
-            Select Case transition_config.Type()
+            Dim transition_runner
+            Select Case transition_config.TransitionType()
                 case "push":
-                    Set transition = (new GlfPushTransition)(m_size, True, True, True, transition_config)
+                    Set transition_runner = (new GlfPushTransition)(m_size, True, True, True, transition_config)
             End Select
 
             Dim previous_text
@@ -279,6 +279,7 @@ Class GlfLightSegmentDisplay
                 flash_mask = m_current_state.flash_mask
             End If
 
+            transition_runner.Get
             'self._start_transition(transition, previous_text, top_text_stack_entry.text,
              '                      self._current_state.text.get_colors(), top_text_stack_entry.colors,
              '                      self.config['default_transition_update_hz'], flashing, flash_mask)
@@ -464,7 +465,7 @@ Class GlfTextStack
     ' Peek at the top entry of the stack without popping it
     Public Function Peek()
         If UBound(stack) >= 0 Then
-            Set Peek = stack(UBound(stack))
+            Set Peek = stack(LBound(stack))
         Else
             Set Peek = Nothing
         End If

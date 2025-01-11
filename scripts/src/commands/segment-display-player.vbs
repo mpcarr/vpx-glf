@@ -17,7 +17,6 @@ Class GlfSegmentDisplayPlayer
         If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
     End Property
     
-
     Public Property Get EventNames() : EventNames = m_events.Keys() : End Property    
     
     Public Property Get EventName(value)
@@ -271,7 +270,7 @@ Class GlfSegmentPlayerTransition
 	Public default Function init()
         m_type = "push"
         m_text = Empty
-        m_direction = "push"
+        m_direction = "right"
         Set Init = Me
 	End Function
 
@@ -328,7 +327,7 @@ Function SegmentPlayerCallbackHandler(evt, segment_item, mode, priority)
             If segment_item.HasTransitionOut() Then
                 Set transition_out = segment_item.TransitionOut
             End If
-            display.AddTextEntry segment_item.Text, segment_item.Color, segment_item.Flashing, segment_item.FlashMask, transition, transition_out, segment_item.Priority, key
+            display.AddTextEntry segment_item.Text, segment_item.Color, segment_item.Flashing, segment_item.FlashMask, transition, transition_out, priority + segment_item.Priority, key
                                 
             If segment_item.Expire > 0 Then
                 SetDelay key & "_expire", "SegmentPlayerEventHandler",  Array(Array("remove", display, key)), segment_item.Expire

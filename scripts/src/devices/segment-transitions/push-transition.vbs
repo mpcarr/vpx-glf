@@ -40,13 +40,13 @@ Class GlfPushTransition
     Public Property Get TotalSteps(): TotalSteps = m_total_steps: End Property
 
     ' Initialize the class
-    Public Function Init(output_length, collapse_dots, collapse_commas, use_dots_for_commas, config)
+    Public default Function Init(output_length, collapse_dots, collapse_commas, use_dots_for_commas, config)
         'm_name = "transition_" & name
         m_output_length = output_length
         m_collapse_dots = collapse_dots
         m_collapse_commas = collapse_commas
         m_use_dots_for_commas = use_dots_for_commas
-        m_config = config
+        Set m_config = config
         m_current_step = 0
         m_total_steps = 0
 

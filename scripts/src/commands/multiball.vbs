@@ -212,7 +212,7 @@ Class GlfMultiballs
 
         HandleBallsInPlayAndBallsLive()
         Log("Starting multiball with " & m_balls_live_target & " balls (added " & m_balls_added_live & ")")
-        msgbox("Starting multiball with " & m_balls_live_target & " balls (added " & m_balls_added_live & ")")    
+        'msgbox("Starting multiball with " & m_balls_live_target & " balls (added " & m_balls_added_live & ")")    
         Dim balls_added : balls_added = 0
 
         'eject balls from locks
