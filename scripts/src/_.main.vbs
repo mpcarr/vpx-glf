@@ -42,6 +42,7 @@ Dim glf_dispatch_await : Set glf_dispatch_await = CreateObject("Scripting.Dictio
 Dim glf_dispatch_handlers_await : Set glf_dispatch_handlers_await = CreateObject("Scripting.Dictionary")
 Dim glf_achievements : Set glf_achievements = CreateObject("Scripting.Dictionary")
 Dim glf_sound_buses : Set glf_sound_buses = CreateObject("Scripting.Dictionary")
+Dim glf_sounds : Set glf_sounds = CreateObject("Scripting.Dictionary")
 
 
 Dim bcpController : bcpController = Null

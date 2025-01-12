@@ -22,6 +22,7 @@ Class Mode
     Private m_eventplayer
     Private m_queueEventplayer
     Private m_random_event_player
+    Private m_sound_player
     Private m_shot_profiles
     Private m_sequence_shots
     Private m_state_machines
@@ -58,6 +59,7 @@ Class Mode
     Public Property Get QueueEventPlayer() : Set QueueEventPlayer = m_queueEventplayer: End Property
     Public Property Get RandomEventPlayer() : Set RandomEventPlayer = m_random_event_player : End Property
     Public Property Get VariablePlayer(): Set VariablePlayer = m_variableplayer: End Property
+    Public Property Get SoundPlayer() : Set SoundPlayer = m_sound_player : End Property
 
     Public Property Get ShotProfiles(name)
         If m_shot_profiles.Exists(name) Then
@@ -264,6 +266,9 @@ Class Mode
         If Not IsNull(m_random_event_player) Then
             m_random_event_player.Debug = value
         End If
+        If Not IsNull(m_sound_player) Then
+            m_sound_player.Debug = value
+        End If
         If Not IsNull(m_showplayer) Then
             m_showplayer.Debug = value
         End If
@@ -301,6 +306,7 @@ Class Mode
         Set m_eventplayer = (new GlfEventPlayer)(Me)
         Set m_queueEventplayer = (new GlfQueueEventPlayer)(Me)
         Set m_random_event_player = (new GlfRandomEventPlayer)(Me)
+        Set m_sound_player = (new GlfSoundPlayer)(Me)
         Set m_variableplayer = (new GlfVariablePlayer)(Me)
         Glf_MonitorModeUpdate Me
         AddPinEventListener m_name & "_starting", m_name & "_starting_end", "ModeEventHandler", -99, Array("started", Me, "")
