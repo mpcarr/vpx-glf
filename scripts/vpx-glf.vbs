@@ -10909,6 +10909,10 @@ Class GlfSoundBus
         If (UBound(m_current_sounds.Keys)-1) > m_simultaneous_sounds Then
             'TODO: Queue Sound
         Else
+            If m_current_sounds.Exists(sound_settings.Sound.File) Then
+                m_current_sounds.Remove sound_settings.Sound.File
+                RemoveDelay m_name & "_stop_sound_" & sound_settings.Sound.File       
+            End If
             m_current_sounds.Add sound_settings.Sound.File, sound_settings
             Dim volume : volume = m_volume
             If Not IsEmpty(sound_settings.Sound.Volume) Then
