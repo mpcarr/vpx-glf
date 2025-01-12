@@ -104,7 +104,7 @@ Class GlfSound
             Case "volume":
                 GetValue = m_volume
             Case "events_when_stopped":
-                GetValue = m_events_when_stopped
+                Set GetValue = m_events_when_stopped
             Case "bus":
                 GetValue = m_bus
             Case "priority":
@@ -155,7 +155,7 @@ Class GlfSound
         m_priority = 0
         m_duration = 0
         m_max_queue_time = -1 
-        Set events_when_stopped = CreateObject("Scripting.Dictionary")
+        Set m_events_when_stopped = CreateObject("Scripting.Dictionary")
         glf_sounds.Add name, Me
         Set Init = Me
     End Function
