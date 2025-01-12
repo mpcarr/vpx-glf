@@ -51,7 +51,7 @@ Class GlfSoundPlayer
         Dim evt
         For Each evt In m_events.Keys()
             RemovePinEventListener m_events(evt).EventName, m_mode & "_" & m_eventValues(evt).Key & "_sound_player_play"
-            PlayOff m_eventValues(evt).Key
+            PlayOff evt
         Next
     End Sub
 
@@ -59,20 +59,17 @@ Class GlfSoundPlayer
         Play = Empty
         If m_events(evt).Evaluate() Then
             If m_eventValues(evt).Action = "stop" Then
-                PlayOff m_eventValues(evt).Key
+                PlayOff evt
             Else
                 glf_sound_buses(m_eventValues(evt).Sound.Bus).Play m_eventValues(evt)
             End If
         End If
     End Function
 
-    Public Sub PlayOff(key)
-        'If glf_running_shows.Exists(m_name & "_" & key) Then 
-        '    glf_running_shows(m_name & "_" & key).StopRunningSound()
-        'End If
+    Public Sub PlayOff(evt)
+        glf_sound_buses(m_eventValues(evt).Sound.Bus).StopSoundWithKey m_eventValues(evt).Sound.File
     End Sub
 
-    
     Private Sub Log(message)
         If m_debug = True Then
             glf_debugLog.WriteToLog m_name, message
@@ -124,10 +121,16 @@ End Function
 
 
 Class GlfSoundPlayerItem
-	Private m_sound, m_action, m_key
+	Private m_sound, m_action, m_key, m_volume, m_loops
     
     Public Property Get Action(): Action = m_action: End Property
     Public Property Let Action(input): m_action = input: End Property
+
+    Public Property Get Volume(): Volume = m_volume: End Property
+    Public Property Let Volume(input): m_volume = input: End Property
+
+    Public Property Get Loops(): Loops = m_loops: End Property
+    Public Property Let Loops(input): m_loops = input: End Property
 
     Public Property Get Key(): Key = m_key: End Property
     Public Property Let Key(input): m_key = input: End Property
@@ -149,6 +152,8 @@ Class GlfSoundPlayerItem
         m_action = "play"
         m_sound = Null
         m_key = Empty
+        m_volume = Empty
+        m_loops = Empty
         Set Init = Me
 	End Function
 

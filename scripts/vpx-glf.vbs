@@ -7490,7 +7490,7 @@ Class GlfSoundPlayer
         Dim evt
         For Each evt In m_events.Keys()
             RemovePinEventListener m_events(evt).EventName, m_mode & "_" & m_eventValues(evt).Key & "_sound_player_play"
-            PlayOff m_eventValues(evt).Key
+            PlayOff evt
         Next
     End Sub
 
@@ -7498,20 +7498,17 @@ Class GlfSoundPlayer
         Play = Empty
         If m_events(evt).Evaluate() Then
             If m_eventValues(evt).Action = "stop" Then
-                PlayOff m_eventValues(evt).Key
+                PlayOff evt
             Else
                 glf_sound_buses(m_eventValues(evt).Sound.Bus).Play m_eventValues(evt)
             End If
         End If
     End Function
 
-    Public Sub PlayOff(key)
-        'If glf_running_shows.Exists(m_name & "_" & key) Then 
-        '    glf_running_shows(m_name & "_" & key).StopRunningSound()
-        'End If
+    Public Sub PlayOff(evt)
+        glf_sound_buses(m_eventValues(evt).Sound.Bus).StopSoundWithKey m_eventValues(evt).Sound.File
     End Sub
 
-    
     Private Sub Log(message)
         If m_debug = True Then
             glf_debugLog.WriteToLog m_name, message
@@ -7563,10 +7560,16 @@ End Function
 
 
 Class GlfSoundPlayerItem
-	Private m_sound, m_action, m_key
+	Private m_sound, m_action, m_key, m_volume, m_loops
     
     Public Property Get Action(): Action = m_action: End Property
     Public Property Let Action(input): m_action = input: End Property
+
+    Public Property Get Volume(): Volume = m_volume: End Property
+    Public Property Let Volume(input): m_volume = input: End Property
+
+    Public Property Get Loops(): Loops = m_loops: End Property
+    Public Property Let Loops(input): m_loops = input: End Property
 
     Public Property Get Key(): Key = m_key: End Property
     Public Property Let Key(input): m_key = input: End Property
@@ -7588,6 +7591,8 @@ Class GlfSoundPlayerItem
         m_action = "play"
         m_sound = Null
         m_key = Empty
+        m_volume = Empty
+        m_loops = Empty
         Set Init = Me
 	End Function
 
@@ -10868,7 +10873,6 @@ Class GlfSoundBus
     Private m_name
     Private m_simultaneous_sounds
     Private m_current_sounds
-    Private m_sound_key
     Private m_volume
     Private m_debug
 
@@ -10896,7 +10900,6 @@ Class GlfSoundBus
         m_name = "sound_bus_" & name
         m_simultaneous_sounds = 8
         m_volume = 0.5
-        m_sound_key = 0
         Set m_current_sounds = CreateObject("Scripting.Dictionary")
         glf_sound_buses.Add name, Me
         Set Init = Me
@@ -10906,22 +10909,43 @@ Class GlfSoundBus
         If (UBound(m_current_sounds.Keys)-1) > m_simultaneous_sounds Then
             'TODO: Queue Sound
         Else
-            m_current_sounds.Add m_sound_key, sound_settings
-            PlaySound(sound_settings.Sound.File)
-            SetDelay m_name & "_stop_sound_" & m_sound_key, "Glf_SoundBusStopSoundHandler", Array(m_sound_key, Me), sound_settings.Sound.Duration
-            m_sound_key = m_sound_key + 1
+            m_current_sounds.Add sound_settings.Sound.File, sound_settings
+            Dim volume : volume = m_volume
+            If Not IsEmpty(sound_settings.Sound.Volume) Then
+                volume = sound_settings.Sound.Volume
+            End If
+            If Not IsEmpty(sound_settings.Volume) Then
+                volume = sound_settings.Volume
+            End If
+            Dim loops : loops = 0
+            If Not IsEmpty(sound_settings.Sound.Loops) Then
+                loops = sound_settings.Sound.Loops
+            End If
+            If Not IsEmpty(sound_settings.Loops) Then
+                loops = sound_settings.Loops
+            End If
+
+            PlaySound sound_settings.Sound.File, loops, volume, 0,0,0,0,0,0
+            If loops = 0 Then
+                SetDelay m_name & "_stop_sound_" & sound_settings.Sound.File, "Glf_SoundBusStopSoundHandler", Array(sound_settings.Sound.File, Me), sound_settings.Sound.Duration
+            ElseIf loops>0 Then
+                SetDelay m_name & "_stop_sound_" & sound_settings.Sound.File, "Glf_SoundBusStopSoundHandler", Array(sound_settings.Sound.File, Me), sound_settings.Sound.Duration*loops
+            End If
         End If
     End Sub
 
     Public Sub StopSoundWithKey(sound_key)
-        Dim sound_settings : Set sound_settings = m_current_sounds(sound_key)
-        Dim evt
-        For Each evt in sound_settings.Sound.EventsWhenStopped.Items()
-            If evt.Evaluate() Then
-                DispatchPinEvent evt.EventName, Null
-            End If
-        Next
-        m_current_sounds.Remove sound_key
+        If m_current_sounds.Exists(sound_key) Then
+            Dim sound_settings : Set sound_settings = m_current_sounds(sound_key)
+            StopSound(sound_key)
+            Dim evt
+            For Each evt in sound_settings.Sound.EventsWhenStopped.Items()
+                If evt.Evaluate() Then
+                    DispatchPinEvent evt.EventName, Null
+                End If
+            Next
+            m_current_sounds.Remove sound_key
+        End If
     End Sub
 
     Private Sub Log(message)
@@ -10953,6 +10977,7 @@ Class GlfSound
     Private m_priority
     Private m_max_queue_time
     Private m_duration
+    Private m_loops
     Private m_debug
 
     Public Property Get Name(): Name = m_name: End Property
@@ -10984,6 +11009,9 @@ Class GlfSound
     Public Property Get Volume(): Volume = m_volume: End Property
     Public Property Let Volume(input): m_volume = input: End Property
 
+    Public Property Get Loops(): Loops = m_loops: End Property
+    Public Property Let Loops(input): m_loops = input: End Property
+
     Public Property Get Priority(): Priority = m_priority: End Property
     Public Property Let Priority(input): m_priority = input: End Property
 
@@ -11010,10 +11038,11 @@ Class GlfSound
         m_name = "sound_bus_" & name
         m_file = Empty
         m_bus = Empty
-        m_volume = 0.5
+        m_volume = Empty
         m_priority = 0
         m_duration = 0
         m_max_queue_time = -1 
+        m_loops = 0
         Set m_events_when_stopped = CreateObject("Scripting.Dictionary")
         glf_sounds.Add name, Me
         Set Init = Me
