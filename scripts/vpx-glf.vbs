@@ -8636,12 +8636,16 @@ Class GlfAutoFireDevice
     Private m_enabled
     Private m_switch
     Private m_action_cb
+    Private m_disabled_cb
+    Private m_enabled_cb
     Private m_debug
 
     Public Property Let Switch(value)
         m_switch = value
     End Property
     Public Property Let ActionCallback(value) : m_action_cb = value : End Property
+    Public Property Let DisabledCallback(value) : m_disabled_cb = value : End Property
+    Public Property Let EnabledCallback(value) : m_enabled_cb = value : End Property
     Public Property Let EnableEvents(value)
         Dim evt
         If IsArray(m_enable_events) Then
@@ -8674,6 +8678,8 @@ Class GlfAutoFireDevice
         DisableEvents = Array("ball_will_end", "service_mode_entered")
         m_enabled = False
         m_action_cb = Empty
+        m_disabled_cb = Empty
+        m_enabled_cb = Empty
         m_switch = Empty
         m_debug = False
         glf_autofiredevices.Add name, Me
@@ -8683,6 +8689,9 @@ Class GlfAutoFireDevice
     Public Sub Enable()
         Log "Enabling"
         m_enabled = True
+        If Not IsEmpty(m_enabled_cb) Then
+            GetRef(m_enabled_cb)()
+        End If
         If Not IsEmpty(m_switch) Then
             AddPinEventListener m_switch & "_active", m_name & "_active", "AutoFireDeviceEventHandler", 1000, Array("activate", Me)
             AddPinEventListener m_switch & "_inactive", m_name & "_inactive", "AutoFireDeviceEventHandler", 1000, Array("deactivate", Me)
@@ -8692,6 +8701,9 @@ Class GlfAutoFireDevice
     Public Sub Disable()
         Log "Disabling"
         m_enabled = False
+        If Not IsEmpty(m_disabled_cb) Then
+            GetRef(m_disabled_cb)()
+        End If
         Deactivate(Null)
         RemovePinEventListener m_switch & "_active", m_name & "_active"
         RemovePinEventListener m_switch & "_inactive", m_name & "_inactive"
