@@ -40,6 +40,7 @@ Class GlfEventPlayer
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
+            Log "Adding Event Listener for: " & m_events(evt).EventName
             AddPinEventListener m_events(evt).EventName, m_mode & "_" & m_events(evt).Name & "_event_player_play", "EventPlayerEventHandler", m_priority+m_events(evt).Priority, Array("play", Me, evt)
         Next
     End Sub
@@ -52,6 +53,7 @@ Class GlfEventPlayer
     End Sub
 
     Public Sub FireEvent(evt)
+        Log "Dispatching Event: " & evt
         If Not IsNull(m_events(evt).Condition) Then
             'msgbox m_events(evt).Condition
             If GetRef(m_events(evt).Condition)() = False Then

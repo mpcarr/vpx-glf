@@ -76,7 +76,6 @@ Class GlfShowPlayer
         End If
     End Sub
 
-    
     Private Sub Log(message)
         If m_debug = True Then
             glf_debugLog.WriteToLog m_name, message

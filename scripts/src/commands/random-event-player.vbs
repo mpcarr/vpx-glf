@@ -40,7 +40,9 @@ Class GlfRandomEventPlayer
 
     Public Sub Activate()
         Dim evt
+        Log "Activating"
         For Each evt In m_events.Keys()
+            Log "Adding: " & m_events(evt).EventName & ". For Key: " & m_mode & "_" & evt & "_random_event_player_play"
             AddPinEventListener m_events(evt).EventName, m_mode & "_" & evt & "_random_event_player_play", "RandomEventPlayerEventHandler", m_priority+m_events(evt).Priority, Array("play", Me, evt)
         Next
     End Sub
@@ -53,12 +55,15 @@ Class GlfRandomEventPlayer
     End Sub
 
     Public Sub FireEvent(evt)
+        Log "Firing Random Event:  " & evt
         If m_events(evt).Evaluate() Then
             Dim event_to_fire
             event_to_fire = m_eventValues(evt).GetNextRandomEvent()
             If Not IsEmpty(event_to_fire) Then
                 Log "Dispatching Event: " & event_to_fire
                 DispatchPinEvent event_to_fire, Null
+            Else
+                Log "No event available to fire"
             End If
         End If
     End Sub

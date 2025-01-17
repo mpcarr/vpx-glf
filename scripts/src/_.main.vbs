@@ -581,8 +581,15 @@ Public Function Glf_RunHandlers(i)
 	End If
 	For Each key in keys
 		args = glf_dispatch_handlers_await(key)
-		DispatchPinHandlers key, args
+		Dim wait_for : wait_for = DispatchPinHandlers(key, args)
 		glf_dispatch_handlers_await.Remove key
+		If Not IsEmpty(wait_for) Then
+			Dim remaining_handlers_keys : remaining_handlers_keys = glf_dispatch_handlers_await.Keys
+			Dim remaining_handlers_items : remaining_handlers_items = glf_dispatch_handlers_await.Items
+			AddPinEventListener wait_for, key & "_wait_for", "ContinueDispatchQueuePinEvent", 1000, Array(remaining_handlers_keys, remaining_handlers_items)
+			glf_dispatch_handlers_await.RemoveAll
+			Exit For
+		End If
 		i = i + 1
 		If i=glf_max_dispatch Then
 			Exit For
