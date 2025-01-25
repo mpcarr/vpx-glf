@@ -11286,24 +11286,28 @@ End Class
 Sub Glf_AddPlayer()
     Select Case UBound(glf_playerState.Keys())
         Case -1:
+            DispatchPinEvent "player_added", Null
             glf_playerState.Add "PLAYER 1", Glf_InitNewPlayer()
             SetPlayerStateByPlayer GLF_SCORE, 0, 0
             Glf_BcpAddPlayer 1
             glf_currentPlayer = "PLAYER 1"
         Case 0:     
             If GetPlayerState(GLF_CURRENT_BALL) = 1 Then
+                DispatchPinEvent "player_added", Null
                 glf_playerState.Add "PLAYER 2", Glf_InitNewPlayer()
                 SetPlayerStateByPlayer GLF_SCORE, 0, 1
                 Glf_BcpAddPlayer 2
             End If
         Case 1:
             If GetPlayerState(GLF_CURRENT_BALL) = 1 Then
+                DispatchPinEvent "player_added", Null
                 glf_playerState.Add "PLAYER 3", Glf_InitNewPlayer()
                 SetPlayerStateByPlayer GLF_SCORE, 0, 2
                 Glf_BcpAddPlayer 3
             End If     
         Case 2:   
             If GetPlayerState(GLF_CURRENT_BALL) = 1 Then
+                DispatchPinEvent "player_added", Null
                 glf_playerState.Add "PLAYER 4", Glf_InitNewPlayer()
                 SetPlayerStateByPlayer GLF_SCORE, 0, 3
                 Glf_BcpAddPlayer 4
