@@ -40,6 +40,7 @@ Dim glf_shows : Set glf_shows = CreateObject("Scripting.Dictionary")
 Dim glf_initialVars : Set glf_initialVars = CreateObject("Scripting.Dictionary")
 Dim glf_dispatch_await : Set glf_dispatch_await = CreateObject("Scripting.Dictionary")
 Dim glf_dispatch_handlers_await : Set glf_dispatch_handlers_await = CreateObject("Scripting.Dictionary")
+Dim glf_dispatch_current_kwargs
 Dim glf_achievements : Set glf_achievements = CreateObject("Scripting.Dictionary")
 Dim glf_sound_buses : Set glf_sound_buses = CreateObject("Scripting.Dictionary")
 Dim glf_sounds : Set glf_sounds = CreateObject("Scripting.Dictionary")
@@ -682,6 +683,7 @@ Public Function Glf_ParseInput(value)
 			tmp = Glf_ReplaceCurrentPlayerAttributes(tmp)
 			tmp = Glf_ReplaceAnyPlayerAttributes(tmp)
 			tmp = Glf_ReplaceDeviceAttributes(tmp)
+			tmp = Glf_ReplaceKwargsAttributes(tmp)
 			'msgbox tmp
 			If InStr(tmp, " if ") Then
 				templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
@@ -742,12 +744,12 @@ Public Function Glf_ParseEventInput(value)
 		dim conditionReplaced : conditionReplaced = Glf_ReplaceCurrentPlayerAttributes(condition)
 		conditionReplaced = Glf_ReplaceAnyPlayerAttributes(conditionReplaced)
 		conditionReplaced = Glf_ReplaceDeviceAttributes(conditionReplaced)
+		conditionReplaced = Glf_ReplaceKwargsAttributes(conditionReplaced)
 		templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
 		templateCode = templateCode & vbTab & "On Error Resume Next" & vbCrLf
 		templateCode = templateCode & vbTab & Glf_ConvertCondition(conditionReplaced, "Glf_" & glf_FuncCount) & vbCrLf
 		templateCode = templateCode & vbTab & "If Err Then Glf_" & glf_FuncCount & " = False" & vbCrLf
 		templateCode = templateCode & "End Function"
-		'msgbox templateCode
 		ExecuteGlobal templateCode
 		Dim funcRef : funcRef = "Glf_" & glf_FuncCount
 		glf_FuncCount = glf_FuncCount + 1
@@ -799,6 +801,19 @@ Function Glf_ReplaceDeviceAttributes(inputString)
     outputString = regex.Replace(inputString, replacement)
     Set regex = Nothing
     Glf_ReplaceDeviceAttributes = outputString
+End Function
+
+Function Glf_ReplaceKwargsAttributes(inputString)
+    Dim pattern, replacement, regex, outputString
+    pattern = "kwargs\.([a-zA-Z0-9_]+)"
+    Set regex = New RegExp
+    regex.Pattern = pattern
+    regex.IgnoreCase = True
+    regex.Global = True
+    replacement = "glf_dispatch_current_kwargs(""$1"")"
+    outputString = regex.Replace(inputString, replacement)
+    Set regex = Nothing
+    Glf_ReplaceKwargsAttributes = outputString
 End Function
 
 Function Glf_CheckForGetPlayerState(inputString)

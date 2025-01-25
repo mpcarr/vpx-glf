@@ -28,12 +28,21 @@ Function DispatchPinHandlers(e, args)
     Dim event_args, retArgs
     event_args = args(1)
     glf_frame_handler_count = glf_frame_handler_count + 1
-    If event_args(1) = 2 Then 'Queue Event
-        If IsNull(event_args(0)) Then
-            Set retArgs = GlfKwargs()
-        Else
-            retArgs = event_args(0)
+    If IsNull(event_args(0)) Then
+        Set retArgs = GlfKwargs()
+    Else
+        On Error Resume Next
+        retArgs = event_args(0)
+        If Err Then 
+        Set retArgs = event_args(0)
         End If
+    End If
+    On Error Resume Next
+        glf_dispatch_current_kwargs = retArgs	
+    If Err Then 
+        Set glf_dispatch_current_kwargs = retArgs
+    End If
+    If event_args(1) = 2 Then 'Queue Event
         Set retArgs = GetRef(handler(0))(Array(handler(2), retArgs, args(2)))
         If IsObject(retArgs) Then
             If retArgs.Exists("wait_for") Then
