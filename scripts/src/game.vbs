@@ -150,9 +150,18 @@ Function Glf_Drain(args)
     End If
     
     DispatchPinEvent GLF_BALL_WILL_END, Null
-    DispatchPinEvent GLF_BALL_ENDING, Null
-    DispatchPinEvent GLF_BALL_ENDED, Null
+    DispatchQueuePinEvent GLF_BALL_ENDING, Null
     
+End Function
+
+'****************************
+' End Of Ball
+' Event Listeners:      
+AddPinEventListener GLF_BALL_ENDING, "ball_will_end", "Glf_BallWillEnd", 20, Null
+'
+'*****************************
+Function Glf_BallWillEnd(args)
+    DispatchPinEvent GLF_BALL_ENDED, Null
 End Function
 
 '****************************

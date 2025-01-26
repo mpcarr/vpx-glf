@@ -27,6 +27,7 @@ Class Mode
     Private m_sequence_shots
     Private m_state_machines
     Private m_extra_balls
+    Private m_use_wait_queue
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get Priority(): Priority = m_priority: End Property
@@ -211,6 +212,9 @@ Class Mode
         Next
     End Property
 
+    Public Property Get UseWaitQueue(): UseWaitQueue = m_use_wait_queue: End Property
+    Public Property Let UseWaitQueue(input): m_use_wait_queue = input: End Property
+
     Public Property Get IsDebug()
         If m_debug = True Then
             IsDebug = 1
@@ -300,6 +304,7 @@ Class Mode
         Set m_state_machines = CreateObject("Scripting.Dictionary")
         Set m_extra_balls = CreateObject("Scripting.Dictionary")
 
+        m_use_wait_queue = False
         m_lightplayer = Null
         m_showplayer = Null
         m_segment_display_player = Null
@@ -510,6 +515,9 @@ Function ModeEventHandler(args)
                 End If
             End If
             mode.StartMode
+            If mode.UseWaitQueue = True Then
+                kwargs.Add "wait_for", mode.Name & "_stopped"
+            End If
         Case "stop"
             Set glfEvent = ownProps(2)
             If Not IsNull(glfEvent.Condition) Then

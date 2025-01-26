@@ -41,6 +41,7 @@ Dim glf_initialVars : Set glf_initialVars = CreateObject("Scripting.Dictionary")
 Dim glf_dispatch_await : Set glf_dispatch_await = CreateObject("Scripting.Dictionary")
 Dim glf_dispatch_handlers_await : Set glf_dispatch_handlers_await = CreateObject("Scripting.Dictionary")
 Dim glf_dispatch_current_kwargs
+Dim glf_machine_vars : Set glf_machine_vars = CreateObject("Scripting.Dictionary")
 Dim glf_achievements : Set glf_achievements = CreateObject("Scripting.Dictionary")
 Dim glf_sound_buses : Set glf_sound_buses = CreateObject("Scripting.Dictionary")
 Dim glf_sounds : Set glf_sounds = CreateObject("Scripting.Dictionary")
@@ -361,12 +362,97 @@ Public Sub Glf_Init()
 		End If
 	Next
 
+	Glf_ReadMachineVars()
+
 	Glf_Reset()
 End Sub
 
 Sub Glf_Reset()
 
 	DispatchQueuePinEvent "reset_complete", Null
+End Sub
+
+Sub Glf_ReadMachineVars()
+    Dim objFSO, objFile, arrLines, line, inSection
+    Set objFSO = CreateObject("Scripting.FileSystemObject")
+    
+    If Not objFSO.FileExists(CGameName & "_glf.ini") Then Exit Sub
+    
+    Set objFile = objFSO.OpenTextFile(CGameName & "_glf.ini", 1)
+    arrLines = Split(objFile.ReadAll, vbCrLf)
+    objFile.Close
+    
+    inSection = False
+    For Each line In arrLines
+        line = Trim(line)
+        If Left(line, 1) = "[" And Right(line, 1) = "]" Then
+            inSection = (LCase(Mid(line, 2, Len(line) - 2)) = LCase("MachineVars"))
+        ElseIf inSection And InStr(line, "=") > 0 Then
+			Dim key : key = Trim(Split(line, "=")(0))
+			If glf_machine_vars(key).Persist = True Then
+            	glf_machine_vars(key).Value = Trim(Split(line, "=")(1))
+			End If
+        End If
+    Next
+End Sub
+
+Sub Glf_WriteMachineVars()
+    Dim objFSO, objFile, arrLines, line, inSection, foundSection
+    Dim outputLines, key
+    Set objFSO = CreateObject("Scripting.FileSystemObject")
+    
+    If objFSO.FileExists(CGameName & "_glf.ini") Then
+        Set objFile = objFSO.OpenTextFile(CGameName & "_glf.ini", 1)
+        arrLines = Split(objFile.ReadAll, vbCrLf)
+        objFile.Close
+    Else
+        arrLines = Array()
+    End If
+    
+    outputLines = ""
+    inSection = False
+    foundSection = False
+    
+    For Each line In arrLines
+        If Left(line, 1) = "[" And Right(line, 1) = "]" Then
+            inSection = (LCase(Mid(line, 2, Len(line) - 2)) = LCase("MachineVars"))
+            foundSection = foundSection Or inSection
+        End If
+        
+        If inSection And InStr(line, "=") > 0 Then
+            key = Trim(Split(line, "=")(0))
+            If glf_machine_vars.Exists(key) And glf_machine_vars(key).Persist = True Then
+                line = key & "=" & glf_machine_vars(key).Value
+                glf_machine_vars.Remove key
+            End If
+        End If
+
+		If line = "" And inSection Then
+			' Add remaining keys in the section
+			For Each key In glf_machine_vars.Keys
+				If glf_machine_vars(key).Persist = True Then
+					outputLines = outputLines & key & "=" & glf_machine_vars(key).Value & vbCrLf
+				End If
+			Next
+			glf_machine_vars.RemoveAll
+		End If
+        If line <> "" Then
+			outputLines = outputLines & line & vbCrLf
+		End If
+    Next
+    
+    If Not foundSection Then
+        outputLines = outputLines & "[MachineVars]" & vbCrLf
+        For Each key In glf_machine_vars.Keys
+			If glf_machine_vars(key).Persist = True Then
+            	outputLines = outputLines & key & "=" & glf_machine_vars(key).Value & vbCrLf
+			End If
+        Next
+    End If
+    
+    Set objFile = objFSO.CreateTextFile(CGameName & "_glf.ini", True)
+    objFile.Write outputLines
+    objFile.Close
 End Sub
 
 Sub Glf_Options(ByVal eventId)
@@ -439,6 +525,7 @@ Public Sub Glf_Exit()
 	If glf_debugEnabled = True Then
 		glf_debugLog.DisableLogs
 	End If
+	Glf_WriteMachineVars()
 End Sub
 
 Public Sub Glf_KeyDown(ByVal keycode)

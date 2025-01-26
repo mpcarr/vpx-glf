@@ -41,6 +41,7 @@ Dim glf_initialVars : Set glf_initialVars = CreateObject("Scripting.Dictionary")
 Dim glf_dispatch_await : Set glf_dispatch_await = CreateObject("Scripting.Dictionary")
 Dim glf_dispatch_handlers_await : Set glf_dispatch_handlers_await = CreateObject("Scripting.Dictionary")
 Dim glf_dispatch_current_kwargs
+Dim glf_machine_vars : Set glf_machine_vars = CreateObject("Scripting.Dictionary")
 Dim glf_achievements : Set glf_achievements = CreateObject("Scripting.Dictionary")
 Dim glf_sound_buses : Set glf_sound_buses = CreateObject("Scripting.Dictionary")
 Dim glf_sounds : Set glf_sounds = CreateObject("Scripting.Dictionary")
@@ -361,12 +362,97 @@ Public Sub Glf_Init()
 		End If
 	Next
 
+	Glf_ReadMachineVars()
+
 	Glf_Reset()
 End Sub
 
 Sub Glf_Reset()
 
 	DispatchQueuePinEvent "reset_complete", Null
+End Sub
+
+Sub Glf_ReadMachineVars()
+    Dim objFSO, objFile, arrLines, line, inSection
+    Set objFSO = CreateObject("Scripting.FileSystemObject")
+    
+    If Not objFSO.FileExists(CGameName & "_glf.ini") Then Exit Sub
+    
+    Set objFile = objFSO.OpenTextFile(CGameName & "_glf.ini", 1)
+    arrLines = Split(objFile.ReadAll, vbCrLf)
+    objFile.Close
+    
+    inSection = False
+    For Each line In arrLines
+        line = Trim(line)
+        If Left(line, 1) = "[" And Right(line, 1) = "]" Then
+            inSection = (LCase(Mid(line, 2, Len(line) - 2)) = LCase("MachineVars"))
+        ElseIf inSection And InStr(line, "=") > 0 Then
+			Dim key : key = Trim(Split(line, "=")(0))
+			If glf_machine_vars(key).Persist = True Then
+            	glf_machine_vars(key).Value = Trim(Split(line, "=")(1))
+			End If
+        End If
+    Next
+End Sub
+
+Sub Glf_WriteMachineVars()
+    Dim objFSO, objFile, arrLines, line, inSection, foundSection
+    Dim outputLines, key
+    Set objFSO = CreateObject("Scripting.FileSystemObject")
+    
+    If objFSO.FileExists(CGameName & "_glf.ini") Then
+        Set objFile = objFSO.OpenTextFile(CGameName & "_glf.ini", 1)
+        arrLines = Split(objFile.ReadAll, vbCrLf)
+        objFile.Close
+    Else
+        arrLines = Array()
+    End If
+    
+    outputLines = ""
+    inSection = False
+    foundSection = False
+    
+    For Each line In arrLines
+        If Left(line, 1) = "[" And Right(line, 1) = "]" Then
+            inSection = (LCase(Mid(line, 2, Len(line) - 2)) = LCase("MachineVars"))
+            foundSection = foundSection Or inSection
+        End If
+        
+        If inSection And InStr(line, "=") > 0 Then
+            key = Trim(Split(line, "=")(0))
+            If glf_machine_vars.Exists(key) And glf_machine_vars(key).Persist = True Then
+                line = key & "=" & glf_machine_vars(key).Value
+                glf_machine_vars.Remove key
+            End If
+        End If
+
+		If line = "" And inSection Then
+			' Add remaining keys in the section
+			For Each key In glf_machine_vars.Keys
+				If glf_machine_vars(key).Persist = True Then
+					outputLines = outputLines & key & "=" & glf_machine_vars(key).Value & vbCrLf
+				End If
+			Next
+			glf_machine_vars.RemoveAll
+		End If
+        If line <> "" Then
+			outputLines = outputLines & line & vbCrLf
+		End If
+    Next
+    
+    If Not foundSection Then
+        outputLines = outputLines & "[MachineVars]" & vbCrLf
+        For Each key In glf_machine_vars.Keys
+			If glf_machine_vars(key).Persist = True Then
+            	outputLines = outputLines & key & "=" & glf_machine_vars(key).Value & vbCrLf
+			End If
+        Next
+    End If
+    
+    Set objFile = objFSO.CreateTextFile(CGameName & "_glf.ini", True)
+    objFile.Write outputLines
+    objFile.Close
 End Sub
 
 Sub Glf_Options(ByVal eventId)
@@ -439,6 +525,7 @@ Public Sub Glf_Exit()
 	If glf_debugEnabled = True Then
 		glf_debugLog.DisableLogs
 	End If
+	Glf_WriteMachineVars()
 End Sub
 
 Public Sub Glf_KeyDown(ByVal keycode)
@@ -3682,6 +3769,7 @@ Class Mode
     Private m_sequence_shots
     Private m_state_machines
     Private m_extra_balls
+    Private m_use_wait_queue
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get Priority(): Priority = m_priority: End Property
@@ -3866,6 +3954,9 @@ Class Mode
         Next
     End Property
 
+    Public Property Get UseWaitQueue(): UseWaitQueue = m_use_wait_queue: End Property
+    Public Property Let UseWaitQueue(input): m_use_wait_queue = input: End Property
+
     Public Property Get IsDebug()
         If m_debug = True Then
             IsDebug = 1
@@ -3955,6 +4046,7 @@ Class Mode
         Set m_state_machines = CreateObject("Scripting.Dictionary")
         Set m_extra_balls = CreateObject("Scripting.Dictionary")
 
+        m_use_wait_queue = False
         m_lightplayer = Null
         m_showplayer = Null
         m_segment_display_player = Null
@@ -4165,6 +4257,9 @@ Function ModeEventHandler(args)
                 End If
             End If
             mode.StartMode
+            If mode.UseWaitQueue = True Then
+                kwargs.Add "wait_for", mode.Name & "_stopped"
+            End If
         Case "stop"
             Set glfEvent = ownProps(2)
             If Not IsNull(glfEvent.Condition) Then
@@ -8403,7 +8498,6 @@ Class GlfVariablePlayer
 
     Public Property Get Name() : Name = m_name : End Property
 
-
     Public Property Get EventName(name)
         Dim newEvent : Set newEvent = (new GlfVariablePlayerEvent)(name)
         m_events.Add newEvent.BaseEvent.Raw, newEvent
@@ -8460,9 +8554,16 @@ Class GlfVariablePlayer
                 Case "add"
                     Log "Add Variable " & vKey & ". New Value: " & CStr(GetPlayerState(vKey) + varValue) & " Old Value: " & CStr(GetPlayerState(vKey))
                     SetPlayerState vKey, GetPlayerState(vKey) + varValue
+                Case "add_machine"
+                    Log "Add Machine Variable " & vKey & ". New Value: " & CStr(GetPlayerState(vKey) + varValue) & " Old Value: " & CStr(GetPlayerState(vKey))
+                    'SetPlayerState vKey, GetPlayerState(vKey) + varValue
+                    glf_machine_vars(vkey).Value = glf_machine_vars(vkey).Value + varValue
                 Case "set"
                     Log "Setting Variable " & vKey & ". New Value: " & CStr(varValue)
                     SetPlayerState vKey, varValue
+                Case "set_machine"
+                    Log "Setting Machine Variable " & vKey & ". New Value: " & CStr(varValue)
+                    glf_machine_vars(vkey).Value = varValue
         End Select
         Next
     End Sub
@@ -8544,6 +8645,45 @@ Class GlfVariablePlayerItem
 	    Set Init = Me
 	End Function
 
+End Class
+
+
+Function CreateMachineVar(name)
+	Dim machine_var : Set machine_var = (new GlfMachineVars)(name)
+	Set CreateMachineVar = machine_var
+End Function
+
+Class GlfMachineVars
+
+    Private m_name
+	Private m_persist
+    Private m_value_type
+    Private m_value
+
+    Public Property Get Name(): Name = m_name : End Property
+    Public Property Let Name(input): m_name = input : End Property
+
+    Public Property Get Value(): Value = m_value : End Property
+    Public Property Let Value(input): m_value = input : End Property
+
+    Public Property Let InitialValue(input)
+        m_value = input
+    End Property
+
+    Public Property Get Persist(): Persist = m_persist : End Property
+    Public Property Let Persist(input): m_persist = input : End Property
+
+    Public Property Get ValueType(): ValueType = m_value_type : End Property
+    Public Property Let ValueType(input): m_value_type = input : End Property
+
+	Public default Function init(name)
+        m_name = name
+        m_persist = True
+        m_value_type = "int"
+        m_value = 0
+        glf_machine_vars.Add name, Me
+	    Set Init = Me
+	End Function
 End Class
 
 Function VariablePlayerEventHandler(args)
@@ -9525,6 +9665,7 @@ Class GlfLightSegmentDisplay
     private m_use_dots_for_commas
     private m_display_flash_duty
     private m_display_flash_display_flash_frequency
+    private m_color
 
     Public Property Get Name() : Name = m_name : End Property
 
@@ -9563,6 +9704,9 @@ Class GlfLightSegmentDisplay
     Public Property Get UseDotsForCommas() : UseDotsForCommas = m_use_dots_for_commas : End Property
     Public Property Let UseDotsForCommas(input) : m_use_dots_for_commas = input : End Property
 
+    Public Property Get DefaultColor() : DefaultColor = m_color : End Property
+    Public Property Let DefaultColor(input) : m_color = input : End Property
+
     Public default Function init(name)
         m_name = name
         m_flash_on = True
@@ -9589,6 +9733,8 @@ Class GlfLightSegmentDisplay
 
         m_display_flash_duty = 30
         m_display_flash_display_flash_frequency = 60
+
+        m_color = "ffffff"
 
         SetDelay m_name & "software_flash", "Glf_SegmentDisplaySoftwareFlashEventHandler", Array(True, Me), 100
 
@@ -9701,7 +9847,7 @@ Class GlfLightSegmentDisplay
 
     Private Function SegmentColor(value)
         If value = 1 Then
-            SegmentColor = "ffffff"
+            SegmentColor = m_color
         Else
             SegmentColor = "000000"
         End If
@@ -11444,9 +11590,18 @@ Function Glf_Drain(args)
     End If
     
     DispatchPinEvent GLF_BALL_WILL_END, Null
-    DispatchPinEvent GLF_BALL_ENDING, Null
-    DispatchPinEvent GLF_BALL_ENDED, Null
+    DispatchQueuePinEvent GLF_BALL_ENDING, Null
     
+End Function
+
+'****************************
+' End Of Ball
+' Event Listeners:      
+AddPinEventListener GLF_BALL_ENDING, "ball_will_end", "Glf_BallWillEnd", 20, Null
+'
+'*****************************
+Function Glf_BallWillEnd(args)
+    DispatchPinEvent GLF_BALL_ENDED, Null
 End Function
 
 '****************************

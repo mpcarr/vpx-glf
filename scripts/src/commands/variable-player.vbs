@@ -11,7 +11,6 @@ Class GlfVariablePlayer
 
     Public Property Get Name() : Name = m_name : End Property
 
-
     Public Property Get EventName(name)
         Dim newEvent : Set newEvent = (new GlfVariablePlayerEvent)(name)
         m_events.Add newEvent.BaseEvent.Raw, newEvent
@@ -68,9 +67,16 @@ Class GlfVariablePlayer
                 Case "add"
                     Log "Add Variable " & vKey & ". New Value: " & CStr(GetPlayerState(vKey) + varValue) & " Old Value: " & CStr(GetPlayerState(vKey))
                     SetPlayerState vKey, GetPlayerState(vKey) + varValue
+                Case "add_machine"
+                    Log "Add Machine Variable " & vKey & ". New Value: " & CStr(GetPlayerState(vKey) + varValue) & " Old Value: " & CStr(GetPlayerState(vKey))
+                    'SetPlayerState vKey, GetPlayerState(vKey) + varValue
+                    glf_machine_vars(vkey).Value = glf_machine_vars(vkey).Value + varValue
                 Case "set"
                     Log "Setting Variable " & vKey & ". New Value: " & CStr(varValue)
                     SetPlayerState vKey, varValue
+                Case "set_machine"
+                    Log "Setting Machine Variable " & vKey & ". New Value: " & CStr(varValue)
+                    glf_machine_vars(vkey).Value = varValue
         End Select
         Next
     End Sub
@@ -152,6 +158,45 @@ Class GlfVariablePlayerItem
 	    Set Init = Me
 	End Function
 
+End Class
+
+
+Function CreateMachineVar(name)
+	Dim machine_var : Set machine_var = (new GlfMachineVars)(name)
+	Set CreateMachineVar = machine_var
+End Function
+
+Class GlfMachineVars
+
+    Private m_name
+	Private m_persist
+    Private m_value_type
+    Private m_value
+
+    Public Property Get Name(): Name = m_name : End Property
+    Public Property Let Name(input): m_name = input : End Property
+
+    Public Property Get Value(): Value = m_value : End Property
+    Public Property Let Value(input): m_value = input : End Property
+
+    Public Property Let InitialValue(input)
+        m_value = input
+    End Property
+
+    Public Property Get Persist(): Persist = m_persist : End Property
+    Public Property Let Persist(input): m_persist = input : End Property
+
+    Public Property Get ValueType(): ValueType = m_value_type : End Property
+    Public Property Let ValueType(input): m_value_type = input : End Property
+
+	Public default Function init(name)
+        m_name = name
+        m_persist = True
+        m_value_type = "int"
+        m_value = 0
+        glf_machine_vars.Add name, Me
+	    Set Init = Me
+	End Function
 End Class
 
 Function VariablePlayerEventHandler(args)
