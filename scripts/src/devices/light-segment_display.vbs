@@ -28,6 +28,7 @@ Class GlfLightSegmentDisplay
     private m_use_dots_for_commas
     private m_display_flash_duty
     private m_display_flash_display_flash_frequency
+    private m_color
 
     Public Property Get Name() : Name = m_name : End Property
 
@@ -66,6 +67,9 @@ Class GlfLightSegmentDisplay
     Public Property Get UseDotsForCommas() : UseDotsForCommas = m_use_dots_for_commas : End Property
     Public Property Let UseDotsForCommas(input) : m_use_dots_for_commas = input : End Property
 
+    Public Property Get DefaultColor() : DefaultColor = m_color : End Property
+    Public Property Let DefaultColor(input) : m_color = input : End Property
+
     Public default Function init(name)
         m_name = name
         m_flash_on = True
@@ -92,6 +96,8 @@ Class GlfLightSegmentDisplay
 
         m_display_flash_duty = 30
         m_display_flash_display_flash_frequency = 60
+
+        m_color = "ffffff"
 
         SetDelay m_name & "software_flash", "Glf_SegmentDisplaySoftwareFlashEventHandler", Array(True, Me), 100
 
@@ -204,7 +210,7 @@ Class GlfLightSegmentDisplay
 
     Private Function SegmentColor(value)
         If value = 1 Then
-            SegmentColor = "ffffff"
+            SegmentColor = m_color
         Else
             SegmentColor = "000000"
         End If
