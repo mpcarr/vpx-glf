@@ -50,49 +50,49 @@ Class GlfShotGroup
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-            m_enable_rotation_events.Add newEvent.Name, newEvent
+            m_enable_rotation_events.Add newEvent.Raw, newEvent
         Next
     End Property
     Public Property Let DisableRotationEvents(value)
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-            m_disable_rotation_events.Add newEvent.Name, newEvent
+            m_disable_rotation_events.Add newEvent.Raw, newEvent
         Next
     End Property
     Public Property Let RestartEvents(value)
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-            m_restart_events.Add newEvent.Name, newEvent
+            m_restart_events.Add newEvent.Raw, newEvent
         Next
     End Property
     Public Property Let ResetEvents(value)
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-            m_reset_events.Add newEvent.Name, newEvent
+            m_reset_events.Add newEvent.Raw, newEvent
         Next
     End Property
     Public Property Let RotateEvents(value)
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-            m_rotate_events.Add newEvent.Name, newEvent
+            m_rotate_events.Add newEvent.Raw, newEvent
         Next
     End Property
     Public Property Let RotateLeftEvents(value)
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-            m_rotate_left_events.Add newEvent.Name, newEvent
+            m_rotate_left_events.Add newEvent.Raw, newEvent
         Next
     End Property
     Public Property Let RotateRightEvents(value)
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-            m_rotate_right_events.Add newEvent.Name, newEvent
+            m_rotate_right_events.Add newEvent.Raw, newEvent
         Next
     End Property
     Public Property Let EnableEvents(value) : m_base_device.EnableEvents = value : End Property
@@ -125,30 +125,30 @@ Class GlfShotGroup
         Dim evt
         For Each evt in m_enable_rotation_events.Keys()
             m_rotation_enabled = False
-            AddPinEventListener m_enable_rotation_events(evt).EventName, m_name & "_enable_rotation", "ShotGroupEventHandler", m_priority+m_enable_rotation_events(evt).Priority, Array("enable_rotation", Me, evt)
+            AddPinEventListener m_enable_rotation_events(evt).EventName, m_name & "_" & evt & "_enable_rotation", "ShotGroupEventHandler", m_priority+m_enable_rotation_events(evt).Priority, Array("enable_rotation", Me, m_enable_rotation_events(evt))
         Next
         For Each evt in m_disable_rotation_events.Keys()
-            AddPinEventListener m_disable_rotation_events(evt).EventName, m_name & "_disable_rotation", "ShotGroupEventHandler", m_priority+m_disable_rotation_events(evt).Priority, Array("disable_rotation", Me, evt)
+            AddPinEventListener m_disable_rotation_events(evt).EventName, m_name & "_" & evt & "_disable_rotation", "ShotGroupEventHandler", m_priority+m_disable_rotation_events(evt).Priority, Array("disable_rotation", Me, m_disable_rotation_events(evt))
         Next
         For Each evt in m_restart_events.Keys()
-            AddPinEventListener m_restart_events(evt).EventName, m_name & "_restart", "ShotGroupEventHandler", m_priority+m_restart_events(evt).Priority, Array("restart", Me, evt)
+            AddPinEventListener m_restart_events(evt).EventName, m_name & "_" & evt & "_restart", "ShotGroupEventHandler", m_priority+m_restart_events(evt).Priority, Array("restart", Me, m_restart_events(evt))
         Next
         For Each evt in m_reset_events.Keys()
-            AddPinEventListener m_reset_events(evt).EventName, m_name & "_reset", "ShotGroupEventHandler", m_priority+m_reset_events(evt).Priority, Array("reset", Me, evt)
+            AddPinEventListener m_reset_events(evt).EventName, m_name & "_" & evt & "_reset", "ShotGroupEventHandler", m_priority+m_reset_events(evt).Priority, Array("reset", Me, m_reset_events(evt))
         Next
         For Each evt in m_rotate_events.Keys()
-            AddPinEventListener m_rotate_events(evt).EventName, m_name & "_rotate", "ShotGroupEventHandler", m_priority+m_rotate_events(evt).Priority, Array("rotate", Me, evt)
+            AddPinEventListener m_rotate_events(evt).EventName, m_name & "_" & evt & "_rotate", "ShotGroupEventHandler", m_priority+m_rotate_events(evt).Priority, Array("rotate", Me, m_rotate_events(evt))
         Next
         For Each evt in m_rotate_left_events.Keys()
-            AddPinEventListener m_rotate_left_events(evt).EventName, m_name & "_rotate_left", "ShotGroupEventHandler", m_priority+m_rotate_left_events(evt).Priority, Array("rotate_left", Me, evt)
+            AddPinEventListener m_rotate_left_events(evt).EventName, m_name & "_" & evt & "_rotate_left", "ShotGroupEventHandler", m_priority+m_rotate_left_events(evt).Priority, Array("rotate_left", Me, m_rotate_left_events(evt))
         Next
         For Each evt in m_rotate_right_events.Keys()
-            AddPinEventListener m_rotate_right_events(evt).EventName, m_name & "_rotate_right", "ShotGroupEventHandler", m_priority+m_rotate_right_events(evt).Priority, Array("rotate_right", Me, evt)
+            AddPinEventListener m_rotate_right_events(evt).EventName, m_name & "_" & evt & "_rotate_right", "ShotGroupEventHandler", m_priority+m_rotate_right_events(evt).Priority, Array("rotate_right", Me, m_rotate_right_events(evt))
         Next
         Dim shot_name
         For Each shot_name in m_shots
-            AddPinEventListener shot_name & "_hit", m_name & "_" & m_mode & "_hit", "ShotGroupEventHandler", m_priority, Array("hit", Me)
-            AddPlayerStateEventListener "shot_" & shot_name, m_name & "_" & m_mode & "_complete", -1, "ShotGroupEventHandler", m_priority, Array("complete", Me)
+            AddPinEventListener shot_name & "_hit", m_name & "_" & m_mode & "_hit", "ShotGroupEventHandler", m_priority, Array("hit", Me, Null)
+            AddPlayerStateEventListener "shot_" & shot_name, m_name & "_" & m_mode & "_complete", -1, "ShotGroupEventHandler", m_priority, Array("complete", Me, Null)
         Next
     End Sub
  
@@ -156,25 +156,25 @@ Class GlfShotGroup
         Dim evt
         m_rotation_enabled = True
         For Each evt in m_enable_rotation_events.Keys()
-            RemovePinEventListener m_enable_rotation_events(evt).EventName, m_name & "_enable_rotation"
+            RemovePinEventListener m_enable_rotation_events(evt).EventName, m_name & "_" & evt & "_enable_rotation"
         Next
         For Each evt in m_disable_rotation_events.Keys()
-            RemovePinEventListener m_disable_rotation_events(evt).EventName, m_name & "_disable_rotation"
+            RemovePinEventListener m_disable_rotation_events(evt).EventName, m_name & "_" & evt & "_disable_rotation"
         Next
         For Each evt in m_restart_events.Keys()
-            RemovePinEventListener m_restart_events(evt).EventName, m_name & "_restart"
+            RemovePinEventListener m_restart_events(evt).EventName, m_name & "_" & evt & "_restart"
         Next
         For Each evt in m_reset_events.Keys()
-            RemovePinEventListener m_reset_events(evt).EventName, m_name & "_reset"
+            RemovePinEventListener m_reset_events(evt).EventName, m_name & "_" & evt & "_reset"
         Next
         For Each evt in m_rotate_events.Keys()
-            RemovePinEventListener m_rotate_events(evt).EventName, m_name & "_rotate"
+            RemovePinEventListener m_rotate_events(evt).EventName, m_name & "_" & evt & "_rotate"
         Next
         For Each evt in m_rotate_left_events.Keys()
-            RemovePinEventListener m_rotate_left_events(evt).EventName, m_name & "_rotate_left"
+            RemovePinEventListener m_rotate_left_events(evt).EventName, m_name & "_" & evt & "_rotate_left"
         Next
         For Each evt in m_rotate_right_events.Keys()
-            RemovePinEventListener m_rotate_right_events(evt).EventName, m_name & "_rotate_right"
+            RemovePinEventListener m_rotate_right_events(evt).EventName, m_name & "_" & evt & "_rotate_right"
         Next
         Dim shot_name
         For Each shot_name in m_shots
@@ -432,6 +432,17 @@ Function ShotGroupEventHandler(args)
     End If
     Dim evt : evt = ownProps(0)
     Dim device : Set device = ownProps(1)
+    If Not IsNull(ownProps(2)) Then
+        Dim glf_event : Set glf_event = ownProps(2)
+        If glf_event.Evaluate() = False Then
+            If IsObject(args(1)) Then
+                Set ShotGroupEventHandler = kwargs
+            Else
+                ShotGroupEventHandler = kwargs
+            End If
+            Exit Function
+        End If
+    End If
     Select Case evt
         Case "hit"
             DispatchPinEvent device.Name & "_hit", Null
