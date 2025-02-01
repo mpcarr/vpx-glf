@@ -33,6 +33,7 @@ Sub SetDelay(name, callbackFunc, args, delayInMs)
     Dim executionTime
     executionTime = gametime + delayInMs
     
+    RemoveDelay name
     If delayQueueMap.Exists(name) Then
         delayQueueMap.Remove name
     End If
@@ -77,9 +78,9 @@ Sub DelayTick()
         If Int(queueItem) < gametime Then
             For Each key In delayQueue(queueItem).Keys()
                 If IsObject(delayQueue(queueItem)(key)) Then
-                    Set delayObject = delayQueue(queueItem)(key)
-                    'Glf_WriteDebugLog "Delay", "Executing delay: " & key & ", callback: " & delayObject.Callback
-                    GetRef(delayObject.Callback)(delayObject.Args)    
+                            Set delayObject = delayQueue(queueItem)(key)
+                            'Glf_WriteDebugLog "Delay", "Executing delay: " & key & ", callback: " & delayObject.Callback
+                            GetRef(delayObject.Callback)(delayObject.Args)    
                 End If
             Next
             delayQueue.Remove queueItem
