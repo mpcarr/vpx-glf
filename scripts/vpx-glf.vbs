@@ -561,15 +561,6 @@ Public Sub Glf_KeyDown(ByVal keycode)
 		If KeyCode = StagedLeftFlipperKey Then
 			RunAutoFireDispatchPinEvent "s_left_staged_flipper_key_active", Null
 		End If
-
-		If KeyCode = AddCreditKey Then
-			RunAutoFireDispatchPinEvent "s_add_credit_key_active", Null
-		End If
-
-		If KeyCode = AddCreditKey2 Then
-			RunAutoFireDispatchPinEvent "s_add_credit_key2_active", Null
-		End If
-		
 		
 		If keycode = StartGameKey Then
 			If glf_canAddPlayers = True Then
@@ -583,6 +574,14 @@ Public Sub Glf_KeyDown(ByVal keycode)
 			Glf_AddPlayer()
 			Glf_StartGame()
 		End If
+	End If
+
+	If KeyCode = AddCreditKey Then
+		RunAutoFireDispatchPinEvent "s_add_credit_key_active", Null
+	End If
+
+	If KeyCode = AddCreditKey2 Then
+		RunAutoFireDispatchPinEvent "s_add_credit_key2_active", Null
 	End If
 End Sub
 
@@ -618,16 +617,15 @@ Public Sub Glf_KeyUp(ByVal keycode)
 
 		If KeyCode = StagedLeftFlipperKey Then
 			RunAutoFireDispatchPinEvent "s_left_staged_flipper_key_inactive", Null
-		End If
+		End If		
+	End If
 
-		If KeyCode = AddCreditKey Then
-			RunAutoFireDispatchPinEvent "s_add_credit_key_inactive", Null
-		End If
+	If KeyCode = AddCreditKey Then
+		RunAutoFireDispatchPinEvent "s_add_credit_key_inactive", Null
+	End If
 
-		If KeyCode = AddCreditKey2 Then
-			RunAutoFireDispatchPinEvent "s_add_credit_key2_inactive", Null
-		End If
-		
+	If KeyCode = AddCreditKey2 Then
+		RunAutoFireDispatchPinEvent "s_add_credit_key2_inactive", Null
 	End If
 End Sub
 
