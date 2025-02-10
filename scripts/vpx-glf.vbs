@@ -530,51 +530,50 @@ End Sub
 
 Public Sub Glf_KeyDown(ByVal keycode)
     If glf_gameStarted = True Then
-		If keycode = LeftFlipperKey Then
-			RunAutoFireDispatchPinEvent "s_left_flipper_active", Null
-		End If
-		
-		If keycode = RightFlipperKey Then
-			RunAutoFireDispatchPinEvent "s_right_flipper_active", Null
-		End If
-		
-		If keycode = LockbarKey Then
-			RunAutoFireDispatchPinEvent "s_lockbar_key_active", Null
-		End If
-
-		If KeyCode = PlungerKey Then
-			RunAutoFireDispatchPinEvent "s_plunger_key_active", Null
-		End If
-
-		If KeyCode = LeftMagnaSave Then
-			RunAutoFireDispatchPinEvent "s_left_magna_key_active", Null
-		End If
-
-		If KeyCode = RightMagnaSave Then
-			RunAutoFireDispatchPinEvent "s_right_magna_key_active", Null
-		End If
-
-		If KeyCode = StagedRightFlipperKey Then
-			RunAutoFireDispatchPinEvent "s_right_staged_flipper_key_active", Null
-		End If
-
-		If KeyCode = StagedLeftFlipperKey Then
-			RunAutoFireDispatchPinEvent "s_left_staged_flipper_key_active", Null
-		End If
-		
 		If keycode = StartGameKey Then
 			If glf_canAddPlayers = True Then
 				Glf_AddPlayer()
 			End If
 		End If
-
-
 	Else
 		If keycode = StartGameKey Then
 			Glf_AddPlayer()
 			Glf_StartGame()
 		End If
 	End If
+
+	If keycode = LeftFlipperKey Then
+		RunAutoFireDispatchPinEvent "s_left_flipper_active", Null
+	End If
+	
+	If keycode = RightFlipperKey Then
+		RunAutoFireDispatchPinEvent "s_right_flipper_active", Null
+	End If
+	
+	If keycode = LockbarKey Then
+		RunAutoFireDispatchPinEvent "s_lockbar_key_active", Null
+	End If
+
+	If KeyCode = PlungerKey Then
+		RunAutoFireDispatchPinEvent "s_plunger_key_active", Null
+	End If
+
+	If KeyCode = LeftMagnaSave Then
+		RunAutoFireDispatchPinEvent "s_left_magna_key_active", Null
+	End If
+
+	If KeyCode = RightMagnaSave Then
+		RunAutoFireDispatchPinEvent "s_right_magna_key_active", Null
+	End If
+
+	If KeyCode = StagedRightFlipperKey Then
+		RunAutoFireDispatchPinEvent "s_right_staged_flipper_key_active", Null
+	End If
+
+	If KeyCode = StagedLeftFlipperKey Then
+		RunAutoFireDispatchPinEvent "s_left_staged_flipper_key_active", Null
+	End If
+	
 
 	If KeyCode = AddCreditKey Then
 		RunAutoFireDispatchPinEvent "s_add_credit_key_active", Null
@@ -586,39 +585,39 @@ Public Sub Glf_KeyDown(ByVal keycode)
 End Sub
 
 Public Sub Glf_KeyUp(ByVal keycode)
-	If glf_gameStarted = True Then
-		If KeyCode = PlungerKey Then
-			RunAutoFireDispatchPinEvent "s_plunger_key_inactive", Null
-		End If
-
-		If keycode = LeftFlipperKey Then
-			RunAutoFireDispatchPinEvent "s_left_flipper_inactive", Null
-		End If
-		
-		If keycode = RightFlipperKey Then
-			RunAutoFireDispatchPinEvent "s_right_flipper_inactive", Null
-		End If
-
-		If keycode = LockbarKey Then
-			RunAutoFireDispatchPinEvent "s_lockbar_key_inactive", Null
-		End If
-
-		If KeyCode = LeftMagnaSave Then
-			RunAutoFireDispatchPinEvent "s_left_magna_key_inactive", Null
-		End If
-
-		If KeyCode = RightMagnaSave Then
-			RunAutoFireDispatchPinEvent "s_right_magna_key_inactive", Null
-		End If
-
-		If KeyCode = StagedRightFlipperKey Then
-			RunAutoFireDispatchPinEvent "s_right_staged_flipper_key_inactive", Null
-		End If
-
-		If KeyCode = StagedLeftFlipperKey Then
-			RunAutoFireDispatchPinEvent "s_left_staged_flipper_key_inactive", Null
-		End If		
+	
+	If KeyCode = PlungerKey Then
+		RunAutoFireDispatchPinEvent "s_plunger_key_inactive", Null
 	End If
+
+	If keycode = LeftFlipperKey Then
+		RunAutoFireDispatchPinEvent "s_left_flipper_inactive", Null
+	End If
+	
+	If keycode = RightFlipperKey Then
+		RunAutoFireDispatchPinEvent "s_right_flipper_inactive", Null
+	End If
+
+	If keycode = LockbarKey Then
+		RunAutoFireDispatchPinEvent "s_lockbar_key_inactive", Null
+	End If
+
+	If KeyCode = LeftMagnaSave Then
+		RunAutoFireDispatchPinEvent "s_left_magna_key_inactive", Null
+	End If
+
+	If KeyCode = RightMagnaSave Then
+		RunAutoFireDispatchPinEvent "s_right_magna_key_inactive", Null
+	End If
+
+	If KeyCode = StagedRightFlipperKey Then
+		RunAutoFireDispatchPinEvent "s_right_staged_flipper_key_inactive", Null
+	End If
+
+	If KeyCode = StagedLeftFlipperKey Then
+		RunAutoFireDispatchPinEvent "s_left_staged_flipper_key_inactive", Null
+	End If		
+
 
 	If KeyCode = AddCreditKey Then
 		RunAutoFireDispatchPinEvent "s_add_credit_key_inactive", Null
