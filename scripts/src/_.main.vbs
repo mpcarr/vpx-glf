@@ -561,6 +561,14 @@ Public Sub Glf_KeyDown(ByVal keycode)
 		If KeyCode = StagedLeftFlipperKey Then
 			RunAutoFireDispatchPinEvent "s_left_staged_flipper_key_active", Null
 		End If
+
+		If KeyCode = AddCreditKey Then
+			RunAutoFireDispatchPinEvent "s_add_credit_key_active", Null
+		End If
+
+		If KeyCode = AddCreditKey2 Then
+			RunAutoFireDispatchPinEvent "s_add_credit_key2_active", Null
+		End If
 		
 		
 		If keycode = StartGameKey Then
@@ -610,6 +618,14 @@ Public Sub Glf_KeyUp(ByVal keycode)
 
 		If KeyCode = StagedLeftFlipperKey Then
 			RunAutoFireDispatchPinEvent "s_left_staged_flipper_key_inactive", Null
+		End If
+
+		If KeyCode = AddCreditKey Then
+			RunAutoFireDispatchPinEvent "s_add_credit_key_inactive", Null
+		End If
+
+		If KeyCode = AddCreditKey2 Then
+			RunAutoFireDispatchPinEvent "s_add_credit_key2_inactive", Null
 		End If
 		
 	End If
