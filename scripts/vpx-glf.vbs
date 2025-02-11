@@ -4517,7 +4517,6 @@ Class GlfMultiballs
     Private m_shoot_again
     Private m_source_playfield
     Private m_start_events
-    Private m_start_or_add_a_ball_events
     Private m_stop_events
     Private m_balls_added_live
     Private m_balls_live_target
@@ -4535,7 +4534,12 @@ Class GlfMultiballs
     End Property
 
     Public Property Let BallCount(value): Set m_ball_count = CreateGlfInput(value): End Property
-    Public Property Let AddABallEvents(value): m_add_a_ball_events = value: End Property
+    Public Property Let AddABallEvents(value)
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_add_a_ball_events.Add newEvent.Raw, newEvent
+        Next
+    End Property
     Public Property Let AddABallGracePeriod(value): Set m_add_a_ball_grace_period = CreateGlfInput(value): End Property
     Public Property Let AddABallHurryUpTime(value): Set m_add_a_ball_hurry_up_time = CreateGlfInput(value): End Property
     Public Property Let AddABallShootAgain(value): Set m_add_a_ball_shoot_again = CreateGlfInput(value): End Property
@@ -4546,17 +4550,28 @@ Class GlfMultiballs
     Public Property Let GracePeriod(value): Set m_grace_period = CreateGlfInput(value): End Property
     Public Property Let HurryUp(value): Set m_hurry_up = CreateGlfInput(value): End Property
     Public Property Let ReplaceBallsInPlay(value): m_replace_balls_in_play = value: End Property
-    Public Property Let ResetEvents(value): m_reset_events = value: End Property
+    Public Property Let ResetEvents(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_reset_events.Add newEvent.Raw, newEvent
+        Next
+    End Property
     Public Property Let ShootAgain(value): Set m_shoot_again = CreateGlfInput(value): End Property
     Public Property Let StartEvents(value)
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-            m_start_events.Add newEvent.Name, newEvent
+            m_start_events.Add newEvent.Raw, newEvent
         Next
     End Property
-    Public Property Let StartOrAddABallEvents(value): m_start_or_add_a_ball_events = value: End Property
-    Public Property Let StopEvents(value): m_stop_events = value: End Property
+    Public Property Let StopEvents(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_stop_events.Add newEvent.Raw, newEvent
+        Next
+    End Property
         
     Public Property Let Debug(value)
         m_debug = value
@@ -4572,7 +4587,7 @@ Class GlfMultiballs
         m_mode = mode.Name
         m_priority = mode.Priority
         Set m_ball_count = CreateGlfInput(0)
-        m_add_a_ball_events = Array()
+        Set m_add_a_ball_events = CreateObject("Scripting.Dictionary")
         Set m_add_a_ball_grace_period = CreateGlfInput(0)
         Set m_add_a_ball_hurry_up_time = CreateGlfInput(0)
         Set m_add_a_ball_shoot_again = CreateGlfInput(5000)
@@ -4582,10 +4597,9 @@ Class GlfMultiballs
         Set m_hurry_up = CreateGlfInput(0)
         m_replace_balls_in_play = False
         Set m_shoot_again = CreateGlfInput(10000)
-        m_reset_events = Array()
-        m_start_or_add_a_ball_events = Array()
+        Set m_reset_events = CreateObject("Scripting.Dictionary")
         Set m_start_events = CreateObject("Scripting.Dictionary")
-        m_stop_events = Array()
+        Set m_stop_events = CreateObject("Scripting.Dictionary")
         m_replace_balls_in_play = False
         m_balls_added_live = 0
         m_balls_live_target = 0
@@ -4614,19 +4628,16 @@ Class GlfMultiballs
         m_enabled = True
         Dim evt
         For Each evt in m_start_events.Keys
-            AddPinEventListener m_start_events(evt).EventName, m_name & "_start", "MultiballsHandler", m_priority+m_start_events(evt).Priority, Array("start", Me, m_start_events(evt))
+            AddPinEventListener m_start_events(evt).EventName, m_name & "_" & evt & "_start", "MultiballsHandler", m_priority+m_start_events(evt).Priority, Array("start", Me, m_start_events(evt))
         Next
-        For Each evt in m_reset_events
-            AddPinEventListener evt, m_name & "_reset", "MultiballsHandler", m_priority, Array("reset", Me)
+        For Each evt in m_reset_events.Keys
+            AddPinEventListener m_reset_events(evt).EventName, m_name & "_" & evt & "_reset", "MultiballsHandler", m_priority, Array("reset", Me, m_reset_events(evt))
         Next
-        For Each evt in m_add_a_ball_events
-            AddPinEventListener evt, m_name & "_add_a_ball", "MultiballsHandler", m_priority, Array("add_a_ball", Me)
+        For Each evt in m_add_a_ball_events.Keys
+            AddPinEventListener m_add_a_ball_events(evt).EventName, m_name & "_" & evt & "_add_a_ball", "MultiballsHandler", m_priority, Array("add_a_ball", Me, m_add_a_ball_events(evt))
         Next
-        For Each evt in m_start_or_add_a_ball_events
-            AddPinEventListener evt, m_name & "_start_or_add_a_ball", "MultiballsHandler", m_priority, Array("start_or_add_a_ball", Me)
-        Next
-        For Each evt in m_stop_events
-            AddPinEventListener evt, m_name & "_stop", "MultiballsHandler", m_priority, Array("stop", Me)
+        For Each evt in m_stop_events.Keys
+            AddPinEventListener m_stop_events(evt).EventName, m_name & "_" & evt & "_stop", "MultiballsHandler", m_priority+m_stop_events(evt).Priority, Array("stop", Me, m_stop_events(evt))
         Next
     End Sub
     
@@ -4639,19 +4650,16 @@ Class GlfMultiballs
         StopMultiball()
         Dim evt
         For Each evt in m_start_events.Keys
-            RemovePinEventListener m_start_events(evt).EventName, m_name & "_start"
+            RemovePinEventListener m_start_events(evt).EventName, m_name & "_" & evt & "_start"
         Next
-        For Each evt in m_reset_events
-            RemovePinEventListener evt, m_name & "_reset"
+        For Each evt in m_reset_events.Keys
+            RemovePinEventListener m_reset_events(evt).EventName, m_name & "_" & evt & "_reset"
         Next
-        For Each evt in m_add_a_ball_events
-            RemovePinEventListener evt, m_name & "_add_a_ball"
+        For Each evt in m_add_a_ball_events.Keys
+            RemovePinEventListener m_add_a_ball_events(evt).EventName, m_name & "_" & evt & "_add_a_ball"
         Next
-        For Each evt in m_start_or_add_a_ball_events
-            RemovePinEventListener evt, m_name & "_start_or_add_a_ball"
-        Next
-        For Each evt in m_stop_events
-            RemovePinEventListener evt, m_name & "_stop"
+        For Each evt in m_stop_events.Keys
+            RemovePinEventListener m_stop_events(evt).EventName, m_name & "_" & evt & "_stop"
         Next
         RemovePinEventListener "ball_drain", m_name & "_ball_drain"
         'RemoveDelay m_name & "_queued_release"
@@ -4832,15 +4840,37 @@ Class GlfMultiballs
     End Sub
 
     Public Sub AddABall()
-        Log "Adding a ball to multiball: " & m_name
-        DispatchPinEvent m_name & "_add_a_ball_event", Null
-        ' Add add-a-ball logic here
+        If m_balls_live_target > 0 Then
+            Log "Adding a ball to multiball: " & m_name
+            m_balls_live_target = m_balls_live_target + 1
+            m_balls_added_live = m_balls_added_live + 1
+            m_queued_balls = m_queued_balls + 1
+            SetDelay m_name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", Me, m_queued_balls),Null), 1000
+        End If
     End Sub
 
-    Public Sub StartOrAddABall()
-        Log "Starting or adding a ball to multiball: " & m_name
-        DispatchPinEvent m_name & "_start_or_add_a_ball_event", Null
-        ' Add start-or-add-a-ball logic here
+    Public Sub AddAballTimerStart()
+        'Start the timer for add a ball ball save.
+        'This is started when multiball add a ball is triggered if configured,
+        'and the default timer is not still running.
+        If m_shoot_again_enabled = True Then
+            Exit Sub
+        End If
+
+        m_shoot_again_enabled = True
+
+        Dim shoot_again_ms : shoot_again_ms = m_add_a_ball_shoot_again.Value()
+        if shoot_again_ms = 0 Then
+            'No shoot again. Just stop multiball right away
+            StopMultiball()
+            Exit Sub
+        End If
+
+        DispatchPinEvent "ball_save_" & m_configname & "_add_a_ball_timer_start", Null
+
+        Dim grace_period_ms : grace_period_ms = m_add_a_ball_grace_period.Value()
+        Dim hurry_up_time_ms = hurry_up_time_ms = m_add_a_ball_hurry_up_time.Value()
+        StartShootAgain shoot_again_ms, grace_period_ms, hurry_up_time_ms
     End Sub
 
     Public Sub StopMultiball()
@@ -4911,9 +4941,7 @@ Function MultiballsHandler(args)
         Case "reset"
             multiball.Reset
         Case "add_a_ball"
-            'multiball.AddABall
-        Case "start_or_add_a_ball"
-            'multiball.StartOrAddABall
+            multiball.AddABall
         Case "stop"
             multiball.StopMultiball
         Case "grace_period"
