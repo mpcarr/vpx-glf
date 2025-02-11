@@ -4845,6 +4845,7 @@ Class GlfMultiballs
             m_balls_live_target = m_balls_live_target + 1
             m_balls_added_live = m_balls_added_live + 1
             m_queued_balls = m_queued_balls + 1
+            glf_BIP = glf_BIP + 1
             SetDelay m_name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", Me, m_queued_balls),Null), 1000
         End If
     End Sub
@@ -4869,7 +4870,7 @@ Class GlfMultiballs
         DispatchPinEvent "ball_save_" & m_configname & "_add_a_ball_timer_start", Null
 
         Dim grace_period_ms : grace_period_ms = m_add_a_ball_grace_period.Value()
-        Dim hurry_up_time_ms = hurry_up_time_ms = m_add_a_ball_hurry_up_time.Value()
+        Dim hurry_up_time_ms : hurry_up_time_ms = m_add_a_ball_hurry_up_time.Value()
         StartShootAgain shoot_again_ms, grace_period_ms, hurry_up_time_ms
     End Sub
 
