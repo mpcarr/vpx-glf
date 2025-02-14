@@ -94,6 +94,9 @@ Sub Glf_MonitorModeUpdate(mode)
     For Each config_item in mode.ExtraBallsItems()
         glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & config_item.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & config_item.Name & """},"
     Next
+    For Each config_item in mode.ComboSwitchesItems()
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & config_item.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & config_item.Name & """},"
+    Next
     For Each config_item in mode.ModeStateMachines()
         glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & config_item.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & config_item.Name & """},"
     Next
@@ -227,6 +230,9 @@ Sub Glf_MonitorBcpUpdate()
                                 If config_item.Name = device_name Then : config_item.Debug = is_debug : End If
                             Next
                             For Each config_item in mode.ExtraBallsItems()
+                                If config_item.Name = device_name Then : config_item.Debug = is_debug : End If
+                            Next
+                            For Each config_item in mode.ComboSwitchesItems()
                                 If config_item.Name = device_name Then : config_item.Debug = is_debug : End If
                             Next
                             For Each config_item in mode.ModeStateMachines()

@@ -45,7 +45,7 @@ Dim glf_machine_vars : Set glf_machine_vars = CreateObject("Scripting.Dictionary
 Dim glf_achievements : Set glf_achievements = CreateObject("Scripting.Dictionary")
 Dim glf_sound_buses : Set glf_sound_buses = CreateObject("Scripting.Dictionary")
 Dim glf_sounds : Set glf_sounds = CreateObject("Scripting.Dictionary")
-
+Dim glf_combo_switches : Set glf_combo_switches = CreateObject("Scripting.Dictionary")
 
 Dim bcpController : bcpController = Null
 Dim glf_debugBcpController : glf_debugBcpController = Null

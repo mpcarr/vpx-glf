@@ -41,6 +41,7 @@ Class GlfMultiballs
 
     Public Property Let BallCount(value): Set m_ball_count = CreateGlfInput(value): End Property
     Public Property Let AddABallEvents(value)
+        Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
             m_add_a_ball_events.Add newEvent.Raw, newEvent

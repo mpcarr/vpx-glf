@@ -27,6 +27,7 @@ Class Mode
     Private m_sequence_shots
     Private m_state_machines
     Private m_extra_balls
+    Private m_combo_switches
     Private m_use_wait_queue
 
     Public Property Get Name(): Name = m_name: End Property
@@ -149,6 +150,16 @@ Class Mode
             Set ExtraBalls = new_extra_ball
         End If
     End Property
+    Public Property Get ComboSwitchesItems() : ComboSwitchesItems = m_combo_switches.Items() : End Property
+    Public Property Get ComboSwitches(name)
+        If m_combo_switches.Exists(name) Then
+            Set ComboSwitches = m_combo_switches(name)
+        Else
+            Dim new_combo_switch : Set new_combo_switch = (new GlfComboSwitches)(name, Me)
+            m_combo_switches.Add name, new_combo_switch
+            Set ComboSwitches = new_combo_switch
+        End If
+    End Property
 
     Public Property Get StateMachines(name)
         If m_state_machines.Exists(name) Then
@@ -258,6 +269,9 @@ Class Mode
         For Each config_item in m_extra_balls.Items()
             config_item.Debug = value
         Next
+        For Each config_item in m_combo_switches.Items()
+            config_item.Debug = value
+        Next
         If Not IsNull(m_lightplayer) Then
             m_lightplayer.Debug = value
         End If
@@ -303,6 +317,7 @@ Class Mode
         Set m_sequence_shots = CreateObject("Scripting.Dictionary")
         Set m_state_machines = CreateObject("Scripting.Dictionary")
         Set m_extra_balls = CreateObject("Scripting.Dictionary")
+        Set m_combo_switches = CreateObject("Scripting.Dictionary")
 
         m_use_wait_queue = False
         m_lightplayer = Null
