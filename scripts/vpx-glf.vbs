@@ -783,6 +783,7 @@ Public Function Glf_ParseInput(value)
 			tmp = Glf_ReplaceCurrentPlayerAttributes(tmp)
 			tmp = Glf_ReplaceAnyPlayerAttributes(tmp)
 			tmp = Glf_ReplaceDeviceAttributes(tmp)
+			tmp = Glf_ReplaceModeAttributes(tmp)
 			tmp = Glf_ReplaceKwargsAttributes(tmp)
 			'msgbox tmp
 			If InStr(tmp, " if ") Then
@@ -844,6 +845,7 @@ Public Function Glf_ParseEventInput(value)
 		dim conditionReplaced : conditionReplaced = Glf_ReplaceCurrentPlayerAttributes(condition)
 		conditionReplaced = Glf_ReplaceAnyPlayerAttributes(conditionReplaced)
 		conditionReplaced = Glf_ReplaceDeviceAttributes(conditionReplaced)
+		conditionReplaced = Glf_ReplaceModeAttributes(conditionReplaced)
 		conditionReplaced = Glf_ReplaceKwargsAttributes(conditionReplaced)
 		templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
 		templateCode = templateCode & vbTab & "On Error Resume Next" & vbCrLf
@@ -901,6 +903,19 @@ Function Glf_ReplaceDeviceAttributes(inputString)
     outputString = regex.Replace(inputString, replacement)
     Set regex = Nothing
     Glf_ReplaceDeviceAttributes = outputString
+End Function
+
+Function Glf_ReplaceModeAttributes(inputString)
+    Dim pattern, replacement, regex, outputString
+    pattern = "modes\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)"
+    Set regex = New RegExp
+    regex.Pattern = pattern
+    regex.IgnoreCase = True
+    regex.Global = True
+	replacement = "glf_modes(""$1"").GetValue(""$2"")"
+    outputString = regex.Replace(inputString, replacement)
+    Set regex = Nothing
+    Glf_ReplaceModeAttributes = outputString
 End Function
 
 Function Glf_ReplaceKwargsAttributes(inputString)
@@ -963,7 +978,6 @@ End Function
 
 Function Glf_CheckForDeviceState(inputString)
     Dim pattern, regex, matches, match, hasDeviceState, attribute, deviceType, deviceName
-	'inputString = Glf_ReplaceDeviceAttributes(inputString)
     pattern = "devices\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)"
     Set regex = New RegExp
     regex.Pattern = pattern
@@ -1946,8 +1960,8 @@ Sub Glf_MonitorModeUpdate(mode)
     If Not IsNull(mode.QueueEventPlayer) Then
         glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.QueueEventPlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.QueueEventPlayer.Name & """},"
     End If
-    If Not IsNull(mode.QueueRelayEventPlayer) Then
-        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.QueueRelayEventPlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.QueueRelayEventPlayer.Name & """},"
+    If Not IsNull(mode.QueueRelayPlayer) Then
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.QueueRelayPlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.QueueRelayPlayer.Name & """},"
     End If
     If Not IsNull(mode.RandomEventPlayer) Then
         glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.RandomEventPlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.RandomEventPlayer.Name & """},"
@@ -4113,7 +4127,7 @@ Class Mode
     Private m_variableplayer
     Private m_eventplayer
     Private m_queueEventplayer
-    Private m_queueRelayEventplayer
+    Private m_queueRelayPlayer
     Private m_random_event_player
     Private m_sound_player
     Private m_shot_profiles
@@ -4124,6 +4138,16 @@ Class Mode
     Private m_use_wait_queue
 
     Public Property Get Name(): Name = m_name: End Property
+    Public Property Get GetValue(value)
+        Select Case value
+            Case "active":
+                If m_started Then
+                    GetValue = True
+                Else
+                    GetValue = False
+                End If
+        End Select
+    End Property
     Public Property Get Priority(): Priority = m_priority: End Property
     Public Property Get Status()
         If m_started Then
@@ -4152,7 +4176,7 @@ Class Mode
     End Property
     Public Property Get EventPlayer() : Set EventPlayer = m_eventplayer: End Property
     Public Property Get QueueEventPlayer() : Set QueueEventPlayer = m_queueEventplayer: End Property
-    Public Property Get QueueRelayEventPlayer() : Set QueueRelayEventPlayer = m_queueRelayEventplayer: End Property
+    Public Property Get QueueRelayPlayer() : Set QueueRelayPlayer = m_queueRelayPlayer: End Property
     Public Property Get RandomEventPlayer() : Set RandomEventPlayer = m_random_event_player : End Property
     Public Property Get VariablePlayer(): Set VariablePlayer = m_variableplayer: End Property
     Public Property Get SoundPlayer() : Set SoundPlayer = m_sound_player : End Property
@@ -4375,8 +4399,8 @@ Class Mode
         If Not IsNull(m_queueEventplayer) Then
             m_queueEventplayer.Debug = value
         End If
-        If Not IsNull(m_queueRelayEventplayer) Then
-            m_queueRelayEventplayer.Debug = value
+        If Not IsNull(m_queueRelayPlayer) Then
+            m_queueRelayPlayer.Debug = value
         End If
         If Not IsNull(m_random_event_player) Then
             m_random_event_player.Debug = value
@@ -4422,7 +4446,7 @@ Class Mode
         m_segment_display_player = Null
         Set m_eventplayer = (new GlfEventPlayer)(Me)
         Set m_queueEventplayer = (new GlfQueueEventPlayer)(Me)
-        Set m_queueRelayEventplayer = (new GlfQueueRelayEventPlayer)(Me)
+        Set m_queueRelayPlayer = (new GlfQueueRelayPlayer)(Me)
         Set m_random_event_player = (new GlfRandomEventPlayer)(Me)
         Set m_sound_player = (new GlfSoundPlayer)(Me)
         Set m_variableplayer = (new GlfVariablePlayer)(Me)
@@ -5449,7 +5473,7 @@ Function QueueEventPlayerEventHandler(args)
 End Function
 
 
-Class GlfQueueRelayEventPlayer
+Class GlfQueueRelayPlayer
 
     Private m_priority
     Private m_mode
@@ -5484,7 +5508,7 @@ Class GlfQueueRelayEventPlayer
         If m_events.Exists(name) Then
             Set EventName = m_eventValues(name)
         Else
-            Dim new_event : Set new_event = (new GlfEvent)()
+            Dim new_event : Set new_event = (new GlfEvent)(name)
             m_events.Add new_event.Raw, new_event
             Dim new_event_value : Set new_event_value = (new GlfQueueRelayEvent)()
             m_eventValues.Add new_event.Raw, new_event_value
@@ -5495,7 +5519,7 @@ Class GlfQueueRelayEventPlayer
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener m_events(evt).EventName, m_mode & "_" & evt & "_queue_relay_player_play", "QueueRelayEventPlayerEventHandler", m_priority+m_events(evt).Priority, Array("play", Me, evt)
+            AddPinEventListener m_events(evt).EventName, m_mode & "_" & evt & "_queue_relay_player_play", "QueueRelayPlayerEventHandler", m_priority+m_events(evt).Priority, Array("play", Me, evt)
         Next
     End Sub
 
@@ -5538,7 +5562,7 @@ Class GlfQueueRelayEventPlayer
 
 End Class
 
-Function QueueRelayEventPlayerEventHandler(args)
+Function QueueRelayPlayerEventHandler(args)
     
     Dim ownProps, kwargs : ownProps = args(0)
     If IsObject(args(1)) Then
@@ -5556,9 +5580,9 @@ Function QueueRelayEventPlayerEventHandler(args)
             End If
     End Select
     If IsObject(args(1)) Then
-        Set QueueRelayEventPlayerEventHandler = kwargs
+        Set QueueRelayPlayerEventHandler = kwargs
     Else
-        QueueRelayEventPlayerEventHandler = kwargs
+        QueueRelayPlayerEventHandler = kwargs
     End If
 End Function
 
@@ -5567,9 +5591,11 @@ Class GlfQueueRelayEvent
 	Private m_wait_for, m_post
   
     Public Property Get WaitFor() : WaitFor = m_wait_for : End Property
+    Public Property Let WaitFor(input) : m_wait_for = input : End Property
     Public Property Get Post() : Post = m_post : End Property
-
-	Public default Function init(evt)
+    Public Property Let Post(input) : m_post = input : End Property
+        
+	Public default Function init()
         m_wait_for = Empty
         m_post = Empty
 	    Set Init = Me

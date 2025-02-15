@@ -21,7 +21,7 @@ Class Mode
     Private m_variableplayer
     Private m_eventplayer
     Private m_queueEventplayer
-    Private m_queueRelayEventplayer
+    Private m_queueRelayPlayer
     Private m_random_event_player
     Private m_sound_player
     Private m_shot_profiles
@@ -32,6 +32,16 @@ Class Mode
     Private m_use_wait_queue
 
     Public Property Get Name(): Name = m_name: End Property
+    Public Property Get GetValue(value)
+        Select Case value
+            Case "active":
+                If m_started Then
+                    GetValue = True
+                Else
+                    GetValue = False
+                End If
+        End Select
+    End Property
     Public Property Get Priority(): Priority = m_priority: End Property
     Public Property Get Status()
         If m_started Then
@@ -60,7 +70,7 @@ Class Mode
     End Property
     Public Property Get EventPlayer() : Set EventPlayer = m_eventplayer: End Property
     Public Property Get QueueEventPlayer() : Set QueueEventPlayer = m_queueEventplayer: End Property
-    Public Property Get QueueRelayEventPlayer() : Set QueueRelayEventPlayer = m_queueRelayEventplayer: End Property
+    Public Property Get QueueRelayPlayer() : Set QueueRelayPlayer = m_queueRelayPlayer: End Property
     Public Property Get RandomEventPlayer() : Set RandomEventPlayer = m_random_event_player : End Property
     Public Property Get VariablePlayer(): Set VariablePlayer = m_variableplayer: End Property
     Public Property Get SoundPlayer() : Set SoundPlayer = m_sound_player : End Property
@@ -283,8 +293,8 @@ Class Mode
         If Not IsNull(m_queueEventplayer) Then
             m_queueEventplayer.Debug = value
         End If
-        If Not IsNull(m_queueRelayEventplayer) Then
-            m_queueRelayEventplayer.Debug = value
+        If Not IsNull(m_queueRelayPlayer) Then
+            m_queueRelayPlayer.Debug = value
         End If
         If Not IsNull(m_random_event_player) Then
             m_random_event_player.Debug = value
@@ -330,7 +340,7 @@ Class Mode
         m_segment_display_player = Null
         Set m_eventplayer = (new GlfEventPlayer)(Me)
         Set m_queueEventplayer = (new GlfQueueEventPlayer)(Me)
-        Set m_queueRelayEventplayer = (new GlfQueueRelayEventPlayer)(Me)
+        Set m_queueRelayPlayer = (new GlfQueueRelayPlayer)(Me)
         Set m_random_event_player = (new GlfRandomEventPlayer)(Me)
         Set m_sound_player = (new GlfSoundPlayer)(Me)
         Set m_variableplayer = (new GlfVariablePlayer)(Me)

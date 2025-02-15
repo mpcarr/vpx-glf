@@ -1,6 +1,6 @@
 
 
-Class GlfQueueRelayEventPlayer
+Class GlfQueueRelayPlayer
 
     Private m_priority
     Private m_mode
@@ -35,7 +35,7 @@ Class GlfQueueRelayEventPlayer
         If m_events.Exists(name) Then
             Set EventName = m_eventValues(name)
         Else
-            Dim new_event : Set new_event = (new GlfEvent)()
+            Dim new_event : Set new_event = (new GlfEvent)(name)
             m_events.Add new_event.Raw, new_event
             Dim new_event_value : Set new_event_value = (new GlfQueueRelayEvent)()
             m_eventValues.Add new_event.Raw, new_event_value
@@ -46,7 +46,7 @@ Class GlfQueueRelayEventPlayer
     Public Sub Activate()
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener m_events(evt).EventName, m_mode & "_" & evt & "_queue_relay_player_play", "QueueRelayEventPlayerEventHandler", m_priority+m_events(evt).Priority, Array("play", Me, evt)
+            AddPinEventListener m_events(evt).EventName, m_mode & "_" & evt & "_queue_relay_player_play", "QueueRelayPlayerEventHandler", m_priority+m_events(evt).Priority, Array("play", Me, evt)
         Next
     End Sub
 
@@ -89,7 +89,7 @@ Class GlfQueueRelayEventPlayer
 
 End Class
 
-Function QueueRelayEventPlayerEventHandler(args)
+Function QueueRelayPlayerEventHandler(args)
     
     Dim ownProps, kwargs : ownProps = args(0)
     If IsObject(args(1)) Then
@@ -107,9 +107,9 @@ Function QueueRelayEventPlayerEventHandler(args)
             End If
     End Select
     If IsObject(args(1)) Then
-        Set QueueRelayEventPlayerEventHandler = kwargs
+        Set QueueRelayPlayerEventHandler = kwargs
     Else
-        QueueRelayEventPlayerEventHandler = kwargs
+        QueueRelayPlayerEventHandler = kwargs
     End If
 End Function
 
@@ -118,9 +118,11 @@ Class GlfQueueRelayEvent
 	Private m_wait_for, m_post
   
     Public Property Get WaitFor() : WaitFor = m_wait_for : End Property
+    Public Property Let WaitFor(input) : m_wait_for = input : End Property
     Public Property Get Post() : Post = m_post : End Property
-
-	Public default Function init(evt)
+    Public Property Let Post(input) : m_post = input : End Property
+        
+	Public default Function init()
         m_wait_for = Empty
         m_post = Empty
 	    Set Init = Me

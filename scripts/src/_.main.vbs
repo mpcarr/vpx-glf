@@ -783,6 +783,7 @@ Public Function Glf_ParseInput(value)
 			tmp = Glf_ReplaceCurrentPlayerAttributes(tmp)
 			tmp = Glf_ReplaceAnyPlayerAttributes(tmp)
 			tmp = Glf_ReplaceDeviceAttributes(tmp)
+			tmp = Glf_ReplaceModeAttributes(tmp)
 			tmp = Glf_ReplaceKwargsAttributes(tmp)
 			'msgbox tmp
 			If InStr(tmp, " if ") Then
@@ -844,6 +845,7 @@ Public Function Glf_ParseEventInput(value)
 		dim conditionReplaced : conditionReplaced = Glf_ReplaceCurrentPlayerAttributes(condition)
 		conditionReplaced = Glf_ReplaceAnyPlayerAttributes(conditionReplaced)
 		conditionReplaced = Glf_ReplaceDeviceAttributes(conditionReplaced)
+		conditionReplaced = Glf_ReplaceModeAttributes(conditionReplaced)
 		conditionReplaced = Glf_ReplaceKwargsAttributes(conditionReplaced)
 		templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
 		templateCode = templateCode & vbTab & "On Error Resume Next" & vbCrLf
@@ -901,6 +903,19 @@ Function Glf_ReplaceDeviceAttributes(inputString)
     outputString = regex.Replace(inputString, replacement)
     Set regex = Nothing
     Glf_ReplaceDeviceAttributes = outputString
+End Function
+
+Function Glf_ReplaceModeAttributes(inputString)
+    Dim pattern, replacement, regex, outputString
+    pattern = "modes\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)"
+    Set regex = New RegExp
+    regex.Pattern = pattern
+    regex.IgnoreCase = True
+    regex.Global = True
+	replacement = "glf_modes(""$1"").GetValue(""$2"")"
+    outputString = regex.Replace(inputString, replacement)
+    Set regex = Nothing
+    Glf_ReplaceModeAttributes = outputString
 End Function
 
 Function Glf_ReplaceKwargsAttributes(inputString)
@@ -963,7 +978,6 @@ End Function
 
 Function Glf_CheckForDeviceState(inputString)
     Dim pattern, regex, matches, match, hasDeviceState, attribute, deviceType, deviceName
-	'inputString = Glf_ReplaceDeviceAttributes(inputString)
     pattern = "devices\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)"
     Set regex = New RegExp
     regex.Pattern = pattern
