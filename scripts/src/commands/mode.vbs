@@ -21,6 +21,7 @@ Class Mode
     Private m_variableplayer
     Private m_eventplayer
     Private m_queueEventplayer
+    Private m_queueRelayEventplayer
     Private m_random_event_player
     Private m_sound_player
     Private m_shot_profiles
@@ -59,6 +60,7 @@ Class Mode
     End Property
     Public Property Get EventPlayer() : Set EventPlayer = m_eventplayer: End Property
     Public Property Get QueueEventPlayer() : Set QueueEventPlayer = m_queueEventplayer: End Property
+    Public Property Get QueueRelayEventPlayer() : Set QueueRelayEventPlayer = m_queueRelayEventplayer: End Property
     Public Property Get RandomEventPlayer() : Set RandomEventPlayer = m_random_event_player : End Property
     Public Property Get VariablePlayer(): Set VariablePlayer = m_variableplayer: End Property
     Public Property Get SoundPlayer() : Set SoundPlayer = m_sound_player : End Property
@@ -281,6 +283,9 @@ Class Mode
         If Not IsNull(m_queueEventplayer) Then
             m_queueEventplayer.Debug = value
         End If
+        If Not IsNull(m_queueRelayEventplayer) Then
+            m_queueRelayEventplayer.Debug = value
+        End If
         If Not IsNull(m_random_event_player) Then
             m_random_event_player.Debug = value
         End If
@@ -325,6 +330,7 @@ Class Mode
         m_segment_display_player = Null
         Set m_eventplayer = (new GlfEventPlayer)(Me)
         Set m_queueEventplayer = (new GlfQueueEventPlayer)(Me)
+        Set m_queueRelayEventplayer = (new GlfQueueRelayEventPlayer)(Me)
         Set m_random_event_player = (new GlfRandomEventPlayer)(Me)
         Set m_sound_player = (new GlfSoundPlayer)(Me)
         Set m_variableplayer = (new GlfVariablePlayer)(Me)

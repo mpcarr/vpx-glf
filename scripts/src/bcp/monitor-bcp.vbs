@@ -109,6 +109,9 @@ Sub Glf_MonitorModeUpdate(mode)
     If Not IsNull(mode.QueueEventPlayer) Then
         glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.QueueEventPlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.QueueEventPlayer.Name & """},"
     End If
+    If Not IsNull(mode.QueueRelayEventPlayer) Then
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.QueueRelayEventPlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.QueueRelayEventPlayer.Name & """},"
+    End If
     If Not IsNull(mode.RandomEventPlayer) Then
         glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.RandomEventPlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.RandomEventPlayer.Name & """},"
     End If

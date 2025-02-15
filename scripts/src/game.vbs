@@ -109,13 +109,34 @@ AddPinEventListener GLF_NEXT_PLAYER, "next_player_release_ball",   "Glf_ReleaseB
 '
 '*****************************
 Function Glf_ReleaseBall(args)
+    Dim kwargs
+    Set kwargs = GlfKwargs()
     If Not IsNull(args) Then
         If args(0) = True Then
-            glf_BIP = glf_BIP + 1
-            DispatchPinEvent GLF_BALL_STARTED, Null
-            If useBcp Then
-                bcpController.SendPlayerVariable GLF_CURRENT_BALL, GetPlayerState(GLF_CURRENT_BALL), GetPlayerState(GLF_CURRENT_BALL)-1
-                bcpController.SendPlayerVariable GLF_SCORE, GetPlayerState(GLF_SCORE), GetPlayerState(GLF_SCORE)
+            kwargs.Add "new_ball", True
+        End If
+    End If
+    DispatchQueuePinEvent "balldevice_trough_ball_eject_attempt", kwargs
+End Function
+
+
+'****************************
+' Release Ball
+' Event Listeners:  
+AddPinEventListener "balldevice_trough_ball_eject_attempt", "trough_eject",  "Glf_TroughReleaseBall", 20, Null
+'
+'*****************************
+Function Glf_TroughReleaseBall(args)
+
+    If Not IsNull(args) Then
+        If IsObject(args(1)) Then
+            If args(1)("new_ball") = True Then
+                glf_BIP = glf_BIP + 1
+                DispatchPinEvent GLF_BALL_STARTED, Null
+                If useBcp Then
+                    bcpController.SendPlayerVariable GLF_CURRENT_BALL, GetPlayerState(GLF_CURRENT_BALL), GetPlayerState(GLF_CURRENT_BALL)-1
+                    bcpController.SendPlayerVariable GLF_SCORE, GetPlayerState(GLF_SCORE), GetPlayerState(GLF_SCORE)
+                End If
             End If
         End If
     End If
@@ -125,7 +146,6 @@ Function Glf_ReleaseBall(args)
     DispatchPinEvent "trough_eject", Null
     Glf_WriteDebugLog "Release Ball", "Just Kicked"
 End Function
-
 
 '****************************
 ' Ball Drain
