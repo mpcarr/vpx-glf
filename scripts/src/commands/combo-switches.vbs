@@ -109,11 +109,11 @@ Class GlfComboSwitches
 	End Function
 
     Public Sub Activate()
-        AddPinEventListener m_switch_1 & "_active" , m_name & "_switch1_active" , "ComboSwitchEventHandler", m_priority, Array("switch1_active", Me, evt)
-        AddPinEventListener m_switch_1 & "_inactive" , m_name & "_switch1_inactive" , "ComboSwitchEventHandler", m_priority, Array("switch1_inactive", Me, evt)
-        AddPinEventListener m_switch_2 & "_active" , m_name & "_switch2_active" , "ComboSwitchEventHandler", m_priority, Array("switch2_active", Me, evt)
-        AddPinEventListener m_switch_2 & "_inactive" , m_name & "_switch2_inactive" , "ComboSwitchEventHandler", m_priority, Array("switch2_inactive", Me, evt)
         Log "Activating Combo Switch"
+        AddPinEventListener m_switch_1 & "_active" , m_name & "_switch1_active" , "ComboSwitchEventHandler", m_priority, Array("switch1_active", Me, m_switch_1)
+        AddPinEventListener m_switch_1 & "_inactive" , m_name & "_switch1_inactive" , "ComboSwitchEventHandler", m_priority, Array("switch1_inactive", Me, m_switch_1)
+        AddPinEventListener m_switch_2 & "_active" , m_name & "_switch2_active" , "ComboSwitchEventHandler", m_priority, Array("switch2_active", Me, m_switch_2)
+        AddPinEventListener m_switch_2 & "_inactive" , m_name & "_switch2_inactive" , "ComboSwitchEventHandler", m_priority, Array("switch2_inactive", Me, m_switch_2)
     End Sub
 
     Public Sub Deactivate()
