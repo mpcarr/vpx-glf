@@ -257,20 +257,6 @@ Function GlfShowStepHandler(args)
         Else
             msgbox running_show.CacheName & " show not cached! Problem with caching"
         End If
-'        glf_debugLog.WriteToLog "Running Show", join(cached_show(running_show.CurrentStep))
-        'At this point, any fades added by this show for the lights in this step need to be remove
-        
-        
-        'Dim light, lightParts
-        'For Each light in cached_show_seq(running_show.CurrentStep)
-        '    lightParts = Split(light,"|")
-        '    Dim show_key
-        '    For Each show_key in glf_running_shows.Keys
-        '        If Left(show_key, Len("fade_" & running_show.ShowName & "_" & running_show.Key & "_" & lightParts(0))) = "fade_" & running_show.ShowName & "_" & running_show.Key & "_" & lightParts(0) Then
-        '            glf_running_shows(show_key).StopRunningShow()
-        '        End If
-        '    Next
-        'Next
 
         If Not IsNull(running_show.ShowsAdded) Then
             Dim show_added
@@ -288,6 +274,22 @@ Function GlfShowStepHandler(args)
             'Fade shows were added, log them agains the current show.
             running_show.ShowsAdded = shows_added
         End If
+    End If
+    If UBound(nextStep.ShowsInStep().Keys())>-1 Then
+        Dim show_item
+        Dim show_items : show_items = nextStep.ShowsInStep().Items()
+        For Each show_item in show_items
+            If show_item.Action = "stop" Then
+                If glf_running_shows.Exists(running_show.Key & "_" & show_item.Show & "_" & show_item.Key) Then 
+                    glf_running_shows(running_show.Key & "_" & show_item.Show & "_" & show_item.Key).StopRunningShow()
+                End If
+            Else
+                Dim new_running_show
+                'MsgBox running_show.Priority + running_show.ShowSettings.Priority
+                'msgbox running_show.Key & "_" & show_item.Key
+                Set new_running_show = (new GlfRunningShow)(show_item.Key, show_item.Key, show_item, running_show.Priority + running_show.ShowSettings.Priority, Null, Null)
+            End If
+        Next
     End If
 
     If nextStep.Duration = -1 Then
@@ -330,10 +332,18 @@ End Function
 
 Class GlfShowStep
 
-    Private m_lights, m_time, m_duration, m_isLastStep, m_absTime, m_relTime
+    Private m_lights, m_shows, m_time, m_duration, m_isLastStep, m_absTime, m_relTime
 
     Public Property Get Lights(): Lights = m_lights: End Property
     Public Property Let Lights(input) : m_lights = input: End Property
+
+    Public Property Get ShowsInStep(): Set ShowsInStep = m_shows: End Property
+    Public Property Get Shows(name)
+        Dim new_show : Set new_show = (new GlfShowPlayerItem)()
+        new_show.Show = name
+        m_shows.Add name, new_show
+        Set Shows = new_show
+    End Property
 
     Public Property Get Time()
         If IsNull(m_relTime) Then
@@ -367,6 +377,7 @@ Class GlfShowStep
         m_absTime = Null
         m_relTime = Null
         m_isLastStep = False
+        Set m_shows = CreateObject("Scripting.Dictionary")
         Set Init = Me
 	End Function
 

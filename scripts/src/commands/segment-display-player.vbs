@@ -181,7 +181,7 @@ Class GlfSegmentPlayerEventItem
 
     Public Property Get Transition()
         If IsNull(m_transition) Then
-            Set m_transition = (new GlfSegmentPlayerTransition)()
+            Set m_transition = (new GlfSegmentPlayerTransition)("bee")
             Set Transition = m_transition   
         Else
             Set Transition = m_transition
@@ -261,13 +261,17 @@ Class GlfSegmentPlayerTransition
     Public Property Get TransitionType() : TransitionType = m_type : End Property
     Public Property Let TransitionType(input) : m_type = input : End Property
     
-    Public Property Get Text() : Text = m_text : End Property
-    Public Property Let Text(input) : m_text = input : End Property
+    Public Property Get Text()
+        Text = m_text
+    End Property
+    Public Property Let Text(input)
+        m_text = input
+    End Property
 
     Public Property Get Direction() : Direction = m_direction : End Property
     Public Property Let Direction(input) : m_direction = input : End Property                          
 
-	Public default Function init()
+	Public default Function Init(loo)
         m_type = "push"
         m_text = Empty
         m_direction = "right"

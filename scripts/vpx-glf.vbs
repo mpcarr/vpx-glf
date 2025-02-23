@@ -1309,6 +1309,18 @@ Function Glf_ConvertShow(show, tokens)
 	ReDim newShow(UBound(show.Steps().Keys()))
 	stepIdx = 0
 	For Each showStep in show.Steps().Items()
+
+		If UBound(showStep.ShowsInStep().Keys()) > -1 Then
+			Dim show_item
+       	
+			Dim show_items : show_items = showStep.ShowsInStep().Items()
+        	For Each show_item in show_items
+				Dim cached_show
+				cached_show = Glf_ConvertShow(show_item.Show, show_item.Tokens)
+				glf_cached_shows.Add show_item.Key & "__" & show_item.InternalCacheId, cached_show
+			Next 
+		End If
+
 		lightsCount = 0 
 		For Each light in showStep.Lights
 			lightParts = Split(light, "|")
@@ -5888,7 +5900,7 @@ Class GlfSegmentPlayerEventItem
 
     Public Property Get Transition()
         If IsNull(m_transition) Then
-            Set m_transition = (new GlfSegmentPlayerTransition)()
+            Set m_transition = (new GlfSegmentPlayerTransition)("bee")
             Set Transition = m_transition   
         Else
             Set Transition = m_transition
@@ -5968,13 +5980,17 @@ Class GlfSegmentPlayerTransition
     Public Property Get TransitionType() : TransitionType = m_type : End Property
     Public Property Let TransitionType(input) : m_type = input : End Property
     
-    Public Property Get Text() : Text = m_text : End Property
-    Public Property Let Text(input) : m_text = input : End Property
+    Public Property Get Text()
+        Text = m_text
+    End Property
+    Public Property Let Text(input)
+        m_text = input
+    End Property
 
     Public Property Get Direction() : Direction = m_direction : End Property
     Public Property Let Direction(input) : m_direction = input : End Property                          
 
-	Public default Function init()
+	Public default Function Init(loo)
         m_type = "push"
         m_text = Empty
         m_direction = "right"
@@ -7987,20 +8003,6 @@ Function GlfShowStepHandler(args)
         Else
             msgbox running_show.CacheName & " show not cached! Problem with caching"
         End If
-'        glf_debugLog.WriteToLog "Running Show", join(cached_show(running_show.CurrentStep))
-        'At this point, any fades added by this show for the lights in this step need to be remove
-        
-        
-        'Dim light, lightParts
-        'For Each light in cached_show_seq(running_show.CurrentStep)
-        '    lightParts = Split(light,"|")
-        '    Dim show_key
-        '    For Each show_key in glf_running_shows.Keys
-        '        If Left(show_key, Len("fade_" & running_show.ShowName & "_" & running_show.Key & "_" & lightParts(0))) = "fade_" & running_show.ShowName & "_" & running_show.Key & "_" & lightParts(0) Then
-        '            glf_running_shows(show_key).StopRunningShow()
-        '        End If
-        '    Next
-        'Next
 
         If Not IsNull(running_show.ShowsAdded) Then
             Dim show_added
@@ -8018,6 +8020,22 @@ Function GlfShowStepHandler(args)
             'Fade shows were added, log them agains the current show.
             running_show.ShowsAdded = shows_added
         End If
+    End If
+    If UBound(nextStep.ShowsInStep().Keys())>-1 Then
+        Dim show_item
+        Dim show_items : show_items = nextStep.ShowsInStep().Items()
+        For Each show_item in show_items
+            If show_item.Action = "stop" Then
+                If glf_running_shows.Exists(running_show.Key & "_" & show_item.Show & "_" & show_item.Key) Then 
+                    glf_running_shows(running_show.Key & "_" & show_item.Show & "_" & show_item.Key).StopRunningShow()
+                End If
+            Else
+                Dim new_running_show
+                'MsgBox running_show.Priority + running_show.ShowSettings.Priority
+                'msgbox running_show.Key & "_" & show_item.Key
+                Set new_running_show = (new GlfRunningShow)(show_item.Key, show_item.Key, show_item, running_show.Priority + running_show.ShowSettings.Priority, Null, Null)
+            End If
+        Next
     End If
 
     If nextStep.Duration = -1 Then
@@ -8060,10 +8078,18 @@ End Function
 
 Class GlfShowStep
 
-    Private m_lights, m_time, m_duration, m_isLastStep, m_absTime, m_relTime
+    Private m_lights, m_shows, m_time, m_duration, m_isLastStep, m_absTime, m_relTime
 
     Public Property Get Lights(): Lights = m_lights: End Property
     Public Property Let Lights(input) : m_lights = input: End Property
+
+    Public Property Get ShowsInStep(): Set ShowsInStep = m_shows: End Property
+    Public Property Get Shows(name)
+        Dim new_show : Set new_show = (new GlfShowPlayerItem)()
+        new_show.Show = name
+        m_shows.Add name, new_show
+        Set Shows = new_show
+    End Property
 
     Public Property Get Time()
         If IsNull(m_relTime) Then
@@ -8097,6 +8123,7 @@ Class GlfShowStep
         m_absTime = Null
         m_relTime = Null
         m_isLastStep = False
+        Set m_shows = CreateObject("Scripting.Dictionary")
         Set Init = Me
 	End Function
 
@@ -10437,9 +10464,22 @@ Class GlfLightSegmentDisplay
         End If
     End Sub
 
+    Public Sub UpdateTransition(transition_runner)
+        Dim display_text
+        display_text = transition_runner.NextStep()
+        If IsNull(display_text) Then
+            UpdateStack() 
+        Else
+            Set display_text = (new GlfSegmentDisplayText)(display_text,m_integrated_commas, m_integrated_dots, m_use_dots_for_commas) 
+            UpdateDisplay display_text, m_flashing, m_flash_mask
+            SetDelay m_name & "_update_transition", "Glf_SegmentDisplayUpdateTransition", Array(Me, transition_runner), 33
+        End If
+    End Sub
+
     Public Sub UpdateStack()
 
-        Dim top_text_stack_entry
+        Dim top_text_stack_entry, top_is_current
+        top_is_current = False
         If m_text_stack.IsEmpty() Then
             Dim empty_text : Set empty_text = (new GlfInput)("""" & String(m_size, " ") & """")
             Set top_text_stack_entry = (new GlfTextStackEntry)(empty_text,Null,"no_flash","",Null,Null,999999,"")
@@ -10454,6 +10494,10 @@ Class GlfLightSegmentDisplay
                 RemovePlayerStateEventListener previous_text_stack_entry.text.PlayerStateValue(), m_name
             ElseIf previous_text_stack_entry.text.IsDeviceState() Then
                 RemovePinEventListener top_text_stack_entry.text.DeviceStateEvent() , m_name
+            End If
+
+            If m_current_text_stack_entry.Key = top_text_stack_entry.Key Then
+                top_is_current = True
             End If
         End If
         
@@ -10471,17 +10515,24 @@ Class GlfLightSegmentDisplay
             Set transition_config = top_text_stack_entry.transition
         End If
         'start transition (if configured)
-        Dim flashing, flash_mask
-        If Not IsNull(transition_config) Then
+        Dim flashing, flash_mask, display_text
+        If Not IsNull(transition_config) And Not top_is_current Then
+            'msgbox "starting transition"
             Dim transition_runner
             Select Case transition_config.TransitionType()
                 case "push":
-                    Set transition_runner = (new GlfPushTransition)(m_size, True, True, True, transition_config)
+                    Set transition_runner = (new GlfPushTransition)(m_size, True, True, True)
+                    transition_runner.Direction = transition_config.Direction()
+                    transition_runner.TransitionText = transition_config.Text()
+                case "cover":
+                    Set transition_runner = (new GlfCoverTransition)(m_size, True, True, True)
+                    transition_runner.Direction = transition_config.Direction()
+                    transition_runner.TransitionText = transition_config.Text()
             End Select
 
             Dim previous_text
             If Not IsNull(previous_text_stack_entry) Then
-                previous_text = previous_text_stack_entry.text
+                previous_text = previous_text_stack_entry.text.Value()
             Else
                 previous_text = String(m_size, " ")
             End If
@@ -10493,11 +10544,10 @@ Class GlfLightSegmentDisplay
                 flashing = m_current_state.flashing
                 flash_mask = m_current_state.flash_mask
             End If
-
-            transition_runner.Get
-            'self._start_transition(transition, previous_text, top_text_stack_entry.text,
-             '                      self._current_state.text.get_colors(), top_text_stack_entry.colors,
-             '                      self.config['default_transition_update_hz'], flashing, flash_mask)
+            display_text = transition_runner.StartTransition(previous_text, top_text_stack_entry.text.Value(), Array(), Array())
+            Set display_text = (new GlfSegmentDisplayText)(display_text,m_integrated_commas, m_integrated_dots, m_use_dots_for_commas) 
+            UpdateDisplay display_text, flashing, flash_mask
+            SetDelay m_name & "_update_transition", "Glf_SegmentDisplayUpdateTransition", Array(Me, transition_runner), 33
         Else
             'no transition - subscribe to text template changes and update display
             If top_text_stack_entry.text.IsPlayerState() Then
@@ -10522,7 +10572,7 @@ Class GlfLightSegmentDisplay
                 text_value = String(m_size, " ")
             End If
             Dim new_text : new_text = Glf_SegmentTextCreateCharacters(text_value, m_size, m_integrated_commas, m_integrated_dots, m_use_dots_for_commas, Array())
-            Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,m_integrated_commas, m_integrated_dots, m_use_dots_for_commas) 
+            Set display_text = (new GlfSegmentDisplayText)(new_text,m_integrated_commas, m_integrated_dots, m_use_dots_for_commas) 
             UpdateDisplay display_text, flashing, flash_mask
         End If
     End Sub
@@ -10595,6 +10645,12 @@ Sub Glf_SegmentTextStackEventHandler(args)
     segment.CurrentPlaceholderChanged()
 End Sub
 
+Sub Glf_SegmentDisplayUpdateTransition(args)
+    Dim display, runner
+    Set display = args(0) 
+    Set runner = args(1)
+    display.UpdateTransition runner
+End Sub
 
 Class GlfTextStackEntry
     Public text, colors, flashing, flash_mask, transition, transition_out, priority, key
@@ -10604,8 +10660,16 @@ Class GlfTextStackEntry
         Me.colors = colors
         Me.flashing = flashing
         Me.flash_mask = flash_mask
-        Me.transition = transition
-        Me.transition_out = transition_out
+        If Not IsNull(transition) Then
+            Set Me.transition = transition
+        Else
+            Me.transition = Null
+        End If
+        If Not IsNull(transition_out) Then
+            Set Me.transition_out = transition_out
+        Else
+            Me.transition_out = Null
+        End If
         Me.priority = priority
         Me.key = key
         Set Init = Me
@@ -11156,13 +11220,16 @@ End Function
 Function Glf_SegmentTextCreateCharacters(text, display_size, collapse_dots, collapse_commas, use_dots_for_commas, colors)
             
 
+
     Dim char_list, uncolored_chars, left_pad_color, default_right_color, i, char, color, current_length
     char_list = Array()
 
     ' Determine padding and default colors
     If IsArray(colors) And UBound(colors) >= 0 Then
+
         left_pad_color = colors(0)
         default_right_color = colors(UBound(colors))
+
     Else
         left_pad_color = Null
         default_right_color = Null
@@ -11170,7 +11237,7 @@ Function Glf_SegmentTextCreateCharacters(text, display_size, collapse_dots, coll
 
     ' Embed dots and commas
     uncolored_chars = Glf_SegmentTextEmbedDotsAndCommas(text, collapse_dots, collapse_commas, use_dots_for_commas)
-    
+ 
     ' Adjust colors to match the uncolored characters
     If IsArray(colors) And UBound(colors) >= 0 Then
         Dim adjusted_colors
@@ -11206,6 +11273,8 @@ Function Glf_SegmentTextCreateCharacters(text, display_size, collapse_dots, coll
             char_list = PrependArray(char_list, Glf_SegmentTextCreateDisplayCharacter(32, False, False, left_pad_color))
         Next
     End If
+    'msgbox ">"&text&"<"
+    'msgbox UBound(char_list)
     Glf_SegmentTextCreateCharacters = char_list
 End Function
 
@@ -11469,142 +11538,237 @@ Function MagnetEventHandler(args)
     End If
     
 End Function
+Class GlfCoverTransition
 
-Class GlfPushTransition
-
-    Private m_name
     Private m_output_length
-    Private m_config
     Private m_collapse_dots
     Private m_collapse_commas
     Private m_use_dots_for_commas
+
     Private m_current_step
     Private m_total_steps
-
     Private m_direction
-    Private m_text
-    Private m_text_color
+    Private m_transition_text
+    Private m_transition_color
 
-    ' Properties
-    'Public Property Get Name(): Name = m_name: End Property
-    'Public Property Let Name(value): m_name = value: End Property
+    Private m_current_text
+    Private m_new_text
+    Private m_current_colors
+    Private m_new_colors
 
-    Public Property Let OutputLength(value): m_output_length = value: End Property
-    Public Property Get OutputLength(): OutputLength = m_output_length: End Property
-
-    Public Property Let Config(value): m_config = value: End Property
-    Public Property Get Config(): Config = m_config: End Property
-
-    Public Property Let CollapseDots(value): m_collapse_dots = value: End Property
-    Public Property Get CollapseDots(): CollapseDots = m_collapse_dots: End Property
-
-    Public Property Let CollapseCommas(value): m_collapse_commas = value: End Property
-    Public Property Get CollapseCommas(): CollapseCommas = m_collapse_commas: End Property
-
-    Public Property Let UseDotsForCommas(value): m_use_dots_for_commas = value: End Property
-    Public Property Get UseDotsForCommas(): UseDotsForCommas = m_use_dots_for_commas: End Property
-
-    Public Property Let CurrentStep(value): m_current_step = value: End Property
-    Public Property Get CurrentStep(): CurrentStep = m_current_step: End Property
-
-    Public Property Let TotalSteps(value): m_total_steps = value: End Property
-    Public Property Get TotalSteps(): TotalSteps = m_total_steps: End Property
-
-    ' Initialize the class
-    Public default Function Init(output_length, collapse_dots, collapse_commas, use_dots_for_commas, config)
-        'm_name = "transition_" & name
+    ' Initialize the transition class
+    Public Default Function Init(output_length, collapse_dots, collapse_commas, use_dots_for_commas)
         m_output_length = output_length
         m_collapse_dots = collapse_dots
         m_collapse_commas = collapse_commas
         m_use_dots_for_commas = use_dots_for_commas
-        Set m_config = config
+
         m_current_step = 0
         m_total_steps = 0
-
         m_direction = "right"
-        m_text = Empty
-        m_color = Empty
+        m_transition_text = "" ' Default empty transition text
+        m_transition_color = Empty
+
         Set Init = Me
     End Function
 
-    Public Function GetStepCount()
-        GetStepCount = m_output_length + Len(m_text)
+    ' Set transition direction
+    Public Property Let Direction(value)
+        If value = "left" Or value = "right" Then
+            m_direction = value
+        Else
+            m_direction = "right" ' Default to right
+        End If
+    End Property
+
+    ' Set transition text
+    Public Property Let TransitionText(value)
+        m_transition_text = value
+    End Property
+
+    ' Start transition
+    Public Function StartTransition(current_text, new_text, current_colors, new_colors)
+        ' Store text and colors
+        m_current_text = "ABCDEGH"
+        m_new_text = Space(m_output_length - Len(new_text)) & new_text
+        m_current_colors = current_colors
+        m_new_colors = new_colors
+        ' Calculate total steps for transition
+        m_total_steps = m_output_length + Len(m_transition_text)
+        'If m_total_steps > 0 Then m_total_steps = m_total_steps
+        ' Reset step counter
+        m_current_step = 0
+        StartTransition = NextStep()
     End Function
 
-    Public Function GetTransitionStep(current_step, current_text, new_text, current_colors, new_colors)
-
-        If current_step < 0 or current_step >= GetStepCount() Then
-            Log "Step id out of range"
+    ' Manually call this to progress the transition
+    Public Function NextStep()
+        If m_current_step >= m_total_steps Then
+            NextStep = Null
             Exit Function
         End If
-        
-        Dim current_display_text
-        Dim current_char_list : current_char_list = Glf_SegmentTextCreateCharacters(current_text, m_output_length, m_collapse_dots, m_collapse_commas, m_use_dots_for_commas, current_colors)
-        Set current_display_text = (new GlfSegmentDisplayText)(current_char_list, m_collapse_dots, m_collapse_commas, m_use_dots_for_commas)
-        
-        Dim new_display_text    
-        Dim new_char_list : new_char_list = Glf_SegmentTextCreateCharacters(new_text, m_output_length, m_collapse_dots, m_collapse_commas, m_use_dots_for_commas, new_colors)
-        Set new_display_text = (new GlfSegmentDisplayText)(new_char_list, m_collapse_dots, m_collapse_commas, m_use_dots_for_commas) 
+        ' Get the correct transition text for this step
+        Dim result
+        result = GetTransitionStep(m_current_step)
+        ' Increment step counter
+        m_current_step = m_current_step + 1
 
-        Dim text_color,transition_text
-        If Not IsEmpty(m_text) Then
-            If IsArray(new_colors) and IsEmpty(m_text_color) Then
-                text_color = Array(new_colors(0))
-            Else
-                text_color = m_text_color
-            End If
-            Dim trnasition_char_list : trnasition_char_list = Glf_SegmentTextCreateCharacters(m_text, Len(m_text), m_collapse_dots, m_collapse_commas, m_use_dots_for_commas, text_color)
-            Set transition_text = (new GlfSegmentDisplayText)(trnasition_char_list,m_collapse_dots, m_collapse_commas, m_use_dots_for_commas) 
-        Else
-            Set transition_text = (new GlfSegmentDisplayText)(Array(),m_collapse_dots, m_collapse_commas, m_use_dots_for_commas) 
-        End If
-        Dim start_idx, end_idx
-        If m_direction = "right" Then
-            Dim temp_list : Set temp_list = new_display_text
-            temp_list.Extend transition_text.Text()
-            temp_list.Extend current_display_text.Text()
-
-            
-            start_idx = m_output_length + Len(m_text) - (current_step + 1)
-            end_idx = 2 * m_output_length + Len(m_text) - (current_step + 1) - 1
-            GetTransitionStep = SliceArray(temp_list, start_idx, end_idx)
-        End If
-
-        If m_direction = "left" Then
-            temp_list = current_display_text
-            temp_list.Extend transition_text.Text()
-            temp_list.Extend new_display_text.Text()
-
-            
-            start_idx = current_step + 1
-            end_idx = current_step + 1 + m_output_length - 1
-            GetTransitionStep = SliceArray(temp_list, start_idx, end_idx)
-
-        End If
-
+        ' Return the current frame's text
+        NextStep = result
     End Function
 
-    Private Sub Log(message)
-        Glf_WriteDebugLog m_name, message
-    End Sub
+    ' Get the text for the current step
+    Private Function GetTransitionStep(current_step)
+        Dim transition_sequence, start_idx, end_idx
 
-
-    ' Start the transition process
-    Public Sub StartTransition(current_text, new_text)
-        m_current_step = 0
-        m_total_steps = GetStepCount()
-        If m_total_steps = 0 Then
-            m_total_steps = 1 ' Default to at least one step
+        If m_direction = "right" Then
+            ' Right cover transition: new_text + transition_text moves in
+            transition_sequence = m_new_text & m_transition_text & m_current_text
+            start_idx = Len(transition_sequence) - (current_step + m_output_length)
+            end_idx = start_idx + m_output_length - 1
+        ElseIf m_direction = "left" Then
+            ' Left cover transition: transition_text + new_text moves in
+            transition_sequence = m_current_text & m_transition_text & m_new_text
+            start_idx = current_step
+            end_idx = start_idx + m_output_length - 1
         End If
 
-        While m_current_step < m_total_steps
-            Dim result
-            result = GetTransitionStep(m_current_step, current_text, new_text)
-            Log "Step " & m_current_step & ": " & result
-            m_current_step = m_current_step + 1
-        Wend
-        Log "Transition complete for: " & m_name
-    End Sub
+        ' Ensure valid slice indices
+        If start_idx < 0 Then start_idx = 0
+        If end_idx > Len(transition_sequence) - 1 Then end_idx = Len(transition_sequence) - 1
+
+        ' Extract the correct frame of text
+        Dim sliced_text
+        sliced_text = Mid(transition_sequence, start_idx + 1, end_idx - start_idx + 1)
+        If m_output_length>m_current_step Then
+            If m_direction = "right" Then
+                sliced_text = m_new_text & m_transition_text & Right(m_current_text, m_output_length-current_step)
+            ElseIf m_direction = "left" Then
+                sliced_text = Left(m_current_text, m_output_length - m_current_step) & Left(m_transition_text & m_new_text, current_step)
+            End If
+        End If
+        'MsgBox "transition_text-"&transition_sequence&", current_step=" & current_step & ", start_idx=" & start_idx & ", end_idx=" & end_idx & ", text=>" & sliced_text &"<, text_len=>" & Len(sliced_text) &"<, Total Steps: "&m_total_steps
+        
+        ' Convert only the final sliced text to segment display characters
+        GetTransitionStep = Glf_SegmentTextCreateCharacters(sliced_text, m_output_length, m_collapse_dots, m_collapse_commas, m_use_dots_for_commas, m_new_colors)
+    End Function
+
+End Class
+Class GlfPushTransition
+
+    Private m_output_length
+    Private m_collapse_dots
+    Private m_collapse_commas
+    Private m_use_dots_for_commas
+
+    Private m_current_step
+    Private m_total_steps
+    Private m_direction
+    Private m_transition_text
+    Private m_transition_color
+
+    Private m_current_text
+    Private m_new_text
+    Private m_current_colors
+    Private m_new_colors
+
+    ' Initialize the transition class
+    Public Default Function Init(output_length, collapse_dots, collapse_commas, use_dots_for_commas)
+        m_output_length = output_length
+        m_collapse_dots = collapse_dots
+        m_collapse_commas = collapse_commas
+        m_use_dots_for_commas = use_dots_for_commas
+
+        m_current_step = 0
+        m_total_steps = 0
+        m_direction = "right"
+        m_transition_text = "" ' Default empty transition text
+        m_transition_color = Empty
+
+        Set Init = Me
+    End Function
+
+    ' Set transition direction
+    Public Property Let Direction(value)
+        If value = "left" Or value = "right" Then
+            m_direction = value
+        Else
+            m_direction = "right" ' Default to right
+        End If
+    End Property
+
+    ' Set transition text
+    Public Property Let TransitionText(value)
+        m_transition_text = value
+    End Property
+
+    ' Start transition
+    Public Function StartTransition(current_text, new_text, current_colors, new_colors)
+        ' Store text and colors
+        m_current_text = current_text
+        m_new_text = Space(m_output_length - Len(new_text)) & new_text
+        m_current_colors = current_colors
+        m_new_colors = new_colors
+        ' Calculate total steps for transition
+        m_total_steps = m_output_length + Len(m_transition_text)
+        If m_total_steps > 0 Then m_total_steps = m_total_steps + 1
+        'm_total_steps=(m_output_length*2)+1
+        ' Reset step counter
+        m_current_step = 0
+        StartTransition = NextStep()
+    End Function
+
+    ' Manually call this to progress the transition
+    Public Function NextStep()
+        If m_current_step >= m_total_steps Then
+            NextStep = Null ' Transition complete
+            Exit Function
+        End If
+        ' Get the correct transition text for this step
+        Dim result
+        result = GetTransitionStep(m_current_step)
+        ' Increment step counter
+        m_current_step = m_current_step + 1
+
+        ' Return the current frame's text
+        NextStep = result
+    End Function
+
+    ' Get the text for the current step
+    Private Function GetTransitionStep(current_step)
+        Dim transition_sequence, start_idx, end_idx
+        'msgbox "Step"
+        ' Construct the full transition sequence as plain text
+        If m_direction = "right" Then
+            ' Right push: [NEW_TEXT + TRANSITION_TEXT + OLD_TEXT] moves LEFT
+            transition_sequence = m_new_text & m_transition_text & m_current_text
+    
+            ' Calculate slice indices
+            start_idx = Len(transition_sequence) - (current_step + m_output_length)
+            end_idx = start_idx + m_output_length - 1
+    
+        ElseIf m_direction = "left" Then
+            ' Left push: [OLD_TEXT + TRANSITION_TEXT + NEW_TEXT] moves RIGHT
+            transition_sequence = m_current_text & m_transition_text & m_new_text
+    
+            ' Calculate slice indices
+            start_idx = current_step
+            end_idx = start_idx + m_output_length - 1
+        End If
+    
+        ' Ensure valid slice indices
+        If start_idx < 0 Then start_idx = 0
+        If end_idx > Len(transition_sequence) - 1 Then end_idx = Len(transition_sequence) - 1
+    
+        ' Extract the correct frame of text
+        Dim sliced_text
+        sliced_text = Mid(transition_sequence, start_idx + 1, end_idx - start_idx + 1)
+    
+        ' Debugging output
+        'MsgBox "transition_text-"&transition_sequence&", current_step=" & current_step & ", start_idx=" & start_idx & ", end_idx=" & end_idx & ", text=>" & sliced_text &"<"
+        ' Convert only the final sliced text to segment display characters
+        GetTransitionStep = Glf_SegmentTextCreateCharacters(sliced_text, m_output_length, m_collapse_dots, m_collapse_commas, m_use_dots_for_commas, m_new_colors)
+    End Function
 
 End Class
 

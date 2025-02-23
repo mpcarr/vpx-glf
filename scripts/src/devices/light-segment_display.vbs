@@ -228,9 +228,22 @@ Class GlfLightSegmentDisplay
         End If
     End Sub
 
+    Public Sub UpdateTransition(transition_runner)
+        Dim display_text
+        display_text = transition_runner.NextStep()
+        If IsNull(display_text) Then
+            UpdateStack() 
+        Else
+            Set display_text = (new GlfSegmentDisplayText)(display_text,m_integrated_commas, m_integrated_dots, m_use_dots_for_commas) 
+            UpdateDisplay display_text, m_flashing, m_flash_mask
+            SetDelay m_name & "_update_transition", "Glf_SegmentDisplayUpdateTransition", Array(Me, transition_runner), 33
+        End If
+    End Sub
+
     Public Sub UpdateStack()
 
-        Dim top_text_stack_entry
+        Dim top_text_stack_entry, top_is_current
+        top_is_current = False
         If m_text_stack.IsEmpty() Then
             Dim empty_text : Set empty_text = (new GlfInput)("""" & String(m_size, " ") & """")
             Set top_text_stack_entry = (new GlfTextStackEntry)(empty_text,Null,"no_flash","",Null,Null,999999,"")
@@ -245,6 +258,10 @@ Class GlfLightSegmentDisplay
                 RemovePlayerStateEventListener previous_text_stack_entry.text.PlayerStateValue(), m_name
             ElseIf previous_text_stack_entry.text.IsDeviceState() Then
                 RemovePinEventListener top_text_stack_entry.text.DeviceStateEvent() , m_name
+            End If
+
+            If m_current_text_stack_entry.Key = top_text_stack_entry.Key Then
+                top_is_current = True
             End If
         End If
         
@@ -262,17 +279,24 @@ Class GlfLightSegmentDisplay
             Set transition_config = top_text_stack_entry.transition
         End If
         'start transition (if configured)
-        Dim flashing, flash_mask
-        If Not IsNull(transition_config) Then
+        Dim flashing, flash_mask, display_text
+        If Not IsNull(transition_config) And Not top_is_current Then
+            'msgbox "starting transition"
             Dim transition_runner
             Select Case transition_config.TransitionType()
                 case "push":
-                    Set transition_runner = (new GlfPushTransition)(m_size, True, True, True, transition_config)
+                    Set transition_runner = (new GlfPushTransition)(m_size, True, True, True)
+                    transition_runner.Direction = transition_config.Direction()
+                    transition_runner.TransitionText = transition_config.Text()
+                case "cover":
+                    Set transition_runner = (new GlfCoverTransition)(m_size, True, True, True)
+                    transition_runner.Direction = transition_config.Direction()
+                    transition_runner.TransitionText = transition_config.Text()
             End Select
 
             Dim previous_text
             If Not IsNull(previous_text_stack_entry) Then
-                previous_text = previous_text_stack_entry.text
+                previous_text = previous_text_stack_entry.text.Value()
             Else
                 previous_text = String(m_size, " ")
             End If
@@ -284,11 +308,10 @@ Class GlfLightSegmentDisplay
                 flashing = m_current_state.flashing
                 flash_mask = m_current_state.flash_mask
             End If
-
-            transition_runner.Get
-            'self._start_transition(transition, previous_text, top_text_stack_entry.text,
-             '                      self._current_state.text.get_colors(), top_text_stack_entry.colors,
-             '                      self.config['default_transition_update_hz'], flashing, flash_mask)
+            display_text = transition_runner.StartTransition(previous_text, top_text_stack_entry.text.Value(), Array(), Array())
+            Set display_text = (new GlfSegmentDisplayText)(display_text,m_integrated_commas, m_integrated_dots, m_use_dots_for_commas) 
+            UpdateDisplay display_text, flashing, flash_mask
+            SetDelay m_name & "_update_transition", "Glf_SegmentDisplayUpdateTransition", Array(Me, transition_runner), 33
         Else
             'no transition - subscribe to text template changes and update display
             If top_text_stack_entry.text.IsPlayerState() Then
@@ -313,7 +336,7 @@ Class GlfLightSegmentDisplay
                 text_value = String(m_size, " ")
             End If
             Dim new_text : new_text = Glf_SegmentTextCreateCharacters(text_value, m_size, m_integrated_commas, m_integrated_dots, m_use_dots_for_commas, Array())
-            Dim display_text : Set display_text = (new GlfSegmentDisplayText)(new_text,m_integrated_commas, m_integrated_dots, m_use_dots_for_commas) 
+            Set display_text = (new GlfSegmentDisplayText)(new_text,m_integrated_commas, m_integrated_dots, m_use_dots_for_commas) 
             UpdateDisplay display_text, flashing, flash_mask
         End If
     End Sub
@@ -386,6 +409,12 @@ Sub Glf_SegmentTextStackEventHandler(args)
     segment.CurrentPlaceholderChanged()
 End Sub
 
+Sub Glf_SegmentDisplayUpdateTransition(args)
+    Dim display, runner
+    Set display = args(0) 
+    Set runner = args(1)
+    display.UpdateTransition runner
+End Sub
 
 Class GlfTextStackEntry
     Public text, colors, flashing, flash_mask, transition, transition_out, priority, key
@@ -395,8 +424,16 @@ Class GlfTextStackEntry
         Me.colors = colors
         Me.flashing = flashing
         Me.flash_mask = flash_mask
-        Me.transition = transition
-        Me.transition_out = transition_out
+        If Not IsNull(transition) Then
+            Set Me.transition = transition
+        Else
+            Me.transition = Null
+        End If
+        If Not IsNull(transition_out) Then
+            Set Me.transition_out = transition_out
+        Else
+            Me.transition_out = Null
+        End If
         Me.priority = priority
         Me.key = key
         Set Init = Me
@@ -947,13 +984,16 @@ End Function
 Function Glf_SegmentTextCreateCharacters(text, display_size, collapse_dots, collapse_commas, use_dots_for_commas, colors)
             
 
+
     Dim char_list, uncolored_chars, left_pad_color, default_right_color, i, char, color, current_length
     char_list = Array()
 
     ' Determine padding and default colors
     If IsArray(colors) And UBound(colors) >= 0 Then
+
         left_pad_color = colors(0)
         default_right_color = colors(UBound(colors))
+
     Else
         left_pad_color = Null
         default_right_color = Null
@@ -961,7 +1001,7 @@ Function Glf_SegmentTextCreateCharacters(text, display_size, collapse_dots, coll
 
     ' Embed dots and commas
     uncolored_chars = Glf_SegmentTextEmbedDotsAndCommas(text, collapse_dots, collapse_commas, use_dots_for_commas)
-    
+ 
     ' Adjust colors to match the uncolored characters
     If IsArray(colors) And UBound(colors) >= 0 Then
         Dim adjusted_colors
@@ -997,6 +1037,8 @@ Function Glf_SegmentTextCreateCharacters(text, display_size, collapse_dots, coll
             char_list = PrependArray(char_list, Glf_SegmentTextCreateDisplayCharacter(32, False, False, left_pad_color))
         Next
     End If
+    'msgbox ">"&text&"<"
+    'msgbox UBound(char_list)
     Glf_SegmentTextCreateCharacters = char_list
 End Function
 

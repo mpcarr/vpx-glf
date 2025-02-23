@@ -1309,6 +1309,18 @@ Function Glf_ConvertShow(show, tokens)
 	ReDim newShow(UBound(show.Steps().Keys()))
 	stepIdx = 0
 	For Each showStep in show.Steps().Items()
+
+		If UBound(showStep.ShowsInStep().Keys()) > -1 Then
+			Dim show_item
+       	
+			Dim show_items : show_items = showStep.ShowsInStep().Items()
+        	For Each show_item in show_items
+				Dim cached_show
+				cached_show = Glf_ConvertShow(show_item.Show, show_item.Tokens)
+				glf_cached_shows.Add show_item.Key & "__" & show_item.InternalCacheId, cached_show
+			Next 
+		End If
+
 		lightsCount = 0 
 		For Each light in showStep.Lights
 			lightParts = Split(light, "|")
