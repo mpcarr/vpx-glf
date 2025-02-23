@@ -49,7 +49,7 @@ Class GlfCoverTransition
     ' Start transition
     Public Function StartTransition(current_text, new_text, current_colors, new_colors)
         ' Store text and colors
-        m_current_text = "ABCDEGH"
+        m_current_text = current_text
         m_new_text = Space(m_output_length - Len(new_text)) & new_text
         m_current_colors = current_colors
         m_new_colors = new_colors
