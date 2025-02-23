@@ -49,10 +49,15 @@ Class GlfSegmentDisplayPlayer
     End Sub
 
     Public Sub Deactivate()
-        Dim evt
+        Dim evt, display
+        Dim displays_to_update : Set displays_to_update = CreateObject("Scripting.Dictionary")
         For Each evt In m_events.Keys()
             RemovePinEventListener m_events(evt).GlfEvent.EventName, m_mode & "_" & evt & "_segment_player_play"
-            PlayOff m_events(evt).GlfEvent.EventName, m_events(evt)
+            Set displays_to_update = PlayOff(m_events(evt).GlfEvent.EventName, m_events(evt), displays_to_update)
+        Next
+        
+        For Each display in displays_to_update.Items()
+            glf_segment_displays(display).UpdateStack()
         Next
     End Sub
 
@@ -63,7 +68,7 @@ Class GlfSegmentDisplayPlayer
         Next
     End Sub
 
-    Public Sub PlayOff(evt, segment_event)
+    Public Function PlayOff(evt, segment_event, displays_to_update)
         Dim i, segment_item
         For i=0 to UBound(segment_event.Displays())
             Set segment_item = segment_event.Displays()(i)
@@ -74,9 +79,13 @@ Class GlfSegmentDisplayPlayer
             End If
             Dim display : Set display = glf_segment_displays(segment_item.Display)
             RemoveDelay key
-            display.RemoveTextByKey key    
+            display.RemoveTextByKeyNoUpdate key
+            If Not displays_to_update.Exists(segment_item.Display) Then
+                displays_to_update.Add segment_item.Display
+            End If   
         Next
-    End Sub
+        Set PlayOff = displays_to_update
+    End Function
 
     Private Sub Log(message)
         If m_debug = True Then

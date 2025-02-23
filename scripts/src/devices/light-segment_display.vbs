@@ -357,6 +357,10 @@ Class GlfLightSegmentDisplay
         UpdateStack()
     End Sub
 
+    Public Sub RemoveTextByKeyNoUpdate(key)
+        m_text_stack.PopByKey key
+    End Sub
+
     Public Sub SetFlashing(flash_type)
 
     End Sub
