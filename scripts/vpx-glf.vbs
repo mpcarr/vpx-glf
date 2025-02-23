@@ -16,6 +16,7 @@ Dim glf_playerEventsOrder : Set glf_playerEventsOrder = CreateObject("Scripting.
 Dim glf_playerState : Set glf_playerState = CreateObject("Scripting.Dictionary")
 Dim glf_running_shows : Set glf_running_shows = CreateObject("Scripting.Dictionary")
 Dim glf_cached_shows : Set glf_cached_shows = CreateObject("Scripting.Dictionary")
+Dim glf_cached_rgb_fades : Set glf_cached_rgb_fades = CreateObject("Scripting.Dictionary")
 Dim glf_lightPriority : Set glf_lightPriority = CreateObject("Scripting.Dictionary")
 Dim glf_lightColorLookup : Set glf_lightColorLookup = CreateObject("Scripting.Dictionary")
 Dim glf_lightMaps : Set glf_lightMaps = CreateObject("Scripting.Dictionary")
@@ -1553,29 +1554,47 @@ Class GlfInput
 End Class
 
 Function Glf_FadeRGB(light, color1, color2, steps)
+	Dim cached_rgb_seq : cached_rgb_seq = Array()
+	Dim outputArray()
+	If glf_cached_rgb_fades.Exists(color1&"_"&color2&"_"&CStr(steps)) Then
+		cached_rgb_seq = glf_cached_rgb_fades(color1&"_"&color2&"_"&CStr(steps))
+	End If
+	'debug.print ubound(cached_rgb_seq)
+	If Ubound(cached_rgb_seq)=-1 Then
 
-	Dim r1, g1, b1, r2, g2, b2
-	Dim i
-	Dim r, g, b
-	color1 = clng( RGB( Glf_HexToInt(Left(color1, 2)), Glf_HexToInt(Mid(color1, 3, 2)), Glf_HexToInt(Right(color1, 2)))  )
-	color2 = clng( RGB( Glf_HexToInt(Left(color2, 2)), Glf_HexToInt(Mid(color2, 3, 2)), Glf_HexToInt(Right(color2, 2)))  )
-	
-	r1 = color1 Mod 256
-	g1 = (color1 \ 256) Mod 256
-	b1 = (color1 \ (256 * 256)) Mod 256
+		Dim r1, g1, b1, r2, g2, b2
+		Dim i
+		Dim r, g, b
+		color1 = clng( RGB( Glf_HexToInt(Left(color1, 2)), Glf_HexToInt(Mid(color1, 3, 2)), Glf_HexToInt(Right(color1, 2)))  )
+		color2 = clng( RGB( Glf_HexToInt(Left(color2, 2)), Glf_HexToInt(Mid(color2, 3, 2)), Glf_HexToInt(Right(color2, 2)))  )
+		
+		r1 = color1 Mod 256
+		g1 = (color1 \ 256) Mod 256
+		b1 = (color1 \ (256 * 256)) Mod 256
 
-	r2 = color2 Mod 256
-	g2 = (color2 \ 256) Mod 256
-	b2 = (color2 \ (256 * 256)) Mod 256
+		r2 = color2 Mod 256
+		g2 = (color2 \ 256) Mod 256
+		b2 = (color2 \ (256 * 256)) Mod 256
 
-	ReDim outputArray(steps - 1)
-	For i = 0 To steps - 1
-		r = r1 + (r2 - r1) * i / (steps - 1)
-		g = g1 + (g2 - g1) * i / (steps - 1)
-		b = b1 + (b2 - b1) * i / (steps - 1)
-		outputArray(i) = light & "|100|" & Glf_RGBToHex(CInt(r), CInt(g), CInt(b))
-	Next
-	
+		ReDim outputArray(steps - 1)
+		ReDim cached_rgb_seq(steps - 1)
+		Dim rgb_color
+		For i = 0 To steps - 1
+			r = r1 + (r2 - r1) * i / (steps - 1)
+			g = g1 + (g2 - g1) * i / (steps - 1)
+			b = b1 + (b2 - b1) * i / (steps - 1)
+			rgb_color = Glf_RGBToHex(CInt(r), CInt(g), CInt(b))
+			outputArray(i) = light & "|100|" & rgb_color
+			cached_rgb_seq(i) = rgb_color
+		Next
+		glf_cached_rgb_fades.Add color1&"_"&color2&"_"&CStr(steps), cached_rgb_seq
+	Else
+		ReDim outputArray(steps - 1)
+		For i = 0 To UBound(cached_rgb_seq)
+			outputArray(i) = light & "|100|" & cached_rgb_seq(i)
+		Next
+	End If
+		
 	Glf_FadeRGB = outputArray
 End Function
 
@@ -5775,7 +5794,7 @@ Class GlfSegmentDisplayPlayer
             Set displays_to_update = PlayOff(m_events(evt).GlfEvent.EventName, m_events(evt), displays_to_update)
         Next
         
-        For Each display in displays_to_update.Items()
+        For Each display in displays_to_update.Keys()
             glf_segment_displays(display).UpdateStack()
         Next
     End Sub
@@ -5800,8 +5819,8 @@ Class GlfSegmentDisplayPlayer
             RemoveDelay key
             display.RemoveTextByKeyNoUpdate key
             If Not displays_to_update.Exists(segment_item.Display) Then
-                displays_to_update.Add segment_item.Display
-            End If   
+                displays_to_update.Add segment_item.Display, True
+            End If 
         Next
         Set PlayOff = displays_to_update
     End Function

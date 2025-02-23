@@ -56,7 +56,7 @@ Class GlfSegmentDisplayPlayer
             Set displays_to_update = PlayOff(m_events(evt).GlfEvent.EventName, m_events(evt), displays_to_update)
         Next
         
-        For Each display in displays_to_update.Items()
+        For Each display in displays_to_update.Keys()
             glf_segment_displays(display).UpdateStack()
         Next
     End Sub
@@ -81,8 +81,8 @@ Class GlfSegmentDisplayPlayer
             RemoveDelay key
             display.RemoveTextByKeyNoUpdate key
             If Not displays_to_update.Exists(segment_item.Display) Then
-                displays_to_update.Add segment_item.Display
-            End If   
+                displays_to_update.Add segment_item.Display, True
+            End If 
         Next
         Set PlayOff = displays_to_update
     End Function
