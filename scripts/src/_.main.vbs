@@ -1559,22 +1559,21 @@ Function Glf_FadeRGB(light, color1, color2, steps)
 	If glf_cached_rgb_fades.Exists(color1&"_"&color2&"_"&CStr(steps)) Then
 		cached_rgb_seq = glf_cached_rgb_fades(color1&"_"&color2&"_"&CStr(steps))
 	End If
-	'debug.print ubound(cached_rgb_seq)
 	If Ubound(cached_rgb_seq)=-1 Then
 
-		Dim r1, g1, b1, r2, g2, b2
+		Dim r1, g1, b1, r2, g2, b2, c1,c2
 		Dim i
 		Dim r, g, b
-		color1 = clng( RGB( Glf_HexToInt(Left(color1, 2)), Glf_HexToInt(Mid(color1, 3, 2)), Glf_HexToInt(Right(color1, 2)))  )
-		color2 = clng( RGB( Glf_HexToInt(Left(color2, 2)), Glf_HexToInt(Mid(color2, 3, 2)), Glf_HexToInt(Right(color2, 2)))  )
+		c1 = clng( RGB( Glf_HexToInt(Left(color1, 2)), Glf_HexToInt(Mid(color1, 3, 2)), Glf_HexToInt(Right(color1, 2)))  )
+		c2 = clng( RGB( Glf_HexToInt(Left(color2, 2)), Glf_HexToInt(Mid(color2, 3, 2)), Glf_HexToInt(Right(color2, 2)))  )
 		
-		r1 = color1 Mod 256
-		g1 = (color1 \ 256) Mod 256
-		b1 = (color1 \ (256 * 256)) Mod 256
+		r1 = c1 Mod 256
+		g1 = (c1 \ 256) Mod 256
+		b1 = (c1 \ (256 * 256)) Mod 256
 
-		r2 = color2 Mod 256
-		g2 = (color2 \ 256) Mod 256
-		b2 = (color2 \ (256 * 256)) Mod 256
+		r2 = c2 Mod 256
+		g2 = (c2 \ 256) Mod 256
+		b2 = (c2 \ (256 * 256)) Mod 256
 
 		ReDim outputArray(steps - 1)
 		ReDim cached_rgb_seq(steps - 1)
