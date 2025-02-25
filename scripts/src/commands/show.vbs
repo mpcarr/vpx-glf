@@ -341,7 +341,7 @@ Class GlfShowStep
     Public Property Get Shows(name)
         Dim new_show : Set new_show = (new GlfShowPlayerItem)()
         new_show.Show = name
-        m_shows.Add name, new_show
+        m_shows.Add name & CStr(UBound(m_shows.Keys)), new_show
         Set Shows = new_show
     End Property
 
