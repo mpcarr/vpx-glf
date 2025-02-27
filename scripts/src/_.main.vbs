@@ -1737,6 +1737,18 @@ With CreateGlfShow("fade_led_color")
 	End With
 End With
 
+With CreateGlfShow("fade_rgb_test")
+	With .AddStep(Null, Null, 1)
+		.Lights = Array("(lights)|100|ff0000|(fade)")
+	End With
+	With .AddStep(Null, Null, 1)
+		.Lights = Array("(lights)|100|00ff00|(fade)")
+	End With
+	With .AddStep(Null, Null, 1)
+		.Lights = Array("(lights)|100|0000ff|(fade)")
+	End With
+End With
+
 With GlfShotProfiles("default")
 	With .States("on")
 		.Show = "flash"
