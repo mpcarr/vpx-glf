@@ -9685,6 +9685,7 @@ Class GlfBallDevice
     Private m_eject_targets
     Private m_entrance_count_delay
     Private m_incoming_balls
+    Private m_lost_balls
     Private m_debug
 
     Public Property Get Name(): Name = m_name : End Property
@@ -9760,6 +9761,7 @@ Class GlfBallDevice
         m_ejecting_all = False
         m_balls_to_eject = 0
         m_balls_in_device = 0
+        m_lost_balls = 0
         m_mechanical_eject = False
         m_eject_timeout = 1000
         m_eject_enable_time = 0
@@ -9782,9 +9784,14 @@ Class GlfBallDevice
         RemoveDelay m_name & "_switch" & switch & "_eject_timeout"
         Set m_balls(switch) = ball
         m_balls_in_device = m_balls_in_device + 1
-        Log "Ball Entered" 
-        Dim unclaimed_balls: unclaimed_balls = 1
+        Log "Ball Entered"
+        If m_lost_balls > 0 Then
+            m_lost_balls = m_lost_balls - 1
+            Log "Lost Ball Found"
+            Exit Sub
+        End If
 
+        Dim unclaimed_balls: unclaimed_balls = 1
         If m_incoming_balls > 0 Then
             unclaimed_balls = 0
         End If
@@ -9800,6 +9807,11 @@ Class GlfBallDevice
 
     Public Sub BallExiting(ball, switch)
         RemoveDelay m_name & "_" & switch & "_ball_enter"
+        If m_ejecting = False And m_mechanical_eject = False Then
+            Log "Ball Lost, Wasn't Ejecting"
+            m_lost_balls = m_lost_balls + 1
+            SetDelay m_name & "_clear_lost_balls", "BallDeviceEventHandler", Array(Array("clear_lost_balls", Me), Null), 1000
+        End If
         m_balls(switch) = Null
         m_balls_in_device = m_balls_in_device - 1
         DispatchPinEvent m_name & "_ball_exiting", Null
@@ -9869,6 +9881,10 @@ Class GlfBallDevice
         Eject()
     End Sub
 
+    Public Sub ClearLostBalls()
+        m_lost_balls = 0
+    End Sub
+
     Private Sub Log(message)
         If m_debug = True Then
             glf_debugLog.WriteToLog m_name, message
@@ -9882,7 +9898,7 @@ Function BallDeviceEventHandler(args)
     Dim evt : evt = ownProps(0)
     Dim ballDevice : Set ballDevice = ownProps(1)
     Dim switch
-    debug.print "Ball Device: " & ballDevice.Name & ". Event: " & evt
+    'debug.print "Ball Device: " & ballDevice.Name & ". Event: " & evt
     Select Case evt
         Case "ball_entering"
             Set ball = args(1)
@@ -9907,6 +9923,8 @@ Function BallDeviceEventHandler(args)
             ballDevice.BallExitSuccess ball
         Case "eject_enable_complete"
             ballDevice.EjectEnableComplete
+        Case "clear_lost_balls"
+            ballDevice.ClearLostBalls
     End Select
 End Function
 Function CreateGlfDiverter(name)
@@ -12737,9 +12755,6 @@ Sub RunDispatchPinEvent(eKey, kwargs)
         If handlers.Exists(k(1)) Then
             handler = handlers(k(1))
             glf_frame_dispatch_count = glf_frame_dispatch_count + 1
-            If e = "timer_training_shot_add_tick" Then
-                debug.print "Adding Handler for: " & e&"_"&k(1)
-            End If
             glf_dispatch_handlers_await.Add e&"_"&k(1), Array(handler, kwargs, e)
         Else
             Glf_WriteDebugLog "DispatchPinEvent_"&e, "Handler does not exist: " & k(1)

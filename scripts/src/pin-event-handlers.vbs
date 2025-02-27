@@ -76,9 +76,6 @@ Sub RunDispatchPinEvent(eKey, kwargs)
         If handlers.Exists(k(1)) Then
             handler = handlers(k(1))
             glf_frame_dispatch_count = glf_frame_dispatch_count + 1
-            If e = "timer_training_shot_add_tick" Then
-                debug.print "Adding Handler for: " & e&"_"&k(1)
-            End If
             glf_dispatch_handlers_await.Add e&"_"&k(1), Array(handler, kwargs, e)
         Else
             Glf_WriteDebugLog "DispatchPinEvent_"&e, "Handler does not exist: " & k(1)
