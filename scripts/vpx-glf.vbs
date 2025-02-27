@@ -915,7 +915,7 @@ Function Glf_ReplaceMachineAttributes(inputString)
     regex.Pattern = pattern
     regex.IgnoreCase = True
     regex.Global = True
-	replacement = "glf_machine_vars(""$1"").Value"
+	replacement = "glf_machine_vars(""$1"").GetValue()"
     outputString = regex.Replace(inputString, replacement)
     Set regex = Nothing
     Glf_ReplaceMachineAttributes = outputString
@@ -1373,6 +1373,7 @@ Function Glf_ConvertShow(show, tokens)
 			Dim fadeMs : fadeMs = ""
 			Dim fade_duration : fade_duration = -1
 			Dim intensity
+			Dim step_number : step_number = -1
 			Dim localLightsSet : Set localLightsSet = CreateObject("Scripting.Dictionary")
 			If IsNull(Glf_IsToken(lightParts(1))) Then
 				intensity = lightParts(1)
@@ -1388,12 +1389,16 @@ Function Glf_ConvertShow(show, tokens)
 				End If
 				If UBound(lightParts) = 3 Then
 					If IsNull(Glf_IsToken(lightParts(3))) Then
-						fadeMs = "|" & lightParts(3)
 						fade_duration = lightParts(3)
 					Else
-						fadeMs = "|" & tokens(Glf_IsToken(lightParts(3)))
 						fade_duration = tokens(Glf_IsToken(lightParts(3)))
 					End If
+					step_number = fade_duration * 0.01
+					step_number = Round(step_number, 0) + 2
+					If step_number<4 Then
+						step_number = 4
+					End If
+					fadeMs = "|" & step_number
 				End If
 			End If
 
@@ -1406,9 +1411,9 @@ Function Glf_ConvertShow(show, tokens)
 					resolved_light_name = "T_"&lightParts(0)
 					For Each tagLight in tagLights
 						If UBound(lightParts) >=1 Then
-							seqArray(x) = tagLight & "|"&intensity&"|" & AdjustHexColor(lightColor, intensity) & fadeMs
+							seqArray(x) = tagLight & "|"&intensity&"|" & AdjustHexColor(lightColor, intensity) & "|fade_" & resolved_light_name & "_?_" & AdjustHexColor(lightColor, intensity) & "_steps_" & step_number & fadeMs
 						Else
-							seqArray(x) = tagLight & "|"&intensity & "|000000|" & fadeMs
+							seqArray(x) = tagLight & "|"&intensity & "|000000" & "|fade_" & resolved_light_name & "_?_" & AdjustHexColor(lightColor, intensity) & "_steps_" & step_number & fadeMs
 						End If
 						If Not localLightsSet.Exists(tagLight) Then
 							localLightsSet.Add tagLight, True
@@ -1422,9 +1427,9 @@ Function Glf_ConvertShow(show, tokens)
 					If IsNull(token) Then
 						resolved_light_name = lightParts(0)
 						If UBound(lightParts) >= 1 Then
-							seqArray(x) = lightParts(0) & "|"&intensity&"|"&AdjustHexColor(lightColor, intensity) & fadeMs
+							seqArray(x) = lightParts(0) & "|"&intensity&"|"&AdjustHexColor(lightColor, intensity) & "|fade_" & resolved_light_name & "_?_" & AdjustHexColor(lightColor, intensity) & "_steps_" & step_number & fadeMs
 						Else
-							seqArray(x) = lightParts(0) & "|"&intensity & "|000000" & fadeMs
+							seqArray(x) = lightParts(0) & "|"&intensity & "|000000" & "|fade_" & resolved_light_name & "_?_" & AdjustHexColor(lightColor, intensity) & "_steps_" & step_number & fadeMs
 						End If
 						If Not localLightsSet.Exists(lightParts(0)) Then
 							localLightsSet.Add lightParts(0), True
@@ -1441,9 +1446,9 @@ Function Glf_ConvertShow(show, tokens)
 							resolved_light_name = "T_"&tokens(token)
 							For Each tagLight in tagLights
 								If UBound(lightParts) >=1 Then
-									seqArray(x) = tagLight & "|"&intensity&"|"&AdjustHexColor(lightColor, intensity) & fadeMs
+									seqArray(x) = tagLight & "|"&intensity&"|"&AdjustHexColor(lightColor, intensity) & "|fade_" & resolved_light_name & "_?_" & AdjustHexColor(lightColor, intensity) & "_steps_" & step_number & fadeMs
 								Else
-									seqArray(x) = tagLight & "|"&intensity & "|000000" & fadeMs
+									seqArray(x) = tagLight & "|"&intensity & "|000000" & "|fade_" & resolved_light_name & "_?_" & AdjustHexColor(lightColor, intensity) & "_steps_" & step_number & fadeMs
 								End If
 								If Not localLightsSet.Exists(tagLight) Then
 									localLightsSet.Add tagLight, True
@@ -1456,9 +1461,9 @@ Function Glf_ConvertShow(show, tokens)
 						Else
 							resolved_light_name = tokens(token)
 							If UBound(lightParts) >= 1 Then
-								seqArray(x) = tokens(token) & "|"&intensity&"|"&AdjustHexColor(lightColor, intensity) & fadeMs
+								seqArray(x) = tokens(token) & "|"&intensity&"|"&AdjustHexColor(lightColor, intensity) & "|fade_" & resolved_light_name & "_?_" & AdjustHexColor(lightColor, intensity) & "_steps_" & step_number & fadeMs
 							Else
-								seqArray(x) = tokens(token) & "|"&intensity & "|000000" & fadeMs
+								seqArray(x) = tokens(token) & "|"&intensity & "|000000" & "|fade_" & resolved_light_name & "_?_" & AdjustHexColor(lightColor, intensity) & "_steps_" & step_number & fadeMs
 							End If
 							If Not localLightsSet.Exists(tokens(token)) Then
 								localLightsSet.Add tokens(token), True
@@ -1473,14 +1478,10 @@ Function Glf_ConvertShow(show, tokens)
 
 				'Generate a fake show for the fade in the format light from ? color to lightColor over x steps
 				If fadeMs <> "" Then
-					Dim fade_seq, i, step_duration, step_number
-					step_number = fade_duration * 0.01
-					step_number = Round(step_number, 0) + 2
-					If step_number<4 Then
-						step_number = 4
-					End If 
+					Dim fade_seq, i, step_duration,cached_rgb_seq
+					 
 					Dim cache_name : cache_name = "fade_" & resolved_light_name & "_?_" & AdjustHexColor(lightColor, intensity) & "_steps_" & step_number
-					If Not glf_cached_shows.Exists(cache_name) Then
+					If Not glf_cached_shows.Exists(cache_name & "__-1") Then
 						'MsgBox cache_name
 						Dim fade_show : Set fade_show = CreateGlfShow(cache_name)
 						
@@ -1493,7 +1494,12 @@ Function Glf_ConvertShow(show, tokens)
 							Dim localLightItem, k
 							k=0
 							For Each localLightItem in localLightsSet.Keys()
-								fade_seq = Glf_FadeRGB(localLightItem, "000000", AdjustHexColor(lightColor, intensity), step_number)
+								cached_rgb_seq = Glf_FadeRGB("FF0000", AdjustHexColor(lightColor, intensity), step_number)
+								ReDim fade_seq(step_number - 1)
+								Dim j
+								For j = 0 To UBound(fade_seq)
+									fade_seq(j) = localLightItem & "|100|" & cached_rgb_seq(j)
+								Next
 								lightsArr(k) = fade_seq(i-1)
 								k=k+1
 							Next
@@ -1504,7 +1510,8 @@ Function Glf_ConvertShow(show, tokens)
 							End With
 						Next
 						cached_show = Glf_ConvertShow(fade_show, Null)
-						glf_cached_shows.Add cache_name, cached_show
+						'msgbox "Converted show: " & cache_name & ", steps: " & ubound(cached_show(0)) & ". Fade Replacements: " & ubound(cached_rgb_seq)
+						glf_cached_shows.Add cache_name & "__-1", cached_show
 					End If
 				End If
 
@@ -1631,48 +1638,38 @@ Class GlfInput
 
 End Class
 
-Function Glf_FadeRGB(light, color1, color2, steps)
-	Dim cached_rgb_seq : cached_rgb_seq = Array()
-	Dim outputArray()
+Function Glf_FadeRGB(color1, color2, steps)
 	If glf_cached_rgb_fades.Exists(color1&"_"&color2&"_"&CStr(steps)) Then
-		cached_rgb_seq = glf_cached_rgb_fades(color1&"_"&color2&"_"&CStr(steps))
+		Glf_FadeRGB = glf_cached_rgb_fades(color1&"_"&color2&"_"&CStr(steps))
+		Exit Function
 	End If
-	If Ubound(cached_rgb_seq)=-1 Then
 
-		Dim r1, g1, b1, r2, g2, b2, c1,c2
-		Dim i
-		Dim r, g, b
-		c1 = clng( RGB( Glf_HexToInt(Left(color1, 2)), Glf_HexToInt(Mid(color1, 3, 2)), Glf_HexToInt(Right(color1, 2)))  )
-		c2 = clng( RGB( Glf_HexToInt(Left(color2, 2)), Glf_HexToInt(Mid(color2, 3, 2)), Glf_HexToInt(Right(color2, 2)))  )
-		
-		r1 = c1 Mod 256
-		g1 = (c1 \ 256) Mod 256
-		b1 = (c1 \ (256 * 256)) Mod 256
+	Dim cached_rgb_seq : cached_rgb_seq = Array()
+	Dim r1, g1, b1, r2, g2, b2, c1,c2
+	Dim i
+	Dim r, g, b
+	c1 = clng( RGB( Glf_HexToInt(Left(color1, 2)), Glf_HexToInt(Mid(color1, 3, 2)), Glf_HexToInt(Right(color1, 2)))  )
+	c2 = clng( RGB( Glf_HexToInt(Left(color2, 2)), Glf_HexToInt(Mid(color2, 3, 2)), Glf_HexToInt(Right(color2, 2)))  )
+	
+	r1 = c1 Mod 256
+	g1 = (c1 \ 256) Mod 256
+	b1 = (c1 \ (256 * 256)) Mod 256
 
-		r2 = c2 Mod 256
-		g2 = (c2 \ 256) Mod 256
-		b2 = (c2 \ (256 * 256)) Mod 256
+	r2 = c2 Mod 256
+	g2 = (c2 \ 256) Mod 256
+	b2 = (c2 \ (256 * 256)) Mod 256
 
-		ReDim outputArray(steps - 1)
-		ReDim cached_rgb_seq(steps - 1)
-		Dim rgb_color
-		For i = 0 To steps - 1
-			r = r1 + (r2 - r1) * i / (steps - 1)
-			g = g1 + (g2 - g1) * i / (steps - 1)
-			b = b1 + (b2 - b1) * i / (steps - 1)
-			rgb_color = Glf_RGBToHex(CInt(r), CInt(g), CInt(b))
-			outputArray(i) = light & "|100|" & rgb_color
-			cached_rgb_seq(i) = rgb_color
-		Next
-		glf_cached_rgb_fades.Add color1&"_"&color2&"_"&CStr(steps), cached_rgb_seq
-	Else
-		ReDim outputArray(steps - 1)
-		For i = 0 To UBound(cached_rgb_seq)
-			outputArray(i) = light & "|100|" & cached_rgb_seq(i)
-		Next
-	End If
-		
-	Glf_FadeRGB = outputArray
+	ReDim cached_rgb_seq(steps - 1)
+	Dim rgb_color
+	For i = 0 To steps - 1
+		r = r1 + (r2 - r1) * i / (steps - 1)
+		g = g1 + (g2 - g1) * i / (steps - 1)
+		b = b1 + (b2 - b1) * i / (steps - 1)
+		rgb_color = Glf_RGBToHex(CInt(r), CInt(g), CInt(b))
+		cached_rgb_seq(i) = rgb_color
+	Next
+	glf_cached_rgb_fades.Add color1&"_"&color2&"_"&CStr(steps), cached_rgb_seq	
+	Glf_FadeRGB = cached_rgb_seq
 End Function
 
 Function Glf_RGBToHex(r, g, b)
@@ -3749,11 +3746,11 @@ Class GlfLightPlayer
     End Sub
 
     Public Sub Play(evt, lights)
-        LightPlayerCallbackHandler evt, Array(lights.LightSeq), m_name, m_priority, True, 1
+        LightPlayerCallbackHandler evt, Array(lights.LightSeq), m_name, m_priority, True, 1, Empty
     End Sub
 
     Public Sub PlayOff(evt, lights)
-        LightPlayerCallbackHandler evt, Array(lights.LightSeq), m_name, m_priority, False, 1
+        LightPlayerCallbackHandler evt, Array(lights.LightSeq), m_name, m_priority, False, 1, Empty
     End Sub
 
     Private Sub Log(message)
@@ -3849,7 +3846,7 @@ Class GlfLightPlayerItem
 
 End Class
 
-Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
+Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed, color_replacement)
     Dim shows_added
     Dim lightStack
     Dim lightParts, light
@@ -3895,66 +3892,48 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
             
             Set lightStack = glf_lightStacks(lightParts(0))
             Dim oldColor : oldColor = Empty
+            Dim newColor : newColor = lightParts(2)
+            If Not IsEmpty(color_replacement) Then
+                newColor = color_replacement
+            End If
 
             If lightStack.IsEmpty() Then
                 oldColor = "000000"
                 ' If stack is empty, push the color onto the stack and set the light color
-                lightStack.Push mode & "_" & key, lightParts(2), priority
-                Glf_SetLight lightParts(0), lightParts(2)
+                lightStack.Push mode & "_" & key, newColor, priority
+                Glf_SetLight lightParts(0), newColor
             Else
                 Dim current
                 Set current = lightStack.Peek()                
                 If priority >= current("Priority") Then
                     oldColor = current("Color")
                     ' If the new priority is higher, push it onto the stack and change the light color
-                    lightStack.Push mode & "_" & key, lightParts(2), priority
-                    Glf_SetLight lightParts(0), lightParts(2)
+                    lightStack.Push mode & "_" & key, newColor, priority
+                    Glf_SetLight lightParts(0), newColor
                 Else
                     ' Otherwise, just push it onto the stack without changing the light color
-                    lightStack.Push mode & "_" & key, lightParts(2), priority
+                    lightStack.Push mode & "_" & key, newColor, priority
                 End If
             End If
             
-            If Not IsEmpty(oldColor) And Ubound(lightParts)=3 Then
-                If lightParts(3) <> "" Then
+            If Not IsEmpty(oldColor) And Ubound(lightParts)=4 Then
+                If lightParts(4) <> "" Then
                     'FadeMs
-                    Dim cache_name, new_running_show,cached_show,show_settings
-                    cache_name = "fade_" & mode & "_" & key & "_" & lightParts(0) & "_" & oldColor & "_" & lightParts(2) 
+                    Dim cache_name, new_running_show,cached_show,show_settings, fade_seq
+                    cache_name = lightParts(3)
+                    fade_seq = Glf_FadeRGB(oldColor, newColor, lightParts(4))
+                    'MsgBox cache_name
                     shows_added.Add cache_name, True
+                    
                     If glf_cached_shows.Exists(cache_name & "__-1") Then
+                        'msgbox ubound(glf_cached_shows(cache_name & "__-1")(0))
+                        'msgbox ubound(fade_seq)
+                        'msgbox "Converted show: " & cache_name & ", steps: " & ubound(glf_cached_shows(cache_name & "__-1")(0)) & ". Fade Replacements: " & ubound(fade_seq) & ". Extracted Step Number: " & lightParts(4) 
                         Set show_settings = (new GlfShowPlayerItem)()
                         show_settings.Show = cache_name
                         show_settings.Loops = 1
                         show_settings.Speed = speed
-                        Set new_running_show = (new GlfRunningShow)(cache_name, show_settings.Key, show_settings, priority+1, Null, Null)
-                    Else
-                        'Build a show for this transition
-                        Dim show : Set show = CreateGlfShow(cache_name)
-                        Dim fadeSeq, i, step_duration, step_number
-                        step_number = lightParts(3) * 0.01
-                        'If step_number < 10 Then
-                        '    step_number = 10
-                        'End If
-                        step_number = Round(step_number, 0) + 2
-                        If step_number<4 Then
-                            step_number = 4
-                        End If 
-                        fadeSeq = Glf_FadeRGB(lightParts(0), oldColor, lightParts(2), step_number)
-                        step_duration = (lightParts(3) / step_number)/1000
-                        For i=0 to UBound(fadeSeq)
-                            With show
-                                With .AddStep(Null, Null, step_duration)
-                                    .Lights = Array(fadeSeq(i))
-                                End With
-                            End With
-                        Next
-                        'MsgBox "temp_fade_player_" & lightParts(0)
-                        cached_show = Glf_ConvertShow(show, Null)
-                        glf_cached_shows.Add cache_name & "__-1", cached_show
-                        Set show_settings = (new GlfShowPlayerItem)()
-                        show_settings.Show = cache_name
-                        show_settings.Loops = 1
-                        show_settings.Speed = speed
+                        show_settings.ColorLookup = fade_seq
                         Set new_running_show = (new GlfRunningShow)(cache_name, show_settings.Key, show_settings, priority+1, Null, Null)
                     End If
                 End If
@@ -7755,6 +7734,7 @@ Class GlfShowPlayerItem
 	Private m_key, m_show, m_loops, m_speed, m_tokens, m_action, m_syncms, m_duration, m_priority, m_internal_cache_id
     Private m_block_queue
     Private m_events_when_completed
+    Private m_color_lookup
   
 	Public Property Get InternalCacheId(): InternalCacheId = m_internal_cache_id: End Property
     Public Property Let InternalCacheId(input): m_internal_cache_id = input: End Property
@@ -7767,6 +7747,9 @@ Class GlfShowPlayerItem
 
     Public Property Get Priority(): Priority = m_priority End Property
     Public Property Let Priority(input): m_priority = input End Property
+
+    Public Property Get ColorLookup(): ColorLookup = m_color_lookup End Property
+    Public Property Let ColorLookup(input): m_color_lookup = input End Property
 
     Public Property Get Show()
         If IsNull(m_show) Then
@@ -7841,6 +7824,7 @@ Class GlfShowPlayerItem
         m_speed = 1
         m_syncms = 0
         m_show = Null
+        m_color_lookup = Empty
         m_block_queue = False
         m_events_when_completed = Array()
         Set m_tokens = CreateObject("Scripting.Dictionary")
@@ -8119,8 +8103,14 @@ Function GlfShowStepHandler(args)
             running_show.ShowsAdded = Null
         End If  
 
-        Dim shows_added
-        Set shows_added = LightPlayerCallbackHandler(running_show.Key, Array(cached_show_seq(running_show.CurrentStep)), running_show.ShowName, running_show.Priority + running_show.ShowSettings.Priority, True, running_show.ShowSettings.Speed)
+        Dim shows_added, replacement_color
+        replacement_color = Empty
+        If Not IsEmpty(running_show.ShowSettings.ColorLookup) Then
+            'msgbox ubound(running_show.ShowSettings.ColorLookup())
+            'MsgBox UBound(cached_show_seq)
+            replacement_color = running_show.ShowSettings.ColorLookup()(running_show.CurrentStep)
+        End If
+        Set shows_added = LightPlayerCallbackHandler(running_show.Key, Array(cached_show_seq(running_show.CurrentStep)), running_show.ShowName, running_show.Priority + running_show.ShowSettings.Priority, True, running_show.ShowSettings.Speed, replacement_color)
         If IsObject(shows_added) Then
             'Fade shows were added, log them agains the current show.
             running_show.ShowsAdded = shows_added
@@ -9378,6 +9368,10 @@ Class GlfMachineVars
 
     Public Property Get ValueType(): ValueType = m_value_type : End Property
     Public Property Let ValueType(input): m_value_type = input : End Property
+
+    Public Function GetValue()
+        GetValue = m_value
+    End Function
 
 	Public default Function init(name)
         m_name = name

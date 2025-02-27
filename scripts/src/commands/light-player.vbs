@@ -101,11 +101,11 @@ Class GlfLightPlayer
     End Sub
 
     Public Sub Play(evt, lights)
-        LightPlayerCallbackHandler evt, Array(lights.LightSeq), m_name, m_priority, True, 1
+        LightPlayerCallbackHandler evt, Array(lights.LightSeq), m_name, m_priority, True, 1, Empty
     End Sub
 
     Public Sub PlayOff(evt, lights)
-        LightPlayerCallbackHandler evt, Array(lights.LightSeq), m_name, m_priority, False, 1
+        LightPlayerCallbackHandler evt, Array(lights.LightSeq), m_name, m_priority, False, 1, Empty
     End Sub
 
     Private Sub Log(message)
@@ -201,7 +201,7 @@ Class GlfLightPlayerItem
 
 End Class
 
-Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
+Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed, color_replacement)
     Dim shows_added
     Dim lightStack
     Dim lightParts, light
@@ -247,66 +247,48 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed)
             
             Set lightStack = glf_lightStacks(lightParts(0))
             Dim oldColor : oldColor = Empty
+            Dim newColor : newColor = lightParts(2)
+            If Not IsEmpty(color_replacement) Then
+                newColor = color_replacement
+            End If
 
             If lightStack.IsEmpty() Then
                 oldColor = "000000"
                 ' If stack is empty, push the color onto the stack and set the light color
-                lightStack.Push mode & "_" & key, lightParts(2), priority
-                Glf_SetLight lightParts(0), lightParts(2)
+                lightStack.Push mode & "_" & key, newColor, priority
+                Glf_SetLight lightParts(0), newColor
             Else
                 Dim current
                 Set current = lightStack.Peek()                
                 If priority >= current("Priority") Then
                     oldColor = current("Color")
                     ' If the new priority is higher, push it onto the stack and change the light color
-                    lightStack.Push mode & "_" & key, lightParts(2), priority
-                    Glf_SetLight lightParts(0), lightParts(2)
+                    lightStack.Push mode & "_" & key, newColor, priority
+                    Glf_SetLight lightParts(0), newColor
                 Else
                     ' Otherwise, just push it onto the stack without changing the light color
-                    lightStack.Push mode & "_" & key, lightParts(2), priority
+                    lightStack.Push mode & "_" & key, newColor, priority
                 End If
             End If
             
-            If Not IsEmpty(oldColor) And Ubound(lightParts)=3 Then
-                If lightParts(3) <> "" Then
+            If Not IsEmpty(oldColor) And Ubound(lightParts)=4 Then
+                If lightParts(4) <> "" Then
                     'FadeMs
-                    Dim cache_name, new_running_show,cached_show,show_settings
-                    cache_name = "fade_" & mode & "_" & key & "_" & lightParts(0) & "_" & oldColor & "_" & lightParts(2) 
+                    Dim cache_name, new_running_show,cached_show,show_settings, fade_seq
+                    cache_name = lightParts(3)
+                    fade_seq = Glf_FadeRGB(oldColor, newColor, lightParts(4))
+                    'MsgBox cache_name
                     shows_added.Add cache_name, True
+                    
                     If glf_cached_shows.Exists(cache_name & "__-1") Then
+                        'msgbox ubound(glf_cached_shows(cache_name & "__-1")(0))
+                        'msgbox ubound(fade_seq)
+                        'msgbox "Converted show: " & cache_name & ", steps: " & ubound(glf_cached_shows(cache_name & "__-1")(0)) & ". Fade Replacements: " & ubound(fade_seq) & ". Extracted Step Number: " & lightParts(4) 
                         Set show_settings = (new GlfShowPlayerItem)()
                         show_settings.Show = cache_name
                         show_settings.Loops = 1
                         show_settings.Speed = speed
-                        Set new_running_show = (new GlfRunningShow)(cache_name, show_settings.Key, show_settings, priority+1, Null, Null)
-                    Else
-                        'Build a show for this transition
-                        Dim show : Set show = CreateGlfShow(cache_name)
-                        Dim fadeSeq, i, step_duration, step_number
-                        step_number = lightParts(3) * 0.01
-                        'If step_number < 10 Then
-                        '    step_number = 10
-                        'End If
-                        step_number = Round(step_number, 0) + 2
-                        If step_number<4 Then
-                            step_number = 4
-                        End If 
-                        fadeSeq = Glf_FadeRGB(lightParts(0), oldColor, lightParts(2), step_number)
-                        step_duration = (lightParts(3) / step_number)/1000
-                        For i=0 to UBound(fadeSeq)
-                            With show
-                                With .AddStep(Null, Null, step_duration)
-                                    .Lights = Array(fadeSeq(i))
-                                End With
-                            End With
-                        Next
-                        'MsgBox "temp_fade_player_" & lightParts(0)
-                        cached_show = Glf_ConvertShow(show, Null)
-                        glf_cached_shows.Add cache_name & "__-1", cached_show
-                        Set show_settings = (new GlfShowPlayerItem)()
-                        show_settings.Show = cache_name
-                        show_settings.Loops = 1
-                        show_settings.Speed = speed
+                        show_settings.ColorLookup = fade_seq
                         Set new_running_show = (new GlfRunningShow)(cache_name, show_settings.Key, show_settings, priority+1, Null, Null)
                     End If
                 End If

@@ -129,6 +129,7 @@ Class GlfShowPlayerItem
 	Private m_key, m_show, m_loops, m_speed, m_tokens, m_action, m_syncms, m_duration, m_priority, m_internal_cache_id
     Private m_block_queue
     Private m_events_when_completed
+    Private m_color_lookup
   
 	Public Property Get InternalCacheId(): InternalCacheId = m_internal_cache_id: End Property
     Public Property Let InternalCacheId(input): m_internal_cache_id = input: End Property
@@ -141,6 +142,9 @@ Class GlfShowPlayerItem
 
     Public Property Get Priority(): Priority = m_priority End Property
     Public Property Let Priority(input): m_priority = input End Property
+
+    Public Property Get ColorLookup(): ColorLookup = m_color_lookup End Property
+    Public Property Let ColorLookup(input): m_color_lookup = input End Property
 
     Public Property Get Show()
         If IsNull(m_show) Then
@@ -215,6 +219,7 @@ Class GlfShowPlayerItem
         m_speed = 1
         m_syncms = 0
         m_show = Null
+        m_color_lookup = Empty
         m_block_queue = False
         m_events_when_completed = Array()
         Set m_tokens = CreateObject("Scripting.Dictionary")

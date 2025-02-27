@@ -189,6 +189,10 @@ Class GlfMachineVars
     Public Property Get ValueType(): ValueType = m_value_type : End Property
     Public Property Let ValueType(input): m_value_type = input : End Property
 
+    Public Function GetValue()
+        GetValue = m_value
+    End Function
+
 	Public default Function init(name)
         m_name = name
         m_persist = True

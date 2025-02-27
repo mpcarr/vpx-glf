@@ -268,8 +268,14 @@ Function GlfShowStepHandler(args)
             running_show.ShowsAdded = Null
         End If  
 
-        Dim shows_added
-        Set shows_added = LightPlayerCallbackHandler(running_show.Key, Array(cached_show_seq(running_show.CurrentStep)), running_show.ShowName, running_show.Priority + running_show.ShowSettings.Priority, True, running_show.ShowSettings.Speed)
+        Dim shows_added, replacement_color
+        replacement_color = Empty
+        If Not IsEmpty(running_show.ShowSettings.ColorLookup) Then
+            'msgbox ubound(running_show.ShowSettings.ColorLookup())
+            'MsgBox UBound(cached_show_seq)
+            replacement_color = running_show.ShowSettings.ColorLookup()(running_show.CurrentStep)
+        End If
+        Set shows_added = LightPlayerCallbackHandler(running_show.Key, Array(cached_show_seq(running_show.CurrentStep)), running_show.ShowName, running_show.Priority + running_show.ShowSettings.Priority, True, running_show.ShowSettings.Speed, replacement_color)
         If IsObject(shows_added) Then
             'Fade shows were added, log them agains the current show.
             running_show.ShowsAdded = shows_added
