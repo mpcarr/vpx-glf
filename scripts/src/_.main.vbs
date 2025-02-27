@@ -363,6 +363,27 @@ Public Sub Glf_Init()
 		End If
 	Next
 
+	With CreateMachineVar("player1_score")
+        .InitialValue = 0
+        .ValueType = "int"
+        .Persist = True
+    End With
+	With CreateMachineVar("player2_score")
+        .InitialValue = 0
+        .ValueType = "int"
+        .Persist = True
+    End With
+	With CreateMachineVar("player3_score")
+        .InitialValue = 0
+        .ValueType = "int"
+        .Persist = True
+    End With
+	With CreateMachineVar("player4_score")
+        .InitialValue = 0
+        .ValueType = "int"
+        .Persist = True
+    End With
+
 	Glf_ReadMachineVars()
 
 	Glf_Reset()

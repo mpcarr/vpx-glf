@@ -363,6 +363,27 @@ Public Sub Glf_Init()
 		End If
 	Next
 
+	With CreateMachineVar("player1_score")
+        .InitialValue = 0
+        .ValueType = "int"
+        .Persist = True
+    End With
+	With CreateMachineVar("player2_score")
+        .InitialValue = 0
+        .ValueType = "int"
+        .Persist = True
+    End With
+	With CreateMachineVar("player3_score")
+        .InitialValue = 0
+        .ValueType = "int"
+        .Persist = True
+    End With
+	With CreateMachineVar("player4_score")
+        .InitialValue = 0
+        .ValueType = "int"
+        .Persist = True
+    End With
+
 	Glf_ReadMachineVars()
 
 	Glf_Reset()
@@ -12533,6 +12554,26 @@ AddPinEventListener GLF_GAME_OVER, "glf_game_over", "Glf_GameOver", 20, Null
 '
 '*****************************
 Function Glf_GameOver(args)
+    If GetPlayerStateForPlayer("0", "score") = False Then
+        glf_machine_vars("player1_score").Value = 0
+    Else
+        glf_machine_vars("player1_score").Value = GetPlayerStateForPlayer("0", "score")
+    End If
+    If GetPlayerStateForPlayer("1", "score") = False Then
+        glf_machine_vars("player2_score").Value = 0
+    Else
+        glf_machine_vars("player2_score").Value = GetPlayerStateForPlayer("1", "score")
+    End If
+    If GetPlayerStateForPlayer("2", "score") = False Then
+        glf_machine_vars("player3_score").Value = 0
+    Else
+        glf_machine_vars("player3_score").Value = GetPlayerStateForPlayer("2", "score")
+    End If
+    If GetPlayerStateForPlayer("3", "score") = False Then
+        glf_machine_vars("player4_score").Value = 0
+    Else
+        glf_machine_vars("player4_score").Value = GetPlayerStateForPlayer("3", "score")
+    End If
     glf_gameStarted = False
     glf_currentPlayer = Null
     glf_playerState.RemoveAll()
