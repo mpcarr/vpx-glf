@@ -9981,8 +9981,20 @@ Class GlfDiverter
             AddPinEventListener evt, m_name & "_disable", "DiverterEventHandler", 1000, Array("disable", Me)
         Next
     End Property
-    Public Property Let ActivateEvents(value) : m_activate_events = value : End Property
-    Public Property Let DeactivateEvents(value) : m_deactivate_events = value : End Property
+    Public Property Let ActivateEvents(value) 
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_activate_events.Add newEvent.Raw, newEvent
+        Next
+    End Property
+    Public Property Let DeactivateEvents(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_deactivate_events.Add newEvent.Raw, newEvent
+        Next
+    End Property
     Public Property Let ActivationTime(value) : Set m_activation_time = CreateGlfInput(value) : End Property
     Public Property Let ActivationSwitches(value) : m_activation_switches = value : End Property
     Public Property Let Debug(value) : m_debug = value : End Property
@@ -9991,8 +10003,8 @@ Class GlfDiverter
         m_name = "diverter_" & name
         m_enable_events = Array()
         m_disable_events = Array()
-        m_activate_events = Array()
-        m_deactivate_events = Array()
+        Set m_activate_events = CreateObject("Scripting.Dictionary")
+        Set m_deactivate_events = CreateObject("Scripting.Dictionary")
         m_activation_switches = Array()
         Set m_activation_time = CreateGlfInput(0)
         m_debug = False
@@ -10006,11 +10018,11 @@ Class GlfDiverter
         Log "Enabling"
         m_enabled = True
         Dim evt
-        For Each evt in m_activate_events
-            AddPinEventListener evt, m_name & "_activate", "DiverterEventHandler", 1000, Array("activate", Me)
+        For Each evt in m_activate_events.Keys()
+            AddPinEventListener m_activate_events(evt).EventName, m_name & "_" & evt & "_activate", "DiverterEventHandler", 1000, Array("activate", Me, m_activate_events(evt))
         Next
-        For Each evt in m_deactivate_events
-            AddPinEventListener evt, m_name & "_deactivate", "DiverterEventHandler", 1000, Array("deactivate", Me)
+        For Each evt in m_deactivate_events.Keys()
+            AddPinEventListener m_deactivate_events(evt), m_name & "_" & evt & "_deactivate", "DiverterEventHandler", 1000, Array("deactivate", Me, m_deactivate_events(evt))
         Next
         For Each evt in m_activation_switches
             AddPinEventListener evt & "_active", m_name & "_activate", "DiverterEventHandler", 1000, Array("activate", Me)
@@ -10021,11 +10033,11 @@ Class GlfDiverter
         Log "Disabling"
         m_enabled = False
         Dim evt
-        For Each evt in m_activate_events
-            RemovePinEventListener evt, m_name & "_activate"
+        For Each evt in m_activate_events.Keys()
+            RemovePinEventListener m_activate_events(evt).EventName, m_name & "_" & evt & "_activate"
         Next
-        For Each evt in m_deactivate_events
-            RemovePinEventListener evt, m_name & "_deactivate"
+        For Each evt in m_deactivate_events.Keys()
+            RemovePinEventListener m_deactivate_events(evt), m_name & "_" & evt & "_deactivate"
         Next
         For Each evt in m_activation_switches
             RemovePinEventListener evt & "_active", m_name & "_activate"
@@ -10068,6 +10080,19 @@ Function DiverterEventHandler(args)
     End If
     Dim evt : evt = ownProps(0)
     Dim diverter : Set diverter = ownProps(1)
+    'Check if the evt has a condition to evaluate    
+    If UBound(ownProps) = 2 Then
+        If IsObject(ownProps(2)) Then
+            If ownProps(2).Evaluate() = False Then
+                If IsObject(args(1)) Then
+                    Set DiverterEventHandler = kwargs
+                Else
+                    DiverterEventHandler = kwargs
+                End If
+                Exit Function
+            End If
+        End If
+    End If
     Select Case evt
         Case "enable"
             diverter.Enable
@@ -12595,6 +12620,13 @@ Function Glf_GameOver(args)
     glf_gameStarted = False
     glf_currentPlayer = Null
     glf_playerState.RemoveAll()
+
+    Dim device
+    For Each device in glf_ball_devices
+        If device.HasBall() Then
+            device.EjectAll()
+        End If
+    Next
 End Function
 
 Public Function EndOfBallNextPlayer(args)

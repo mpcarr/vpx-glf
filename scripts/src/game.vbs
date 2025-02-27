@@ -265,6 +265,13 @@ Function Glf_GameOver(args)
     glf_gameStarted = False
     glf_currentPlayer = Null
     glf_playerState.RemoveAll()
+
+    Dim device
+    For Each device in glf_ball_devices
+        If device.HasBall() Then
+            device.EjectAll()
+        End If
+    Next
 End Function
 
 Public Function EndOfBallNextPlayer(args)
