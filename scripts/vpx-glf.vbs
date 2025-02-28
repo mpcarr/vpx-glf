@@ -9788,6 +9788,9 @@ Class GlfBallDevice
         If m_lost_balls > 0 Then
             m_lost_balls = m_lost_balls - 1
             Log "Lost Ball Found"
+            If m_lost_balls = 0 Then
+                RemoveDelay m_name & "_clear_lost_balls"
+            End If
             Exit Sub
         End If
 
@@ -9810,7 +9813,7 @@ Class GlfBallDevice
         If m_ejecting = False And m_mechanical_eject = False Then
             Log "Ball Lost, Wasn't Ejecting"
             m_lost_balls = m_lost_balls + 1
-            SetDelay m_name & "_clear_lost_balls", "BallDeviceEventHandler", Array(Array("clear_lost_balls", Me), Null), 1000
+            SetDelay m_name & "_clear_lost_balls", "BallDeviceEventHandler", Array(Array("clear_lost_balls", Me), Null), 3000
         End If
         m_balls(switch) = Null
         m_balls_in_device = m_balls_in_device - 1
