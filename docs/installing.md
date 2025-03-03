@@ -10,7 +10,7 @@ The GLF requires a few global settings to function correctly.
 
 #### GLF Game Timer
 
-Add a timer object added to your vpx table called Glf_GameTimer. Set it to Enabled with an Interval of -1ms.
+Add a timer object to your vpx table called Glf_GameTimer. Set it to Enabled with an Interval of -1ms.
 
 #### GLF Table Collection
 
@@ -53,7 +53,7 @@ End Sub
 
 ## Adding Hooks into GLF
 
-Once the script has been added, you need to add these calls into to your table event subs.
+You need to add these calls into to your table event subs.
 
 #### Table Init
 

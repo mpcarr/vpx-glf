@@ -9,36 +9,22 @@ To configure your ball save we need a mode for it live under. Create the followi
 #### Ball Save Config
 
 ```
-With CreateGlfMode("base", 1000)
-    With BallSaves("base")
-        .EnableEvents = Array("mode_base_started")
-        .TimerStartEvents = Array("balldevice_plunger_ball_eject_success")
-        .ActiveTime = 15
-        .HurryUpTime = 5
-        .GracePeriod = 3
-        .BallsToSave = -1
-        .AutoLaunch = True
+Sub CreateBaseMode()
+    With CreateGlfMode("base", 1000)
+        With BallSaves("base")
+            .EnableEvents = Array("mode_base_started")
+            .TimerStartEvents = Array("balldevice_plunger_ball_eject_success")
+            .ActiveTime = 15000
+            .HurryUpTime = 5000
+            .GracePeriod = 3000
+            .BallsToSave = -1
+            .AutoLaunch = True
+        End With
     End With
-End With
+End Sub
 ```
 
 As you can see from the settings above the ball save will be active for 15 seconds once the ball has successfully been ejected from the plunger lane, it has a grace period of 3 seconds meaning that it will actually be active for 18 seconds in total and it will save an unlimited about of balls as long as it is active.
-
-#### Update Plunger config
-
-We have configured our ball save to auto launch the new ball. In the previous tutorial we only set out plunger as a manual plunger. We need to update the config to support auto launching a ball.
-
-```
-With ball_device_plunger
-    .BallSwitches = Array("sw01")
-	.EjectTargets = Array("sw02")
-    .EjectStrength = 100
-    .MechcanicalEject = True
-    .DefaultDevice = True
-End With
-```
-
-Above we have also changed the **EjectTimeout** for **EjectTargets**. As we have a gate at the end of our plunger lane, we can use this to determine if our ball made it out of the plunger lane successfully rather than a timeout.
 
 ## Enabling the Mode
 
@@ -46,19 +32,9 @@ Finally we need to enable this mode in our game by calling the ```CreateBaseMode
 
 ```
 Sub ConfigureGlfDevices
-    Dim ball_device_plunger
-    Set ball_device_plunger = (new GlfBallDevice)("plunger")
-
-    With ball_device_plunger
-        .BallSwitches = Array("sw01")
-        .EjectTimeout = 2
-        .MechcanicalEject = True
-        .DefaultDevice = True
-    End With
-
+   
     CreateBaseMode() '<---Add this to enable the mode
     
     'Other device config....
 End Sub
-```
 ```

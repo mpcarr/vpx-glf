@@ -18,32 +18,20 @@ To configure your device add the config below to your Configure Glf Devices Sub.
 
 ```
 Sub ConfigureGlfDevices
-    Dim ball_device_scoop
-    Set ball_device_scoop = (new GlfBallDevice)("scoop")
-
-    With ball_device_scoop
+  
+    ' Scoop
+    With CreateGlfBallDevice("scoop")
         .BallSwitches = Array("sw04")
-        .EjectTimeout = 2
-        .EjectStrength = 100
-        .EjectAngle = 0
-        .EjectPitch = 90
+        .EjectTimeout = 2000
+		.EjectCallback = "ScoopEjectCallback"
     End With
 
     'Other device config....
 End Sub
 ```
 
-The above configuration sets up the scoop device with a switch called **sw04**. When the ball enters the scoop and the game is expecting the ball to enter, the ball will be held until released by the system. Once released it will be ejected by kicking the ball stright up. The scoop should have a physical wall above it to direct the ball back into play.
+The above configuration sets up the scoop device with a switch called **sw04**. When the ball enters the scoop and the game is expecting the ball to enter, the ball will be held until released by the system. Once released it will be ejected by calling the **EjectCallback** function. This is a function you define which will kick the ball in the direction you wish.
 
-### Example Direction Configuration
+## Next Steps
 
-| **Direction**         | **Angle (degrees)** | **Pitch (degrees)** | **Notes**                         |
-|------------------------|---------------------|----------------------|------------------------------------|
-| Forward               | 0                   | 0                    | Straight ahead, flat.             |
-| Right                 | 90                  | 0                    | Flat, to the right.               |
-| Backward              | 180                 | 0                    | Straight back, flat.              |
-| Left                  | 270                 | 0                    | Flat, to the left.                |
-| Upward                | Any                 | 90                   | Vertical or diagonal upward.      |
-| Downward              | Any                 | -90                  | Vertical or diagonal downward.    |
-| Diagonal Up-Right     | 45                  | Positive (30)        | Combines rightward and upward.    |
-| Diagonal Down-Left    | 225                 | Negative (-30)       | Combines leftward and downward.   |
+[Example Ball Save](../tutorial-ballsave/)

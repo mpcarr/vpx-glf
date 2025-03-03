@@ -46,14 +46,14 @@ We now need to include this mode in our game. To do that, in your ConfigureGlfDe
 
 ```
     Sub ConfigureGlfDevices
-        Dim ball_device_plunger
-        Set ball_device_plunger = (new GlfBallDevice)("plunger")
-
-        With ball_device_plunger
+        
+        ' Plunger
+        With CreateGlfBallDevice("plunger")
             .BallSwitches = Array("sw01")
-            .EjectTimeout = 2
-            .MechcanicalEject = True
+            .EjectTimeout = 2000
+            .MechanicalEject = True
             .DefaultDevice = True
+            .EjectCallback = "PlungerEjectCallback"
         End With
 
         CreateGIMode() '<---Add this to enable the mode
