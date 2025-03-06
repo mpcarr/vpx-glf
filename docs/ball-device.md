@@ -27,27 +27,9 @@ An array of event names that will trigger the ejection of all balls in the devic
 
 ---
 
-### **EjectAngle**
-```Float```  
-The angle (in radians) at which balls are ejected from the device.
-
----
-
 ### **EjectCallback**
 ```String```  
 The name of the callback function to execute when a ball is ejected.
-
----
-
-### **EjectPitch**
-```Float```  
-The pitch angle (in radians) at which balls are ejected from the device.
-
----
-
-### **EjectStrength**
-```Float```  
-The strength of the ejection force.
 
 ---
 
@@ -80,13 +62,9 @@ event name triggered by player-controlled eject attempts.
 Here’s an example of how to configure a ball device:
 
 ```
-Dim ball_device_scoop
-Set ball_device_scoop = (New GlfBallDevice)("scoop")
-
-With ball_device_scoop
-    .BallSwitches = Array("sw39")
-    .EjectTimeout = 2
-    .EjectCallback = "ScoopKickBall"
-    .EjectAllEvents = Array("ball_ended")
+With CreateGlfBallDevice("scoop")
+    .BallSwitches = Array("sw04")
+    .EjectTimeout = 2000
+    .EjectCallback = "ScoopEjectCallback"
 End With
 ```

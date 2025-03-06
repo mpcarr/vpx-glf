@@ -9,7 +9,7 @@ To setup your plunger, you'll need a switch that is positioned so that the ball 
 
 ![trough1](../images/plunger1.png)
 
-In the example file we have named the switch **sw01**.
+In the example we have named the switch **sw01**.
 
 ### Configuration
 
@@ -17,17 +17,16 @@ To configure your plunger device add the code below to your Configure Glf Device
 
 ```
 Sub ConfigureGlfDevices
-    Dim ball_device_plunger
-    Set ball_device_plunger = (new GlfBallDevice)("plunger")
-
-    With ball_device_plunger
+    
+    ' Plunger
+    With CreateGlfBallDevice("plunger")
         .BallSwitches = Array("sw01")
-        .EjectTimeout = 2
-        .MechcanicalEject = True
+        .EjectTimeout = 2000
+        .MechanicalEject = True
         .DefaultDevice = True
+		.EjectCallback = "PlungerEjectCallback"
     End With
 
-    'Other device config....
 End Sub
 ```
 
