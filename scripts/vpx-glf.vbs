@@ -489,7 +489,7 @@ Sub Glf_Options(ByVal eventId)
 		glf_ballsPerGame = 5
 	End If
 
-	Dim tilt_sensitivity : tilt_sensitivity = Table1.Option("Tilt Sensitivity", 1, 10, 1, 1, 0, Array("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"))
+	Dim tilt_sensitivity : tilt_sensitivity = Table1.Option("Tilt Sensitivity", 1, 10, 1, 7, 0, Array("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"))
 	glf_tilt_sensitivity = 10-tilt_sensitivity
 
 	Dim glfDebug : glfDebug = Table1.Option("Glf Debug Log", 0, 1, 1, 0, 0, Array("Off", "On"))
@@ -508,7 +508,7 @@ Sub Glf_Options(ByVal eventId)
 		glf_debug_level = "Info"
 	End If
 
-	Dim glfMaxDispatch : glfMaxDispatch = Table1.Option("Glf Frame Dispatch", 1, 10, 1, 5, 0, Array("5", "10", "15", "20", "25", "30", "35", "40", "45", "50"))
+	Dim glfMaxDispatch : glfMaxDispatch = Table1.Option("Glf Frame Dispatch", 1, 10, 1, 1, 0, Array("5", "10", "15", "20", "25", "30", "35", "40", "45", "50"))
 	glf_max_dispatch = glfMaxDispatch*5
 
 	Dim glfuseBCP : glfuseBCP = Table1.Option("Glf Backbox Control Protocol", 0, 1, 1, 0, 0, Array("Off", "On"))
