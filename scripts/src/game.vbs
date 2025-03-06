@@ -92,6 +92,21 @@ Sub Glf_StartGame()
     'DispatchPinEvent GLF_GAME_STARTED, Null
 End Sub
 
+Sub Glf_EndBall()
+
+    glf_BIP = 0
+    DispatchPinEvent GLF_BALL_WILL_END, Null
+    DispatchQueuePinEvent GLF_BALL_ENDING, Null
+    Dim device
+    For Each device in glf_flippers.Items()
+        device.Disable()
+    Next
+    For Each device in glf_autofiredevices.Items()
+        device.Disable()
+    Next
+
+End Sub
+
 Public Function Glf_DispatchGameStarted(args)
     DispatchPinEvent GLF_GAME_STARTED, Null
 End Function
@@ -155,29 +170,31 @@ End Function
 '*****************************
 Function Glf_Drain(args)
     
-    Dim ballsToSave : ballsToSave = args(1) 
-    Glf_WriteDebugLog "end_of_ball, unclaimed balls", CStr(ballsToSave)
-    Glf_WriteDebugLog "end_of_ball, balls in play", CStr(glf_BIP)
-    If ballsToSave <= 0 Then
-        Exit Function
-    End If
+    If Not glf_gameTilted Then
+        Dim ballsToSave : ballsToSave = args(1) 
+        Glf_WriteDebugLog "end_of_ball, unclaimed balls", CStr(ballsToSave)
+        Glf_WriteDebugLog "end_of_ball, balls in play", CStr(glf_BIP)
+        If ballsToSave <= 0 Then
+            Exit Function
+        End If
 
-    glf_BIP = glf_BIP - 1
-    glf_debugLog.WriteToLog "Trough", "Ball Drained: BIP: " & glf_BIP
+        glf_BIP = glf_BIP - 1
+        glf_debugLog.WriteToLog "Trough", "Ball Drained: BIP: " & glf_BIP
 
-    If glf_BIP > 0 Then
-        Exit Function
+        If glf_BIP > 0 Then
+            Exit Function
+        End If
+        
+        DispatchPinEvent GLF_BALL_WILL_END, Null
+        DispatchQueuePinEvent GLF_BALL_ENDING, Null
     End If
-    
-    DispatchPinEvent GLF_BALL_WILL_END, Null
-    DispatchQueuePinEvent GLF_BALL_ENDING, Null
     
 End Function
 
 '****************************
 ' End Of Ball
 ' Event Listeners:      
-AddPinEventListener GLF_BALL_ENDING, "ball_will_end", "Glf_BallWillEnd", 20, Null
+AddPinEventListener GLF_BALL_ENDING, "ball_will_end", "Glf_BallWillEnd", 10, Null
 '
 '*****************************
 Function Glf_BallWillEnd(args)

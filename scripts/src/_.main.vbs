@@ -6,6 +6,10 @@ Dim glf_canAddPlayers : glf_canAddPlayers = True
 Dim glf_PI : glf_PI = 4 * Atn(1)
 Dim glf_plunger
 Dim glf_gameStarted : glf_gameStarted = False
+Dim glf_gameTilted : glf_gameTilted = False
+Dim glf_gameEnding : glf_gameEnding = False
+Dim glf_current_virtual_tilt : glf_current_virtual_tilt = 0
+Dim glf_tilt_sensitivity : glf_tilt_sensitivity = 7
 Dim glf_pinEvents : Set glf_pinEvents = CreateObject("Scripting.Dictionary")
 Dim glf_pinEventsOrder : Set glf_pinEventsOrder = CreateObject("Scripting.Dictionary")
 Dim glf_playerEvents : Set glf_playerEvents = CreateObject("Scripting.Dictionary")
@@ -117,22 +121,22 @@ Public Sub Glf_Init()
 	Dim switch, switchHitSubs
 	switchHitSubs = ""
 	For Each switch in Glf_Switches
-		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_Hit() : DispatchPinEvent """ & switch.Name & "_active"", ActiveBall : End Sub" & vbCrLf
-		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_UnHit() : DispatchPinEvent """ & switch.Name & "_inactive"", ActiveBall : End Sub" & vbCrLf
+		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_Hit() : If Not glf_gameTilted Then : DispatchPinEvent """ & switch.Name & "_active"", ActiveBall : End If : End Sub" & vbCrLf
+		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_UnHit() : If Not glf_gameTilted Then : DispatchPinEvent """ & switch.Name & "_inactive"", ActiveBall : End If  : End Sub" & vbCrLf
 	Next
 	ExecuteGlobal switchHitSubs
 
 	Dim slingshot, slingshotHitSubs
 	slingshotHitSubs = ""
 	For Each slingshot in Glf_Slingshots
-		slingshotHitSubs = slingshotHitSubs & "Sub " & slingshot.Name & "_Slingshot() : DispatchPinEvent """ & slingshot.Name & "_active"", ActiveBall : End Sub" & vbCrLf
+		slingshotHitSubs = slingshotHitSubs & "Sub " & slingshot.Name & "_Slingshot() : If Not glf_gameTilted Then : DispatchPinEvent """ & slingshot.Name & "_active"", ActiveBall : End If  : End Sub" & vbCrLf
 	Next
 	ExecuteGlobal slingshotHitSubs
 
 	Dim spinner, spinnerHitSubs
 	spinnerHitSubs = ""
 	For Each spinner in Glf_Spinners
-		spinnerHitSubs = spinnerHitSubs & "Sub " & spinner.Name & "_Spin() : DispatchPinEvent """ & spinner.Name & "_active"", ActiveBall : End Sub" & vbCrLf
+		spinnerHitSubs = spinnerHitSubs & "Sub " & spinner.Name & "_Spin() : If Not glf_gameTilted Then : DispatchPinEvent """ & spinner.Name & "_active"", ActiveBall : End If  : End Sub" & vbCrLf
 	Next
 	ExecuteGlobal spinnerHitSubs
 
@@ -485,6 +489,9 @@ Sub Glf_Options(ByVal eventId)
 		glf_ballsPerGame = 5
 	End If
 
+	Dim tilt_sensitivity : tilt_sensitivity = Table1.Option("Tilt Sensitivity", 1, 10, 1, 1, 0, Array("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"))
+	glf_tilt_sensitivity = 10-tilt_sensitivity
+
 	Dim glfDebug : glfDebug = Table1.Option("Glf Debug Log", 0, 1, 1, 0, 0, Array("Off", "On"))
 	If glfDebug = 1 Then
 		glf_debugEnabled = True
@@ -596,6 +603,22 @@ Public Sub Glf_KeyDown(ByVal keycode)
 		RunAutoFireDispatchPinEvent "s_left_staged_flipper_key_active", Null
 	End If
 	
+	If keycode = MechanicalTilt Then 
+		RunAutoFireDispatchPinEvent "s_tilt_warning_active", Null
+    End If
+
+	If keycode = LeftTiltKey Then 
+		Nudge 90, 2
+		Glf_CheckTilt
+	End If
+    If keycode = RightTiltKey Then
+		Nudge 270, 2
+		Glf_CheckTilt
+	End If
+    If keycode = CenterTiltKey Then 
+		Nudge 0, 3
+		Glf_CheckTilt
+	End If
 
 	If KeyCode = AddCreditKey Then
 		RunAutoFireDispatchPinEvent "s_add_credit_key_active", Null
@@ -640,7 +663,6 @@ Public Sub Glf_KeyUp(ByVal keycode)
 		RunAutoFireDispatchPinEvent "s_left_staged_flipper_key_inactive", Null
 	End If		
 
-
 	If KeyCode = AddCreditKey Then
 		RunAutoFireDispatchPinEvent "s_add_credit_key_inactive", Null
 	End If
@@ -650,10 +672,11 @@ Public Sub Glf_KeyUp(ByVal keycode)
 	End If
 End Sub
 
-Dim glf_lastEventExecutionTime, glf_lastBcpExecutionTime, glf_lastLightUpdateExecutionTime
+Dim glf_lastEventExecutionTime, glf_lastBcpExecutionTime, glf_lastLightUpdateExecutionTime, glf_lastTiltUpdateExecutionTime
 glf_lastEventExecutionTime = 0
 glf_lastBcpExecutionTime = 0
 glf_lastLightUpdateExecutionTime = 0
+glf_lastTiltUpdateExecutionTime = 0
 
 Public Sub Glf_GameTimer_Timer()
 
@@ -685,7 +708,13 @@ Public Sub Glf_GameTimer_Timer()
 	End If
 
 	DelayTick
-    
+	
+	If (gametime - glf_lastTiltUpdateExecutionTime) >=50 And glf_current_virtual_tilt > 0 Then
+		glf_current_virtual_tilt = glf_current_virtual_tilt - 0.1
+		glf_lastTiltUpdateExecutionTime = gametime
+		Debug.print("Tilt Cooldown: " & glf_current_virtual_tilt) 
+	End If
+
 	If (gametime - glf_lastBcpExecutionTime) >= 300 Then
         glf_lastBcpExecutionTime = gametime
 		Glf_BcpUpdate
@@ -693,6 +722,13 @@ Public Sub Glf_GameTimer_Timer()
 		Glf_MonitorBcpUpdate
     End If
 	glf_lastEventExecutionTime = gametime
+End Sub
+
+Sub Glf_CheckTilt()
+	glf_current_virtual_tilt = glf_current_virtual_tilt + glf_tilt_sensitivity
+	If (glf_current_virtual_tilt > glf_tilt_sensitivity) Then 
+		RunAutoFireDispatchPinEvent "s_tilt_warning_active", Null
+	End If
 End Sub
 
 Public Function Glf_RunHandlers(i)
@@ -807,6 +843,7 @@ Public Function Glf_ParseInput(value)
 			tmp = Glf_ReplaceDeviceAttributes(tmp)
 			tmp = Glf_ReplaceMachineAttributes(tmp)
 			tmp = Glf_ReplaceModeAttributes(tmp)
+			tmp = Glf_ReplaceGameAttributes(tmp)
 			tmp = Glf_ReplaceKwargsAttributes(tmp)
 			'msgbox tmp
 			If InStr(tmp, " if ") Then
@@ -870,6 +907,8 @@ Public Function Glf_ParseEventInput(value)
 		conditionReplaced = Glf_ReplaceDeviceAttributes(conditionReplaced)
 		conditionReplaced = Glf_ReplaceMachineAttributes(conditionReplaced)
 		conditionReplaced = Glf_ReplaceModeAttributes(conditionReplaced)
+		conditionReplaced = Glf_ReplaceGameAttributes(conditionReplaced)
+
 		conditionReplaced = Glf_ReplaceKwargsAttributes(conditionReplaced)
 		templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
 		templateCode = templateCode & vbTab & "On Error Resume Next" & vbCrLf
@@ -942,6 +981,19 @@ Function Glf_ReplaceMachineAttributes(inputString)
     Glf_ReplaceMachineAttributes = outputString
 End Function
 
+Function Glf_ReplaceGameAttributes(inputString)
+    Dim pattern, replacement, regex, outputString
+    pattern = "game\.([a-zA-Z0-9_]+)"
+    Set regex = New RegExp
+    regex.Pattern = pattern
+    regex.IgnoreCase = True
+    regex.Global = True
+	replacement = "Glf_GameVariable(""$1"")"
+    outputString = regex.Replace(inputString, replacement)
+    Set regex = Nothing
+    Glf_ReplaceGameAttributes = outputString
+End Function
+
 Function Glf_ReplaceModeAttributes(inputString)
     Dim pattern, replacement, regex, outputString
     pattern = "modes\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)"
@@ -966,6 +1018,16 @@ Function Glf_ReplaceKwargsAttributes(inputString)
     outputString = regex.Replace(inputString, replacement)
     Set regex = Nothing
     Glf_ReplaceKwargsAttributes = outputString
+End Function
+
+Function Glf_GameVariable(value)
+	Glf_GameVariable = False
+	Select Case value
+		Case "tilted"
+			Glf_GameVariable = glf_gameTilted
+		Case "balls_per_game"
+			Glf_GameVariable = glf_ballsPerGame
+	End Select
 End Function
 
 Function Glf_CheckForGetPlayerState(inputString)

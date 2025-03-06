@@ -84,7 +84,7 @@ Class BallSave
         m_enabled = True
         m_saving_balls = m_balls_to_save
         Log "Enabling. Auto launch: "&m_auto_launch&", Balls to save: "&m_balls_to_save
-        AddPinEventListener "ball_drain", m_name & "_ball_drain", "BallSaveEventHandler", 1000, Array("drain", Me)
+        AddPinEventListener GLF_BALL_DRAIN, m_name & "_ball_drain", "BallSaveEventHandler", 1000, Array("drain", Me)
         DispatchPinEvent m_name&"_enabled", Null
         If UBound(m_timer_start_events.Keys) = -1 Then
             Log "Timer Starting as no timer start events are set"
@@ -101,7 +101,7 @@ Class BallSave
         m_saving_balls = m_balls_to_save
         m_timer_started = False
         Log "Disabling..."
-        RemovePinEventListener "ball_drain", m_name & "_ball_drain"
+        RemovePinEventListener GLF_BALL_DRAIN, m_name & "_ball_drain"
         RemoveDelay "_ball_save_"&m_name&"_disable"
         RemoveDelay m_name&"_grace_period"
         RemoveDelay m_name&"_hurry_up_time"

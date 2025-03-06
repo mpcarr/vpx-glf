@@ -106,6 +106,9 @@ Sub Glf_MonitorModeUpdate(mode)
     If Not IsNull(mode.EventPlayer) Then
         glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.EventPlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.EventPlayer.Name & """},"
     End If
+    If Not IsNull(mode.TiltConfig) Then
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.TiltConfig.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.TiltConfig.Name & """},"
+    End If
     If Not IsNull(mode.QueueEventPlayer) Then
         glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.QueueEventPlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.QueueEventPlayer.Name & """},"
     End If
@@ -246,6 +249,9 @@ Sub Glf_MonitorBcpUpdate()
                             End If
                             If Not IsNull(mode.EventPlayer) Then
                                 If mode.EventPlayer.Name = device_name Then : mode.EventPlayer.Debug = is_debug : End If
+                            End If
+                            If Not IsNull(mode.TiltConfig) Then
+                                If mode.TiltConfig.Name = device_name Then : mode.TiltConfig.Debug = is_debug : End If
                             End If
                             If Not IsNull(mode.RandomEventPlayer) Then
                                 If mode.RandomEventPlayer.Name = device_name Then : mode.RandomEventPlayer.Debug = is_debug : End If

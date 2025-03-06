@@ -29,6 +29,7 @@ Class Mode
     Private m_state_machines
     Private m_extra_balls
     Private m_combo_switches
+    Private m_tilt
     Private m_use_wait_queue
 
     Public Property Get Name(): Name = m_name: End Property
@@ -172,6 +173,21 @@ Class Mode
             Set ComboSwitches = new_combo_switch
         End If
     End Property
+    Public Property Get Tilt()
+        If Not IsNull(m_tilt) Then
+            Set Tilt = m_tilt
+        Else
+            Set m_tilt = (new GlfTilt)(Me)
+            Set Tilt = m_tilt
+        End If
+    End Property
+    Public Property Get TiltConfig()
+        If Not IsNull(m_tilt) Then
+            Set TiltConfig = m_tilt
+        Else
+            TiltConfig = Null
+        End If
+    End Property
 
     Public Property Get StateMachines(name)
         If m_state_machines.Exists(name) Then
@@ -284,6 +300,9 @@ Class Mode
         For Each config_item in m_combo_switches.Items()
             config_item.Debug = value
         Next
+        If Not IsNull(m_tilt) Then
+            m_tilt.Debug = value
+        End If
         If Not IsNull(m_lightplayer) Then
             m_lightplayer.Debug = value
         End If
@@ -336,6 +355,7 @@ Class Mode
 
         m_use_wait_queue = False
         m_lightplayer = Null
+        m_tilt = Null
         m_showplayer = Null
         m_segment_display_player = Null
         Set m_eventplayer = (new GlfEventPlayer)(Me)

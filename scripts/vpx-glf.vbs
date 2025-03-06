@@ -6,6 +6,10 @@ Dim glf_canAddPlayers : glf_canAddPlayers = True
 Dim glf_PI : glf_PI = 4 * Atn(1)
 Dim glf_plunger
 Dim glf_gameStarted : glf_gameStarted = False
+Dim glf_gameTilted : glf_gameTilted = False
+Dim glf_gameEnding : glf_gameEnding = False
+Dim glf_current_virtual_tilt : glf_current_virtual_tilt = 0
+Dim glf_tilt_sensitivity : glf_tilt_sensitivity = 7
 Dim glf_pinEvents : Set glf_pinEvents = CreateObject("Scripting.Dictionary")
 Dim glf_pinEventsOrder : Set glf_pinEventsOrder = CreateObject("Scripting.Dictionary")
 Dim glf_playerEvents : Set glf_playerEvents = CreateObject("Scripting.Dictionary")
@@ -117,22 +121,22 @@ Public Sub Glf_Init()
 	Dim switch, switchHitSubs
 	switchHitSubs = ""
 	For Each switch in Glf_Switches
-		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_Hit() : DispatchPinEvent """ & switch.Name & "_active"", ActiveBall : End Sub" & vbCrLf
-		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_UnHit() : DispatchPinEvent """ & switch.Name & "_inactive"", ActiveBall : End Sub" & vbCrLf
+		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_Hit() : If Not glf_gameTilted Then : DispatchPinEvent """ & switch.Name & "_active"", ActiveBall : End If : End Sub" & vbCrLf
+		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_UnHit() : If Not glf_gameTilted Then : DispatchPinEvent """ & switch.Name & "_inactive"", ActiveBall : End If  : End Sub" & vbCrLf
 	Next
 	ExecuteGlobal switchHitSubs
 
 	Dim slingshot, slingshotHitSubs
 	slingshotHitSubs = ""
 	For Each slingshot in Glf_Slingshots
-		slingshotHitSubs = slingshotHitSubs & "Sub " & slingshot.Name & "_Slingshot() : DispatchPinEvent """ & slingshot.Name & "_active"", ActiveBall : End Sub" & vbCrLf
+		slingshotHitSubs = slingshotHitSubs & "Sub " & slingshot.Name & "_Slingshot() : If Not glf_gameTilted Then : DispatchPinEvent """ & slingshot.Name & "_active"", ActiveBall : End If  : End Sub" & vbCrLf
 	Next
 	ExecuteGlobal slingshotHitSubs
 
 	Dim spinner, spinnerHitSubs
 	spinnerHitSubs = ""
 	For Each spinner in Glf_Spinners
-		spinnerHitSubs = spinnerHitSubs & "Sub " & spinner.Name & "_Spin() : DispatchPinEvent """ & spinner.Name & "_active"", ActiveBall : End Sub" & vbCrLf
+		spinnerHitSubs = spinnerHitSubs & "Sub " & spinner.Name & "_Spin() : If Not glf_gameTilted Then : DispatchPinEvent """ & spinner.Name & "_active"", ActiveBall : End If  : End Sub" & vbCrLf
 	Next
 	ExecuteGlobal spinnerHitSubs
 
@@ -485,6 +489,9 @@ Sub Glf_Options(ByVal eventId)
 		glf_ballsPerGame = 5
 	End If
 
+	Dim tilt_sensitivity : tilt_sensitivity = Table1.Option("Tilt Sensitivity", 1, 10, 1, 1, 0, Array("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"))
+	glf_tilt_sensitivity = 10-tilt_sensitivity
+
 	Dim glfDebug : glfDebug = Table1.Option("Glf Debug Log", 0, 1, 1, 0, 0, Array("Off", "On"))
 	If glfDebug = 1 Then
 		glf_debugEnabled = True
@@ -596,6 +603,22 @@ Public Sub Glf_KeyDown(ByVal keycode)
 		RunAutoFireDispatchPinEvent "s_left_staged_flipper_key_active", Null
 	End If
 	
+	If keycode = MechanicalTilt Then 
+		RunAutoFireDispatchPinEvent "s_tilt_warning_active", Null
+    End If
+
+	If keycode = LeftTiltKey Then 
+		Nudge 90, 2
+		Glf_CheckTilt
+	End If
+    If keycode = RightTiltKey Then
+		Nudge 270, 2
+		Glf_CheckTilt
+	End If
+    If keycode = CenterTiltKey Then 
+		Nudge 0, 3
+		Glf_CheckTilt
+	End If
 
 	If KeyCode = AddCreditKey Then
 		RunAutoFireDispatchPinEvent "s_add_credit_key_active", Null
@@ -640,7 +663,6 @@ Public Sub Glf_KeyUp(ByVal keycode)
 		RunAutoFireDispatchPinEvent "s_left_staged_flipper_key_inactive", Null
 	End If		
 
-
 	If KeyCode = AddCreditKey Then
 		RunAutoFireDispatchPinEvent "s_add_credit_key_inactive", Null
 	End If
@@ -650,10 +672,11 @@ Public Sub Glf_KeyUp(ByVal keycode)
 	End If
 End Sub
 
-Dim glf_lastEventExecutionTime, glf_lastBcpExecutionTime, glf_lastLightUpdateExecutionTime
+Dim glf_lastEventExecutionTime, glf_lastBcpExecutionTime, glf_lastLightUpdateExecutionTime, glf_lastTiltUpdateExecutionTime
 glf_lastEventExecutionTime = 0
 glf_lastBcpExecutionTime = 0
 glf_lastLightUpdateExecutionTime = 0
+glf_lastTiltUpdateExecutionTime = 0
 
 Public Sub Glf_GameTimer_Timer()
 
@@ -685,7 +708,13 @@ Public Sub Glf_GameTimer_Timer()
 	End If
 
 	DelayTick
-    
+	
+	If (gametime - glf_lastTiltUpdateExecutionTime) >=50 And glf_current_virtual_tilt > 0 Then
+		glf_current_virtual_tilt = glf_current_virtual_tilt - 0.1
+		glf_lastTiltUpdateExecutionTime = gametime
+		Debug.print("Tilt Cooldown: " & glf_current_virtual_tilt) 
+	End If
+
 	If (gametime - glf_lastBcpExecutionTime) >= 300 Then
         glf_lastBcpExecutionTime = gametime
 		Glf_BcpUpdate
@@ -693,6 +722,13 @@ Public Sub Glf_GameTimer_Timer()
 		Glf_MonitorBcpUpdate
     End If
 	glf_lastEventExecutionTime = gametime
+End Sub
+
+Sub Glf_CheckTilt()
+	glf_current_virtual_tilt = glf_current_virtual_tilt + glf_tilt_sensitivity
+	If (glf_current_virtual_tilt > glf_tilt_sensitivity) Then 
+		RunAutoFireDispatchPinEvent "s_tilt_warning_active", Null
+	End If
 End Sub
 
 Public Function Glf_RunHandlers(i)
@@ -807,6 +843,7 @@ Public Function Glf_ParseInput(value)
 			tmp = Glf_ReplaceDeviceAttributes(tmp)
 			tmp = Glf_ReplaceMachineAttributes(tmp)
 			tmp = Glf_ReplaceModeAttributes(tmp)
+			tmp = Glf_ReplaceGameAttributes(tmp)
 			tmp = Glf_ReplaceKwargsAttributes(tmp)
 			'msgbox tmp
 			If InStr(tmp, " if ") Then
@@ -870,6 +907,8 @@ Public Function Glf_ParseEventInput(value)
 		conditionReplaced = Glf_ReplaceDeviceAttributes(conditionReplaced)
 		conditionReplaced = Glf_ReplaceMachineAttributes(conditionReplaced)
 		conditionReplaced = Glf_ReplaceModeAttributes(conditionReplaced)
+		conditionReplaced = Glf_ReplaceGameAttributes(conditionReplaced)
+
 		conditionReplaced = Glf_ReplaceKwargsAttributes(conditionReplaced)
 		templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
 		templateCode = templateCode & vbTab & "On Error Resume Next" & vbCrLf
@@ -942,6 +981,19 @@ Function Glf_ReplaceMachineAttributes(inputString)
     Glf_ReplaceMachineAttributes = outputString
 End Function
 
+Function Glf_ReplaceGameAttributes(inputString)
+    Dim pattern, replacement, regex, outputString
+    pattern = "game\.([a-zA-Z0-9_]+)"
+    Set regex = New RegExp
+    regex.Pattern = pattern
+    regex.IgnoreCase = True
+    regex.Global = True
+	replacement = "Glf_GameVariable(""$1"")"
+    outputString = regex.Replace(inputString, replacement)
+    Set regex = Nothing
+    Glf_ReplaceGameAttributes = outputString
+End Function
+
 Function Glf_ReplaceModeAttributes(inputString)
     Dim pattern, replacement, regex, outputString
     pattern = "modes\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)"
@@ -966,6 +1018,16 @@ Function Glf_ReplaceKwargsAttributes(inputString)
     outputString = regex.Replace(inputString, replacement)
     Set regex = Nothing
     Glf_ReplaceKwargsAttributes = outputString
+End Function
+
+Function Glf_GameVariable(value)
+	Glf_GameVariable = False
+	Select Case value
+		Case "tilted"
+			Glf_GameVariable = glf_gameTilted
+		Case "balls_per_game"
+			Glf_GameVariable = glf_ballsPerGame
+	End Select
 End Function
 
 Function Glf_CheckForGetPlayerState(inputString)
@@ -2095,6 +2157,9 @@ Sub Glf_MonitorModeUpdate(mode)
     If Not IsNull(mode.EventPlayer) Then
         glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.EventPlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.EventPlayer.Name & """},"
     End If
+    If Not IsNull(mode.TiltConfig) Then
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.TiltConfig.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.TiltConfig.Name & """},"
+    End If
     If Not IsNull(mode.QueueEventPlayer) Then
         glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.QueueEventPlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.QueueEventPlayer.Name & """},"
     End If
@@ -2235,6 +2300,9 @@ Sub Glf_MonitorBcpUpdate()
                             End If
                             If Not IsNull(mode.EventPlayer) Then
                                 If mode.EventPlayer.Name = device_name Then : mode.EventPlayer.Debug = is_debug : End If
+                            End If
+                            If Not IsNull(mode.TiltConfig) Then
+                                If mode.TiltConfig.Name = device_name Then : mode.TiltConfig.Debug = is_debug : End If
                             End If
                             If Not IsNull(mode.RandomEventPlayer) Then
                                 If mode.RandomEventPlayer.Name = device_name Then : mode.RandomEventPlayer.Debug = is_debug : End If
@@ -2814,7 +2882,7 @@ Class BallSave
         m_enabled = True
         m_saving_balls = m_balls_to_save
         Log "Enabling. Auto launch: "&m_auto_launch&", Balls to save: "&m_balls_to_save
-        AddPinEventListener "ball_drain", m_name & "_ball_drain", "BallSaveEventHandler", 1000, Array("drain", Me)
+        AddPinEventListener GLF_BALL_DRAIN, m_name & "_ball_drain", "BallSaveEventHandler", 1000, Array("drain", Me)
         DispatchPinEvent m_name&"_enabled", Null
         If UBound(m_timer_start_events.Keys) = -1 Then
             Log "Timer Starting as no timer start events are set"
@@ -2831,7 +2899,7 @@ Class BallSave
         m_saving_balls = m_balls_to_save
         m_timer_started = False
         Log "Disabling..."
-        RemovePinEventListener "ball_drain", m_name & "_ball_drain"
+        RemovePinEventListener GLF_BALL_DRAIN, m_name & "_ball_drain"
         RemoveDelay "_ball_save_"&m_name&"_disable"
         RemoveDelay m_name&"_grace_period"
         RemoveDelay m_name&"_hurry_up_time"
@@ -4255,6 +4323,7 @@ Class Mode
     Private m_state_machines
     Private m_extra_balls
     Private m_combo_switches
+    Private m_tilt
     Private m_use_wait_queue
 
     Public Property Get Name(): Name = m_name: End Property
@@ -4398,6 +4467,21 @@ Class Mode
             Set ComboSwitches = new_combo_switch
         End If
     End Property
+    Public Property Get Tilt()
+        If Not IsNull(m_tilt) Then
+            Set Tilt = m_tilt
+        Else
+            Set m_tilt = (new GlfTilt)(Me)
+            Set Tilt = m_tilt
+        End If
+    End Property
+    Public Property Get TiltConfig()
+        If Not IsNull(m_tilt) Then
+            Set TiltConfig = m_tilt
+        Else
+            TiltConfig = Null
+        End If
+    End Property
 
     Public Property Get StateMachines(name)
         If m_state_machines.Exists(name) Then
@@ -4510,6 +4594,9 @@ Class Mode
         For Each config_item in m_combo_switches.Items()
             config_item.Debug = value
         Next
+        If Not IsNull(m_tilt) Then
+            m_tilt.Debug = value
+        End If
         If Not IsNull(m_lightplayer) Then
             m_lightplayer.Debug = value
         End If
@@ -4562,6 +4649,7 @@ Class Mode
 
         m_use_wait_queue = False
         m_lightplayer = Null
+        m_tilt = Null
         m_showplayer = Null
         m_segment_display_player = Null
         Set m_eventplayer = (new GlfEventPlayer)(Me)
@@ -5164,7 +5252,7 @@ Class GlfMultiballs
         For Each evt in m_stop_events.Keys
             RemovePinEventListener m_stop_events(evt).EventName, m_name & "_" & evt & "_stop"
         Next
-        RemovePinEventListener "ball_drain", m_name & "_ball_drain"
+        RemovePinEventListener GLF_BALL_DRAIN, m_name & "_ball_drain"
         'RemoveDelay m_name & "_queued_release"
     End Sub
     
@@ -5244,7 +5332,7 @@ Class GlfMultiballs
             'Enable shoot again
             TimerStart()
         End If
-        AddPinEventListener "ball_drain", m_name & "_ball_drain", "MultiballsHandler", m_priority, Array("drain", Me)
+        AddPinEventListener GLF_BALL_DRAIN, m_name & "_ball_drain", "MultiballsHandler", m_priority, Array("drain", Me)
 
         Dim kwargs : Set kwargs = GlfKwargs()
         With kwargs
@@ -5326,7 +5414,7 @@ Class GlfMultiballs
             m_balls_added_live = 0
             m_balls_live_target = 0
             DispatchPinEvent m_name & "_ended", Null
-            RemovePinEventListener "ball_drain", m_name & "_ball_drain"
+            RemovePinEventListener GLF_BALL_DRAIN, m_name & "_ball_drain"
             Log("Ball drained. MB ended.")
         End If
         BallDrainCountBalls = balls
@@ -8808,6 +8896,299 @@ Public Function StateMachineTransitionHandler(args)
         StateMachineTransitionHandler = kwargs
     End If
 End Function
+Class GlfTilt
+
+    Private m_name
+    Private m_priority
+    Private m_base_device
+    Private m_reset_warnings_events
+    Private m_tilt_events
+    Private m_tilt_warning_events
+    Private m_tilt_slam_tilt_events
+    Private m_settle_time
+    Private m_warnings_to_tilt
+    Private m_multiple_hit_window
+    Private m_tilt_warning_switch
+    Private m_tilt_switch
+    Private m_slam_tilt_switch
+    Private m_last_tilt_warning_switch 
+    Private m_last_warning
+    Private m_balls_to_collect
+    Private m_debug
+
+    Public Property Get Name(): Name = m_name: End Property
+    Public Property Get GetValue(value)
+        Select Case value
+            Case "enabled":
+                GetValue = m_enabled
+            Case "tilt_settle_ms_remaining":
+                GetValue = TiltSettleMsRemaining()
+            Case "tilt_warnings_remaining":
+                GetValue = TiltWarningsRemaining()
+        End Select
+    End Property
+
+    'Public Property Let ResetWarningEvents(value)
+    '    Dim x
+    '    For x=0 to UBound(value)
+    '        Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+    '        m_reset_warnings_events.Add newEvent.Raw, newEvent
+    '    Next
+    'End Property
+    'Public Property Let TiltEvents(value)
+    '    Dim x
+    '    For x=0 to UBound(value)
+    '        Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+    '        m_tilt_events.Add newEvent.Raw, newEvent
+    '    Next
+    'End Property
+    'Public Property Let TiltWarningEvents(value)
+    '    Dim x
+    '    For x=0 to UBound(value)
+    '        Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+    '        m_tilt_warning_events.Add newEvent.Raw, newEvent
+    '    Next
+    'End Property
+    'Public Property Let SlamTiltEvents(value)
+    '    Dim x
+    '    For x=0 to UBound(value)
+    '        Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+    '        m_tilt_slam_tilt_events.Add newEvent.Raw, newEvent
+    '    Next
+    'End Property
+    Public Property Let SettleTime(value): Set m_settle_time = CreateGlfInput(value): End Property
+    Public Property Let WarningsToTilt(value): Set m_warnings_to_tilt = CreateGlfInput(value): End Property
+    Public Property Let MultipleHitWindow(value): Set m_multiple_hit_window = CreateGlfInput(value): End Property
+    'Public Property Let TiltWarningSwitch(value): m_tilt_warning_switch = value: End Property
+    'Public Property Let TiltSwitch(value): m_tilt_switch = value: End Property
+    'Public Property Let SlamTiltSwitch(value): m_slam_tilt_switch = value: End Property
+
+    Private Property Get TiltSettleMsRemaining()
+        TiltSettleMsRemaining = 0
+        If m_last_tilt_warning_switch > 0 Then
+            Dim delta
+            delta = m_settle_time.Value - (gametime - m_last_tilt_warning_switch)
+            If delta > 0 Then
+                TiltSettleMsRemaining = delta
+            End If
+        End If
+    End Property
+
+    Private Property Get TiltWarningsRemaining() 
+        TiltWarningsRemaining = 0
+
+        If glf_gameStarted Then
+            TiltWarningsRemaining = m_warnings_to_tilt.Value() - GetPlayerState("tilt_warnings")
+        End If   
+    End Property
+    
+    Public Property Let Debug(value)
+        m_debug = value
+        m_base_device.Debug = value
+    End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
+    End Property
+
+    Public default Function init(mode)
+        m_name = "tilt_" & mode.name
+        m_priority = mode.Priority
+        Set m_reset_warnings_events = CreateObject("Scripting.Dictionary")
+        Set m_tilt_events = CreateObject("Scripting.Dictionary")
+        Set m_tilt_warning_events = CreateObject("Scripting.Dictionary")
+        Set m_tilt_slam_tilt_events = CreateObject("Scripting.Dictionary")
+        Set m_settle_time = CreateGlfInput(0)
+        Set m_warnings_to_tilt = CreateGlfInput(0)
+        Set m_multiple_hit_window = CreateGlfInput(0)
+        m_tilt_switch = Empty
+        m_tilt_warning_switch = Empty
+        m_slam_tilt_switch = Empty
+        m_last_tilt_warning_switch = 0
+        m_last_warning = 0
+        m_balls_to_collect = 0
+        Set m_base_device = (new GlfBaseModeDevice)(mode, "tilt", Me)
+        Set Init = Me
+    End Function
+
+    Public Sub Activate()
+        Dim evt
+        For Each evt in m_reset_warnings_events.Keys()
+            AddPinEventListener m_reset_warnings_events(evt).EventName, m_name & "_" & evt & "_reset_warnings", "TiltHandler", m_priority+m_reset_warnings_events(evt).Priority, Array("reset_warnings", Me, m_reset_warnings_events(evt))
+        Next
+        For Each evt in m_tilt_events.Keys()
+            AddPinEventListener m_tilt_events(evt).EventName, m_name & "_" & evt & "_tilt", "TiltHandler", m_priority+m_tilt_events(evt).Priority, Array("tilt", Me, m_tilt_events(evt))
+        Next
+        For Each evt in m_tilt_warning_events.Keys()
+            AddPinEventListener m_tilt_warning_events(evt).EventName, m_name & "_" & evt & "_tilt_warning", "TiltHandler", m_priority+m_tilt_warning_events(evt).Priority, Array("tilt_warning", Me, m_tilt_warning_events(evt))
+        Next
+        For Each evt in m_tilt_slam_tilt_events.Keys()
+            AddPinEventListener m_tilt_slam_tilt_events(evt).EventName, m_name & "_" & evt & "_slam_tilt", "TiltHandler", m_priority+m_tilt_slam_tilt_events(evt).Priority, Array("slam_tilt", Me, m_tilt_slam_tilt_events(evt))
+        Next
+        
+        AddPinEventListener  "s_tilt_warning_active", m_name & "_tilt_warning_switch_active", "TiltHandler", m_priority, Array("_tilt_warning_switch_active", Me)
+    End Sub
+
+    Public Sub Deactivate()
+        Dim evt
+        For Each evt in m_reset_warnings_events.Keys()
+            RemoveEventListener m_reset_warnings_events(evt).EventName, m_name & "_" & evt & "_reset_warnings"
+        Next
+        For Each evt in m_tilt_events.Keys()
+            RemoveEventListener m_tilt_events(evt).EventName, m_name & "_" & evt & "_tilt"
+        Next
+        For Each evt in m_tilt_warning_events.Keys()
+            RemoveEventListener m_tilt_warning_events(evt).EventName, m_name & "_" & evt & "_tilt_warning"
+        Next
+        For Each evt in m_tilt_slam_tilt_events.Keys()
+            RemoveEventListener m_tilt_slam_tilt_events(evt).EventName, m_name & "_" & evt & "_slam__tilt"
+        Next
+
+        RemoveEventListener "s_tilt_warning_active", m_name & "_tilt_warning_switch_active"
+
+    End Sub
+
+    Public Sub TiltWarning()
+        'Process a tilt warning.
+        'If the number of warnings is than the number to cause a tilt, a tilt will be
+        'processed.
+
+        m_last_tilt_warning_switch = gametime
+        If glf_gameStarted = False Or glf_gameTilted = True Then
+            Exit Sub
+        End If
+        Log "Tilt Warning"
+        m_last_warning = gametime
+        SetPlayerState "tilt_warnings", GetPlayerState("tilt_warnings")+1
+        Dim warnings : warnings = GetPlayerState("tilt_warnings")
+        Dim warnings_to_tilt : warnings_to_tilt = m_warnings_to_tilt.Value()
+        If warnings>=warnings_to_tilt Then
+            Tilt()
+        Else
+            Set kwargs = GlfKwargs()
+            With kwargs
+                .Add "warnings", warnings
+                .Add "warnings_remaining", warnings_to_tilt - warnings
+            End With
+            DispatchPinEvent "tilt_warning", kwargs
+            DispatchPinEvent "tilt_warning_" & warnings, Null
+        End If
+    End Sub
+
+    Public Sub ResetWarnings()
+        'Reset the tilt warnings for the current player.
+        If glf_gamestarted = False or glf_gameEnding = True Then
+            Exit Sub
+        End If
+        SetPlayerState "tilt_warnings", 0
+    End Sub
+
+    Public Sub Tilt()
+        'Cause the ball to tilt.
+        'This will post an event called *tilt*, set the game mode's ``tilted``
+        'attribute to *True*, disable the flippers and autofire devices, end the
+        'current ball, and wait for all the balls to drain.
+        If glf_gameStarted = False or glf_gameTilted=True or glf_gameEnding = True Then
+            Exit Sub
+        End If
+        glf_gametilted = True
+        m_balls_to_collect = glf_BIP
+        Log "Processing Tilt. Balls to collect: " & m_balls_to_collect
+        DispatchPinEvent "tilt", Null
+        AddPinEventListener GLF_BALL_ENDING, m_name & "_ball_ending", "TiltHandler", 20, Array("tilt_ball_ending", Me)
+        AddPinEventListener GLF_BALL_DRAIN, m_name & "_ball_drain", "TiltHandler", 999999, Array("tilt_ball_drain", Me)
+        Glf_EndBall()
+    End Sub
+
+    Public Sub TiltedBallDrain(unclaimed_balls)
+        Log "Tilted ball drain, unclaimed balls: " & unclaimed_balls
+        m_balls_to_collect = m_balls_to_collect - unclaimed_balls
+        Log "Tilted ball drain. Balls to collect: " & m_balls_to_collect
+        If m_balls_to_collect <= 0 Then
+            TiltDone()
+        End If
+    End Sub
+
+    Public Sub HandleTiltWarningSwitch()
+        Log "Handling Tilt Warning Switch"
+        If m_last_warning = 0 Or (m_last_warning + m_multiple_hit_window.Value() * 0.001) <= gametime Then
+            TiltWarning()
+        End If
+    End Sub
+
+    Public Sub BallEndingTilted()
+        If m_balls_to_collect<=0 Then
+            TiltDone()
+        End If
+    End Sub
+
+    Public Sub TiltDone()
+        If TiltSettleMsRemaining() > 0 Then
+            SetDelay "delay_tilt_clear", "TiltHandler", Array(Array("tilt_done", Me), Null), TiltSettleMsRemaining()
+            Exit Sub
+        End If
+        Log "Tilt Done"
+        RemovePinEventListener GLF_BALL_ENDING, m_name & "_ball_ending"
+        RemovePinEventListener GLF_BALL_DRAIN, m_name & "_ball_drain"
+        glf_gameTilted = False
+        DispatchPinEvent m_name & "_clear", Null
+    End Sub
+    
+    Public Sub SlamTilt()
+        'Process a slam tilt.
+        'This method posts the *slam_tilt* event and (if a game is active) sets
+        'the game mode's ``slam_tilted`` attribute to *True*.
+    End Sub
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
+    End Sub
+
+End Class
+
+Function TiltHandler(args)
+    Dim ownProps, kwargs : ownProps = args(0)
+    If IsObject(args(1)) Then
+        Set kwargs = args(1)
+    Else
+        kwargs = args(1) 
+    End If
+    Dim evt : evt = ownProps(0)
+    Dim tilt : Set tilt = ownProps(1)
+    'Check if the evt has a condition to evaluate    
+    If UBound(ownProps) = 2 Then
+        If IsObject(ownProps(2)) Then
+            If ownProps(2).Evaluate() = False Then
+                If IsObject(args(1)) Then
+                    Set TiltHandler = kwargs
+                Else
+                    TiltHandler = kwargs
+                End If
+                Exit Function
+            End If
+        End If
+    End If
+    Select Case evt
+        Case "_tilt_warning_switch_active":
+            tilt.HandleTiltWarningSwitch
+        Case "tilt_ball_ending"
+            kwargs.Add "wait_for", tilt.Name & "_clear"
+            tilt.BallEndingTilted
+        Case "tilt_ball_drain"
+            tilt.TiltedBallDrain kwargs
+            kwargs = kwargs -1
+        Case "tilt_done"
+            tilt.TiltDone
+    End Select
+
+    If IsObject(args(1)) Then
+        Set TiltHandler = kwargs
+    Else
+        TiltHandler = kwargs
+    End If
+End Function
+
 
 
 Class GlfTimer
@@ -10025,7 +10406,7 @@ Class GlfDiverter
             AddPinEventListener m_activate_events(evt).EventName, m_name & "_" & evt & "_activate", "DiverterEventHandler", 1000, Array("activate", Me, m_activate_events(evt))
         Next
         For Each evt in m_deactivate_events.Keys()
-            AddPinEventListener m_deactivate_events(evt), m_name & "_" & evt & "_deactivate", "DiverterEventHandler", 1000, Array("deactivate", Me, m_deactivate_events(evt))
+            AddPinEventListener m_deactivate_events(evt).EventName, m_name & "_" & evt & "_deactivate", "DiverterEventHandler", 1000, Array("deactivate", Me, m_deactivate_events(evt))
         Next
         For Each evt in m_activation_switches
             AddPinEventListener evt & "_active", m_name & "_activate", "DiverterEventHandler", 1000, Array("activate", Me)
@@ -10040,7 +10421,7 @@ Class GlfDiverter
             RemovePinEventListener m_activate_events(evt).EventName, m_name & "_" & evt & "_activate"
         Next
         For Each evt in m_deactivate_events.Keys()
-            RemovePinEventListener m_deactivate_events(evt), m_name & "_" & evt & "_deactivate"
+            RemovePinEventListener m_deactivate_events(evt).EventName, m_name & "_" & evt & "_deactivate"
         Next
         For Each evt in m_activation_switches
             RemovePinEventListener evt & "_active", m_name & "_activate"
@@ -12450,6 +12831,21 @@ Sub Glf_StartGame()
     'DispatchPinEvent GLF_GAME_STARTED, Null
 End Sub
 
+Sub Glf_EndBall()
+
+    glf_BIP = 0
+    DispatchPinEvent GLF_BALL_WILL_END, Null
+    DispatchQueuePinEvent GLF_BALL_ENDING, Null
+    Dim device
+    For Each device in glf_flippers.Items()
+        device.Disable()
+    Next
+    For Each device in glf_autofiredevices.Items()
+        device.Disable()
+    Next
+
+End Sub
+
 Public Function Glf_DispatchGameStarted(args)
     DispatchPinEvent GLF_GAME_STARTED, Null
 End Function
@@ -12513,29 +12909,31 @@ End Function
 '*****************************
 Function Glf_Drain(args)
     
-    Dim ballsToSave : ballsToSave = args(1) 
-    Glf_WriteDebugLog "end_of_ball, unclaimed balls", CStr(ballsToSave)
-    Glf_WriteDebugLog "end_of_ball, balls in play", CStr(glf_BIP)
-    If ballsToSave <= 0 Then
-        Exit Function
-    End If
+    If Not glf_gameTilted Then
+        Dim ballsToSave : ballsToSave = args(1) 
+        Glf_WriteDebugLog "end_of_ball, unclaimed balls", CStr(ballsToSave)
+        Glf_WriteDebugLog "end_of_ball, balls in play", CStr(glf_BIP)
+        If ballsToSave <= 0 Then
+            Exit Function
+        End If
 
-    glf_BIP = glf_BIP - 1
-    glf_debugLog.WriteToLog "Trough", "Ball Drained: BIP: " & glf_BIP
+        glf_BIP = glf_BIP - 1
+        glf_debugLog.WriteToLog "Trough", "Ball Drained: BIP: " & glf_BIP
 
-    If glf_BIP > 0 Then
-        Exit Function
+        If glf_BIP > 0 Then
+            Exit Function
+        End If
+        
+        DispatchPinEvent GLF_BALL_WILL_END, Null
+        DispatchQueuePinEvent GLF_BALL_ENDING, Null
     End If
-    
-    DispatchPinEvent GLF_BALL_WILL_END, Null
-    DispatchQueuePinEvent GLF_BALL_ENDING, Null
     
 End Function
 
 '****************************
 ' End Of Ball
 ' Event Listeners:      
-AddPinEventListener GLF_BALL_ENDING, "ball_will_end", "Glf_BallWillEnd", 20, Null
+AddPinEventListener GLF_BALL_ENDING, "ball_will_end", "Glf_BallWillEnd", 10, Null
 '
 '*****************************
 Function Glf_BallWillEnd(args)

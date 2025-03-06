@@ -93,7 +93,7 @@ Class GlfDiverter
             AddPinEventListener m_activate_events(evt).EventName, m_name & "_" & evt & "_activate", "DiverterEventHandler", 1000, Array("activate", Me, m_activate_events(evt))
         Next
         For Each evt in m_deactivate_events.Keys()
-            AddPinEventListener m_deactivate_events(evt), m_name & "_" & evt & "_deactivate", "DiverterEventHandler", 1000, Array("deactivate", Me, m_deactivate_events(evt))
+            AddPinEventListener m_deactivate_events(evt).EventName, m_name & "_" & evt & "_deactivate", "DiverterEventHandler", 1000, Array("deactivate", Me, m_deactivate_events(evt))
         Next
         For Each evt in m_activation_switches
             AddPinEventListener evt & "_active", m_name & "_activate", "DiverterEventHandler", 1000, Array("activate", Me)
@@ -108,7 +108,7 @@ Class GlfDiverter
             RemovePinEventListener m_activate_events(evt).EventName, m_name & "_" & evt & "_activate"
         Next
         For Each evt in m_deactivate_events.Keys()
-            RemovePinEventListener m_deactivate_events(evt), m_name & "_" & evt & "_deactivate"
+            RemovePinEventListener m_deactivate_events(evt).EventName, m_name & "_" & evt & "_deactivate"
         Next
         For Each evt in m_activation_switches
             RemovePinEventListener evt & "_active", m_name & "_activate"

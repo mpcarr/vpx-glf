@@ -168,7 +168,7 @@ Class GlfMultiballs
         For Each evt in m_stop_events.Keys
             RemovePinEventListener m_stop_events(evt).EventName, m_name & "_" & evt & "_stop"
         Next
-        RemovePinEventListener "ball_drain", m_name & "_ball_drain"
+        RemovePinEventListener GLF_BALL_DRAIN, m_name & "_ball_drain"
         'RemoveDelay m_name & "_queued_release"
     End Sub
     
@@ -248,7 +248,7 @@ Class GlfMultiballs
             'Enable shoot again
             TimerStart()
         End If
-        AddPinEventListener "ball_drain", m_name & "_ball_drain", "MultiballsHandler", m_priority, Array("drain", Me)
+        AddPinEventListener GLF_BALL_DRAIN, m_name & "_ball_drain", "MultiballsHandler", m_priority, Array("drain", Me)
 
         Dim kwargs : Set kwargs = GlfKwargs()
         With kwargs
@@ -330,7 +330,7 @@ Class GlfMultiballs
             m_balls_added_live = 0
             m_balls_live_target = 0
             DispatchPinEvent m_name & "_ended", Null
-            RemovePinEventListener "ball_drain", m_name & "_ball_drain"
+            RemovePinEventListener GLF_BALL_DRAIN, m_name & "_ball_drain"
             Log("Ball drained. MB ended.")
         End If
         BallDrainCountBalls = balls
