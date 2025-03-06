@@ -728,6 +728,7 @@ Sub Glf_CheckTilt()
 	glf_current_virtual_tilt = glf_current_virtual_tilt + glf_tilt_sensitivity
 	If (glf_current_virtual_tilt > glf_tilt_sensitivity) Then 
 		RunAutoFireDispatchPinEvent "s_tilt_warning_active", Null
+		glf_current_virtual_tilt = glf_tilt_sensitivity
 	End If
 End Sub
 
