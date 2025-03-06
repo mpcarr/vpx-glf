@@ -490,7 +490,7 @@ Sub Glf_Options(ByVal eventId)
 	End If
 
 	Dim tilt_sensitivity : tilt_sensitivity = Table1.Option("Tilt Sensitivity", 1, 10, 1, 7, 0, Array("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"))
-	glf_tilt_sensitivity = 10-tilt_sensitivity
+	glf_tilt_sensitivity = tilt_sensitivity
 
 	Dim glfDebug : glfDebug = Table1.Option("Glf Debug Log", 0, 1, 1, 0, 0, Array("Off", "On"))
 	If glfDebug = 1 Then
@@ -726,7 +726,7 @@ End Sub
 
 Sub Glf_CheckTilt()
 	glf_current_virtual_tilt = glf_current_virtual_tilt + glf_tilt_sensitivity
-	If (glf_current_virtual_tilt > glf_tilt_sensitivity) Then 
+	If (glf_current_virtual_tilt > 10) Then 
 		RunAutoFireDispatchPinEvent "s_tilt_warning_active", Null
 		glf_current_virtual_tilt = glf_tilt_sensitivity
 	End If
