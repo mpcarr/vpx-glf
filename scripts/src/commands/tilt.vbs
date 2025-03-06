@@ -166,6 +166,7 @@ Class GlfTilt
         If warnings>=warnings_to_tilt Then
             Tilt()
         Else
+            Dim kwargs
             Set kwargs = GlfKwargs()
             With kwargs
                 .Add "warnings", warnings
