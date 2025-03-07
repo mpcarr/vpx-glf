@@ -8929,13 +8929,13 @@ Class GlfTilt
         End Select
     End Property
 
-    'Public Property Let ResetWarningEvents(value)
-    '    Dim x
-    '    For x=0 to UBound(value)
-    '        Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-    '        m_reset_warnings_events.Add newEvent.Raw, newEvent
-    '    Next
-    'End Property
+    Public Property Let ResetWarningEvents(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_reset_warnings_events.Add newEvent.Raw, newEvent
+        Next
+    End Property
     'Public Property Let TiltEvents(value)
     '    Dim x
     '    For x=0 to UBound(value)
@@ -9182,6 +9182,8 @@ Function TiltHandler(args)
             kwargs = kwargs -1
         Case "tilt_done"
             tilt.TiltDone
+        Case "reset_warnings"
+            tilt.ResetWarnings
     End Select
 
     If IsObject(args(1)) Then
