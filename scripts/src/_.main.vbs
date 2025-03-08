@@ -566,8 +566,7 @@ Public Sub Glf_KeyDown(ByVal keycode)
 		End If
 	Else
 		If keycode = StartGameKey Then
-			Glf_AddPlayer()
-			Glf_StartGame()
+			DispatchRelayPinEvent "request_to_start_game", True
 		End If
 	End If
 

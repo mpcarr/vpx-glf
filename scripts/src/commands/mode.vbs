@@ -29,6 +29,7 @@ Class Mode
     Private m_state_machines
     Private m_extra_balls
     Private m_combo_switches
+    Private m_timed_switches
     Private m_tilt
     Private m_use_wait_queue
 
@@ -173,6 +174,16 @@ Class Mode
             Set ComboSwitches = new_combo_switch
         End If
     End Property
+    Public Property Get TimedSwitchesItems() : TimedSwitchesItems = m_timed_switches.Items() : End Property
+        Public Property Get TimedSwitches(name)
+            If m_timed_switches.Exists(name) Then
+                Set TimedSwitches = m_timed_switches(name)
+            Else
+                Dim new_timed_switch : Set new_timed_switch = (new GlfTimedSwitches)(name, Me)
+                m_timed_switches.Add name, new_timed_switch
+                Set TimedSwitches = new_timed_switch
+            End If
+        End Property
     Public Property Get Tilt()
         If Not IsNull(m_tilt) Then
             Set Tilt = m_tilt
@@ -300,6 +311,9 @@ Class Mode
         For Each config_item in m_combo_switches.Items()
             config_item.Debug = value
         Next
+        For Each config_item in m_timed_switches.Items()
+            config_item.Debug = value
+        Next
         If Not IsNull(m_tilt) Then
             m_tilt.Debug = value
         End If
@@ -352,6 +366,7 @@ Class Mode
         Set m_state_machines = CreateObject("Scripting.Dictionary")
         Set m_extra_balls = CreateObject("Scripting.Dictionary")
         Set m_combo_switches = CreateObject("Scripting.Dictionary")
+        Set m_timed_switches = CreateObject("Scripting.Dictionary")
 
         m_use_wait_queue = False
         m_lightplayer = Null

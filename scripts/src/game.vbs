@@ -79,18 +79,87 @@ End Function
 ' StartGame
 '
 '*****************************
-Sub Glf_StartGame()
-    glf_gameStarted = True
-    DispatchPinEvent GLF_GAME_START, Null
-    If useBcp Then
-        bcpController.Send "player_turn_start?player_num=int:1"
-        bcpController.Send "ball_start?player_num=int:1&ball=int:1"
-        bcpController.PlaySlide "base", "base", 1000
-        bcpController.SendPlayerVariable "number", 1, 0
+
+AddPinEventListener "request_to_start_game", "request_to_start_game_ball_controller", "Glf_BallController", 30, Null
+Function Glf_BallController(args)
+    Dim balls_in_trough : balls_in_trough = 0
+    If glf_troughSize = 1 Then
+        If swTrough1.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
     End If
-    SetDelay GLF_GAME_STARTED, "Glf_DispatchGameStarted", Null, 50
-    'DispatchPinEvent GLF_GAME_STARTED, Null
-End Sub
+    If glf_troughSize = 2 Then
+        If swTrough1.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough2.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+    End If
+    If glf_troughSize = 3 Then 
+        If swTrough1.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough2.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough3.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+    End If
+    If glf_troughSize = 4 Then 
+        If swTrough1.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough2.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough3.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough4.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+    End If
+    If glf_troughSize = 5 Then 
+        If swTrough1.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough2.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough3.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough4.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough5.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+    End If
+    If glf_troughSize = 6 Then 
+        If swTrough1.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough2.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough3.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough4.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough5.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough6.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+    End If
+    If glf_troughSize = 7 Then 
+        If swTrough1.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough2.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough3.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough4.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough5.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough6.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough7.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+    End If
+    If glf_troughSize = 8 Then 
+        If swTrough1.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough2.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough3.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough4.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough5.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough6.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough7.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If Drain.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+    End If
+  
+    If glf_troughSize <> balls_in_trough Then
+        Glf_BallController = False
+        Exit Function
+    End If
+
+    Glf_BallController = True
+End Function
+
+AddPinEventListener "request_to_start_game", "request_to_start_game_result", "Glf_StartGame", 20, Null
+
+Function Glf_StartGame(args)
+    If args(1) = True And glf_gameStarted = False Then
+        Glf_AddPlayer()
+        glf_gameStarted = True
+        DispatchPinEvent GLF_GAME_START, Null
+        If useBcp Then
+            bcpController.Send "player_turn_start?player_num=int:1"
+            bcpController.Send "ball_start?player_num=int:1&ball=int:1"
+            bcpController.PlaySlide "base", "base", 1000
+            bcpController.SendPlayerVariable "number", 1, 0
+        End If
+        SetDelay GLF_GAME_STARTED, "Glf_DispatchGameStarted", Null, 50
+    End If
+End Function
 
 Sub Glf_EndBall()
 

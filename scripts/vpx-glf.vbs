@@ -566,8 +566,7 @@ Public Sub Glf_KeyDown(ByVal keycode)
 		End If
 	Else
 		If keycode = StartGameKey Then
-			Glf_AddPlayer()
-			Glf_StartGame()
+			DispatchRelayPinEvent "request_to_start_game", True
 		End If
 	End If
 
@@ -2149,6 +2148,9 @@ Sub Glf_MonitorModeUpdate(mode)
     For Each config_item in mode.ComboSwitchesItems()
         glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & config_item.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & config_item.Name & """},"
     Next
+    For Each config_item in mode.TimedSwitchesItems()
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & config_item.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & config_item.Name & """},"
+    Next
     For Each config_item in mode.ModeStateMachines()
         glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & config_item.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & config_item.Name & """},"
     Next
@@ -2291,6 +2293,9 @@ Sub Glf_MonitorBcpUpdate()
                                 If config_item.Name = device_name Then : config_item.Debug = is_debug : End If
                             Next
                             For Each config_item in mode.ComboSwitchesItems()
+                                If config_item.Name = device_name Then : config_item.Debug = is_debug : End If
+                            Next
+                            For Each config_item in mode.TimedSwitchesItems()
                                 If config_item.Name = device_name Then : config_item.Debug = is_debug : End If
                             Next
                             For Each config_item in mode.ModeStateMachines()
@@ -4324,6 +4329,7 @@ Class Mode
     Private m_state_machines
     Private m_extra_balls
     Private m_combo_switches
+    Private m_timed_switches
     Private m_tilt
     Private m_use_wait_queue
 
@@ -4468,6 +4474,16 @@ Class Mode
             Set ComboSwitches = new_combo_switch
         End If
     End Property
+    Public Property Get TimedSwitchesItems() : TimedSwitchesItems = m_timed_switches.Items() : End Property
+        Public Property Get TimedSwitches(name)
+            If m_timed_switches.Exists(name) Then
+                Set TimedSwitches = m_timed_switches(name)
+            Else
+                Dim new_timed_switch : Set new_timed_switch = (new GlfTimedSwitches)(name, Me)
+                m_timed_switches.Add name, new_timed_switch
+                Set TimedSwitches = new_timed_switch
+            End If
+        End Property
     Public Property Get Tilt()
         If Not IsNull(m_tilt) Then
             Set Tilt = m_tilt
@@ -4595,6 +4611,9 @@ Class Mode
         For Each config_item in m_combo_switches.Items()
             config_item.Debug = value
         Next
+        For Each config_item in m_timed_switches.Items()
+            config_item.Debug = value
+        Next
         If Not IsNull(m_tilt) Then
             m_tilt.Debug = value
         End If
@@ -4647,6 +4666,7 @@ Class Mode
         Set m_state_machines = CreateObject("Scripting.Dictionary")
         Set m_extra_balls = CreateObject("Scripting.Dictionary")
         Set m_combo_switches = CreateObject("Scripting.Dictionary")
+        Set m_timed_switches = CreateObject("Scripting.Dictionary")
 
         m_use_wait_queue = False
         m_lightplayer = Null
@@ -9193,6 +9213,153 @@ Function TiltHandler(args)
     End If
 End Function
 
+Class GlfTimedSwitches
+
+    Private m_name
+    Private m_priority
+    Private m_base_device
+    Private m_time
+    Private m_switches
+    Private m_events_when_active
+    Private m_events_when_released
+    Private m_active_switches
+    Private m_debug
+
+    Public Property Get Name(): Name = m_name: End Property
+    Public Property Get GetValue(value)
+        'Select Case value
+            'Case   
+        'End Select
+        GetValue = True
+    End Property
+
+    Public Property Let Time(value): Set m_time = CreateGlfInput(value): End Property
+    Public Property Get Time(): Time = m_time.Value(): End Property
+    
+    Public Property Let Switches(value): m_switches = value: End Property
+    
+    Public Property Let EventsWhenActive(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_events_when_active.Add newEvent.Raw, newEvent
+        Next
+    End Property
+    Public Property Let EventsWhenReleased(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_events_when_released.Add newEvent.Raw, newEvent
+        Next
+    End Property
+
+    Public Property Let Debug(value)
+        m_debug = value
+        m_base_device.Debug = value
+    End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
+    End Property
+
+    Public default Function init(name, mode)
+        m_name = "timed_switch_" & name
+        m_priority = mode.Priority
+        Set m_events_when_active = CreateObject("Scripting.Dictionary")
+        Set m_events_when_released = CreateObject("Scripting.Dictionary")
+        Set m_time = CreateGlfInput(0)
+        m_switches = Array()
+        Set m_active_switches = CreateObject("Scripting.Dictionary")
+        Set m_base_device = (new GlfBaseModeDevice)(mode, "timed_switch", Me)
+        Set Init = Me
+    End Function
+
+    Public Sub Activate()
+        Dim switch
+        For Each switch in m_switches
+            AddPinEventListener switch & "_active", m_name & "_" & evt & "_active", "TimedSwitchHandler", m_priority, Array("active", Me, switch)
+            AddPinEventListener switch & "_inactive", m_name & "_" & evt & "_inactive", "TimedSwitchHandler", m_priority, Array("inactive", Me, switch)
+        Next
+    End Sub
+
+    Public Sub Deactivate()
+        Dim switch
+        For Each switch in m_switches
+            RemovePinEventListener switch & "_active", m_name & "_" & evt & "_active"
+            RemovePinEventListener switch & "_inactive", m_name & "_" & evt & "_inactive"
+        Next
+    End Sub
+
+    Public Sub SwitchActive(switch)
+        If UBound(m_active_switches.Keys()) = -1 Then
+            Dim evt
+            For Each evt in m_events_when_active.Keys()
+                DispatchPinEvent m_events_when_active(evt).EventName, Null
+            Next
+        End If
+        If Not m_active_switches.Exists(switch) Then
+            m_active_switches.Add switch, True
+        End If
+    End Sub
+
+    Public Sub SwitchInactive(switch)
+        RemoveDelay m_name & "_" & switch & "_active"
+        If m_active_switches.Exists(switch) Then
+            m_active_switches.Remove switch
+            If UBound(m_active_switches.Keys()) = -1 Then
+                Dim evt
+                For Each evt in m_events_when_released.Keys()
+                    DispatchPinEvent m_events_when_released(evt).EventName, Null
+                Next
+            End If
+        End If
+    End Sub
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
+    End Sub
+
+End Class
+
+Function TimedSwitchHandler(args)
+    Dim ownProps, kwargs : ownProps = args(0)
+    If IsObject(args(1)) Then
+        Set kwargs = args(1)
+    Else
+        kwargs = args(1) 
+    End If
+    Dim evt : evt = ownProps(0)
+    Dim timed_switch : Set timed_switch = ownProps(1)
+    'Check if the evt has a condition to evaluate    
+    If UBound(ownProps) = 2 Then
+        If IsObject(ownProps(2)) Then
+            If ownProps(2).Evaluate() = False Then
+                If IsObject(args(1)) Then
+                    Set TimedSwitchHandler = kwargs
+                Else
+                    TimedSwitchHandler = kwargs
+                End If
+                Exit Function
+            End If
+        End If
+    End If
+    Select Case evt
+        Case "active"
+            SetDelay timed_switch.Name & "_" & ownProps(2) & "_active" , "TimedSwitchHandler" , Array(Array("passed_time", timed_switch, ownProps(2)),Null), timed_switch.Time
+        Case "passed_time"
+            timed_switch.SwitchActive ownProps(2)
+        Case "inactive"
+            timed_switch.SwitchInactive ownProps(2)
+    End Select
+
+    If IsObject(args(1)) Then
+        Set TimedSwitchHandler = kwargs
+    Else
+        TimedSwitchHandler = kwargs
+    End If
+End Function
+
 
 
 Class GlfTimer
@@ -12822,18 +12989,87 @@ End Function
 ' StartGame
 '
 '*****************************
-Sub Glf_StartGame()
-    glf_gameStarted = True
-    DispatchPinEvent GLF_GAME_START, Null
-    If useBcp Then
-        bcpController.Send "player_turn_start?player_num=int:1"
-        bcpController.Send "ball_start?player_num=int:1&ball=int:1"
-        bcpController.PlaySlide "base", "base", 1000
-        bcpController.SendPlayerVariable "number", 1, 0
+
+AddPinEventListener "request_to_start_game", "request_to_start_game_ball_controller", "Glf_BallController", 30, Null
+Function Glf_BallController(args)
+    Dim balls_in_trough : balls_in_trough = 0
+    If glf_troughSize = 1 Then
+        If swTrough1.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
     End If
-    SetDelay GLF_GAME_STARTED, "Glf_DispatchGameStarted", Null, 50
-    'DispatchPinEvent GLF_GAME_STARTED, Null
-End Sub
+    If glf_troughSize = 2 Then
+        If swTrough1.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough2.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+    End If
+    If glf_troughSize = 3 Then 
+        If swTrough1.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough2.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough3.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+    End If
+    If glf_troughSize = 4 Then 
+        If swTrough1.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough2.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough3.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough4.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+    End If
+    If glf_troughSize = 5 Then 
+        If swTrough1.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough2.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough3.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough4.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough5.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+    End If
+    If glf_troughSize = 6 Then 
+        If swTrough1.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough2.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough3.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough4.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough5.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough6.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+    End If
+    If glf_troughSize = 7 Then 
+        If swTrough1.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough2.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough3.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough4.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough5.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough6.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough7.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+    End If
+    If glf_troughSize = 8 Then 
+        If swTrough1.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough2.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough3.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough4.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough5.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough6.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If swTrough7.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+        If Drain.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
+    End If
+  
+    If glf_troughSize <> balls_in_trough Then
+        Glf_BallController = False
+        Exit Function
+    End If
+
+    Glf_BallController = True
+End Function
+
+AddPinEventListener "request_to_start_game", "request_to_start_game_result", "Glf_StartGame", 20, Null
+
+Function Glf_StartGame(args)
+    If args(1) = True And glf_gameStarted = False Then
+        Glf_AddPlayer()
+        glf_gameStarted = True
+        DispatchPinEvent GLF_GAME_START, Null
+        If useBcp Then
+            bcpController.Send "player_turn_start?player_num=int:1"
+            bcpController.Send "ball_start?player_num=int:1&ball=int:1"
+            bcpController.PlaySlide "base", "base", 1000
+            bcpController.SendPlayerVariable "number", 1, 0
+        End If
+        SetDelay GLF_GAME_STARTED, "Glf_DispatchGameStarted", Null, 50
+    End If
+End Function
 
 Sub Glf_EndBall()
 
@@ -13037,6 +13273,7 @@ End Function
 Public Function EndOfBallNextPlayer(args)
     DispatchPinEvent GLF_NEXT_PLAYER, Null
 End Function
+
 '*****************************************************************************************************************************************
 '  ERROR LOGS by baldgeek
 '*****************************************************************************************************************************************
