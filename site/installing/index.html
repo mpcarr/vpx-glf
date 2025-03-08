@@ -16,7 +16,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.25">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.28">
     
     
       
@@ -171,7 +171,7 @@
       
     </form>
     <div class="md-search__output">
-      <div class="md-search__scrollwrap" data-md-scrollfix>
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
             Initializing search
@@ -599,6 +599,48 @@
   
   
     <li class="md-nav__item">
+      <a href="../tutorial/tutorial-flippers/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Flippers
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/tutorial-autofire/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Auto Fire Devices
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../tutorial/tutorial-lights/" class="md-nav__link">
         
   
@@ -625,6 +667,27 @@
   
   <span class="md-ellipsis">
     Ball Devices
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/tutorial-ballsave/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Save
   </span>
   
 
@@ -737,6 +800,48 @@
   
   <span class="md-ellipsis">
     Ball Device
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../flipper/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Flipper
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../autofire/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Auto Fire Device
   </span>
   
 
@@ -941,11 +1046,13 @@
 <h2 id="global-script-required-settings">Global Script Required Settings</h2>
 <p>The GLF requires a few global settings to function correctly. </p>
 <h4 id="glf-game-timer">GLF Game Timer</h4>
-<p>Add a timer object added to your vpx table called Glf_GameTimer. Set it to Enabled with an Interval of -1ms.</p>
+<p>Add a timer object to your vpx table called Glf_GameTimer. Set it to Enabled with an Interval of -1ms.</p>
 <h4 id="glf-table-collection">GLF Table Collection</h4>
-<p>Create two collections using the vpx collections manager (F8).</p>
+<p>Create the following collections using the vpx collections manager (F8).</p>
 <pre><code>glf_lights
 glf_switches
+glf_slingshots
+glf_spinners
 </code></pre>
 <h4 id="global-script-settings">Global Script Settings</h4>
 <ul>
@@ -971,7 +1078,7 @@ Dim tableheight: tableheight = Table1.height
 End Sub
 </code></pre>
 <h2 id="adding-hooks-into-glf">Adding Hooks into GLF</h2>
-<p>Once the script has been added, you need to add these calls into to your table event subs.</p>
+<p>You need to add these calls into to your table event subs.</p>
 <h4 id="table-init">Table Init</h4>
 <p>Inside <code>Table1_Init</code> add your <code>ConfigureGlfDevices</code> sub call and <code>Glf_Init()</code></p>
 <p><strong>Example</strong></p>
@@ -1061,7 +1168,7 @@ End Sub
     <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "navigation.instant", "navigation.tabs"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.081f42fc.min.js"></script>
+      <script src="../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
       
     
   </body>

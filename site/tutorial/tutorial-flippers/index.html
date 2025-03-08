@@ -8,24 +8,28 @@
       
       
       
-        <link rel="canonical" href="https://mpcarr.github.io/vpx-gle-framework/events/">
+        <link rel="canonical" href="https://mpcarr.github.io/vpx-gle-framework/tutorial/tutorial-flippers/">
       
       
+        <link rel="prev" href="../tutorial-plunger/">
       
       
-      <link rel="icon" href="../assets/images/favicon.png">
+        <link rel="next" href="../tutorial-autofire/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.28">
     
     
       
-        <title>Events System - VPX Game Logic Framework</title>
+        <title>Flippers - VPX Game Logic Framework</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.6543a935.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.6543a935.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -44,9 +48,9 @@
       
     
     
-      <link rel="stylesheet" href="../stylesheets/extra.css">
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -72,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#events-system" class="md-skip">
+        <a href="#tutorial-flippers" class="md-skip">
           Skip to content
         </a>
       
@@ -86,7 +90,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="VPX Game Logic Framework" class="md-header__button md-logo" aria-label="VPX Game Logic Framework" data-md-component="logo">
+    <a href="../.." title="VPX Game Logic Framework" class="md-header__button md-logo" aria-label="VPX Game Logic Framework" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -106,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Events System
+              Flippers
             
           </span>
         </div>
@@ -199,11 +203,13 @@
         
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../installing/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../installing/" class="md-tabs__link">
           
   
   Getting Started
@@ -227,7 +233,7 @@
     
     
       <li class="md-tabs__item">
-        <a href="../ball-device/" class="md-tabs__link">
+        <a href="../../ball-device/" class="md-tabs__link">
           
   
   Game Logic
@@ -246,7 +252,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../about/" class="md-tabs__link">
+      <a href="../../about/" class="md-tabs__link">
         
   
     
@@ -280,7 +286,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="VPX Game Logic Framework" class="md-nav__button md-logo" aria-label="VPX Game Logic Framework" data-md-component="logo">
+    <a href="../.." title="VPX Game Logic Framework" class="md-nav__button md-logo" aria-label="VPX Game Logic Framework" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -295,23 +301,28 @@
       
   
   
+    
   
   
+  
     
     
     
-      
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
         
           
-          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
             
   
   <span class="md-ellipsis">
@@ -322,7 +333,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_1">
             <span class="md-nav__icon md-icon"></span>
             Getting Started
@@ -336,7 +347,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../installing/" class="md-nav__link">
+      <a href="../../installing/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -354,6 +365,8 @@
                 
   
   
+    
+  
   
   
     
@@ -363,11 +376,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" checked>
         
           
           <label class="md-nav__link" for="__nav_1_2" id="__nav_1_2_label" tabindex="0">
@@ -381,7 +394,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_1_2">
             <span class="md-nav__icon md-icon"></span>
             Tutorial
@@ -395,7 +408,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../tutorial/tutorial-trough/" class="md-nav__link">
+      <a href="../tutorial-trough/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -416,7 +429,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../tutorial/tutorial-plunger/" class="md-nav__link">
+      <a href="../tutorial-plunger/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -434,10 +447,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../tutorial/tutorial-flippers/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Flippers
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -446,6 +479,46 @@
   
 
       </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      Introduction
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -458,7 +531,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../tutorial/tutorial-autofire/" class="md-nav__link">
+      <a href="../tutorial-autofire/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -479,7 +552,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../tutorial/tutorial-lights/" class="md-nav__link">
+      <a href="../tutorial-lights/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -500,7 +573,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../tutorial/tutorial-ball-devices/" class="md-nav__link">
+      <a href="../tutorial-ball-devices/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -521,7 +594,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../tutorial/tutorial-ballsave/" class="md-nav__link">
+      <a href="../tutorial-ballsave/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -633,7 +706,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ball-device/" class="md-nav__link">
+      <a href="../../ball-device/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -654,7 +727,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../flipper/" class="md-nav__link">
+      <a href="../../flipper/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -675,7 +748,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../autofire/" class="md-nav__link">
+      <a href="../../autofire/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -711,7 +784,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../about/" class="md-nav__link">
+      <a href="../../about/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -753,45 +826,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#add-pin-event-listener" class="md-nav__link">
+  <a href="#introduction" class="md-nav__link">
     <span class="md-ellipsis">
-      Add Pin Event Listener
+      Introduction
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#example" class="md-nav__link">
+  <a href="#configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      Example
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#remove-pin-event-listener" class="md-nav__link">
-    <span class="md-ellipsis">
-      Remove Pin Event Listener
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dispatch-pin-event" class="md-nav__link">
-    <span class="md-ellipsis">
-      Dispatch Pin Event
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dispatch-relay-pin-event" class="md-nav__link">
-    <span class="md-ellipsis">
-      Dispatch Relay Pin Event
+      Configuration
     </span>
   </a>
   
@@ -812,49 +858,40 @@
                   
 
 
-<h1 id="events-system">Events System</h1>
-<p>The VPX GLF works on an events based system. All the devices emit and listen to events posted via the commands below</p>
-<h2 id="add-pin-event-listener">Add Pin Event Listener</h2>
-<p>Used to add an event listener. Parameters are:</p>
-<ul>
-<li>Event: The event you want to listen to</li>
-<li>Key: A unqiue key for this event</li>
-<li>Callback: The function to call when this event fires</li>
-<li>Priority: The priority the callback should be fired in relation to other callbacks for this event. (Higher priority will be called first)</li>
-<li>Arguments: Anything to be passed along to the callback function when this event fires.</li>
-</ul>
-<h2 id="example">Example</h2>
-<pre><code>AddPinEventListener &quot;sw01_active&quot;, &quot;switch01Active&quot;, &quot;HandleSwitchHit&quot;, 1000, Null
+<h1 id="tutorial-flippers">Tutorial - Flippers</h1>
+<p><a href="../../flipper">See Flipper Config Reference</a></p>
+<h2 id="introduction">Introduction</h2>
+<p>Flippers are a critical component of any pinball machine. This tutorial will guide you through the setup, configuration, and advanced customization of flippers in your system.</p>
+<h2 id="configuration"><strong>Configuration</strong></h2>
+<p>To configure your flippers, add the following code to the <code>ConfigureGlfDevices</code> subroutine:</p>
+<pre><code>Sub ConfigureGlfDevices
 
-Sub HandleSwitchHit(args)
-    Dim listenerArgs, dispatchArgs
-    listenerArgs = args(0)
-    dispatchArgs = args(1)
+    ' Flippers
+    With CreateGlfFlipper(&quot;left&quot;)
+        .Switch = &quot;s_left_flipper&quot;
+        .ActionCallback = &quot;LeftFlipperAction&quot;
+        .DisableEvents = Array(&quot;kill_flippers&quot;)
+        .EnableEvents = Array(&quot;ball_started&quot;, &quot;enable_flippers&quot;)
+    End With
+
+    With CreateGlfFlipper(&quot;right&quot;)
+        .Switch = &quot;s_right_flipper&quot;
+        .ActionCallback = &quot;RightFlipperAction&quot;
+        .DisableEvents = Array(&quot;kill_flippers&quot;)
+        .EnableEvents = Array(&quot;ball_started&quot;, &quot;enable_flippers&quot;)
+    End With
+
 End Sub
 </code></pre>
-<p>When the event callback is called, a param will be passed along. This is an array where the first item is the args set with AddPinEventListener and the second item is the args sent with the DispatchPinEvent call.</p>
-<h2 id="remove-pin-event-listener">Remove Pin Event Listener</h2>
-<p>Used to remove a pin event listener</p>
-<pre><code>RemovePinEventListener &quot;sw01_active&quot;, &quot;switch01Active&quot;
+<p>Your action callback could look like this:</p>
+<pre><code>Sub LeftFlipperAction(Enabled)
+    If Enabled Then
+        LeftFlipper.RotateToEnd
+    Else
+        LeftFlipper.RotateToStart
+    End If
+End Sub
 </code></pre>
-<h2 id="dispatch-pin-event">Dispatch Pin Event</h2>
-<p>Used to dispatch a pin event to the system</p>
-<pre><code>DispatchPinEvent &quot;sw01_active&quot;, Null
-</code></pre>
-<h2 id="dispatch-relay-pin-event">Dispatch Relay Pin Event</h2>
-<p>Used to dispatch a special pin event to the system where the argument passed with the pin event is relayed and returned to each function.</p>
-<pre><code>DispatchRelayPinEvent &quot;sw01_active&quot;, 1
-</code></pre>
-<p>Listeners to these relay events must return the argument so that the next function can received the updated value</p>
-<pre><code>Function HandleSwitchHit(args)
-    Dim listenerArgs, dispatchArgs
-    listenerArgs = args(0)
-    dispatchArgs = args(1)
-    dispatchArgs = 2
-    HandleSwitchHit = dispatchArgs
-End Function
-</code></pre>
-<p>In the above example, the initial event dispatched passed 1 as the argument, the HandleSwitchHit received this, changed it to a 2 and returned that value. The next event callback to fire would then recieved the value 2 instead of the initial 1.</p>
 
 
 
@@ -901,10 +938,10 @@ End Function
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "navigation.instant", "navigation.tabs"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "navigation.instant", "navigation.tabs"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+      <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
       
     
   </body>

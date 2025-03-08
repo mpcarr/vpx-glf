@@ -8,9 +8,13 @@
       
       
       
-        <link rel="canonical" href="https://mpcarr.github.io/vpx-gle-framework/events/">
+        <link rel="canonical" href="https://mpcarr.github.io/vpx-gle-framework/autofire/">
       
       
+        <link rel="prev" href="../flipper/">
+      
+      
+        <link rel="next" href="../about/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
@@ -18,7 +22,7 @@
     
     
       
-        <title>Events System - VPX Game Logic Framework</title>
+        <title>Auto Fire Device - VPX Game Logic Framework</title>
       
     
     
@@ -72,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#events-system" class="md-skip">
+        <a href="#glfautofire-class-documentation" class="md-skip">
           Skip to content
         </a>
       
@@ -106,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Events System
+              Auto Fire Device
             
           </span>
         </div>
@@ -217,16 +221,20 @@
         
   
   
+    
+  
   
     
     
       
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
+      <li class="md-tabs__item md-tabs__item--active">
         <a href="../ball-device/" class="md-tabs__link">
           
   
@@ -554,23 +562,28 @@
       
   
   
+    
   
   
+  
     
     
     
-      
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   <span class="md-ellipsis">
@@ -581,7 +594,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             Game Logic
@@ -592,6 +605,8 @@
                 
   
   
+    
+  
   
   
     
@@ -601,11 +616,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" checked>
         
           
           <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
@@ -619,7 +634,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2_1">
             <span class="md-nav__icon md-icon"></span>
             Virtual Devices
@@ -672,10 +687,30 @@
                 
   
   
+    
   
   
-    <li class="md-nav__item">
-      <a href="../autofire/" class="md-nav__link">
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Auto Fire Device
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
         
   
   <span class="md-ellipsis">
@@ -684,6 +719,46 @@
   
 
       </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#properties" class="md-nav__link">
+    <span class="md-ellipsis">
+      Properties
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Usage
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
     </li>
   
 
@@ -753,45 +828,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#add-pin-event-listener" class="md-nav__link">
+  <a href="#properties" class="md-nav__link">
     <span class="md-ellipsis">
-      Add Pin Event Listener
+      Properties
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#example" class="md-nav__link">
+  <a href="#example-usage" class="md-nav__link">
     <span class="md-ellipsis">
-      Example
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#remove-pin-event-listener" class="md-nav__link">
-    <span class="md-ellipsis">
-      Remove Pin Event Listener
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dispatch-pin-event" class="md-nav__link">
-    <span class="md-ellipsis">
-      Dispatch Pin Event
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dispatch-relay-pin-event" class="md-nav__link">
-    <span class="md-ellipsis">
-      Dispatch Relay Pin Event
+      Example Usage
     </span>
   </a>
   
@@ -812,49 +860,14 @@
                   
 
 
-<h1 id="events-system">Events System</h1>
-<p>The VPX GLF works on an events based system. All the devices emit and listen to events posted via the commands below</p>
-<h2 id="add-pin-event-listener">Add Pin Event Listener</h2>
-<p>Used to add an event listener. Parameters are:</p>
-<ul>
-<li>Event: The event you want to listen to</li>
-<li>Key: A unqiue key for this event</li>
-<li>Callback: The function to call when this event fires</li>
-<li>Priority: The priority the callback should be fired in relation to other callbacks for this event. (Higher priority will be called first)</li>
-<li>Arguments: Anything to be passed along to the callback function when this event fires.</li>
-</ul>
-<h2 id="example">Example</h2>
-<pre><code>AddPinEventListener &quot;sw01_active&quot;, &quot;switch01Active&quot;, &quot;HandleSwitchHit&quot;, 1000, Null
-
-Sub HandleSwitchHit(args)
-    Dim listenerArgs, dispatchArgs
-    listenerArgs = args(0)
-    dispatchArgs = args(1)
-End Sub
+<h1 id="glfautofire-class-documentation"><code>GlfAutoFire</code> Class Documentation</h1>
+<p>The <code>GlfAutoFireDevice</code> class is used to manage and configure devices such as slingshots and bumpers in a pinball machine.</p>
+<p><a href="../tutorial/tutorial-autofire">See Auto Fire Devices tutorial</a></p>
+<hr />
+<h2 id="properties">Properties</h2>
+<h2 id="example-usage">Example Usage</h2>
+<pre><code>
 </code></pre>
-<p>When the event callback is called, a param will be passed along. This is an array where the first item is the args set with AddPinEventListener and the second item is the args sent with the DispatchPinEvent call.</p>
-<h2 id="remove-pin-event-listener">Remove Pin Event Listener</h2>
-<p>Used to remove a pin event listener</p>
-<pre><code>RemovePinEventListener &quot;sw01_active&quot;, &quot;switch01Active&quot;
-</code></pre>
-<h2 id="dispatch-pin-event">Dispatch Pin Event</h2>
-<p>Used to dispatch a pin event to the system</p>
-<pre><code>DispatchPinEvent &quot;sw01_active&quot;, Null
-</code></pre>
-<h2 id="dispatch-relay-pin-event">Dispatch Relay Pin Event</h2>
-<p>Used to dispatch a special pin event to the system where the argument passed with the pin event is relayed and returned to each function.</p>
-<pre><code>DispatchRelayPinEvent &quot;sw01_active&quot;, 1
-</code></pre>
-<p>Listeners to these relay events must return the argument so that the next function can received the updated value</p>
-<pre><code>Function HandleSwitchHit(args)
-    Dim listenerArgs, dispatchArgs
-    listenerArgs = args(0)
-    dispatchArgs = args(1)
-    dispatchArgs = 2
-    HandleSwitchHit = dispatchArgs
-End Function
-</code></pre>
-<p>In the above example, the initial event dispatched passed 1 as the argument, the HandleSwitchHit received this, changed it to a 2 and returned that value. The next event callback to fire would then recieved the value 2 instead of the initial 1.</p>
 
 
 
