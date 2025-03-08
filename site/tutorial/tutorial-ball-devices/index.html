@@ -14,11 +14,11 @@
         <link rel="prev" href="../tutorial-lights/">
       
       
-        <link rel="next" href="../../ball-device/">
+        <link rel="next" href="../tutorial-ballsave/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.25">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.28">
     
     
       
@@ -173,7 +173,7 @@
       
     </form>
     <div class="md-search__output">
-      <div class="md-search__scrollwrap" data-md-scrollfix>
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
             Initializing search
@@ -450,6 +450,48 @@
   
   
     <li class="md-nav__item">
+      <a href="../tutorial-flippers/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Flippers
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-autofire/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Auto Fire Devices
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../tutorial-lights/" class="md-nav__link">
         
   
@@ -537,9 +579,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#example-direction-configuration" class="md-nav__link">
+  <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
-      Example Direction Configuration
+      Next Steps
     </span>
   </a>
   
@@ -549,6 +591,27 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-ballsave/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Save
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -666,6 +729,48 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../flipper/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Flipper
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autofire/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Auto Fire Device
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -748,9 +853,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#example-direction-configuration" class="md-nav__link">
+  <a href="#next-steps" class="md-nav__link">
     <span class="md-ellipsis">
-      Example Direction Configuration
+      Next Steps
     </span>
   </a>
   
@@ -781,82 +886,20 @@
 <h3 id="configuration">Configuration</h3>
 <p>To configure your device add the config below to your Configure Glf Devices Sub.</p>
 <pre><code>Sub ConfigureGlfDevices
-    Dim ball_device_scoop
-    Set ball_device_scoop = (new GlfBallDevice)(&quot;scoop&quot;)
 
-    With ball_device_scoop
+    ' Scoop
+    With CreateGlfBallDevice(&quot;scoop&quot;)
         .BallSwitches = Array(&quot;sw04&quot;)
-        .EjectTimeout = 2
-        .EjectStrength = 100
-        .EjectAngle = 0
-        .EjectPitch = 90
+        .EjectTimeout = 2000
+        .EjectCallback = &quot;ScoopEjectCallback&quot;
     End With
 
     'Other device config....
 End Sub
 </code></pre>
-<p>The above configuration sets up the scoop device with a switch called <strong>sw04</strong>. When the ball enters the scoop and the game is expecting the ball to enter, the ball will be held until released by the system. Once released it will be ejected by kicking the ball stright up. The scoop should have a physical wall above it to direct the ball back into play.</p>
-<h3 id="example-direction-configuration">Example Direction Configuration</h3>
-<table>
-<thead>
-<tr>
-<th><strong>Direction</strong></th>
-<th><strong>Angle (degrees)</strong></th>
-<th><strong>Pitch (degrees)</strong></th>
-<th><strong>Notes</strong></th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>Forward</td>
-<td>0</td>
-<td>0</td>
-<td>Straight ahead, flat.</td>
-</tr>
-<tr>
-<td>Right</td>
-<td>90</td>
-<td>0</td>
-<td>Flat, to the right.</td>
-</tr>
-<tr>
-<td>Backward</td>
-<td>180</td>
-<td>0</td>
-<td>Straight back, flat.</td>
-</tr>
-<tr>
-<td>Left</td>
-<td>270</td>
-<td>0</td>
-<td>Flat, to the left.</td>
-</tr>
-<tr>
-<td>Upward</td>
-<td>Any</td>
-<td>90</td>
-<td>Vertical or diagonal upward.</td>
-</tr>
-<tr>
-<td>Downward</td>
-<td>Any</td>
-<td>-90</td>
-<td>Vertical or diagonal downward.</td>
-</tr>
-<tr>
-<td>Diagonal Up-Right</td>
-<td>45</td>
-<td>Positive (30)</td>
-<td>Combines rightward and upward.</td>
-</tr>
-<tr>
-<td>Diagonal Down-Left</td>
-<td>225</td>
-<td>Negative (-30)</td>
-<td>Combines leftward and downward.</td>
-</tr>
-</tbody>
-</table>
+<p>The above configuration sets up the scoop device with a switch called <strong>sw04</strong>. When the ball enters the scoop and the game is expecting the ball to enter, the ball will be held until released by the system. Once released it will be ejected by calling the <strong>EjectCallback</strong> function. This is a function you define which will kick the ball in the direction you wish.</p>
+<h2 id="next-steps">Next Steps</h2>
+<p><a href="../tutorial-ballsave/">Example Ball Save</a></p>
 
 
 
@@ -906,7 +949,7 @@ End Sub
     <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "navigation.instant", "navigation.tabs"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.081f42fc.min.js"></script>
+      <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
       
     
   </body>

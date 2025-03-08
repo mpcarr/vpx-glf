@@ -11,14 +11,14 @@
         <link rel="canonical" href="https://mpcarr.github.io/vpx-gle-framework/tutorial/tutorial-lights/">
       
       
-        <link rel="prev" href="../tutorial-plunger/">
+        <link rel="prev" href="../tutorial-autofire/">
       
       
         <link rel="next" href="../tutorial-ball-devices/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.25">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.28">
     
     
       
@@ -173,7 +173,7 @@
       
     </form>
     <div class="md-search__output">
-      <div class="md-search__scrollwrap" data-md-scrollfix>
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
             Initializing search
@@ -447,6 +447,48 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-flippers/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Flippers
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-autofire/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Auto Fire Devices
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -563,6 +605,27 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-ballsave/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Save
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -666,6 +729,48 @@
   
   <span class="md-ellipsis">
     Ball Device
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../flipper/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Flipper
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../autofire/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Auto Fire Device
   </span>
   
 
@@ -820,14 +925,14 @@ End Sub
 <p>Lets step through the mode config. We create a new mode called gi_control, the mode will start when the ball_started event is posted by the system and will end when the ball_ended event is posted. We setup a light player within this mode that listens for the mode started event and changes the GI lights to white color.</p>
 <p>We now need to include this mode in our game. To do that, in your ConfigureGlfDevices sub add the following</p>
 <pre><code>    Sub ConfigureGlfDevices
-        Dim ball_device_plunger
-        Set ball_device_plunger = (new GlfBallDevice)(&quot;plunger&quot;)
 
-        With ball_device_plunger
+        ' Plunger
+        With CreateGlfBallDevice(&quot;plunger&quot;)
             .BallSwitches = Array(&quot;sw01&quot;)
-            .EjectTimeout = 2
-            .MechcanicalEject = True
+            .EjectTimeout = 2000
+            .MechanicalEject = True
             .DefaultDevice = True
+            .EjectCallback = &quot;PlungerEjectCallback&quot;
         End With
 
         CreateGIMode() '&lt;---Add this to enable the mode
@@ -886,7 +991,7 @@ End Sub
     <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "navigation.instant", "navigation.tabs"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.081f42fc.min.js"></script>
+      <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
       
     
   </body>

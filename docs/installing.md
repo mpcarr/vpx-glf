@@ -14,11 +14,13 @@ Add a timer object to your vpx table called Glf_GameTimer. Set it to Enabled wit
 
 #### GLF Table Collection
 
-Create two collections using the vpx collections manager (F8).
+Create the following collections using the vpx collections manager (F8).
 
 ```
 glf_lights
 glf_switches
+glf_slingshots
+glf_spinners
 ```
 
 #### Global Script Settings

@@ -11,14 +11,14 @@
         <link rel="canonical" href="https://mpcarr.github.io/vpx-gle-framework/ball-device/">
       
       
-        <link rel="prev" href="../tutorial/tutorial-ball-devices/">
+        <link rel="prev" href="../tutorial/tutorial-ballsave/">
       
       
-        <link rel="next" href="../about/">
+        <link rel="next" href="../flipper/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.25">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.28">
     
     
       
@@ -173,7 +173,7 @@
       
     </form>
     <div class="md-search__output">
-      <div class="md-search__scrollwrap" data-md-scrollfix>
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
             Initializing search
@@ -445,6 +445,48 @@
   
   
     <li class="md-nav__item">
+      <a href="../tutorial/tutorial-flippers/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Flippers
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/tutorial-autofire/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Auto Fire Devices
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../tutorial/tutorial-lights/" class="md-nav__link">
         
   
@@ -471,6 +513,27 @@
   
   <span class="md-ellipsis">
     Ball Devices
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/tutorial-ballsave/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Save
   </span>
   
 
@@ -670,36 +733,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#ejectangle" class="md-nav__link">
-    <span class="md-ellipsis">
-      EjectAngle
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#ejectcallback" class="md-nav__link">
     <span class="md-ellipsis">
       EjectCallback
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ejectpitch" class="md-nav__link">
-    <span class="md-ellipsis">
-      EjectPitch
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ejectstrength" class="md-nav__link">
-    <span class="md-ellipsis">
-      EjectStrength
     </span>
   </a>
   
@@ -759,6 +795,48 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../flipper/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Flipper
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../autofire/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Auto Fire Device
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -865,36 +943,9 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#ejectangle" class="md-nav__link">
-    <span class="md-ellipsis">
-      EjectAngle
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#ejectcallback" class="md-nav__link">
     <span class="md-ellipsis">
       EjectCallback
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ejectpitch" class="md-nav__link">
-    <span class="md-ellipsis">
-      EjectPitch
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ejectstrength" class="md-nav__link">
-    <span class="md-ellipsis">
-      EjectStrength
     </span>
   </a>
   
@@ -982,21 +1033,9 @@ Specifies whether this device is the default ball device. If set to <code>True</
 <p><code>Array&lt;String&gt;</code><br />
 An array of event names that will trigger the ejection of all balls in the device.</p>
 <hr />
-<h3 id="ejectangle"><strong>EjectAngle</strong></h3>
-<p><code>Float</code><br />
-The angle (in radians) at which balls are ejected from the device.</p>
-<hr />
 <h3 id="ejectcallback"><strong>EjectCallback</strong></h3>
 <p><code>String</code><br />
 The name of the callback function to execute when a ball is ejected.</p>
-<hr />
-<h3 id="ejectpitch"><strong>EjectPitch</strong></h3>
-<p><code>Float</code><br />
-The pitch angle (in radians) at which balls are ejected from the device.</p>
-<hr />
-<h3 id="ejectstrength"><strong>EjectStrength</strong></h3>
-<p><code>Float</code><br />
-The strength of the ejection force.</p>
 <hr />
 <h3 id="ejecttargets"><strong>EjectTargets</strong></h3>
 <p><code>Array&lt;String&gt;</code><br />
@@ -1016,14 +1055,10 @@ event name triggered by player-controlled eject attempts.</p>
 <hr />
 <h2 id="example-usage">Example Usage</h2>
 <p>Here’s an example of how to configure a ball device:</p>
-<pre><code>Dim ball_device_scoop
-Set ball_device_scoop = (New GlfBallDevice)(&quot;scoop&quot;)
-
-With ball_device_scoop
-    .BallSwitches = Array(&quot;sw39&quot;)
-    .EjectTimeout = 2
-    .EjectCallback = &quot;ScoopKickBall&quot;
-    .EjectAllEvents = Array(&quot;ball_ended&quot;)
+<pre><code>With CreateGlfBallDevice(&quot;scoop&quot;)
+    .BallSwitches = Array(&quot;sw04&quot;)
+    .EjectTimeout = 2000
+    .EjectCallback = &quot;ScoopEjectCallback&quot;
 End With
 </code></pre>
 
@@ -1075,7 +1110,7 @@ End With
     <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "navigation.instant", "navigation.tabs"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.081f42fc.min.js"></script>
+      <script src="../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
       
     
   </body>
