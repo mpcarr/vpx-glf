@@ -6,13 +6,18 @@ nav:
     - 'Tutorial':
       - 'Trough': 'tutorial/tutorial-trough.md'
       - 'Plunger': 'tutorial/tutorial-plunger.md'
+      - 'Flippers': 'tutorial/tutorial-flippers.md'
+      - 'Auto Fire Devices': 'tutorial/tutorial-autofire.md'
       - 'Lights': 'tutorial/tutorial-lights.md'
       - 'Ball Devices': 'tutorial/tutorial-ball-devices.md'
+      - 'Ball Save': 'tutorial/tutorial-ballsave.md'
       #- 'Shows': 'tutorial/tutorial-shows.md'
   #- 'Features': features.md
   - 'Game Logic':
     - Virtual Devices:
           - 'Ball Device': ball-device.md
+          - 'Flipper': flipper.md
+          - 'Auto Fire Device': autofire.md
     #      - 'Diverter': diverter.md
     #      - 'Drop Target': drop-target.md
     #- 'Game Logic Commands':
