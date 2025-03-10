@@ -415,8 +415,10 @@ Sub Glf_ReadMachineVars()
             inSection = (LCase(Mid(line, 2, Len(line) - 2)) = LCase("MachineVars"))
         ElseIf inSection And InStr(line, "=") > 0 Then
 			Dim key : key = Trim(Split(line, "=")(0))
-			If glf_machine_vars(key).Persist = True Then
-            	glf_machine_vars(key).Value = Trim(Split(line, "=")(1))
+			If glf_machine_vars.Exists(key) Then
+				If glf_machine_vars(key).Persist = True Then
+	            	glf_machine_vars(key).Value = Trim(Split(line, "=")(1))
+				End If
 			End If
         End If
     Next
@@ -447,9 +449,11 @@ Sub Glf_WriteMachineVars()
         
         If inSection And InStr(line, "=") > 0 Then
             key = Trim(Split(line, "=")(0))
-            If glf_machine_vars.Exists(key) And glf_machine_vars(key).Persist = True Then
-                line = key & "=" & glf_machine_vars(key).Value
-                glf_machine_vars.Remove key
+            If glf_machine_vars.Exists(key) Then
+				If glf_machine_vars(key).Persist = True Then
+                	line = key & "=" & glf_machine_vars(key).Value
+                	glf_machine_vars.Remove key
+				End If
             End If
         End If
 
