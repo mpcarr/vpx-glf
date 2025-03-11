@@ -15,6 +15,7 @@ Class GlfDiverter
     Private m_action_cb
     Private m_enabled
     Private m_active
+    Private m_ball_search_hold_time
     Private m_debug
 
     Public Property Get Name(): Name = m_name : End Property
@@ -68,6 +69,7 @@ Class GlfDiverter
     End Property
     Public Property Let ActivationTime(value) : Set m_activation_time = CreateGlfInput(value) : End Property
     Public Property Let ActivationSwitches(value) : m_activation_switches = value : End Property
+    Public Property Let BallSearchHoldTime(value) : Set m_ball_search_hold_time = CreateGlfInput(value) : End Property
     Public Property Let Debug(value) : m_debug = value : End Property
 
 	Public default Function init(name)
@@ -78,6 +80,7 @@ Class GlfDiverter
         Set m_deactivate_events = CreateObject("Scripting.Dictionary")
         m_activation_switches = Array()
         Set m_activation_time = CreateGlfInput(0)
+        Set m_ball_search_hold_time = CreateGlfInput(1000)
         m_debug = False
         m_enabled = False
         m_active = False
@@ -133,6 +136,23 @@ Class GlfDiverter
         RemoveDelay m_name & "_deactivate"
         GetRef(m_action_cb)(0)
         DispatchPinEvent m_name & "_deactivating", Null
+    End Sub
+
+    Public Sub BallSearch(phase)
+        Log "Ball Search, phase " & phase
+        If m_active = False Then
+            If Not IsEmpty(m_action_cb) Then
+                m_active = True
+                GetRef(m_action_cb)(1)
+            End If
+            SetDelay m_name & "ball_search_deactivate", "DiverterEventHandler", Array(Array("deactivate", Me), Null), m_ball_search_hold_time.Value
+        Else
+            If Not IsEmpty(m_action_cb) Then
+                m_active = False
+                GetRef(m_action_cb)(0)
+            End If
+            SetDelay m_name & "ball_search_activate", "DiverterEventHandler", Array(Array("activate", Me), Null), m_ball_search_hold_time.Value
+        End If
     End Sub
 
     Private Sub Log(message)

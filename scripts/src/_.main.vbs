@@ -4,10 +4,12 @@
 Dim glf_currentPlayer : glf_currentPlayer = Null
 Dim glf_canAddPlayers : glf_canAddPlayers = True
 Dim glf_PI : glf_PI = 4 * Atn(1)
-Dim glf_plunger
+Dim glf_plunger, glf_ballsearch
+glf_ballsearch = Null
 Dim glf_gameStarted : glf_gameStarted = False
 Dim glf_gameTilted : glf_gameTilted = False
 Dim glf_gameEnding : glf_gameEnding = False
+Dim glf_last_switch_hit : glf_last_switch_hit = 0
 Dim glf_current_virtual_tilt : glf_current_virtual_tilt = 0
 Dim glf_tilt_sensitivity : glf_tilt_sensitivity = 7
 Dim glf_pinEvents : Set glf_pinEvents = CreateObject("Scripting.Dictionary")
@@ -121,7 +123,7 @@ Public Sub Glf_Init()
 	Dim switch, switchHitSubs
 	switchHitSubs = ""
 	For Each switch in Glf_Switches
-		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_Hit() : If Not glf_gameTilted Then : DispatchPinEvent """ & switch.Name & "_active"", ActiveBall : End If : End Sub" & vbCrLf
+		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_Hit() : If Not glf_gameTilted Then : Glf_ResetBallSearch : DispatchPinEvent """ & switch.Name & "_active"", ActiveBall : End If : End Sub" & vbCrLf
 		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_UnHit() : If Not glf_gameTilted Then : DispatchPinEvent """ & switch.Name & "_inactive"", ActiveBall : End If  : End Sub" & vbCrLf
 	Next
 	ExecuteGlobal switchHitSubs
@@ -129,14 +131,14 @@ Public Sub Glf_Init()
 	Dim slingshot, slingshotHitSubs
 	slingshotHitSubs = ""
 	For Each slingshot in Glf_Slingshots
-		slingshotHitSubs = slingshotHitSubs & "Sub " & slingshot.Name & "_Slingshot() : If Not glf_gameTilted Then : DispatchPinEvent """ & slingshot.Name & "_active"", ActiveBall : End If  : End Sub" & vbCrLf
+		slingshotHitSubs = slingshotHitSubs & "Sub " & slingshot.Name & "_Slingshot() : If Not glf_gameTilted Then : Glf_ResetBallSearch : DispatchPinEvent """ & slingshot.Name & "_active"", ActiveBall : End If  : End Sub" & vbCrLf
 	Next
 	ExecuteGlobal slingshotHitSubs
 
 	Dim spinner, spinnerHitSubs
 	spinnerHitSubs = ""
 	For Each spinner in Glf_Spinners
-		spinnerHitSubs = spinnerHitSubs & "Sub " & spinner.Name & "_Spin() : If Not glf_gameTilted Then : DispatchPinEvent """ & spinner.Name & "_active"", ActiveBall : End If  : End Sub" & vbCrLf
+		spinnerHitSubs = spinnerHitSubs & "Sub " & spinner.Name & "_Spin() : If Not glf_gameTilted Then : Glf_ResetBallSearch : DispatchPinEvent """ & spinner.Name & "_active"", ActiveBall : End If  : End Sub" & vbCrLf
 	Next
 	ExecuteGlobal spinnerHitSubs
 
@@ -732,6 +734,12 @@ Sub Glf_CheckTilt()
 	If (glf_current_virtual_tilt > 10) Then 
 		RunAutoFireDispatchPinEvent "s_tilt_warning_active", Null
 		glf_current_virtual_tilt = glf_tilt_sensitivity
+	End If
+End Sub
+
+Sub Glf_ResetBallSearch()
+	If Not IsNull(glf_ballsearch) Then
+		glf_ballsearch.Reset()
 	End If
 End Sub
 

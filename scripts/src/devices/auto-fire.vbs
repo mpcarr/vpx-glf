@@ -101,6 +101,14 @@ Class GlfAutoFireDevice
         DispatchPinEvent m_name & "_deactivate", Null
     End Sub
 
+    Public Sub BallSearch(phase)
+        Log "Ball Search, phase " & phase
+        If Not IsEmpty(m_action_cb) Then
+            GetRef(m_action_cb)(Array(1, Null))
+        End If
+        SetDelay m_name & "ball_search_deactivate", "AutoFireDeviceEventHandler", Array(Array("deactivate", Me), Null), 150
+    End Sub
+
     Private Sub Log(message)
         If m_debug = True Then
             glf_debugLog.WriteToLog m_name, message

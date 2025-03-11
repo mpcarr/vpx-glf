@@ -136,6 +136,19 @@ Class GlfDroptarget
 		End If
     End Sub
 
+    Public Sub BallSearch(phase)
+        Log "Ball Search, phase " & phase
+        If Not IsEmpty(m_action_cb) And m_complete = 0 Then
+            GetRef(m_action_cb)(1) 'Knockdown
+            SetDelay m_name & "ball_search_deactivate", "DroptargetEventHandler", Array(Array("reset", Me), Null), 100
+		Else
+            If Not IsEmpty(m_action_cb) And m_complete = 1 Then
+                GetRef(m_action_cb)(0) 'Reset
+                SetDelay m_name & "ball_search_deactivate", "DroptargetEventHandler", Array(Array("knockdown", Me), Null), 100
+            End If
+        End If
+    End Sub
+    
     Private Sub Log(message)
         If m_debug = True Then
             glf_debugLog.WriteToLog m_name, message

@@ -225,6 +225,19 @@ Class GlfBallDevice
         m_lost_balls = 0
     End Sub
 
+    Public Sub BallSearch(phase)
+        Log "Ball Search, phase " & phase
+        If m_default_device = True Then
+            Exit Sub
+        End If
+        If phase = 1 And HasBall() Then
+            Exit Sub
+        End If
+        If Not IsNull(m_eject_callback) Then
+            GetRef(m_eject_callback)(m_balls(0))
+        End If
+    End Sub
+
     Private Sub Log(message)
         If m_debug = True Then
             glf_debugLog.WriteToLog m_name, message
