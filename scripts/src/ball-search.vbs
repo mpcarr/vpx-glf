@@ -1,5 +1,16 @@
 Function EnableGlfBallSearch()
 	Dim ball_search : Set ball_search = (new GlfBallSearch)()
+    With CreateGlfMode("glf_ball_search", 100)
+        .StartEvents = Array("reset_complete")
+
+        With .TimedSwitches("flipper_cradle")
+            .Switches = Array("s_left_flipper", "s_right_flipper")
+            .Time = 3000
+            .EventsWhenActive = Array("flipper_cradle")
+            .EventsWhenReleased = Array("flipper_release")
+            .Debug = True
+        End With
+    End With
 	Set EnableGlfBallSearch = ball_search
 End Function
 
@@ -46,11 +57,18 @@ Class GlfBallSearch
         m_current_device_type = Empty
         Set glf_ballsearch = Me
         SetDelay "ball_search" , "BallSearchHandler", Array("start", Me), m_timeout.Value
+        AddPinEventListener "flipper_cradle", "ball_search_flipper_cradle", "BallSearchHandler", 30, Array("stop", Me)
+        AddPinEventListener "flipper_release", "ball_search_flipper_cradle", "BallSearchHandler", 30, Array("reset", Me)
         Set Init = Me
     End Function
 
     Public Sub Start(phase)
-        If glf_gameStarted = True And glf_BIP > 0 And glf_plunger.HasBall() = False Then
+        Dim ball_hold, held_balls
+        held_balls = 0
+        For Each ball_hold in glf_ball_holds.Items()
+            held_balls = held_balls + ball_hold.GetValue("balls_held")
+        Next
+        If glf_gameStarted = True And glf_BIP > 0 And (glf_BIP-held_balls)>0 And glf_plunger.HasBall() = False Then
             m_phase = phase
             'Fire all auto fire devices, slings, pops.
             m_devices = glf_autofiredevices.Items()
@@ -108,6 +126,12 @@ Class GlfBallSearch
         SetDelay "ball_search" , "BallSearchHandler", Array("start", Me), m_timeout.Value
     End Sub
 
+    Public Sub StopBallSearch()
+        RemoveDelay "ball_search_next_device"
+        m_phase = 0
+        RemoveDelay "ball_search"
+    End Sub
+
     Private Sub Log(message)
         If m_debug = True Then
             glf_debugLog.WriteToLog m_name, message
@@ -125,6 +149,8 @@ Function BallSearchHandler(args)
             ball_search.Start 1
         Case "reset":
             ball_search.Reset
+        Case "stop":
+            ball_search.StopBallSearch
         Case "next_device"
             ball_search.NextDevice args(2)
     End Select

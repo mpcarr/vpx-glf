@@ -18,6 +18,12 @@ Class GlfBallHold
     Private m_release_one_if_full_events
 
     Public Property Get Name() : Name = m_name : End Property
+    Public Property Get GetValue(value)
+        Select Case value
+            Case "balls_held":
+                GetValue = m_balls_held
+        End Select
+    End Property
     Public Property Let Debug(value)
         m_debug = value
         m_base_device.Debug = value
@@ -73,7 +79,7 @@ Class GlfBallHold
         Set m_release_all_events = CreateObject("Scripting.Dictionary")
         Set m_release_one_events = CreateObject("Scripting.Dictionary")
         Set m_release_one_if_full_events = CreateObject("Scripting.Dictionary")
-
+        ReleaseAllEvents = Array("tilt")
         Set m_base_device = (new GlfBaseModeDevice)(mode, "ball_hold", Me)
         glf_ball_holds.Add name, Me
         Set Init = Me
@@ -110,6 +116,7 @@ Class GlfBallHold
 
     Public Sub Disable()
         m_enabled = False
+        ReleaseAll()
         Dim device
         For Each device in m_hold_devices
             RemovePinEventListener "balldevice_" & device & "_ball_enter", m_mode & "_" & name & "_hold"
