@@ -9,7 +9,8 @@ glf_ballsearch = Null
 Dim glf_gameStarted : glf_gameStarted = False
 Dim glf_gameTilted : glf_gameTilted = False
 Dim glf_gameEnding : glf_gameEnding = False
-Dim glf_last_switch_hit : glf_last_switch_hit = 0
+Dim glf_last_switch_hit_time : glf_last_switch_hit_time = 0
+Dim glf_last_switch_hit : glf_last_switch_hit = ""
 Dim glf_current_virtual_tilt : glf_current_virtual_tilt = 0
 Dim glf_tilt_sensitivity : glf_tilt_sensitivity = 7
 Dim glf_pinEvents : Set glf_pinEvents = CreateObject("Scripting.Dictionary")
@@ -123,9 +124,10 @@ Public Sub Glf_Init()
 	Dim switch, switchHitSubs
 	switchHitSubs = ""
 	For Each switch in Glf_Switches
-		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_Hit() : If Not glf_gameTilted Then : Glf_ResetBallSearch : DispatchPinEvent """ & switch.Name & "_active"", ActiveBall : End If : End Sub" & vbCrLf
+		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_Hit() : If Not glf_gameTilted Then : If glf_last_switch_hit <> """ & switch.Name & """ Or (gametime-glf_last_switch_hit_time) > 10 Then : Glf_ResetBallSearch : DispatchPinEvent """ & switch.Name & "_active"", ActiveBall : glf_last_switch_hit_time = gametime : glf_last_switch_hit = """& switch.Name &""": End If : End If : End Sub" & vbCrLf
 		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_UnHit() : If Not glf_gameTilted Then : DispatchPinEvent """ & switch.Name & "_inactive"", ActiveBall : End If  : End Sub" & vbCrLf
 	Next
+	
 	ExecuteGlobal switchHitSubs
 
 	Dim slingshot, slingshotHitSubs
