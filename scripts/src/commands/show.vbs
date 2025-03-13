@@ -297,6 +297,13 @@ Function GlfShowStepHandler(args)
             End If
         Next
     End If
+    If UBound(nextStep.DOFEventsInStep().Keys())>-1 Then
+        Dim dof_item
+        Dim dof_items : dof_items = nextStep.DOFEventsInStep().Items()
+        For Each dof_item in dof_items
+            DOF dof_item.DOFEvent, dof_item.Action
+        Next
+    End If
 
     If nextStep.Duration = -1 Then
         'glf_debugLog.WriteToLog "Running Show", "HOLD"
@@ -338,7 +345,7 @@ End Function
 
 Class GlfShowStep
 
-    Private m_lights, m_shows, m_time, m_duration, m_isLastStep, m_absTime, m_relTime
+    Private m_lights, m_shows, m_dofs, m_time, m_duration, m_isLastStep, m_absTime, m_relTime
 
     Public Property Get Lights(): Lights = m_lights: End Property
     Public Property Let Lights(input) : m_lights = input: End Property
@@ -349,6 +356,14 @@ Class GlfShowStep
         new_show.Show = name
         m_shows.Add name & CStr(UBound(m_shows.Keys)), new_show
         Set Shows = new_show
+    End Property
+
+    Public Property Get DOFEventsInStep(): Set DOFEventsInStep = m_dofs: End Property
+    Public Property Get DOFEvent(dof_event)
+        Dim new_dof : Set new_dof = (new GlfDofPlayerItem)()
+        new_dof.DOFEvent = dof_event
+        m_dofs.Add name & CStr(UBound(m_dofs.Keys)), new_dof
+        Set DOFEvent = new_dof
     End Property
 
     Public Property Get Time()
@@ -384,6 +399,7 @@ Class GlfShowStep
         m_relTime = Null
         m_isLastStep = False
         Set m_shows = CreateObject("Scripting.Dictionary")
+        Set m_dofs = CreateObject("Scripting.Dictionary")
         Set Init = Me
 	End Function
 

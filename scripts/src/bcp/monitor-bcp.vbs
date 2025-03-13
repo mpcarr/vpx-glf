@@ -130,6 +130,9 @@ Sub Glf_MonitorModeUpdate(mode)
     If Not IsNull(mode.VariablePlayer) Then
         glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.VariablePlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.VariablePlayer.Name & """},"
     End If
+    If Not IsNull(mode.DOFPlayer) Then
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.DOFPlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.DOFPlayer.Name & """},"
+    End If
 End Sub
 
 Sub Glf_MonitorPlayerStateUpdate(key, value)
