@@ -11218,6 +11218,7 @@ Class GlfLightSegmentDisplay
     Private m_current_flash_mask
     private m_lights
     private m_light_group
+    private m_light_groups
     private m_segmentmap
     private m_segment_type
     private m_size
@@ -11229,6 +11230,7 @@ Class GlfLightSegmentDisplay
     private m_use_dots_for_commas
     private m_display_flash_duty
     private m_display_flash_display_flash_frequency
+    private m_default_transition_update_hz
     private m_color
 
     Public Property Get Name() : Name = m_name : End Property
@@ -11247,6 +11249,12 @@ Class GlfLightSegmentDisplay
     Public Property Get LightGroup() : LightGroup = m_light_group : End Property
     Public Property Let LightGroup(input)
         m_light_group = input
+        CalculateLights()
+    End Property
+
+    Public Property Get LightGroups() : LightGroups = m_light_groups : End Property
+    Public Property Let LightGroups(input)
+        m_light_groups = input
         CalculateLights()
     End Property
 
@@ -11271,6 +11279,9 @@ Class GlfLightSegmentDisplay
     Public Property Get DefaultColor() : DefaultColor = m_color : End Property
     Public Property Let DefaultColor(input) : m_color = input : End Property
 
+    Public Property Get DefaultTransitionUpdateHz() : DefaultTransitionUpdateHz = m_default_transition_update_hz : End Property
+    Public Property Let DefaultTransitionUpdateHz(input) : m_default_transition_update_hz = input : End Property
+
     Public default Function init(name)
         m_name = name
         m_flash_on = True
@@ -11281,6 +11292,7 @@ Class GlfLightSegmentDisplay
         m_segment_type = Empty
         m_segmentmap = Null
         m_light_group = Empty
+        m_light_groups = Array()
         m_current_text = Empty
         m_display_state = Empty
         m_current_state = Null
@@ -11296,6 +11308,7 @@ Class GlfLightSegmentDisplay
         m_use_dots_for_commas = False
 
         m_display_flash_duty = 30
+        m_default_transition_update_hz = 30
         m_display_flash_display_flash_frequency = 60
 
         m_color = "ffffff"
@@ -11307,17 +11320,38 @@ Class GlfLightSegmentDisplay
     End Function
 
     Private Sub CalculateLights()
-        If Not IsEmpty(m_segment_type) And m_size > 0 And Not IsEmpty(m_light_group) Then
+        If Not IsEmpty(m_segment_type) And m_size > 0 And (Not IsEmpty(m_light_group) Or Ubound(m_light_groups)>-1) Then
             m_lights = Array()
             If m_segment_type = "14Segment" Then
-                ReDim m_lights(m_size * 15)
+                ReDim m_lights((m_size * 15)-1)
             ElseIf m_segment_type = "7Segment" Then
-                ReDim m_lights(m_size * 8)
+                ReDim m_lights((m_size * 8)-1)
             End If
 
-            Dim i
+            Dim i, group_idx, current_light_group
+            If Not IsEmpty(m_light_group) Then
+                current_light_group = m_light_group
+            ElseIf UBound(m_light_groups)>-1 Then
+                current_light_group = m_light_groups(0)
+                group_idx = 0
+            End If
+            Dim k : k = 0
             For i=0 to UBound(m_lights)
-                m_lights(i) = m_light_group & CStr(i+1)
+                'On Error Resume Next
+                If typename(Eval(current_light_group & CStr(k+1))) = "Light" Then
+                    m_lights(i) = current_light_group & CStr(k+1)
+                    k=k+1
+                Else
+                    'msgbox typename(Eval(current_light_group & CStr(k+1)))
+                    'msgbox current_light_group & CStr(k+1)
+                    current_light_group = m_light_groups(group_idx+1)
+                    'msgbox current_light_group
+                    group_idx = group_idx + 1
+                    k = 0
+                    m_lights(i) = current_light_group & CStr(k+1)
+                    k=k+1
+                End If
+
             Next
         End If
     End Sub
@@ -11372,35 +11406,35 @@ Class GlfLightSegmentDisplay
                 mapped_text = MapSegmentTextToSegments(m_current_state.BlankSegments(String(m_size, "F")), m_size, m_segmentmap)
             End If
         End If
-        Dim segment_idx : segment_idx = 1
+        Dim segment_idx : segment_idx = 0
         For Each segment in mapped_text
             
             If m_segment_type = "14Segment" Then
-                Glf_SetLight m_light_group & CStr(segment_idx), SegmentColor(segment.a)
-                Glf_SetLight m_light_group & CStr(segment_idx + 1), SegmentColor(segment.b)
-                Glf_SetLight m_light_group & CStr(segment_idx + 2), SegmentColor(segment.c)
-                Glf_SetLight m_light_group & CStr(segment_idx + 3), SegmentColor(segment.d)
-                Glf_SetLight m_light_group & CStr(segment_idx + 4), SegmentColor(segment.e)
-                Glf_SetLight m_light_group & CStr(segment_idx + 5), SegmentColor(segment.f)
-                Glf_SetLight m_light_group & CStr(segment_idx + 6), SegmentColor(segment.g1)
-                Glf_SetLight m_light_group & CStr(segment_idx + 7), SegmentColor(segment.g2)
-                Glf_SetLight m_light_group & CStr(segment_idx + 8), SegmentColor(segment.h)
-                Glf_SetLight m_light_group & CStr(segment_idx + 9), SegmentColor(segment.j)
-                Glf_SetLight m_light_group & CStr(segment_idx + 10), SegmentColor(segment.k)
-                Glf_SetLight m_light_group & CStr(segment_idx + 11), SegmentColor(segment.n)
-                Glf_SetLight m_light_group & CStr(segment_idx + 12), SegmentColor(segment.m)
-                Glf_SetLight m_light_group & CStr(segment_idx + 13), SegmentColor(segment.l)
-                Glf_SetLight m_light_group & CStr(segment_idx + 14), SegmentColor(segment.dp)
+                Glf_SetLight m_lights(segment_idx), SegmentColor(segment.a)
+                Glf_SetLight m_lights(segment_idx + 1), SegmentColor(segment.b)
+                Glf_SetLight m_lights(segment_idx + 2), SegmentColor(segment.c)
+                Glf_SetLight m_lights(segment_idx + 3), SegmentColor(segment.d)
+                Glf_SetLight m_lights(segment_idx + 4), SegmentColor(segment.e)
+                Glf_SetLight m_lights(segment_idx + 5), SegmentColor(segment.f)
+                Glf_SetLight m_lights(segment_idx + 6), SegmentColor(segment.g1)
+                Glf_SetLight m_lights(segment_idx + 7), SegmentColor(segment.g2)
+                Glf_SetLight m_lights(segment_idx + 8), SegmentColor(segment.h)
+                Glf_SetLight m_lights(segment_idx + 9), SegmentColor(segment.j)
+                Glf_SetLight m_lights(segment_idx + 10), SegmentColor(segment.k)
+                Glf_SetLight m_lights(segment_idx + 11), SegmentColor(segment.n)
+                Glf_SetLight m_lights(segment_idx + 12), SegmentColor(segment.m)
+                Glf_SetLight m_lights(segment_idx + 13), SegmentColor(segment.l)
+                Glf_SetLight m_lights(segment_idx + 14), SegmentColor(segment.dp)
                 segment_idx = segment_idx + 15
             ElseIf m_segment_type = "7Segment" Then
-                Glf_SetLight m_light_group & CStr(segment_idx), SegmentColor(segment.a)
-                Glf_SetLight m_light_group & CStr(segment_idx + 1), SegmentColor(segment.b)
-                Glf_SetLight m_light_group & CStr(segment_idx + 2), SegmentColor(segment.c)
-                Glf_SetLight m_light_group & CStr(segment_idx + 3), SegmentColor(segment.d)
-                Glf_SetLight m_light_group & CStr(segment_idx + 4), SegmentColor(segment.e)
-                Glf_SetLight m_light_group & CStr(segment_idx + 5), SegmentColor(segment.f)
-                Glf_SetLight m_light_group & CStr(segment_idx + 6), SegmentColor(segment.g)
-                Glf_SetLight m_light_group & CStr(segment_idx + 7), SegmentColor(segment.dp)
+                Glf_SetLight m_lights(segment_idx), SegmentColor(segment.a)
+                Glf_SetLight m_lights(segment_idx + 1), SegmentColor(segment.b)
+                Glf_SetLight m_lights(segment_idx + 2), SegmentColor(segment.c)
+                Glf_SetLight m_lights(segment_idx + 3), SegmentColor(segment.d)
+                Glf_SetLight m_lights(segment_idx + 4), SegmentColor(segment.e)
+                Glf_SetLight m_lights(segment_idx + 5), SegmentColor(segment.f)
+                Glf_SetLight m_lights(segment_idx + 6), SegmentColor(segment.g)
+                Glf_SetLight m_lights(segment_idx + 7), SegmentColor(segment.dp)
                 segment_idx = segment_idx + 8
             End If
             
@@ -11437,7 +11471,7 @@ Class GlfLightSegmentDisplay
         Else
             Set display_text = (new GlfSegmentDisplayText)(display_text,m_integrated_commas, m_integrated_dots, m_use_dots_for_commas) 
             UpdateDisplay display_text, m_flashing, m_flash_mask
-            SetDelay m_name & "_update_transition", "Glf_SegmentDisplayUpdateTransition", Array(Me, transition_runner), 33
+            SetDelay m_name & "_update_transition", "Glf_SegmentDisplayUpdateTransition", Array(Me, transition_runner), 1000/m_default_transition_update_hz
         End If
     End Sub
 
@@ -11512,7 +11546,7 @@ Class GlfLightSegmentDisplay
             display_text = transition_runner.StartTransition(previous_text, top_text_stack_entry.text.Value(), Array(), Array())
             Set display_text = (new GlfSegmentDisplayText)(display_text,m_integrated_commas, m_integrated_dots, m_use_dots_for_commas) 
             UpdateDisplay display_text, flashing, flash_mask
-            SetDelay m_name & "_update_transition", "Glf_SegmentDisplayUpdateTransition", Array(Me, transition_runner), 33
+            SetDelay m_name & "_update_transition", "Glf_SegmentDisplayUpdateTransition", Array(Me, transition_runner), 1000/m_default_transition_update_hz
         Else
             'no transition - subscribe to text template changes and update display
             If top_text_stack_entry.text.IsPlayerState() Then
