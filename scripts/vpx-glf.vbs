@@ -49,6 +49,7 @@ Dim glf_initialVars : Set glf_initialVars = CreateObject("Scripting.Dictionary")
 Dim glf_dispatch_await : Set glf_dispatch_await = CreateObject("Scripting.Dictionary")
 Dim glf_dispatch_handlers_await : Set glf_dispatch_handlers_await = CreateObject("Scripting.Dictionary")
 Dim glf_dispatch_current_kwargs
+Dim glf_dispatch_lightmaps_await : Set glf_dispatch_lightmaps_await = CreateObject("Scripting.Dictionary")
 Dim glf_machine_vars : Set glf_machine_vars = CreateObject("Scripting.Dictionary")
 Dim glf_achievements : Set glf_achievements = CreateObject("Scripting.Dictionary")
 Dim glf_sound_buses : Set glf_sound_buses = CreateObject("Scripting.Dictionary")
@@ -69,6 +70,8 @@ Dim glf_BIP : glf_BIP = 0
 Dim glf_FuncCount : glf_FuncCount = 0
 Dim glf_SeqCount : glf_SeqCount = 0
 Dim glf_max_dispatch : glf_max_dispatch = 25
+Dim glf_max_lightmap_sync : glf_max_lightmap_sync = 100
+Dim glf_max_lights_test : glf_max_lights_test = 0
 
 Dim glf_master_volume : glf_master_volume = 0.8
 
@@ -547,6 +550,9 @@ Sub Glf_Options(ByVal eventId)
 		End If
 	End If
 
+	Dim max_lightmap_frame_sync : max_lightmap_frame_sync = Table1.Option("Glf Max Lightmap Frame Sync", 1, 10, 1, 5, 0, Array("10", "20", "30", "40", "50", "60", "70", "80", "90", "100"))
+	glf_max_lightmap_sync = max_lightmap_frame_sync*10
+
 	
 End Sub
 
@@ -560,6 +566,7 @@ Public Sub Glf_Exit()
 		glf_debugBcpController = Null
 	End If
 	If glf_debugEnabled = True Then
+		glf_debugLog.WriteToLog "Max Lights", glf_max_lights_test
 		glf_debugLog.DisableLogs
 	End If
 	Glf_WriteMachineVars()
@@ -715,11 +722,33 @@ Public Sub Glf_GameTimer_Timer()
 	End If
 
 	DelayTick
+
+	i=0
+	keys = glf_dispatch_lightmaps_await.Keys()
+	'debug.print(ubound(keys))
+	If glf_max_lights_test < Ubound(keys) Then
+		glf_max_lights_test = Ubound(keys)
+	End If
+	For Each key in keys
+		For Each lightMap in glf_lightMaps(key)
+			If Not IsNull(lightMap) Then
+				On Error Resume Next
+				lightMap.Color = glf_lightNames(key).Color
+				If Err Then Debug.Print "Error: " & Err & ". Light:" & key & ", LightMap: " & lightMap.Name
+			End If
+		Next
+		glf_dispatch_lightmaps_await.Remove key
+		i=i+1
+		If i>glf_max_lightmap_sync Then
+			'debug.print("Exiting")
+			Exit For
+		End If
+	Next
 	
 	If (gametime - glf_lastTiltUpdateExecutionTime) >=50 And glf_current_virtual_tilt > 0 Then
 		glf_current_virtual_tilt = glf_current_virtual_tilt - 0.1
 		glf_lastTiltUpdateExecutionTime = gametime
-		Debug.print("Tilt Cooldown: " & glf_current_virtual_tilt) 
+		'Debug.print("Tilt Cooldown: " & glf_current_virtual_tilt) 
 	End If
 
 	If (gametime - glf_lastBcpExecutionTime) >= 300 Then
@@ -831,7 +860,7 @@ Public Function Glf_SetLight(light, color)
 	
 	
 	If IsNull(color) Then
-		glf_debugLog.WriteToLog "SetLight", "Turning Light Off"
+		'glf_debugLog.WriteToLog "SetLight", "Turning Light Off"
 		glf_lightNames(light).Color = rgb(0,0,0)
 	Else
 		glf_lightNames(light).Color = rgbColor
@@ -839,9 +868,12 @@ Public Function Glf_SetLight(light, color)
 	dim lightMap
 	For Each lightMap in glf_lightMaps(light)
 		If Not IsNull(lightMap) Then
-			On Error Resume Next
-			lightMap.Color = glf_lightNames(light).Color
-			If Err Then Debug.Print "Error: " & Err & ". Light:" & light & ", LightMap: " & lightMap.Name
+			If Not glf_dispatch_lightmaps_await.Exists(light) Then
+				glf_dispatch_lightmaps_await.Add light, True
+			End If
+			'On Error Resume Next
+			'lightMap.Color = glf_lightNames(light).Color
+			'If Err Then Debug.Print "Error: " & Err & ". Light:" & light & ", LightMap: " & lightMap.Name
 		End If
 	Next
 End Function
@@ -11882,7 +11914,7 @@ FOURTEEN_SEGMENTS.Add 70, (New FourteenSegments)(0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1
 FOURTEEN_SEGMENTS.Add 71, (New FourteenSegments)(0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, "G")
 FOURTEEN_SEGMENTS.Add 72, (New FourteenSegments)(0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, "H")
 FOURTEEN_SEGMENTS.Add 73, (New FourteenSegments)(0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 1, "I")
-FOURTEEN_SEGMENTS.Add 74, (New FourteenSegments)(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, "J")
+FOURTEEN_SEGMENTS.Add 74, (New FourteenSegments)(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, "J")
 FOURTEEN_SEGMENTS.Add 75, (New FourteenSegments)(0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, "K")
 FOURTEEN_SEGMENTS.Add 76, (New FourteenSegments)(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, "L")
 FOURTEEN_SEGMENTS.Add 77, (New FourteenSegments)(0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 1, 0, "M")
@@ -11897,7 +11929,7 @@ FOURTEEN_SEGMENTS.Add 85, (New FourteenSegments)(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1
 FOURTEEN_SEGMENTS.Add 86, (New FourteenSegments)(0, 0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, "V")
 FOURTEEN_SEGMENTS.Add 87, (New FourteenSegments)(0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 1, 0, "W")
 FOURTEEN_SEGMENTS.Add 88, (New FourteenSegments)(0, 1, 0, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, "X")
-FOURTEEN_SEGMENTS.Add 89, (New FourteenSegments)(0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, "Y")
+FOURTEEN_SEGMENTS.Add 89, (New FourteenSegments)(0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, "Y")
 FOURTEEN_SEGMENTS.Add 90, (New FourteenSegments)(0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, "Z")
 FOURTEEN_SEGMENTS.Add 91, (New FourteenSegments)(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 1, "[")
 FOURTEEN_SEGMENTS.Add 92, (New FourteenSegments)(0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, Chr(92)) ' Character \
