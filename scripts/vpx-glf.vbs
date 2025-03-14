@@ -127,7 +127,7 @@ Public Sub Glf_Init()
 	Dim switch, switchHitSubs
 	switchHitSubs = ""
 	For Each switch in Glf_Switches
-		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_Hit() : If Not glf_gameTilted Then : If glf_last_switch_hit <> """ & switch.Name & """ Or (gametime-glf_last_switch_hit_time) > 10 Then : Glf_ResetBallSearch : DispatchPinEvent """ & switch.Name & "_active"", ActiveBall : glf_last_switch_hit_time = gametime : glf_last_switch_hit = """& switch.Name &""": End If : End If : End Sub" & vbCrLf
+		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_Hit() : If Not glf_gameTilted Then : DispatchPinEvent """ & switch.Name & "_active"", ActiveBall : glf_last_switch_hit_time = gametime : glf_last_switch_hit = """& switch.Name &""": End If : End If : End Sub" & vbCrLf
 		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_UnHit() : If Not glf_gameTilted Then : DispatchPinEvent """ & switch.Name & "_inactive"", ActiveBall : End If  : End Sub" & vbCrLf
 	Next
 	
@@ -136,14 +136,14 @@ Public Sub Glf_Init()
 	Dim slingshot, slingshotHitSubs
 	slingshotHitSubs = ""
 	For Each slingshot in Glf_Slingshots
-		slingshotHitSubs = slingshotHitSubs & "Sub " & slingshot.Name & "_Slingshot() : If Not glf_gameTilted Then : Glf_ResetBallSearch : DispatchPinEvent """ & slingshot.Name & "_active"", ActiveBall : End If  : End Sub" & vbCrLf
+		slingshotHitSubs = slingshotHitSubs & "Sub " & slingshot.Name & "_Slingshot() : If Not glf_gameTilted Then : DispatchPinEvent """ & slingshot.Name & "_active"", ActiveBall : glf_last_switch_hit_time = gametime : glf_last_switch_hit = """& slingshot.Name &""": End If  : End Sub" & vbCrLf
 	Next
 	ExecuteGlobal slingshotHitSubs
 
 	Dim spinner, spinnerHitSubs
 	spinnerHitSubs = ""
 	For Each spinner in Glf_Spinners
-		spinnerHitSubs = spinnerHitSubs & "Sub " & spinner.Name & "_Spin() : If Not glf_gameTilted Then : Glf_ResetBallSearch : DispatchPinEvent """ & spinner.Name & "_active"", ActiveBall : End If  : End Sub" & vbCrLf
+		spinnerHitSubs = spinnerHitSubs & "Sub " & spinner.Name & "_Spin() : If Not glf_gameTilted Then : DispatchPinEvent """ & spinner.Name & "_active"", ActiveBall : glf_last_switch_hit_time = gametime : glf_last_switch_hit = """& spinner.Name &""": End If  : End Sub" & vbCrLf
 	Next
 	ExecuteGlobal spinnerHitSubs
 
@@ -757,6 +757,11 @@ Public Sub Glf_GameTimer_Timer()
 		Glf_MonitorPlayerStateUpdate "GLF BIP", glf_BIP
 		Glf_MonitorBcpUpdate
     End If
+
+	If glf_last_switch_hit_time > 0 And (gametime - glf_last_switch_hit_time) > 1000
+		Glf_ResetBallSearch
+		glf_last_switch_hit_time = 0
+	End If
 	glf_lastEventExecutionTime = gametime
 End Sub
 
