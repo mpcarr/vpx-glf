@@ -701,7 +701,7 @@ Public Sub Glf_GameTimer_Timer()
 	glf_frame_handler_count = 0
 	'glf_temp1 = 0
 
-	Dim i, key, keys
+	Dim i, key, keys, lightMap
 	i = 0
 	keys = glf_dispatch_handlers_await.Keys()
 	i = Glf_RunHandlers(i)
@@ -739,7 +739,7 @@ Public Sub Glf_GameTimer_Timer()
 		Next
 		glf_dispatch_lightmaps_await.Remove key
 		i=i+1
-		If i>glf_max_lightmap_sync Then
+		If i>glf_max_lightmap_sync or (gametime - glf_lastEventExecutionTime) > 16 Then
 			'debug.print("Exiting")
 			Exit For
 		End If
@@ -865,17 +865,18 @@ Public Function Glf_SetLight(light, color)
 	Else
 		glf_lightNames(light).Color = rgbColor
 	End If
-	dim lightMap
-	For Each lightMap in glf_lightMaps(light)
-		If Not IsNull(lightMap) Then
-			If Not glf_dispatch_lightmaps_await.Exists(light) Then
-				glf_dispatch_lightmaps_await.Add light, True
-			End If
+	If Not glf_dispatch_lightmaps_await.Exists(light) Then
+		glf_dispatch_lightmaps_await.Add light, True
+	End If
+	'dim lightMap
+	'For Each lightMap in glf_lightMaps(light)
+	'	If Not IsNull(lightMap) Then
+
 			'On Error Resume Next
 			'lightMap.Color = glf_lightNames(light).Color
 			'If Err Then Debug.Print "Error: " & Err & ". Light:" & light & ", LightMap: " & lightMap.Name
-		End If
-	Next
+	'	End If
+	'Next
 End Function
 
 Public Function Glf_ParseInput(value)

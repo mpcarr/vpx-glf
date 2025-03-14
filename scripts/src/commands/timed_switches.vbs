@@ -78,7 +78,7 @@ Class GlfTimedSwitches
         If UBound(m_active_switches.Keys()) = -1 Then
             Dim evt
             For Each evt in m_events_when_active.Keys()
-                Log "Switch Active: " & switch
+                Log "Switch Active: " & switch & ". Event: " & m_events_when_active(evt).EventName
                 DispatchPinEvent m_events_when_active(evt).EventName, Null
             Next
         End If
@@ -94,7 +94,7 @@ Class GlfTimedSwitches
             If UBound(m_active_switches.Keys()) = -1 Then
                 Dim evt
                 For Each evt in m_events_when_released.Keys()
-                    Log "Switch Release: " & switch
+                    Log "Switch Release: " & switch & ". Event: " & m_events_when_released(evt).EventName
                     DispatchPinEvent m_events_when_released(evt).EventName, Null
                 Next
             End If

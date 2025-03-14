@@ -75,38 +75,38 @@ Class GlfBallSearch
             m_current_device_type = "autofire"
             If UBound(m_devices) > -1 Then
                 m_devices(0).BallSearch(m_phase)
-                SetDelay "ball_search_next_device" , "BallSearchHandler", Array("next_device", Me, 0), m_search_interval.Value
+                SetDelay "ball_search_next_device" , "BallSearchHandler", Array(Array("next_device", Me, 0), Null), m_search_interval.Value
             End If
         Else
-            SetDelay "ball_search" , "BallSearchHandler", Array("start", Me), m_timeout.Value
+            SetDelay "ball_search" , "BallSearchHandler", Array(Array("start", Me), Null), m_timeout.Value
         End If
     End Sub
 
     Public Sub NextDevice(device_index)
         If UBound(m_devices) > device_index Then
             m_devices(device_index+1).BallSearch(m_phase)
-            SetDelay "ball_search_next_device" , "BallSearchHandler", Array("next_device", Me, device_index+1), m_search_interval.Value
+            SetDelay "ball_search_next_device" , "BallSearchHandler", Array(Array("next_device", Me, device_index+1), Null), m_search_interval.Value
         Else
             If m_current_device_type = "autofire" Then
                 m_devices = glf_ball_devices.Items()
                 m_current_device_type = "balldevices"
                 If UBound(m_devices) > -1 Then
                     m_devices(0).BallSearch(m_phase)
-                    SetDelay "ball_search_next_device" , "BallSearchHandler", Array("next_device", Me, 0), m_search_interval.Value
+                    SetDelay "ball_search_next_device" , "BallSearchHandler", Array(Array("next_device", Me, 0), Null), m_search_interval.Value
                 End If
             ElseIf m_current_device_type = "balldevices" Then
                 m_devices = glf_droptargets.Items()
                 m_current_device_type = "droptargets"
                 If UBound(m_devices) > -1 Then
                     m_devices(0).BallSearch(m_phase)
-                    SetDelay "ball_search_next_device" , "BallSearchHandler", Array("next_device", Me, 0), m_search_interval.Value
+                    SetDelay "ball_search_next_device" , "BallSearchHandler", Array(Array("next_device", Me, 0), Null), m_search_interval.Value
                 End If
             ElseIf m_current_device_type = "droptargets" Then
                 m_devices = glf_diverters.Items()
                 m_current_device_type = "diverters"
                 If UBound(m_devices) > -1 Then
                     m_devices(0).BallSearch(m_phase)
-                    SetDelay "ball_search_next_device" , "BallSearchHandler", Array("next_device", Me, 0), m_search_interval.Value
+                    SetDelay "ball_search_next_device" , "BallSearchHandler", Array(Array("next_device", Me, 0), Null), m_search_interval.Value
                 End If
             Else
                 m_current_device_type = Empty
@@ -114,7 +114,7 @@ Class GlfBallSearch
                     Start m_phase+1
                 Else
                     m_phase = 0
-                    SetDelay "ball_search" , "BallSearchHandler", Array("start", Me), m_timeout.Value
+                    SetDelay "ball_search" , "BallSearchHandler", Array(Array("start", Me), Null), m_timeout.Value
                 End If
             End If
         End If
@@ -123,7 +123,7 @@ Class GlfBallSearch
     Public Sub Reset()
         RemoveDelay "ball_search_next_device"
         m_phase = 0
-        SetDelay "ball_search" , "BallSearchHandler", Array("start", Me), m_timeout.Value
+        SetDelay "ball_search" , "BallSearchHandler", Array(Array("start", Me), Null), m_timeout.Value
     End Sub
 
     Public Sub StopBallSearch()
@@ -141,9 +141,10 @@ Class GlfBallSearch
 End Class
 
 Function BallSearchHandler(args)
-    Dim evt : evt = args(0)
-    Dim ball_search : Set ball_search = args(1)
-    
+    Dim ownProps, kwargs
+    ownProps = args(0)
+    Dim evt : evt = ownProps(0)
+    Dim ball_search : Set ball_search = ownProps(1)
     Select Case evt
         Case "start"
             ball_search.Start 1
@@ -152,6 +153,6 @@ Function BallSearchHandler(args)
         Case "stop":
             ball_search.StopBallSearch
         Case "next_device"
-            ball_search.NextDevice args(2)
+            ball_search.NextDevice ownProps(2)
     End Select
 End Function
