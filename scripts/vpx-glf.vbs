@@ -127,7 +127,7 @@ Public Sub Glf_Init()
 	Dim switch, switchHitSubs
 	switchHitSubs = ""
 	For Each switch in Glf_Switches
-		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_Hit() : If Not glf_gameTilted Then : DispatchPinEvent """ & switch.Name & "_active"", ActiveBall : glf_last_switch_hit_time = gametime : glf_last_switch_hit = """& switch.Name &""": End If : End If : End Sub" & vbCrLf
+		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_Hit() : If Not glf_gameTilted Then : DispatchPinEvent """ & switch.Name & "_active"", ActiveBall : glf_last_switch_hit_time = gametime : glf_last_switch_hit = """& switch.Name &""": End If : End Sub" & vbCrLf
 		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_UnHit() : If Not glf_gameTilted Then : DispatchPinEvent """ & switch.Name & "_inactive"", ActiveBall : End If  : End Sub" & vbCrLf
 	Next
 	
@@ -758,7 +758,7 @@ Public Sub Glf_GameTimer_Timer()
 		Glf_MonitorBcpUpdate
     End If
 
-	If glf_last_switch_hit_time > 0 And (gametime - glf_last_switch_hit_time) > 1000
+	If glf_last_switch_hit_time > 0 And (gametime - glf_last_switch_hit_time) > 2000 Then
 		Glf_ResetBallSearch
 		glf_last_switch_hit_time = 0
 	End If
@@ -2039,6 +2039,7 @@ Class GlfBallSearch
         Next
         If glf_gameStarted = True And glf_BIP > 0 And (glf_BIP-held_balls)>0 And glf_plunger.HasBall() = False Then
             m_phase = phase
+            glf_last_switch_hit_time = 0
             'Fire all auto fire devices, slings, pops.
             m_devices = glf_autofiredevices.Items()
             m_current_device_type = "autofire"
