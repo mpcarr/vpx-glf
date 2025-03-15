@@ -2025,7 +2025,7 @@ Class GlfBallSearch
         m_devices = Array()
         m_current_device_type = Empty
         Set glf_ballsearch = Me
-        SetDelay "ball_search" , "BallSearchHandler", Array("start", Me), m_timeout.Value
+        SetDelay "ball_search" , "BallSearchHandler", Array(Array("start", Me), Null), m_timeout.Value
         AddPinEventListener "flipper_cradle", "ball_search_flipper_cradle", "BallSearchHandler", 30, Array("stop", Me)
         AddPinEventListener "flipper_release", "ball_search_flipper_cradle", "BallSearchHandler", 30, Array("reset", Me)
         Set Init = Me
