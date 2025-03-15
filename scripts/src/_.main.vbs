@@ -10,6 +10,7 @@ Dim glf_gameStarted : glf_gameStarted = False
 Dim glf_gameTilted : glf_gameTilted = False
 Dim glf_gameEnding : glf_gameEnding = False
 Dim glf_last_switch_hit_time : glf_last_switch_hit_time = 0
+Dim glf_last_ballsearch_reset_time : glf_last_ballsearch_reset_time = 0
 Dim glf_last_switch_hit : glf_last_switch_hit = ""
 Dim glf_current_virtual_tilt : glf_current_virtual_tilt = 0
 Dim glf_tilt_sensitivity : glf_tilt_sensitivity = 7
@@ -70,7 +71,7 @@ Dim glf_BIP : glf_BIP = 0
 Dim glf_FuncCount : glf_FuncCount = 0
 Dim glf_SeqCount : glf_SeqCount = 0
 Dim glf_max_dispatch : glf_max_dispatch = 25
-Dim glf_max_lightmap_sync : glf_max_lightmap_sync = 100
+Dim glf_max_lightmap_sync : glf_max_lightmap_sync = 16
 Dim glf_max_lights_test : glf_max_lights_test = 0
 
 Dim glf_master_volume : glf_master_volume = 0.8
@@ -500,7 +501,7 @@ Sub Glf_Options(ByVal eventId)
 		glf_ballsPerGame = 5
 	End If
 
-	Dim tilt_sensitivity : tilt_sensitivity = Table1.Option("Tilt Sensitivity", 1, 10, 1, 7, 0, Array("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"))
+	Dim tilt_sensitivity : tilt_sensitivity = Table1.Option("Tilt Sensitivity (digital nudge)", 1, 10, 1, 5, 0, Array("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"))
 	glf_tilt_sensitivity = tilt_sensitivity
 
 	Dim glfDebug : glfDebug = Table1.Option("Glf Debug Log", 0, 1, 1, 0, 0, Array("Off", "On"))
@@ -550,9 +551,15 @@ Sub Glf_Options(ByVal eventId)
 		End If
 	End If
 
-	Dim max_lightmap_frame_sync : max_lightmap_frame_sync = Table1.Option("Glf Max Lightmap Frame Sync", 1, 10, 1, 5, 0, Array("10", "20", "30", "40", "50", "60", "70", "80", "90", "100"))
-	glf_max_lightmap_sync = max_lightmap_frame_sync*10
-
+	Dim min_lightmap_update_rate : min_lightmap_update_rate = Table1.Option("Glf Min Lightmap Update Rate", 1, 5, 1, 2, 0, Array("30 Hz", "60 Hz", "120 Hz", "144 Hz", "165 Hz"))
+    Select Case min_lightmap_update_rate
+        Case 1: glf_max_lightmap_sync = 30
+        Case 2: glf_max_lightmap_sync = 15
+        Case 3: glf_max_lightmap_sync = 8
+        Case 4: glf_max_lightmap_sync = 7
+        Case 5: glf_max_lightmap_sync = 6
+        Case Else: glf_max_lightmap_sync = 15
+    End Select
 	
 End Sub
 
