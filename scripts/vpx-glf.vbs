@@ -1,4 +1,4 @@
-'VPX Game Logic Framework (https://mpcarr.github.io/vpx-gle-framework/)
+'VPX Game Logic Framework (https://mpcarr.github.io/vpx-glf/)
 
 '
 Dim glf_currentPlayer : glf_currentPlayer = Null
@@ -730,7 +730,6 @@ Public Sub Glf_GameTimer_Timer()
 
 	DelayTick
 
-	i=0
 	keys = glf_dispatch_lightmaps_await.Keys()
 	'debug.print(ubound(keys))
 	If glf_max_lights_test < Ubound(keys) Then
@@ -745,8 +744,7 @@ Public Sub Glf_GameTimer_Timer()
 			End If
 		Next
 		glf_dispatch_lightmaps_await.Remove key
-		i=i+1
-		If i>glf_max_lightmap_sync or (gametime - glf_lastEventExecutionTime) > 16 Then
+		If (gametime - glf_lastEventExecutionTime) > glf_max_lightmap_sync Then
 			'debug.print("Exiting")
 			Exit For
 		End If
@@ -765,9 +763,10 @@ Public Sub Glf_GameTimer_Timer()
 		Glf_MonitorBcpUpdate
     End If
 
-	If glf_last_switch_hit_time > 0 And (gametime - glf_last_switch_hit_time) > 2000 Then
+	If glf_last_switch_hit_time > 0 And (gametime - glf_last_ballsearch_reset_time) > 2000 Then
 		Glf_ResetBallSearch
 		glf_last_switch_hit_time = 0
+		glf_last_ballsearch_reset_time = gametime
 	End If
 	glf_lastEventExecutionTime = gametime
 End Sub
