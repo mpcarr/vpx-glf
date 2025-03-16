@@ -126,7 +126,7 @@ Class GlfDofPlayerItem
     End Property
 
     Public Property Get DOFEvent(): DOFEvent = m_dof_event: End Property
-    Public Property Let DOFEvent(input): m_dof_event = input: End Property
+    Public Property Let DOFEvent(input): m_dof_event = CInt(input): End Property
 
 	Public default Function init()
         m_action = Empty
