@@ -31,6 +31,7 @@ Class GlfLightSegmentDisplay
     private m_display_flash_display_flash_frequency
     private m_default_transition_update_hz
     private m_color
+    private m_flex_dmd_index
 
     Public Property Get Name() : Name = m_name : End Property
 
@@ -78,6 +79,10 @@ Class GlfLightSegmentDisplay
     Public Property Get DefaultColor() : DefaultColor = m_color : End Property
     Public Property Let DefaultColor(input) : m_color = input : End Property
 
+    Public Property Let ExternalFlexDmdSegmentIndex(input)
+        m_flex_dmd_index = input
+    End Property
+
     Public Property Get DefaultTransitionUpdateHz() : DefaultTransitionUpdateHz = m_default_transition_update_hz : End Property
     Public Property Let DefaultTransitionUpdateHz(input) : m_default_transition_update_hz = input : End Property
 
@@ -101,10 +106,11 @@ Class GlfLightSegmentDisplay
         Set m_text_stack = (new GlfTextStack)()
         m_update_method = "replace"
         m_lights = Array()  
-
+        m_flex_dmd = Null
         m_integrated_commas = False
         m_integrated_dots = False
         m_use_dots_for_commas = False
+        m_flex_dmd_index = -1
 
         m_display_flash_duty = 30
         m_default_transition_update_hz = 30
@@ -205,7 +211,7 @@ Class GlfLightSegmentDisplay
                 mapped_text = MapSegmentTextToSegments(m_current_state.BlankSegments(String(m_size, "F")), m_size, m_segmentmap)
             End If
         End If
-        Dim segment_idx : segment_idx = 0
+        Dim segment_idx, i : segment_idx = 0 : i = 0
         For Each segment in mapped_text
             
             If m_segment_type = "14Segment" Then
@@ -224,6 +230,17 @@ Class GlfLightSegmentDisplay
                 Glf_SetLight m_lights(segment_idx + 12), SegmentColor(segment.m)
                 Glf_SetLight m_lights(segment_idx + 13), SegmentColor(segment.l)
                 Glf_SetLight m_lights(segment_idx + 14), SegmentColor(segment.dp)
+                If m_flex_dmd_index>-1 Then
+                    'debug.print segment.CharMapping
+                    dim hex
+                    hex = segment.CharMapping
+                    'debug.print typename(hex)
+                    On Error Resume Next
+				    glf_flex_alphadmd_segments(m_flex_dmd_index+i) = hex
+				    If Err Then Debug.Print "Error: " & Err
+                    'glf_flex_alphadmd_segments(m_flex_dmd_index+i) = segment.CharMapping '&h2A0F '0010101000001111
+                    glf_flex_alphadmd.Segments = glf_flex_alphadmd_segments
+                End If
                 segment_idx = segment_idx + 15
             ElseIf m_segment_type = "7Segment" Then
                 Glf_SetLight m_lights(segment_idx), SegmentColor(segment.a)
@@ -236,10 +253,8 @@ Class GlfLightSegmentDisplay
                 Glf_SetLight m_lights(segment_idx + 7), SegmentColor(segment.dp)
                 segment_idx = segment_idx + 8
             End If
-            
-            
+            i = i + 1
         Next
-
     End Sub
 
     Private Function SegmentColor(value)
@@ -584,11 +599,19 @@ End Class
 
 
 Class FourteenSegments
-    Public dp, l, m, n, k, j, h, g2, g1, f, e, d, c, b, a, char
+    Public dp, l, m, n, k, j, h, g2, g1, f, e, d, c, b, a, char, hexcode, hexcode_dp
 
     Public Function CloneMapping()
         Set CloneMapping = (new FourteenSegments)(dp,l,m,n,k,j,h,g2,g1,f,e,d,c,b,a,char)
     End Function
+
+    Public Property Get CharMapping()
+        If dp = 1 Then
+            CharMapping = hexcode_dp
+        Else
+            CharMapping = hexcode
+        End If
+    End Property
 
     Public default Function init(dp, l, m, n, k, j, h, g2, g1, f, e, d, c, b, a, char)
         Me.dp = dp
@@ -607,6 +630,24 @@ Class FourteenSegments
         Me.m = m
         Me.l = l
         Me.char = char
+
+        Dim binaryString, decimalValue, i
+        binaryString = CStr("0" & n & m & l & g2 & k & j & h & dp & g1 & f & e & d & c & b & a)
+        If binaryString = "0000000000000000" Then
+            hexcode = 0
+        Else
+            decimalValue = 0
+            For i = 1 To Len(binaryString)
+                decimalValue = decimalValue * 2 + Mid(binaryString, i, 1)
+            Next
+            hexcode = CInt("&H" & Right("0000" & UCase(Hex(decimalValue)), 4))
+        End If
+        binaryString = CStr("0" & n & m & l & g2 & k & j & h & 1 & g1 & f & e & d & c & b & a)        
+        decimalValue = 0
+        For i = 1 To Len(binaryString)
+            decimalValue = decimalValue * 2 + Mid(binaryString, i, 1)
+        Next
+        hexcode_dp = CInt("&H" & Right("0000" & UCase(Hex(decimalValue)), 4))
         Set Init = Me
     End Function
 End Class
@@ -633,7 +674,6 @@ Class SevenSegments
         Set Init = Me
     End Function
 End Class
-
 
 Dim FOURTEEN_SEGMENTS
 Set FOURTEEN_SEGMENTS = CreateObject("Scripting.Dictionary")

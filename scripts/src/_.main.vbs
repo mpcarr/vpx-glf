@@ -14,6 +14,9 @@ Dim glf_last_ballsearch_reset_time : glf_last_ballsearch_reset_time = 0
 Dim glf_last_switch_hit : glf_last_switch_hit = ""
 Dim glf_current_virtual_tilt : glf_current_virtual_tilt = 0
 Dim glf_tilt_sensitivity : glf_tilt_sensitivity = 7
+Dim glf_flex_alphadmd : Set glf_flex_alphadmd = Nothing
+Dim glf_flex_alphadmd_enabled : glf_flex_alphadmd_enabled = False
+Dim glf_flex_alphadmd_segments(31)
 Dim glf_pinEvents : Set glf_pinEvents = CreateObject("Scripting.Dictionary")
 Dim glf_pinEventsOrder : Set glf_pinEventsOrder = CreateObject("Scripting.Dictionary")
 Dim glf_playerEvents : Set glf_playerEvents = CreateObject("Scripting.Dictionary")
@@ -432,6 +435,27 @@ Sub Glf_ReadMachineVars()
     Next
 End Sub
 
+Sub Glf_EnableVirutalSegmentDmd()
+	
+	Set glf_flex_alphadmd = CreateObject("FlexDMD.FlexDMD")
+	With glf_flex_alphadmd
+		.TableFile = Table1.Filename & ".vpx"
+		.Color = RGB(255, 88, 32)
+		.Width = 128
+		.Height = 32
+		.Clear = True
+		.Run = True
+		.GameName = cGameName
+		.RenderMode = 3
+	End With
+	For i = 0 To 31
+		glf_flex_alphadmd_segments(i) = 0
+	Next
+	glf_flex_alphadmd.Segments = glf_flex_alphadmd_segments
+	glf_flex_alphadmd_enabled = True    
+
+End Sub
+
 Sub Glf_WriteMachineVars()
     Dim objFSO, objFile, arrLines, line, inSection, foundSection
     Dim outputLines, key
@@ -576,6 +600,11 @@ Public Sub Glf_Exit()
 		glf_debugLog.WriteToLog "Max Lights", glf_max_lights_test
 		glf_debugLog.DisableLogs
 	End If
+	If Not glf_flex_alphadmd is Nothing Then
+		glf_flex_alphadmd.Show = False
+		glf_flex_alphadmd.Run = False
+		glf_flex_alphadmd = NULL
+    End If
 	Glf_WriteMachineVars()
 End Sub
 

@@ -362,7 +362,7 @@ Class GlfShowStep
     Public Property Get DOFEvent(dof_event)
         Dim new_dof : Set new_dof = (new GlfDofPlayerItem)()
         new_dof.DOFEvent = dof_event
-        m_dofs.Add name & CStr(UBound(m_dofs.Keys)), new_dof
+        m_dofs.Add dof_event & CStr(UBound(m_dofs.Keys)), new_dof
         Set DOFEvent = new_dof
     End Property
 
