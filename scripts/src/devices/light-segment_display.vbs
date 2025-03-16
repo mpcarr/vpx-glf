@@ -106,7 +106,6 @@ Class GlfLightSegmentDisplay
         Set m_text_stack = (new GlfTextStack)()
         m_update_method = "replace"
         m_lights = Array()  
-        m_flex_dmd = Null
         m_integrated_commas = False
         m_integrated_dots = False
         m_use_dots_for_commas = False

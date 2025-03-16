@@ -435,8 +435,8 @@ Sub Glf_ReadMachineVars()
     Next
 End Sub
 
-Sub Glf_EnableVirutalSegmentDmd()
-	
+Sub Glf_EnableVirtualSegmentDmd()
+	Dim i
 	Set glf_flex_alphadmd = CreateObject("FlexDMD.FlexDMD")
 	With glf_flex_alphadmd
 		.TableFile = Table1.Filename & ".vpx"
