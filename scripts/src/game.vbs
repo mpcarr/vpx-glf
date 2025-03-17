@@ -15,6 +15,7 @@ Sub Glf_AddPlayer()
             DispatchPinEvent "player_added", kwargs
             glf_playerState.Add "PLAYER 1", Glf_InitNewPlayer()
             SetPlayerStateByPlayer GLF_SCORE, 0, 0
+            SetPlayerStateByPlayer "number", 1, 0
             Glf_BcpAddPlayer 1
             glf_currentPlayer = "PLAYER 1"
         Case 0:     
@@ -23,6 +24,7 @@ Sub Glf_AddPlayer()
                 DispatchPinEvent "player_added", kwargs
                 glf_playerState.Add "PLAYER 2", Glf_InitNewPlayer()
                 SetPlayerStateByPlayer GLF_SCORE, 0, 1
+                SetPlayerStateByPlayer "number", 2, 1
                 Glf_BcpAddPlayer 2
             End If
         Case 1:
@@ -31,6 +33,7 @@ Sub Glf_AddPlayer()
                 DispatchPinEvent "player_added", kwargs
                 glf_playerState.Add "PLAYER 3", Glf_InitNewPlayer()
                 SetPlayerStateByPlayer GLF_SCORE, 0, 2
+                SetPlayerStateByPlayer "number", 3, 2
                 Glf_BcpAddPlayer 3
             End If     
         Case 2:   
@@ -39,6 +42,7 @@ Sub Glf_AddPlayer()
                 DispatchPinEvent "player_added", kwargs
                 glf_playerState.Add "PLAYER 4", Glf_InitNewPlayer()
                 SetPlayerStateByPlayer GLF_SCORE, 0, 3
+                SetPlayerStateByPlayer "number", 4, 3
                 Glf_BcpAddPlayer 4
             End If  
             glf_canAddPlayers = False

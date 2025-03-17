@@ -160,6 +160,15 @@ Class GlfLightSegmentDisplay
         End If
     End Sub
 
+    Public Sub SetVirtualDMDLights(input)
+        If m_flex_dmd_index>-1 Then
+            Dim x
+            For x=0 to UBound(m_lights)
+                glf_lightNames(m_lights(x)).Visible = False
+            Next
+        End If
+    End Sub
+
     Private Sub SetText(text, flashing, flash_mask)
         'Set a text to the display.
         Exit Sub

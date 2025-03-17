@@ -410,6 +410,14 @@ Sub Glf_Reset()
 	DispatchQueuePinEvent "reset_complete", Null
 End Sub
 
+AddPinEventListener "reset_complete", "initial_segment_displays", "Glf_SegmentInit", 100, Null
+Sub Glf_SegmentInit(args)
+	Dim segment_display
+	For Each segment_display in glf_segment_displays.Items()	
+		segment_display.SetVirtualDMDLights Not glf_flex_alphadmd_enabled
+	Next
+End Sub
+
 Sub Glf_ReadMachineVars()
     Dim objFSO, objFile, arrLines, line, inSection
     Set objFSO = CreateObject("Scripting.FileSystemObject")
@@ -436,7 +444,21 @@ Sub Glf_ReadMachineVars()
     Next
 End Sub
 
+Sub Glf_DisableVirtualSegmentDmd()
+	If Not glf_flex_alphadmd is Nothing Then
+		glf_flex_alphadmd.Show = False
+		glf_flex_alphadmd.Run = False
+		Set glf_flex_alphadmd = Nothing
+	End If
+	glf_flex_alphadmd_enabled = False
+	Dim segment_display
+	For Each segment_display in glf_segment_displays.Items()
+		segment_display.SetVirtualDMDLights True
+	Next
+End Sub
+
 Sub Glf_EnableVirtualSegmentDmd()
+	Glf_DisableVirtualSegmentDmd()
 	Dim i
 	Set glf_flex_alphadmd = CreateObject("FlexDMD.FlexDMD")
 	With glf_flex_alphadmd
@@ -453,8 +475,11 @@ Sub Glf_EnableVirtualSegmentDmd()
 		glf_flex_alphadmd_segments(i) = 0
 	Next
 	glf_flex_alphadmd.Segments = glf_flex_alphadmd_segments
-	glf_flex_alphadmd_enabled = True    
-
+	glf_flex_alphadmd_enabled = True
+	Dim segment_display
+	For Each segment_display in glf_segment_displays.Items()	
+		segment_display.SetVirtualDMDLights False
+	Next
 End Sub
 
 Sub Glf_WriteMachineVars()
@@ -576,6 +601,13 @@ Sub Glf_Options(ByVal eventId)
 		End If
 	End If
 
+	Dim glfuseVirtualSegmentDMD : glfuseVirtualSegmentDMD = Table1.Option("Glf Virtual Segment DMD", 0, 1, 1, 0, 0, Array("Off", "On"))
+	If glfuseVirtualSegmentDMD = 1 And glf_flex_alphadmd_enabled = False Then
+		Glf_EnableVirtualSegmentDmd()
+	ElseIf glfuseVirtualSegmentDMD = 0 And  glf_flex_alphadmd_enabled = True Then
+		Glf_DisableVirtualSegmentDmd()
+	End If
+
 	Dim min_lightmap_update_rate : min_lightmap_update_rate = Table1.Option("Glf Min Lightmap Update Rate", 1, 6, 1, 2, 0, Array("Disabled", "30 Hz", "60 Hz", "120 Hz", "144 Hz", "165 Hz"))
     Select Case min_lightmap_update_rate
 		Case 1: glf_max_lightmap_sync_enabled = False
@@ -601,11 +633,7 @@ Public Sub Glf_Exit()
 		glf_debugLog.WriteToLog "Max Lights", glf_max_lights_test
 		glf_debugLog.DisableLogs
 	End If
-	If Not glf_flex_alphadmd is Nothing Then
-		glf_flex_alphadmd.Show = False
-		glf_flex_alphadmd.Run = False
-		glf_flex_alphadmd = NULL
-    End If
+	Glf_DisableVirtualSegmentDmd()
 	Glf_WriteMachineVars()
 End Sub
 
@@ -11600,6 +11628,15 @@ Class GlfLightSegmentDisplay
         End If
     End Sub
 
+    Public Sub SetVirtualDMDLights(input)
+        If m_flex_dmd_index>-1 Then
+            Dim x
+            For x=0 to UBound(m_lights)
+                glf_lightNames(m_lights(x)).Visible = False
+            Next
+        End If
+    End Sub
+
     Private Sub SetText(text, flashing, flash_mask)
         'Set a text to the display.
         Exit Sub
@@ -13472,6 +13509,7 @@ Sub Glf_AddPlayer()
             DispatchPinEvent "player_added", kwargs
             glf_playerState.Add "PLAYER 1", Glf_InitNewPlayer()
             SetPlayerStateByPlayer GLF_SCORE, 0, 0
+            SetPlayerStateByPlayer "number", 1, 0
             Glf_BcpAddPlayer 1
             glf_currentPlayer = "PLAYER 1"
         Case 0:     
@@ -13480,6 +13518,7 @@ Sub Glf_AddPlayer()
                 DispatchPinEvent "player_added", kwargs
                 glf_playerState.Add "PLAYER 2", Glf_InitNewPlayer()
                 SetPlayerStateByPlayer GLF_SCORE, 0, 1
+                SetPlayerStateByPlayer "number", 2, 1
                 Glf_BcpAddPlayer 2
             End If
         Case 1:
@@ -13488,6 +13527,7 @@ Sub Glf_AddPlayer()
                 DispatchPinEvent "player_added", kwargs
                 glf_playerState.Add "PLAYER 3", Glf_InitNewPlayer()
                 SetPlayerStateByPlayer GLF_SCORE, 0, 2
+                SetPlayerStateByPlayer "number", 3, 2
                 Glf_BcpAddPlayer 3
             End If     
         Case 2:   
@@ -13496,6 +13536,7 @@ Sub Glf_AddPlayer()
                 DispatchPinEvent "player_added", kwargs
                 glf_playerState.Add "PLAYER 4", Glf_InitNewPlayer()
                 SetPlayerStateByPlayer GLF_SCORE, 0, 3
+                SetPlayerStateByPlayer "number", 4, 3
                 Glf_BcpAddPlayer 4
             End If  
             glf_canAddPlayers = False
