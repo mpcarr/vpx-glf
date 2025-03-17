@@ -2036,7 +2036,6 @@ Function EnableGlfBallSearch()
             .Time = 3000
             .EventsWhenActive = Array("flipper_cradle")
             .EventsWhenReleased = Array("flipper_release")
-            .Debug = True
         End With
     End With
     glf_ballsearch_enabled = True
