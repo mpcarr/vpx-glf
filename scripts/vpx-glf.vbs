@@ -9693,16 +9693,16 @@ Class GlfTimedSwitches
     Public Sub Activate()
         Dim switch
         For Each switch in m_switches
-            AddPinEventListener switch & "_active", m_name & "_" & evt & "_active", "TimedSwitchHandler", m_priority, Array("active", Me, switch)
-            AddPinEventListener switch & "_inactive", m_name & "_" & evt & "_inactive", "TimedSwitchHandler", m_priority, Array("inactive", Me, switch)
+            AddPinEventListener switch & "_active", m_name & "_active", "TimedSwitchHandler", m_priority, Array("active", Me, switch)
+            AddPinEventListener switch & "_inactive", m_name & "_inactive", "TimedSwitchHandler", m_priority, Array("inactive", Me, switch)
         Next
     End Sub
 
     Public Sub Deactivate()
         Dim switch
         For Each switch in m_switches
-            RemovePinEventListener switch & "_active", m_name & "_" & evt & "_active"
-            RemovePinEventListener switch & "_inactive", m_name & "_" & evt & "_inactive"
+            RemovePinEventListener switch & "_active", m_name & "_active"
+            RemovePinEventListener switch & "_inactive", m_name & "_inactive"
         Next
     End Sub
 
