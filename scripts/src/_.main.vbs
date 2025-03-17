@@ -6,6 +6,7 @@ Dim glf_canAddPlayers : glf_canAddPlayers = True
 Dim glf_PI : glf_PI = 4 * Atn(1)
 Dim glf_plunger, glf_ballsearch
 glf_ballsearch = Null
+Dim glf_ballsearch_enabled : glf_ballsearch_enabled = False
 Dim glf_gameStarted : glf_gameStarted = False
 Dim glf_gameTilted : glf_gameTilted = False
 Dim glf_gameEnding : glf_gameEnding = False
@@ -839,7 +840,7 @@ Sub Glf_CheckTilt()
 End Sub
 
 Sub Glf_ResetBallSearch()
-	If Not IsNull(glf_ballsearch) Then
+	If glf_ballsearch_enabled = True Then
 		glf_ballsearch.Reset()
 	End If
 End Sub

@@ -11,6 +11,7 @@ Function EnableGlfBallSearch()
             .Debug = True
         End With
     End With
+    glf_ballsearch_enabled = True
 	Set EnableGlfBallSearch = ball_search
 End Function
 
