@@ -929,13 +929,7 @@ Public Function Glf_SetLight(light, color)
 		rgbColor = glf_lightColorLookup(color)
 	End If
 	
-	
-	If IsNull(color) Then
-		'glf_debugLog.WriteToLog "SetLight", "Turning Light Off"
-		glf_lightNames(light).Color = rgb(0,0,0)
-	Else
-		glf_lightNames(light).Color = rgbColor
-	End If
+	glf_lightNames(light).Color = rgbColor
 
 	If glf_max_lightmap_sync_enabled = True Then
 		If Not glf_dispatch_lightmaps_await.Exists(light) Then
