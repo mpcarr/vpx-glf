@@ -74,7 +74,8 @@ Dim glf_BIP : glf_BIP = 0
 Dim glf_FuncCount : glf_FuncCount = 0
 Dim glf_SeqCount : glf_SeqCount = 0
 Dim glf_max_dispatch : glf_max_dispatch = 25
-Dim glf_max_lightmap_sync : glf_max_lightmap_sync = 16
+Dim glf_max_lightmap_sync : glf_max_lightmap_sync = -1
+Dim glf_max_lightmap_sync_enabled : glf_max_lightmap_sync_enabled = False
 Dim glf_max_lights_test : glf_max_lights_test = 0
 
 Dim glf_master_volume : glf_master_volume = 0.8
@@ -575,14 +576,14 @@ Sub Glf_Options(ByVal eventId)
 		End If
 	End If
 
-	Dim min_lightmap_update_rate : min_lightmap_update_rate = Table1.Option("Glf Min Lightmap Update Rate", 1, 5, 1, 2, 0, Array("30 Hz", "60 Hz", "120 Hz", "144 Hz", "165 Hz"))
+	Dim min_lightmap_update_rate : min_lightmap_update_rate = Table1.Option("Glf Min Lightmap Update Rate", 1, 6, 1, 2, 0, Array("Disabled", "30 Hz", "60 Hz", "120 Hz", "144 Hz", "165 Hz"))
     Select Case min_lightmap_update_rate
-        Case 1: glf_max_lightmap_sync = 30
-        Case 2: glf_max_lightmap_sync = 15
-        Case 3: glf_max_lightmap_sync = 8
-        Case 4: glf_max_lightmap_sync = 7
-        Case 5: glf_max_lightmap_sync = 6
-        Case Else: glf_max_lightmap_sync = 15
+		Case 1: glf_max_lightmap_sync_enabled = False
+		Case 2: glf_max_lightmap_sync = 30 : glf_max_lightmap_sync_enabled = True
+        Case 3: glf_max_lightmap_sync = 15 : glf_max_lightmap_sync_enabled = True
+        Case 4: glf_max_lightmap_sync = 8 : glf_max_lightmap_sync_enabled = True
+        Case 5: glf_max_lightmap_sync = 7 : glf_max_lightmap_sync_enabled = True
+        Case 6: glf_max_lightmap_sync = 6 : glf_max_lightmap_sync_enabled = True
     End Select
 	
 End Sub
@@ -759,26 +760,27 @@ Public Sub Glf_GameTimer_Timer()
 
 	DelayTick
 
-	keys = glf_dispatch_lightmaps_await.Keys()
-	'debug.print(ubound(keys))
-	If glf_max_lights_test < Ubound(keys) Then
-		glf_max_lights_test = Ubound(keys)
-	End If
-	For Each key in keys
-		For Each lightMap in glf_lightMaps(key)
-			If Not IsNull(lightMap) Then
-				On Error Resume Next
-				lightMap.Color = glf_lightNames(key).Color
-				If Err Then Debug.Print "Error: " & Err & ". Light:" & key & ", LightMap: " & lightMap.Name
+	If glf_max_lightmap_sync_enabled = True Then
+		keys = glf_dispatch_lightmaps_await.Keys()
+		'debug.print(ubound(keys))
+		If glf_max_lights_test < Ubound(keys) Then
+			glf_max_lights_test = Ubound(keys)
+		End If
+		For Each key in keys
+			For Each lightMap in glf_lightMaps(key)
+				If Not IsNull(lightMap) Then
+					On Error Resume Next
+					lightMap.Color = glf_lightNames(key).Color
+					If Err Then Debug.Print "Error: " & Err & ". Light:" & key & ", LightMap: " & lightMap.Name
+				End If
+			Next
+			glf_dispatch_lightmaps_await.Remove key
+			If (gametime - glf_lastEventExecutionTime) > glf_max_lightmap_sync Then
+				'debug.print("Exiting")
+				Exit For
 			End If
 		Next
-		glf_dispatch_lightmaps_await.Remove key
-		If (gametime - glf_lastEventExecutionTime) > glf_max_lightmap_sync Then
-			'debug.print("Exiting")
-			Exit For
-		End If
-	Next
-	
+	End If
 	If (gametime - glf_lastTiltUpdateExecutionTime) >=50 And glf_current_virtual_tilt > 0 Then
 		glf_current_virtual_tilt = glf_current_virtual_tilt - 0.1
 		glf_lastTiltUpdateExecutionTime = gametime
@@ -905,18 +907,17 @@ Public Function Glf_SetLight(light, color)
 	Else
 		glf_lightNames(light).Color = rgbColor
 	End If
-	If Not glf_dispatch_lightmaps_await.Exists(light) Then
-		glf_dispatch_lightmaps_await.Add light, True
-	End If
-	'dim lightMap
-	'For Each lightMap in glf_lightMaps(light)
-	'	If Not IsNull(lightMap) Then
 
-			'On Error Resume Next
-			'lightMap.Color = glf_lightNames(light).Color
-			'If Err Then Debug.Print "Error: " & Err & ". Light:" & light & ", LightMap: " & lightMap.Name
-	'	End If
-	'Next
+	If glf_max_lightmap_sync_enabled = True Then
+		If Not glf_dispatch_lightmaps_await.Exists(light) Then
+			glf_dispatch_lightmaps_await.Add light, True
+		End If
+	Else
+		dim lightMap
+		For Each lightMap in glf_lightMaps(light)
+			lightMap.Color = glf_lightNames(light).Color
+		Next
+	End If
 End Function
 
 Public Function Glf_ParseInput(value)
