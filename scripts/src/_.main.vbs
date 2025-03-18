@@ -933,7 +933,9 @@ Public Function Glf_SetLight(light, color)
 	Else
 		dim lightMap
 		For Each lightMap in glf_lightMaps(light)
-			lightMap.Color = glf_lightNames(light).Color
+			If Not IsNull(lightMap) Then
+				lightMap.Color = glf_lightNames(light).Color
+			End If
 		Next
 	End If
 End Function

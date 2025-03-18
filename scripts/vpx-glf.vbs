@@ -933,7 +933,9 @@ Public Function Glf_SetLight(light, color)
 	Else
 		dim lightMap
 		For Each lightMap in glf_lightMaps(light)
-			lightMap.Color = glf_lightNames(light).Color
+			If Not IsNull(lightMap) Then
+				lightMap.Color = glf_lightNames(light).Color
+			End If
 		Next
 	End If
 End Function
@@ -11659,7 +11661,7 @@ Class GlfLightSegmentDisplay
         Set m_current_state = segment_text
         m_flashing = flashing
         m_flash_mask = flash_mask
-        SetText m_current_state.ConvertToString(), flashing, flash_mask
+        'SetText m_current_state.ConvertToString(), flashing, flash_mask
         UpdateText()
     End Sub
 
@@ -11696,7 +11698,7 @@ Class GlfLightSegmentDisplay
                 Glf_SetLight m_lights(segment_idx + 12), SegmentColor(segment.m)
                 Glf_SetLight m_lights(segment_idx + 13), SegmentColor(segment.l)
                 Glf_SetLight m_lights(segment_idx + 14), SegmentColor(segment.dp)
-                If m_flex_dmd_index>-1 Then
+                If m_flex_dmd_index > -1 Then
                     'debug.print segment.CharMapping
                     dim hex
                     hex = segment.CharMapping

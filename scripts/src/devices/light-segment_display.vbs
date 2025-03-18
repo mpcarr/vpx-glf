@@ -201,7 +201,7 @@ Class GlfLightSegmentDisplay
         Set m_current_state = segment_text
         m_flashing = flashing
         m_flash_mask = flash_mask
-        SetText m_current_state.ConvertToString(), flashing, flash_mask
+        'SetText m_current_state.ConvertToString(), flashing, flash_mask
         UpdateText()
     End Sub
 
@@ -238,7 +238,7 @@ Class GlfLightSegmentDisplay
                 Glf_SetLight m_lights(segment_idx + 12), SegmentColor(segment.m)
                 Glf_SetLight m_lights(segment_idx + 13), SegmentColor(segment.l)
                 Glf_SetLight m_lights(segment_idx + 14), SegmentColor(segment.dp)
-                If m_flex_dmd_index>-1 Then
+                If m_flex_dmd_index > -1 Then
                     'debug.print segment.CharMapping
                     dim hex
                     hex = segment.CharMapping
