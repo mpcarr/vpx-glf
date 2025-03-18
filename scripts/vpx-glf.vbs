@@ -412,6 +412,7 @@ Sub Glf_Reset()
 End Sub
 
 AddPinEventListener "reset_complete", "initial_segment_displays", "Glf_SegmentInit", 100, Null
+AddPinEventListener "reset_virtual_segment_lights", "reset_segment_displays", "Glf_SegmentInit", 100, Null
 Sub Glf_SegmentInit(args)
 	Dim segment_display
 	For Each segment_display in glf_segment_displays.Items()	
@@ -452,10 +453,7 @@ Sub Glf_DisableVirtualSegmentDmd()
 		Set glf_flex_alphadmd = Nothing
 	End If
 	glf_flex_alphadmd_enabled = False
-	Dim segment_display
-	For Each segment_display in glf_segment_displays.Items()
-		segment_display.SetVirtualDMDLights True
-	Next
+	DispatchPinEvent "reset_virtual_segment_lights", Null
 End Sub
 
 Sub Glf_EnableVirtualSegmentDmd()
@@ -477,10 +475,7 @@ Sub Glf_EnableVirtualSegmentDmd()
 	Next
 	glf_flex_alphadmd.Segments = glf_flex_alphadmd_segments
 	glf_flex_alphadmd_enabled = True
-	Dim segment_display
-	For Each segment_display in glf_segment_displays.Items()	
-		segment_display.SetVirtualDMDLights False
-	Next
+	DispatchPinEvent "reset_virtual_segment_lights", Null
 End Sub
 
 Sub Glf_WriteMachineVars()
@@ -609,7 +604,7 @@ Sub Glf_Options(ByVal eventId)
 		Glf_DisableVirtualSegmentDmd()
 	End If
 
-	Dim min_lightmap_update_rate : min_lightmap_update_rate = Table1.Option("Glf Min Lightmap Update Rate", 1, 6, 1, 2, 0, Array("Disabled", "30 Hz", "60 Hz", "120 Hz", "144 Hz", "165 Hz"))
+	Dim min_lightmap_update_rate : min_lightmap_update_rate = Table1.Option("Glf Min Lightmap Update Rate", 1, 6, 1, 1, 0, Array("Disabled", "30 Hz", "60 Hz", "120 Hz", "144 Hz", "165 Hz"))
     Select Case min_lightmap_update_rate
 		Case 1: glf_max_lightmap_sync_enabled = False
 		Case 2: glf_max_lightmap_sync = 30 : glf_max_lightmap_sync_enabled = True
@@ -11627,7 +11622,7 @@ Class GlfLightSegmentDisplay
         If m_flex_dmd_index>-1 Then
             Dim x
             For x=0 to UBound(m_lights)
-                glf_lightNames(m_lights(x)).Visible = False
+                glf_lightNames(m_lights(x)).Visible = input
             Next
         End If
     End Sub

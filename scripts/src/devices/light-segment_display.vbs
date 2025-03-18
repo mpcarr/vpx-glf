@@ -164,7 +164,7 @@ Class GlfLightSegmentDisplay
         If m_flex_dmd_index>-1 Then
             Dim x
             For x=0 to UBound(m_lights)
-                glf_lightNames(m_lights(x)).Visible = False
+                glf_lightNames(m_lights(x)).Visible = input
             Next
         End If
     End Sub
