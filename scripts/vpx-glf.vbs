@@ -2320,7 +2320,7 @@ Class GlfVpxBcpController
 End Class
 
 Sub Glf_BcpSendPlayerVar(args)
-    If IsNull(bcpController) Then
+    If useBcp=False Then
         Exit Sub
     End If
     Dim ownProps, kwargs : ownProps = args(0) : kwargs = args(1) 
@@ -2337,7 +2337,7 @@ Sub Glf_BcpAddPlayer(playerNum)
 End Sub
 
 Sub Glf_BcpUpdate()
-    If IsNull(bcpController) Then
+    If useBcp=False Then
         Exit Sub
     End If
     Dim messages : messages = bcpController.GetMessages()
@@ -3098,26 +3098,20 @@ Function BallHoldsEventHandler(args)
             kwargs = ball_hold.HoldBall(ownProps(2), kwargs)
         Case "release_all"
             Set glfEvent = ownProps(2)
-            If Not IsNull(glfEvent.Condition) Then
-                If GetRef(glfEvent.Condition)() = False Then
-                    Exit Function
-                End If
+            If glfEvent.Evaluate() = False Then
+                Exit Function
             End If
             ball_hold.ReleaseAll
         Case "release_one"
             Set glfEvent = ownProps(2)
-            If Not IsNull(glfEvent.Condition) Then
-                If GetRef(glfEvent.Condition)() = False Then
-                    Exit Function
-                End If
+            If glfEvent.Evaluate() = False Then
+                Exit Function
             End If
             ball_hold.ReleaseBalls 1
         Case "release_one_if_full"
             Set glfEvent = ownProps(2)
-            If Not IsNull(glfEvent.Condition) Then
-                If GetRef(glfEvent.Condition)() = False Then
-                    Exit Function
-                End If
+            If glfEvent.Evaluate() = False Then
+                Exit Function
             End If
             If ball_hold.IsFull Then
                 ball_hold.ReleaseBalls 1
@@ -4743,18 +4737,14 @@ Function BaseModeDeviceEventHandler(args)
             device.Deactivate
         Case "enable"
             Set glfEvent = ownProps(2)
-            If Not IsNull(glfEvent.Condition) Then
-                If GetRef(glfEvent.Condition)() = False Then
-                    Exit Function
-                End If
+            If glfEvent.Evaluate() = False Then
+                Exit Function
             End If
             device.Enable
         Case "disable"
             Set glfEvent = ownProps(2)
-            If Not IsNull(glfEvent.Condition) Then
-                If GetRef(glfEvent.Condition)() = False Then
-                    Exit Function
-                End If
+            If glfEvent.Evaluate() = False Then
+                Exit Function
             End If
             device.Disable
     End Select
@@ -5347,10 +5337,8 @@ Function ModeEventHandler(args)
     Select Case evt
         Case "start"
             Set glfEvent = ownProps(2)
-            If Not IsNull(glfEvent.Condition) Then
-                If GetRef(glfEvent.Condition)() = False Then
-                    Exit Function
-                End If
+            If glfEvent.Evaluate() = False Then
+                Exit Function
             End If
             mode.StartMode
             If mode.UseWaitQueue = True Then
@@ -5358,10 +5346,8 @@ Function ModeEventHandler(args)
             End If
         Case "stop"
             Set glfEvent = ownProps(2)
-            If Not IsNull(glfEvent.Condition) Then
-                If GetRef(glfEvent.Condition)() = False Then
-                    Exit Function
-                End If
+            If glfEvent.Evaluate() = False Then
+                Exit Function
             End If
             mode.StopMode
         Case "started"
@@ -6116,11 +6102,8 @@ Class GlfQueueEventPlayer
     End Sub
 
     Public Sub FireEvent(evt)
-        If Not IsNull(m_events(evt).Condition) Then
-            'msgbox m_events(evt).Condition
-            If GetRef(m_events(evt).Condition)() = False Then
-                Exit Sub
-            End If
+        If m_events(evt).Evaluate() = False Then
+            Exit Sub
         End If
         Dim evtValue
         For Each evtValue In m_eventValues(evt)
@@ -7089,18 +7072,14 @@ Function SequenceShotsHandler(args)
             sequence_shot.SequenceAdvance ownProps(2)
         Case "cancel"
             Set glfEvent = ownProps(2)
-            If Not IsNull(glfEvent.Condition) Then
-                If GetRef(glfEvent.Condition)() = False Then
-                    Exit Function
-                End If
+            If glfEvent.Evaluate() = False Then
+                Exit Function
             End If
             sequence_shot.ResetAllSequences
         Case "delay"
             Set glfEvent = ownProps(2)
-            If Not IsNull(glfEvent.Condition) Then
-                If GetRef(glfEvent.Condition)() = False Then
-                    Exit Function
-                End If
+            If glfEvent.Evaluate() = False Then
+                Exit Function
             End If
             sequence_shot.DelayEvent glfEvent.Delay, glfEvent.EventName
         Case "seq_timeout"
@@ -9176,11 +9155,7 @@ Class GlfStateMachine
         If UBound(state_config.EventsWhenStarted().Keys()) > -1 Then
             Dim evt
             For Each evt in state_config.EventsWhenStarted().Items()
-                If Not IsNull(evt.Condition) Then
-                    If GetRef(evt.Condition)() = True Then
-                        DispatchPinEvent evt.EventName, Null
-                    End If
-                Else
+                If evt.Evaluate() = True Then
                     DispatchPinEvent evt.EventName, Null
                 End If
             Next
@@ -9198,11 +9173,7 @@ Class GlfStateMachine
         If UBound(state_config.EventsWhenStopped().Keys()) > -1 Then
             Dim evt
             For Each evt in state_config.EventsWhenStopped().Items()
-                If Not IsNull(evt.Condition) Then
-                    If GetRef(evt.Condition)() = True Then
-                        DispatchPinEvent evt.EventName, Null
-                    End If
-                Else
+                If evt.Evaluate() = True Then
                     DispatchPinEvent evt.EventName, Null
                 End If
             Next
@@ -9262,11 +9233,7 @@ Class GlfStateMachine
         If UBound(transition.EventsWhenTransitioning().Keys()) > -1 Then
             Dim evt
             For Each evt in transition.EventsWhenTransitioning().Items()
-                If Not IsNull(evt.Condition) Then
-                    If GetRef(evt.Condition)() = True Then
-                        DispatchPinEvent evt.EventName, Null
-                    End If
-                Else
+                If evt.Evaluate() = True Then
                     DispatchPinEvent evt.EventName, Null
                 End If
             Next
@@ -9387,16 +9354,12 @@ Public Function StateMachineTransitionHandler(args)
     Select Case evt
         Case "transition"
             Dim glf_event : Set glf_event = ownProps(2)
-            If Not IsNull(glf_event.Condition) Then
-                If GetRef(glf_event.Condition)() = True Then
-                    state_machine.MakeTransition ownProps(3)
-                Else
-                    If glf_debug_level = "Debug" Then
-                        glf_debugLog.WriteToLog "State machine transition",  "failed condition: " & glf_event.Raw
-                    End If
-                End If
-            Else
+            If glf_event.Evaluate() = True Then
                 state_machine.MakeTransition ownProps(3)
+            Else
+                If glf_debug_level = "Debug" Then
+                    glf_debugLog.WriteToLog "State machine transition",  "failed condition: " & glf_event.Raw
+                End If
             End If
     End Select
     If IsObject(args(1)) Then
@@ -10309,10 +10272,8 @@ Class GlfVariablePlayer
 
     Public Sub Play(evt)
         Log "Playing: " & evt
-        If Not IsNull(m_events(evt).BaseEvent.Condition) Then
-            If GetRef(m_events(evt).BaseEvent.Condition)() = False Then
-                Exit Sub
-            End If
+        If m_events(evt).BaseEvent.Evaluate() = False Then
+            Exit Sub
         End If
         Dim vKey, v
         For Each vKey in m_events(evt).Variables.Keys
@@ -13340,7 +13301,7 @@ Class GlfSound
 End Class
 
 Class GlfEvent
-	Private m_raw, m_name, m_event, m_condition, m_delay, m_priority
+	Private m_raw, m_name, m_event, m_condition, m_delay, m_priority, has_condition
   
     Public Property Get Name() : Name = m_name : End Property
     Public Property Get EventName() : EventName = m_event : End Property
@@ -13350,7 +13311,7 @@ Class GlfEvent
     Public Property Get Priority() : Priority = m_priority : End Property
 
     Public Function Evaluate()
-        If Not IsNull(m_condition) Then
+        If has_condition = True Then
             Evaluate = GetRef(m_condition)()
         Else
             Evaluate = True
@@ -13363,6 +13324,11 @@ Class GlfEvent
         m_name = parsedEvent(0)
         m_event = parsedEvent(1)
         m_condition = parsedEvent(2)
+        If Not IsNull(m_condition) Then
+            has_condition = True
+        Else
+            has_condition = False
+        End If
         m_delay = parsedEvent(3)
         m_priority = parsedEvent(4)
 	    Set Init = Me
@@ -13388,14 +13354,6 @@ Class GlfRandomEvent
     Public Property Let ForceAll(value) : m_force_all = value : End Property
     Public Property Let ForceDifferent(value) : m_force_different = value : End Property
     Public Property Let DisableRandom(value) : m_disable_random = value : End Property
-
-    Public Function Evaluate()
-        If Not IsNull(m_condition) Then
-            Evaluate = GetRef(m_condition)()
-        Else
-            Evaluate = True
-        End If
-    End Function
 
 	Public default Function init(evt, mode, key)
         m_parent_key = evt

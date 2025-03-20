@@ -314,18 +314,14 @@ Function SequenceShotsHandler(args)
             sequence_shot.SequenceAdvance ownProps(2)
         Case "cancel"
             Set glfEvent = ownProps(2)
-            If Not IsNull(glfEvent.Condition) Then
-                If GetRef(glfEvent.Condition)() = False Then
-                    Exit Function
-                End If
+            If glfEvent.Evaluate() = False Then
+                Exit Function
             End If
             sequence_shot.ResetAllSequences
         Case "delay"
             Set glfEvent = ownProps(2)
-            If Not IsNull(glfEvent.Condition) Then
-                If GetRef(glfEvent.Condition)() = False Then
-                    Exit Function
-                End If
+            If glfEvent.Evaluate() = False Then
+                Exit Function
             End If
             sequence_shot.DelayEvent glfEvent.Delay, glfEvent.EventName
         Case "seq_timeout"

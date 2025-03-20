@@ -85,7 +85,7 @@ Class GlfVpxBcpController
 End Class
 
 Sub Glf_BcpSendPlayerVar(args)
-    If IsNull(bcpController) Then
+    If useBcp=False Then
         Exit Sub
     End If
     Dim ownProps, kwargs : ownProps = args(0) : kwargs = args(1) 
@@ -102,7 +102,7 @@ Sub Glf_BcpAddPlayer(playerNum)
 End Sub
 
 Sub Glf_BcpUpdate()
-    If IsNull(bcpController) Then
+    If useBcp=False Then
         Exit Sub
     End If
     Dim messages : messages = bcpController.GetMessages()

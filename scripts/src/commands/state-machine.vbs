@@ -130,11 +130,7 @@ Class GlfStateMachine
         If UBound(state_config.EventsWhenStarted().Keys()) > -1 Then
             Dim evt
             For Each evt in state_config.EventsWhenStarted().Items()
-                If Not IsNull(evt.Condition) Then
-                    If GetRef(evt.Condition)() = True Then
-                        DispatchPinEvent evt.EventName, Null
-                    End If
-                Else
+                If evt.Evaluate() = True Then
                     DispatchPinEvent evt.EventName, Null
                 End If
             Next
@@ -152,11 +148,7 @@ Class GlfStateMachine
         If UBound(state_config.EventsWhenStopped().Keys()) > -1 Then
             Dim evt
             For Each evt in state_config.EventsWhenStopped().Items()
-                If Not IsNull(evt.Condition) Then
-                    If GetRef(evt.Condition)() = True Then
-                        DispatchPinEvent evt.EventName, Null
-                    End If
-                Else
+                If evt.Evaluate() = True Then
                     DispatchPinEvent evt.EventName, Null
                 End If
             Next
@@ -216,11 +208,7 @@ Class GlfStateMachine
         If UBound(transition.EventsWhenTransitioning().Keys()) > -1 Then
             Dim evt
             For Each evt in transition.EventsWhenTransitioning().Items()
-                If Not IsNull(evt.Condition) Then
-                    If GetRef(evt.Condition)() = True Then
-                        DispatchPinEvent evt.EventName, Null
-                    End If
-                Else
+                If evt.Evaluate() = True Then
                     DispatchPinEvent evt.EventName, Null
                 End If
             Next
@@ -341,16 +329,12 @@ Public Function StateMachineTransitionHandler(args)
     Select Case evt
         Case "transition"
             Dim glf_event : Set glf_event = ownProps(2)
-            If Not IsNull(glf_event.Condition) Then
-                If GetRef(glf_event.Condition)() = True Then
-                    state_machine.MakeTransition ownProps(3)
-                Else
-                    If glf_debug_level = "Debug" Then
-                        glf_debugLog.WriteToLog "State machine transition",  "failed condition: " & glf_event.Raw
-                    End If
-                End If
-            Else
+            If glf_event.Evaluate() = True Then
                 state_machine.MakeTransition ownProps(3)
+            Else
+                If glf_debug_level = "Debug" Then
+                    glf_debugLog.WriteToLog "State machine transition",  "failed condition: " & glf_event.Raw
+                End If
             End If
     End Select
     If IsObject(args(1)) Then

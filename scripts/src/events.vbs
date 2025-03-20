@@ -1,6 +1,6 @@
 
 Class GlfEvent
-	Private m_raw, m_name, m_event, m_condition, m_delay, m_priority
+	Private m_raw, m_name, m_event, m_condition, m_delay, m_priority, has_condition
   
     Public Property Get Name() : Name = m_name : End Property
     Public Property Get EventName() : EventName = m_event : End Property
@@ -10,7 +10,7 @@ Class GlfEvent
     Public Property Get Priority() : Priority = m_priority : End Property
 
     Public Function Evaluate()
-        If Not IsNull(m_condition) Then
+        If has_condition = True Then
             Evaluate = GetRef(m_condition)()
         Else
             Evaluate = True
@@ -23,6 +23,11 @@ Class GlfEvent
         m_name = parsedEvent(0)
         m_event = parsedEvent(1)
         m_condition = parsedEvent(2)
+        If Not IsNull(m_condition) Then
+            has_condition = True
+        Else
+            has_condition = False
+        End If
         m_delay = parsedEvent(3)
         m_priority = parsedEvent(4)
 	    Set Init = Me
@@ -48,14 +53,6 @@ Class GlfRandomEvent
     Public Property Let ForceAll(value) : m_force_all = value : End Property
     Public Property Let ForceDifferent(value) : m_force_different = value : End Property
     Public Property Let DisableRandom(value) : m_disable_random = value : End Property
-
-    Public Function Evaluate()
-        If Not IsNull(m_condition) Then
-            Evaluate = GetRef(m_condition)()
-        Else
-            Evaluate = True
-        End If
-    End Function
 
 	Public default Function init(evt, mode, key)
         m_parent_key = evt

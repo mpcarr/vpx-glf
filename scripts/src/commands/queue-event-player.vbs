@@ -52,11 +52,8 @@ Class GlfQueueEventPlayer
     End Sub
 
     Public Sub FireEvent(evt)
-        If Not IsNull(m_events(evt).Condition) Then
-            'msgbox m_events(evt).Condition
-            If GetRef(m_events(evt).Condition)() = False Then
-                Exit Sub
-            End If
+        If m_events(evt).Evaluate() = False Then
+            Exit Sub
         End If
         Dim evtValue
         For Each evtValue In m_eventValues(evt)

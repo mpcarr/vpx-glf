@@ -352,26 +352,20 @@ Function BallHoldsEventHandler(args)
             kwargs = ball_hold.HoldBall(ownProps(2), kwargs)
         Case "release_all"
             Set glfEvent = ownProps(2)
-            If Not IsNull(glfEvent.Condition) Then
-                If GetRef(glfEvent.Condition)() = False Then
-                    Exit Function
-                End If
+            If glfEvent.Evaluate() = False Then
+                Exit Function
             End If
             ball_hold.ReleaseAll
         Case "release_one"
             Set glfEvent = ownProps(2)
-            If Not IsNull(glfEvent.Condition) Then
-                If GetRef(glfEvent.Condition)() = False Then
-                    Exit Function
-                End If
+            If glfEvent.Evaluate() = False Then
+                Exit Function
             End If
             ball_hold.ReleaseBalls 1
         Case "release_one_if_full"
             Set glfEvent = ownProps(2)
-            If Not IsNull(glfEvent.Condition) Then
-                If GetRef(glfEvent.Condition)() = False Then
-                    Exit Function
-                End If
+            If glfEvent.Evaluate() = False Then
+                Exit Function
             End If
             If ball_hold.IsFull Then
                 ball_hold.ReleaseBalls 1

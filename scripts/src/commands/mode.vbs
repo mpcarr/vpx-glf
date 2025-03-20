@@ -581,10 +581,8 @@ Function ModeEventHandler(args)
     Select Case evt
         Case "start"
             Set glfEvent = ownProps(2)
-            If Not IsNull(glfEvent.Condition) Then
-                If GetRef(glfEvent.Condition)() = False Then
-                    Exit Function
-                End If
+            If glfEvent.Evaluate() = False Then
+                Exit Function
             End If
             mode.StartMode
             If mode.UseWaitQueue = True Then
@@ -592,10 +590,8 @@ Function ModeEventHandler(args)
             End If
         Case "stop"
             Set glfEvent = ownProps(2)
-            If Not IsNull(glfEvent.Condition) Then
-                If GetRef(glfEvent.Condition)() = False Then
-                    Exit Function
-                End If
+            If glfEvent.Evaluate() = False Then
+                Exit Function
             End If
             mode.StopMode
         Case "started"

@@ -54,10 +54,8 @@ Class GlfVariablePlayer
 
     Public Sub Play(evt)
         Log "Playing: " & evt
-        If Not IsNull(m_events(evt).BaseEvent.Condition) Then
-            If GetRef(m_events(evt).BaseEvent.Condition)() = False Then
-                Exit Sub
-            End If
+        If m_events(evt).BaseEvent.Evaluate() = False Then
+            Exit Sub
         End If
         Dim vKey, v
         For Each vKey in m_events(evt).Variables.Keys
