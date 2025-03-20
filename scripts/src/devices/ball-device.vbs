@@ -238,6 +238,15 @@ Class GlfBallDevice
         End If
     End Sub
 
+    Public Function ToYaml
+        Dim yaml
+        yaml = "  " & m_name & ":" & vbCrLf
+        yaml = yaml + "    ball_switches: " & Join(m_ball_switches, ",") & vbCrLf
+        yaml = yaml + "    mechanical_eject: " & m_mechanical_eject & vbCrLf
+        
+        ToYaml = yaml
+    End Function
+
     Private Sub Log(message)
         If m_debug = True Then
             glf_debugLog.WriteToLog m_name, message
