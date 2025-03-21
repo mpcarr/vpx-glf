@@ -63,9 +63,11 @@ Dim glf_combo_switches : Set glf_combo_switches = CreateObject("Scripting.Dictio
 
 Dim bcpController : bcpController = Null
 Dim glf_debugBcpController : glf_debugBcpController = Null
+Dim glf_hasDebugController : glf_hasDebugController = False
 Dim glf_monitor_player_state : glf_monitor_player_state = ""
 Dim glf_monitor_modes : glf_monitor_modes = ""
 Dim glf_monitor_event_stream : glf_monitor_event_stream = ""
+Dim glf_running_modes : glf_running_modes = ""
 
 Dim useGlfBCPMonitor : useGlfBCPMonitor = False
 Dim useBCP : useBCP = False
@@ -92,12 +94,13 @@ Dim glf_debug_level : glf_debug_level = "Info"
 Glf_RegisterLights()
 Dim glf_ball1, glf_ball2, glf_ball3, glf_ball4, glf_ball5, glf_ball6, glf_ball7, glf_ball8	
 
-Public Sub Glf_ConnectToBCPMediaController()
+Public Sub Glf_ConnectToBCPMediaController(args)
     Set bcpController = (new GlfVpxBcpController)(bcpPort, bcpExeName)
 End Sub
 
 Public Sub Glf_ConnectToDebugBCPMediaController(args)
     Set glf_debugBcpController = (new GlfMonitorBcpController)(5051, "glf_monitor.exe")
+	glf_hasDebugController = True
 End Sub
 
 Public Sub Glf_WriteDebugLog(name, message)
@@ -626,9 +629,8 @@ Sub Glf_Options(ByVal eventId)
 
 	Dim glfuseBCP : glfuseBCP = Table1.Option("Glf Backbox Control Protocol", 0, 1, 1, 0, 0, Array("Off", "On"))
 	If glfuseBCP = 1 Then
-		useBCP = True
 		If IsNull(bcpController) Then
-			Glf_ConnectToBCPMediaController
+			SetDelay "start_glf_bcp", "Glf_ConnectToBCPMediaController", Null, 500
 		End If
 	Else
 		useBCP = False
@@ -641,7 +643,7 @@ Sub Glf_Options(ByVal eventId)
 	Dim glfuseDebugBCP : glfuseDebugBCP = Table1.Option("Glf Monitor", 0, 1, 1, 0, 0, Array("Off", "On"))
 	If glfuseDebugBCP = 1 And useGlfBCPMonitor = False Then
 		useGlfBCPMonitor = True
-		If IsNull(glf_debugBcpController) Then
+		If glf_hasDebugController = False Then
 			SetDelay "start_glf_monitor", "Glf_ConnectToDebugBCPMediaController", Null, 500
 		End If
 	ElseIf glfuseDebugBCP = 0 And useGlfBCPMonitor = True Then
@@ -649,6 +651,7 @@ Sub Glf_Options(ByVal eventId)
 		If Not IsNull(glf_debugBcpController) Then
 			glf_debugBcpController.Disconnect
 			glf_debugBcpController = Null
+			glf_hasDebugController = False
 		End If
 	End If
 
@@ -679,6 +682,7 @@ Public Sub Glf_Exit()
 	If Not IsNull(glf_debugBcpController) Then
 		glf_debugBcpController.Disconnect
 		glf_debugBcpController = Null
+		glf_hasDebugController = False
 	End If
 	If glf_debugEnabled = True Then
 		glf_debugLog.WriteToLog "Max Lights", glf_max_lights_test
@@ -2241,13 +2245,15 @@ End Function
 
 Class GlfVpxBcpController
 
-    Private m_bcpController, m_connected
+    Private m_bcpController, m_connected, m_mode_list
 
     Public default Function init(port, backboxCommand)
         On Error Resume Next
         Set m_bcpController = CreateObject("vpx_bcp_controller.VpxBcpController")
         m_bcpController.Connect port, backboxCommand
         m_connected = True
+        useBcp = True
+        m_mode_list = ""
         If Err Then MsgBox("Can not start VPX BCP Controller") : m_connected = False
         Set Init = Me
 	End Function
@@ -2270,16 +2276,24 @@ Class GlfVpxBcpController
         End If
 	End Sub
     
-    Public Sub PlaySlide(slide, context, priorty)
+    Public Sub PlaySlide(slide, context, calling_context, priorty)
 		If m_connected Then
-            m_bcpController.Send "trigger?json={""name"": ""slides_play"", ""settings"": {""" & slide & """: {""action"": ""play"", ""expire"": 0}}, ""context"": """ & context & """, ""priority"": " & priorty & "}"
+            m_bcpController.Send "trigger?json={""name"": ""slides_play"", ""settings"": {""" & slide & """: {""action"": ""play"", ""expire"": 0}}, ""context"": """ & context & """, ""calling_context"": """ & calling_context & """, ""priority"": " & priorty & "}"
         End If
 	End Sub
+
+    Public Sub ModeList()
+        If m_connected Then
+            If m_mode_list <> glf_running_modes Then
+                m_bcpController.Send "mode_list?json={""running_modes"": ["&glf_running_modes&"]}"
+                m_mode_list = glf_running_modes
+            End If
+        End If
+    End Sub
 
     Public Sub SendPlayerVariable(name, value, prevValue)
 		If m_connected Then
             m_bcpController.Send "player_variable?name=" & name & "&value=" & EncodeVariable(value) & "&prev_value=" & EncodeVariable(prevValue) & "&change=" & EncodeVariable(VariableVariance(value, prevValue)) & "&player_num=int:" & Getglf_currentPlayerNumber
-            '06:34:34.644 : VERBOSE : BCP : Received BCP command: ball_start?player_num=int:1&ball=int:1
         End If
 	End Sub
 
@@ -2315,6 +2329,7 @@ Class GlfVpxBcpController
         If m_connected Then
             m_bcpController.Disconnect()
             m_connected = False
+            useBcp = False
         End If
     End Sub
 End Class
@@ -2362,6 +2377,7 @@ Sub Glf_BcpUpdate()
             End Select
         Next
     End If
+    bcpController.ModeList()
 End Sub
 
 '*****************************************************************************************************************************************
@@ -2428,7 +2444,7 @@ Class GlfMonitorBcpController
 End Class
 
 Sub Glf_MonitorModeUpdate(mode)
-    If IsNull(glf_debugBcpController) Then
+    If glf_hasDebugController = False Then
         Exit Sub
     End If
     glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """&mode.Status&""", ""debug"": " & mode.IsDebug & "},"
@@ -2502,17 +2518,20 @@ Sub Glf_MonitorModeUpdate(mode)
     If Not IsNull(mode.DOFPlayer) Then
         glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.DOFPlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.DOFPlayer.Name & """},"
     End If
+    If Not IsNull(mode.SlidePlayer) Then
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.SlidePlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.SlidePlayer.Name & """},"
+    End If
 End Sub
 
 Sub Glf_MonitorPlayerStateUpdate(key, value)
-    If IsNull(glf_debugBcpController) Then
+    If glf_hasDebugController = False Then
         Exit Sub
     End If    
     glf_monitor_player_state = glf_monitor_player_state & "{""key"": """&key&""", ""value"": """&value&"""},"
 End Sub
 
 Sub Glf_MonitorEventStream(label, message)
-    If IsNull(glf_debugBcpController) Then
+    If glf_hasDebugController = False Then
         Exit Sub
     End If
     glf_monitor_event_stream = glf_monitor_event_stream & "{""label"": """&label&""", ""message"": """&message&"""},"
@@ -2520,7 +2539,7 @@ End Sub
 
 
 Sub Glf_MonitorBcpUpdate()
-    If IsNull(glf_debugBcpController) Then
+    If glf_hasDebugController = False Then
         Exit Sub
     End If
 
@@ -4758,6 +4777,7 @@ End Function
 Class Mode
 
     Private m_name
+    Private m_modename 
     Private m_start_events
     Private m_stop_events
     private m_priority
@@ -4781,6 +4801,7 @@ Class Mode
     Private m_random_event_player
     Private m_sound_player
     Private m_dof_player
+    Private m_slide_player
     Private m_shot_profiles
     Private m_sequence_shots
     Private m_state_machines
@@ -4834,6 +4855,7 @@ Class Mode
     Public Property Get VariablePlayer(): Set VariablePlayer = m_variableplayer: End Property
     Public Property Get SoundPlayer() : Set SoundPlayer = m_sound_player : End Property
     Public Property Get DOFPlayer() : Set DOFPlayer = m_dof_player : End Property
+    Public Property Get SlidePlayer() : Set SlidePlayer = m_slide_player : End Property
 
     Public Property Get ShotProfiles(name)
         If m_shot_profiles.Exists(name) Then
@@ -5096,6 +5118,9 @@ Class Mode
         If Not IsNull(m_dof_player) Then
             m_dof_player.Debug = value
         End If
+        If Not IsNull(m_slide_player) Then
+            m_slide_player.Debug = value
+        End If
         If Not IsNull(m_showplayer) Then
             m_showplayer.Debug = value
         End If
@@ -5110,6 +5135,7 @@ Class Mode
 
 	Public default Function init(name, priority)
         m_name = "mode_"&name
+        m_modename = name
         m_priority = priority
         m_started = False
         Set m_start_events = CreateObject("Scripting.Dictionary")
@@ -5140,6 +5166,7 @@ Class Mode
         Set m_random_event_player = (new GlfRandomEventPlayer)(Me)
         Set m_sound_player = (new GlfSoundPlayer)(Me)
         Set m_dof_player = (new GlfDofPlayer)(Me)
+        Set m_slide_player = (new GlfSlidePlayer)(Me)
         Set m_variableplayer = (new GlfVariablePlayer)(Me)
         Glf_MonitorModeUpdate Me
         AddPinEventListener m_name & "_starting", m_name & "_starting_end", "ModeEventHandler", -99, Array("started", Me, "")
@@ -5164,6 +5191,7 @@ Class Mode
     Public Sub Started()
         DispatchPinEvent m_name & "_started", Null
         Glf_MonitorModeUpdate Me
+        glf_running_modes = glf_running_modes & "["""&m_modename&""", " & m_priority & "],"
         Log "Started"
     End Sub
 
@@ -5171,6 +5199,7 @@ Class Mode
         'MsgBox m_name & "Stopped"
         DispatchPinEvent m_name & "_stopped", Null
         Glf_MonitorModeUpdate Me
+        glf_running_modes = Replace(glf_running_modes, "["""&m_modename&""", " & m_priority & "],", "")
         Log "Stopped"
     End Sub
 
@@ -8732,6 +8761,13 @@ Function GlfShowStepHandler(args)
             DOF dof_item.DOFEvent, dof_item.Action
         Next
     End If
+    If UBound(nextStep.SlidesInStep().Keys())>-1 Then
+        Dim slide_item
+        Dim slide_items : slide_items = nextStep.SlidesInStep().Items()
+        For Each slide_item in slide_items
+            
+        Next
+    End If
 
     If nextStep.Duration = -1 Then
         'glf_debugLog.WriteToLog "Running Show", "HOLD"
@@ -8773,7 +8809,7 @@ End Function
 
 Class GlfShowStep
 
-    Private m_lights, m_shows, m_dofs, m_time, m_duration, m_isLastStep, m_absTime, m_relTime
+    Private m_lights, m_shows, m_dofs, m_slides, m_time, m_duration, m_isLastStep, m_absTime, m_relTime
 
     Public Property Get Lights(): Lights = m_lights: End Property
     Public Property Let Lights(input) : m_lights = input: End Property
@@ -8793,6 +8829,14 @@ Class GlfShowStep
         m_dofs.Add dof_event & CStr(UBound(m_dofs.Keys)), new_dof
         Set DOFEvent = new_dof
     End Property
+
+    Public Property Get SlidesInStep(): Set SlidesInStep = m_slides: End Property
+        Public Property Get Slides(slide)
+            Dim new_slide : Set new_slide = (new GlfSlidePlayerItem)()
+            new_slide.Slide = slide
+            m_slides.Add slide & CStr(UBound(m_slides.Keys)), new_slide
+            Set Slides = new_slide
+        End Property
 
     Public Property Get Time()
         If IsNull(m_relTime) Then
@@ -8828,6 +8872,7 @@ Class GlfShowStep
         m_isLastStep = False
         Set m_shows = CreateObject("Scripting.Dictionary")
         Set m_dofs = CreateObject("Scripting.Dictionary")
+        Set m_slides = CreateObject("Scripting.Dictionary")
         Set Init = Me
 	End Function
 
@@ -8862,6 +8907,171 @@ Class GlfShowStep
     End Function
 
 End Class
+
+
+Class GlfSlidePlayer
+
+    Private m_name
+    Private m_priority
+    Private m_mode
+    Private m_debug
+    private m_base_device
+    Private m_events
+    Private m_eventValues
+
+    Public Property Get Name() : Name = "slide_player" : End Property
+
+    Public Property Get EventName(name)
+        Dim newEvent : Set newEvent = (new GlfEvent)(name)
+        m_events.Add newEvent.Raw, newEvent
+        Dim new_slide : Set new_slide = (new GlfSlidePlayerItem)()
+        m_eventValues.Add newEvent.Raw, new_slide
+        Set EventName = new_slide
+    End Property
+    
+    Public Property Let Debug(value)
+        m_debug = value
+        m_base_device.Debug = value
+    End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
+    End Property
+
+	Public default Function init(mode)
+        m_name = "slide_player_" & mode.name
+        m_mode = mode.Name
+        m_priority = mode.Priority
+        m_debug = False
+        Set m_events = CreateObject("Scripting.Dictionary")
+        Set m_eventValues = CreateObject("Scripting.Dictionary")
+        Set m_base_device = (new GlfBaseModeDevice)(mode, "slide_player", Me)
+        Set Init = Me
+	End Function
+
+    Public Sub Activate()
+        Dim evt
+        For Each evt In m_events.Keys()
+            AddPinEventListener m_events(evt).EventName, m_mode & "_" & evt & "_slide_player_play", "SlidePlayerEventHandler", m_priority+m_events(evt).Priority, Array("play", Me, evt)
+        Next
+    End Sub
+
+    Public Sub Deactivate()
+        Dim evt
+        For Each evt In m_events.Keys()
+            RemovePinEventListener m_events(evt).EventName, m_mode & "_" & evt & "_slide_player_play"
+        Next
+    End Sub
+
+    Public Function Play(evt)
+        Play = Empty
+        If m_events(evt).Evaluate() Then
+            'Fire Slide
+            bcpController.PlaySlide m_eventValues(evt).Slide, m_mode, m_events(evt).EventName, m_priority
+        End If
+    End Function
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_mode & "_slide_player", message
+        End If
+    End Sub
+
+    Public Function ToYaml()
+        Dim yaml
+        Dim evt
+        If UBound(m_events.Keys) > -1 Then
+            For Each key in m_events.keys
+                yaml = yaml & "  " & key & ": " & vbCrLf
+                yaml = yaml & m_events(key).ToYaml
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        ToYaml = yaml
+    End Function
+
+End Class
+
+Function SlidePlayerEventHandler(args)
+    Dim ownProps, kwargs : ownProps = args(0)
+    If IsObject(args(1)) Then
+        Set kwargs = args(1)
+    Else
+        kwargs = args(1) 
+    End If
+    Dim evt : evt = ownProps(0)
+    Dim slide_player : Set slide_player = ownProps(1)
+    Select Case evt
+        Case "activate"
+            slide_player.Activate
+        Case "deactivate"
+            slide_player.Deactivate
+        Case "play"
+            slide_player.Play(ownProps(2))
+    End Select
+    If IsObject(args(1)) Then
+        Set SlidePlayerEventHandler = kwargs
+    Else
+        SlidePlayerEventHandler = kwargs
+    End If
+End Function
+
+Class GlfSlidePlayerItem
+	Private m_slide, m_action, m_expire, m_max_queue_time, m_method, m_priority, m_target, m_tokens
+    
+    Public Property Get Slide(): Slide = m_slide: End Property
+    Public Property Let Slide(input)
+        m_slide = input
+    End Property
+    
+    Public Property Get Action(): Action = m_action: End Property
+    Public Property Let Action(input)
+        m_action = input
+    End Property
+
+    Public Property Get Expire(): Expire = m_expire: End Property
+    Public Property Let Expire(input)
+        m_expire = input
+    End Property
+
+    Public Property Get MaxQueueTime(): MaxQueueTime = m_max_queue_time: End Property
+    Public Property Let MaxQueueTime(input)
+        m_max_queue_time = input
+    End Property
+
+    Public Property Get Method(): Method = m_method: End Property
+    Public Property Let Method(input)
+        m_method = input
+    End Property
+
+    Public Property Get Priority(): Priority = m_priority: End Property
+    Public Property Let Priority(input)
+        m_priority = input
+    End Property
+
+    Public Property Get Target(): Target = m_target: End Property
+    Public Property Let Target(input)
+        m_target = input
+    End Property
+
+    Public Property Get Tokens(): Tokens = m_tokens: End Property
+    Public Property Let Tokens(input)
+        m_tokens = input
+    End Property
+
+	Public default Function init()
+        m_action = "play"
+        m_slide = Empty
+        m_expire = Empty
+        m_max_queue_time = Empty
+        m_method = Empty
+        m_priority = Empty
+        m_target = Empty
+        m_tokens = Empty
+        Set Init = Me
+	End Function
+
+End Class
+
 
 Class GlfSoundPlayer
 
@@ -13661,7 +13871,6 @@ Function Glf_StartGame(args)
         If useBcp Then
             bcpController.Send "player_turn_start?player_num=int:1"
             bcpController.Send "ball_start?player_num=int:1&ball=int:1"
-            bcpController.PlaySlide "base", "base", 1000
             bcpController.SendPlayerVariable "number", 1, 0
         End If
         SetDelay GLF_GAME_STARTED, "Glf_DispatchGameStarted", Null, 50
@@ -14335,7 +14544,8 @@ Function SetPlayerState(key, value)
     End If
     Glf_MonitorPlayerStateUpdate key, value
     If glf_playerEvents.Exists(key) Then
-        FirePlayerEventHandlers key, value, prevValue, -1
+        SetDelay "FirePlayerEventHandlers_" & key, "FirePlayerEventHandlersProxy",  Array(key, value, prevValue, -1), 200
+        'FirePlayerEventHandlers key, value, prevValue, -1
     End If
     
     SetPlayerState = Null
@@ -14361,11 +14571,16 @@ Function SetPlayerStateByPlayer(key, value, player)
     glf_playerState(player_name).Add key, value
     
     If glf_playerEvents.Exists(key) Then
-        FirePlayerEventHandlers key, value, prevValue, player
+        SetDelay "FirePlayerEventHandlers_" & key, "FirePlayerEventHandlersProxy",  Array(key, value, prevValue, player), 200
+        'FirePlayerEventHandlers key, value, prevValue, player
     End If
     
     SetPlayerStateByPlayer = Null
 End Function
+
+Sub FirePlayerEventHandlersProxy(args)
+    FirePlayerEventHandlers args(0), args(1), args(2), args(3)
+End Sub
 
 Sub FirePlayerEventHandlers(evt, value, prevValue, player)
     If Not glf_playerEvents.Exists(evt) Then

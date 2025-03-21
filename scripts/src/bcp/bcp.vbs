@@ -6,13 +6,15 @@
 
 Class GlfVpxBcpController
 
-    Private m_bcpController, m_connected
+    Private m_bcpController, m_connected, m_mode_list
 
     Public default Function init(port, backboxCommand)
         On Error Resume Next
         Set m_bcpController = CreateObject("vpx_bcp_controller.VpxBcpController")
         m_bcpController.Connect port, backboxCommand
         m_connected = True
+        useBcp = True
+        m_mode_list = ""
         If Err Then MsgBox("Can not start VPX BCP Controller") : m_connected = False
         Set Init = Me
 	End Function
@@ -35,16 +37,24 @@ Class GlfVpxBcpController
         End If
 	End Sub
     
-    Public Sub PlaySlide(slide, context, priorty)
+    Public Sub PlaySlide(slide, context, calling_context, priorty)
 		If m_connected Then
-            m_bcpController.Send "trigger?json={""name"": ""slides_play"", ""settings"": {""" & slide & """: {""action"": ""play"", ""expire"": 0}}, ""context"": """ & context & """, ""priority"": " & priorty & "}"
+            m_bcpController.Send "trigger?json={""name"": ""slides_play"", ""settings"": {""" & slide & """: {""action"": ""play"", ""expire"": 0}}, ""context"": """ & context & """, ""calling_context"": """ & calling_context & """, ""priority"": " & priorty & "}"
         End If
 	End Sub
+
+    Public Sub ModeList()
+        If m_connected Then
+            If m_mode_list <> glf_running_modes Then
+                m_bcpController.Send "mode_list?json={""running_modes"": ["&glf_running_modes&"]}"
+                m_mode_list = glf_running_modes
+            End If
+        End If
+    End Sub
 
     Public Sub SendPlayerVariable(name, value, prevValue)
 		If m_connected Then
             m_bcpController.Send "player_variable?name=" & name & "&value=" & EncodeVariable(value) & "&prev_value=" & EncodeVariable(prevValue) & "&change=" & EncodeVariable(VariableVariance(value, prevValue)) & "&player_num=int:" & Getglf_currentPlayerNumber
-            '06:34:34.644 : VERBOSE : BCP : Received BCP command: ball_start?player_num=int:1&ball=int:1
         End If
 	End Sub
 
@@ -80,6 +90,7 @@ Class GlfVpxBcpController
         If m_connected Then
             m_bcpController.Disconnect()
             m_connected = False
+            useBcp = False
         End If
     End Sub
 End Class
@@ -127,6 +138,7 @@ Sub Glf_BcpUpdate()
             End Select
         Next
     End If
+    bcpController.ModeList()
 End Sub
 
 '*****************************************************************************************************************************************

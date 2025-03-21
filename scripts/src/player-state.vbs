@@ -90,7 +90,8 @@ Function SetPlayerState(key, value)
     End If
     Glf_MonitorPlayerStateUpdate key, value
     If glf_playerEvents.Exists(key) Then
-        FirePlayerEventHandlers key, value, prevValue, -1
+        SetDelay "FirePlayerEventHandlers_" & key, "FirePlayerEventHandlersProxy",  Array(key, value, prevValue, -1), 200
+        'FirePlayerEventHandlers key, value, prevValue, -1
     End If
     
     SetPlayerState = Null
@@ -116,11 +117,16 @@ Function SetPlayerStateByPlayer(key, value, player)
     glf_playerState(player_name).Add key, value
     
     If glf_playerEvents.Exists(key) Then
-        FirePlayerEventHandlers key, value, prevValue, player
+        SetDelay "FirePlayerEventHandlers_" & key, "FirePlayerEventHandlersProxy",  Array(key, value, prevValue, player), 200
+        'FirePlayerEventHandlers key, value, prevValue, player
     End If
     
     SetPlayerStateByPlayer = Null
 End Function
+
+Sub FirePlayerEventHandlersProxy(args)
+    FirePlayerEventHandlers args(0), args(1), args(2), args(3)
+End Sub
 
 Sub FirePlayerEventHandlers(evt, value, prevValue, player)
     If Not glf_playerEvents.Exists(evt) Then

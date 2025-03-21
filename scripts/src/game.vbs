@@ -158,7 +158,6 @@ Function Glf_StartGame(args)
         If useBcp Then
             bcpController.Send "player_turn_start?player_num=int:1"
             bcpController.Send "ball_start?player_num=int:1&ball=int:1"
-            bcpController.PlaySlide "base", "base", 1000
             bcpController.SendPlayerVariable "number", 1, 0
         End If
         SetDelay GLF_GAME_STARTED, "Glf_DispatchGameStarted", Null, 50

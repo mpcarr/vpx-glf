@@ -63,9 +63,11 @@ Dim glf_combo_switches : Set glf_combo_switches = CreateObject("Scripting.Dictio
 
 Dim bcpController : bcpController = Null
 Dim glf_debugBcpController : glf_debugBcpController = Null
+Dim glf_hasDebugController : glf_hasDebugController = False
 Dim glf_monitor_player_state : glf_monitor_player_state = ""
 Dim glf_monitor_modes : glf_monitor_modes = ""
 Dim glf_monitor_event_stream : glf_monitor_event_stream = ""
+Dim glf_running_modes : glf_running_modes = ""
 
 Dim useGlfBCPMonitor : useGlfBCPMonitor = False
 Dim useBCP : useBCP = False
@@ -92,12 +94,13 @@ Dim glf_debug_level : glf_debug_level = "Info"
 Glf_RegisterLights()
 Dim glf_ball1, glf_ball2, glf_ball3, glf_ball4, glf_ball5, glf_ball6, glf_ball7, glf_ball8	
 
-Public Sub Glf_ConnectToBCPMediaController()
+Public Sub Glf_ConnectToBCPMediaController(args)
     Set bcpController = (new GlfVpxBcpController)(bcpPort, bcpExeName)
 End Sub
 
 Public Sub Glf_ConnectToDebugBCPMediaController(args)
     Set glf_debugBcpController = (new GlfMonitorBcpController)(5051, "glf_monitor.exe")
+	glf_hasDebugController = True
 End Sub
 
 Public Sub Glf_WriteDebugLog(name, message)
@@ -626,9 +629,8 @@ Sub Glf_Options(ByVal eventId)
 
 	Dim glfuseBCP : glfuseBCP = Table1.Option("Glf Backbox Control Protocol", 0, 1, 1, 0, 0, Array("Off", "On"))
 	If glfuseBCP = 1 Then
-		useBCP = True
 		If IsNull(bcpController) Then
-			Glf_ConnectToBCPMediaController
+			SetDelay "start_glf_bcp", "Glf_ConnectToBCPMediaController", Null, 500
 		End If
 	Else
 		useBCP = False
@@ -641,7 +643,7 @@ Sub Glf_Options(ByVal eventId)
 	Dim glfuseDebugBCP : glfuseDebugBCP = Table1.Option("Glf Monitor", 0, 1, 1, 0, 0, Array("Off", "On"))
 	If glfuseDebugBCP = 1 And useGlfBCPMonitor = False Then
 		useGlfBCPMonitor = True
-		If IsNull(glf_debugBcpController) Then
+		If glf_hasDebugController = False Then
 			SetDelay "start_glf_monitor", "Glf_ConnectToDebugBCPMediaController", Null, 500
 		End If
 	ElseIf glfuseDebugBCP = 0 And useGlfBCPMonitor = True Then
@@ -649,6 +651,7 @@ Sub Glf_Options(ByVal eventId)
 		If Not IsNull(glf_debugBcpController) Then
 			glf_debugBcpController.Disconnect
 			glf_debugBcpController = Null
+			glf_hasDebugController = False
 		End If
 	End If
 
@@ -679,6 +682,7 @@ Public Sub Glf_Exit()
 	If Not IsNull(glf_debugBcpController) Then
 		glf_debugBcpController.Disconnect
 		glf_debugBcpController = Null
+		glf_hasDebugController = False
 	End If
 	If glf_debugEnabled = True Then
 		glf_debugLog.WriteToLog "Max Lights", glf_max_lights_test

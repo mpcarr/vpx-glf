@@ -2,6 +2,7 @@
 Class Mode
 
     Private m_name
+    Private m_modename 
     Private m_start_events
     Private m_stop_events
     private m_priority
@@ -25,6 +26,7 @@ Class Mode
     Private m_random_event_player
     Private m_sound_player
     Private m_dof_player
+    Private m_slide_player
     Private m_shot_profiles
     Private m_sequence_shots
     Private m_state_machines
@@ -78,6 +80,7 @@ Class Mode
     Public Property Get VariablePlayer(): Set VariablePlayer = m_variableplayer: End Property
     Public Property Get SoundPlayer() : Set SoundPlayer = m_sound_player : End Property
     Public Property Get DOFPlayer() : Set DOFPlayer = m_dof_player : End Property
+    Public Property Get SlidePlayer() : Set SlidePlayer = m_slide_player : End Property
 
     Public Property Get ShotProfiles(name)
         If m_shot_profiles.Exists(name) Then
@@ -340,6 +343,9 @@ Class Mode
         If Not IsNull(m_dof_player) Then
             m_dof_player.Debug = value
         End If
+        If Not IsNull(m_slide_player) Then
+            m_slide_player.Debug = value
+        End If
         If Not IsNull(m_showplayer) Then
             m_showplayer.Debug = value
         End If
@@ -354,6 +360,7 @@ Class Mode
 
 	Public default Function init(name, priority)
         m_name = "mode_"&name
+        m_modename = name
         m_priority = priority
         m_started = False
         Set m_start_events = CreateObject("Scripting.Dictionary")
@@ -384,6 +391,7 @@ Class Mode
         Set m_random_event_player = (new GlfRandomEventPlayer)(Me)
         Set m_sound_player = (new GlfSoundPlayer)(Me)
         Set m_dof_player = (new GlfDofPlayer)(Me)
+        Set m_slide_player = (new GlfSlidePlayer)(Me)
         Set m_variableplayer = (new GlfVariablePlayer)(Me)
         Glf_MonitorModeUpdate Me
         AddPinEventListener m_name & "_starting", m_name & "_starting_end", "ModeEventHandler", -99, Array("started", Me, "")
@@ -408,6 +416,7 @@ Class Mode
     Public Sub Started()
         DispatchPinEvent m_name & "_started", Null
         Glf_MonitorModeUpdate Me
+        glf_running_modes = glf_running_modes & "["""&m_modename&""", " & m_priority & "],"
         Log "Started"
     End Sub
 
@@ -415,6 +424,7 @@ Class Mode
         'MsgBox m_name & "Stopped"
         DispatchPinEvent m_name & "_stopped", Null
         Glf_MonitorModeUpdate Me
+        glf_running_modes = Replace(glf_running_modes, "["""&m_modename&""", " & m_priority & "],", "")
         Log "Stopped"
     End Sub
 

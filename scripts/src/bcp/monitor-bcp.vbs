@@ -59,7 +59,7 @@ Class GlfMonitorBcpController
 End Class
 
 Sub Glf_MonitorModeUpdate(mode)
-    If IsNull(glf_debugBcpController) Then
+    If glf_hasDebugController = False Then
         Exit Sub
     End If
     glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """&mode.Status&""", ""debug"": " & mode.IsDebug & "},"
@@ -133,17 +133,20 @@ Sub Glf_MonitorModeUpdate(mode)
     If Not IsNull(mode.DOFPlayer) Then
         glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.DOFPlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.DOFPlayer.Name & """},"
     End If
+    If Not IsNull(mode.SlidePlayer) Then
+        glf_monitor_modes = glf_monitor_modes & "{""mode"": """&mode.Name&""", ""value"": """", ""debug"": " & mode.SlidePlayer.IsDebug & ", ""mode_device"": 1, ""mode_device_name"": """ & mode.SlidePlayer.Name & """},"
+    End If
 End Sub
 
 Sub Glf_MonitorPlayerStateUpdate(key, value)
-    If IsNull(glf_debugBcpController) Then
+    If glf_hasDebugController = False Then
         Exit Sub
     End If    
     glf_monitor_player_state = glf_monitor_player_state & "{""key"": """&key&""", ""value"": """&value&"""},"
 End Sub
 
 Sub Glf_MonitorEventStream(label, message)
-    If IsNull(glf_debugBcpController) Then
+    If glf_hasDebugController = False Then
         Exit Sub
     End If
     glf_monitor_event_stream = glf_monitor_event_stream & "{""label"": """&label&""", ""message"": """&message&"""},"
@@ -151,7 +154,7 @@ End Sub
 
 
 Sub Glf_MonitorBcpUpdate()
-    If IsNull(glf_debugBcpController) Then
+    If glf_hasDebugController = False Then
         Exit Sub
     End If
 
