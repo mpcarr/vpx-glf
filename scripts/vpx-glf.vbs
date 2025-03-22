@@ -123,7 +123,7 @@ End Function
 Public Sub Glf_Init()
 	Glf_Options Null 'Force Options Check
 
-
+	glf_debugLog.WriteToLog "Init", "Start"
 	If glf_troughSize > 0 Then : swTrough1.DestroyBall : Set glf_ball1 = swTrough1.CreateSizedballWithMass(Ballsize / 2,Ballmass) : gBot = Array(glf_ball1) : Set glf_lastTroughSw = swTrough1 : End If
 	If glf_troughSize > 1 Then : swTrough2.DestroyBall : Set glf_ball2 = swTrough2.CreateSizedballWithMass(Ballsize / 2,Ballmass) : gBot = Array(glf_ball1, glf_ball2) : Set glf_lastTroughSw = swTrough2 : End If
 	If glf_troughSize > 2 Then : swTrough3.DestroyBall : Set glf_ball3 = swTrough3.CreateSizedballWithMass(Ballsize / 2,Ballmass) : gBot = Array(glf_ball1, glf_ball2, glf_ball3) : Set glf_lastTroughSw = swTrough3 : End If
@@ -157,7 +157,7 @@ Public Sub Glf_Init()
 	ExecuteGlobal spinnerHitSubs
 
 	If glf_debugEnabled = True Then
-
+		glf_debugLog.WriteToLog "Init", "Exporting MPF Config"
 		' Calculate the scale factor
 		Dim scaleFactor
 		scaleFactor = 1080 / tableheight
@@ -183,8 +183,6 @@ Public Sub Glf_Init()
 		configYaml = configYaml + "    tags: default" & vbCrLf
 		configYaml = configYaml + "    default_source_device: balldevice_plunger" & vbCrLf
 
-		
-		
 		Dim lightsYaml : lightsYaml = "#config_version=6" & vbCrLf & vbCrLf
 		lightsYaml = lightsYaml + "lights:" & vbCrLf
 		Dim monitorYaml : monitorYaml = "light:" & vbCrLf
@@ -345,10 +343,11 @@ Public Sub Glf_Init()
 		Set TxtFileStream = fso.OpenTextFile(monitorFolder & "\gotdotlights.txt", 2, True)
 		TxtFileStream.WriteLine godotLightScene
 		TxtFileStream.Close
-		
+		glf_debugLog.WriteToLog "Init", "Finished MPF Config"
 	End If
 
 	'Cache Shows
+	glf_debugLog.WriteToLog "Init", "Caching Shows"
 	Dim mode, show_count, shot_count, cached_show
 	show_count = 0
 	shot_count = 0
@@ -437,7 +436,9 @@ Public Sub Glf_Init()
 			Next
 		End If
 	Next
+	glf_debugLog.WriteToLog "Init", "Finished Caching Shows"
 
+	glf_debugLog.WriteToLog "Init", "Creating Machine Vars"
 	With CreateMachineVar("player1_score")
         .InitialValue = 0
         .ValueType = "int"
@@ -460,12 +461,12 @@ Public Sub Glf_Init()
     End With
 
 	Glf_ReadMachineVars()
+	glf_debugLog.WriteToLog "Init", "Finished Creating Machine Vars"
 
 	Glf_Reset()
 End Sub
 
 Sub Glf_Reset()
-
 	DispatchQueuePinEvent "reset_complete", Null
 End Sub
 
@@ -598,6 +599,21 @@ Sub Glf_WriteMachineVars()
 End Sub
 
 Sub Glf_Options(ByVal eventId)
+	
+	
+
+	Dim glfDebug : glfDebug = Table1.Option("Glf Debug Log", 0, 1, 1, 0, 0, Array("Off", "On"))
+	If glfDebug = 1 Then
+		glf_debugEnabled = True
+		glf_debugLog.EnableLogs
+	Else
+		glf_debugEnabled = False
+		glf_debugLog.DisableLogs
+	End If
+
+	glf_debugLog.WriteToLog "Options", "Start"
+
+
 	Dim ballsPerGame : ballsPerGame = Table1.Option("Balls Per Game", 1, 2, 1, 1, 0, Array("3 Balls", "5 Balls"))
 	If ballsPerGame = 1 Then
 		glf_ballsPerGame = 3
@@ -608,14 +624,7 @@ Sub Glf_Options(ByVal eventId)
 	Dim tilt_sensitivity : tilt_sensitivity = Table1.Option("Tilt Sensitivity (digital nudge)", 1, 10, 1, 5, 0, Array("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"))
 	glf_tilt_sensitivity = tilt_sensitivity
 
-	Dim glfDebug : glfDebug = Table1.Option("Glf Debug Log", 0, 1, 1, 0, 0, Array("Off", "On"))
-	If glfDebug = 1 Then
-		glf_debugEnabled = True
-		glf_debugLog.EnableLogs
-	Else
-		glf_debugEnabled = False
-		glf_debugLog.DisableLogs
-	End If
+	
 
 	Dim glfDebugLevel : glfDebugLevel = Table1.Option("Glf Debug Log Level", 0, 1, 1, 0, 0, Array("Info", "Debug"))
 	If glfDebugLevel = 1 Then
@@ -627,6 +636,7 @@ Sub Glf_Options(ByVal eventId)
 	Dim glfMaxDispatch : glfMaxDispatch = Table1.Option("Glf Frame Dispatch", 1, 10, 1, 1, 0, Array("5", "10", "15", "20", "25", "30", "35", "40", "45", "50"))
 	glf_max_dispatch = glfMaxDispatch*5
 
+	glf_debugLog.WriteToLog "Options", "BCP Check"
 	Dim glfuseBCP : glfuseBCP = Table1.Option("Glf Backbox Control Protocol", 0, 1, 1, 0, 0, Array("Off", "On"))
 	If glfuseBCP = 1 Then
 		If IsNull(bcpController) Then
@@ -639,7 +649,7 @@ Sub Glf_Options(ByVal eventId)
 			bcpController = Null
 		End If
 	End If
-
+	glf_debugLog.WriteToLog "Options", "GLF Monitor Check"
 	Dim glfuseDebugBCP : glfuseDebugBCP = Table1.Option("Glf Monitor", 0, 1, 1, 0, 0, Array("Off", "On"))
 	If glfuseDebugBCP = 1 And useGlfBCPMonitor = False Then
 		useGlfBCPMonitor = True
@@ -654,7 +664,7 @@ Sub Glf_Options(ByVal eventId)
 			glf_hasDebugController = False
 		End If
 	End If
-
+	glf_debugLog.WriteToLog "Options", "GLF Segments (Flex) Check"
 	Dim glfuseVirtualSegmentDMD : glfuseVirtualSegmentDMD = Table1.Option("Glf Virtual Segment DMD", 0, 1, 1, 0, 0, Array("Off", "On"))
 	If glfuseVirtualSegmentDMD = 1 And glf_flex_alphadmd_enabled = False Then
 		Glf_EnableVirtualSegmentDmd()
@@ -662,6 +672,7 @@ Sub Glf_Options(ByVal eventId)
 		Glf_DisableVirtualSegmentDmd()
 	End If
 
+	glf_debugLog.WriteToLog "Options", "LightmapSync"
 	Dim min_lightmap_update_rate : min_lightmap_update_rate = Table1.Option("Glf Min Lightmap Update Rate", 1, 6, 1, 1, 0, Array("Disabled", "30 Hz", "60 Hz", "120 Hz", "144 Hz", "165 Hz"))
     Select Case min_lightmap_update_rate
 		Case 1: glf_max_lightmap_sync_enabled = False
@@ -1189,6 +1200,8 @@ Function Glf_GameVariable(value)
 			Glf_GameVariable = glf_gameTilted
 		Case "balls_per_game"
 			Glf_GameVariable = glf_ballsPerGame
+		Case "balls_in_play"
+			Glf_GameVariable = glf_BIP
 	End Select
 End Function
 
