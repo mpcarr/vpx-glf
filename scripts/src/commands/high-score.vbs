@@ -349,7 +349,7 @@ Class GlfHighScore
                 Dim category : category = Trim(key_parts(0))
                 Dim position : position = Trim(key_parts(1))
                 Dim attr : attr = Trim(key_parts(2))
-
+                Dim current_label
                 If m_categories.Exists(category) Then
                     If Not m_highscores.Exists(category) Then
                         m_highscores.Add category, CreateObject("Scripting.Dictionary")
@@ -366,6 +366,8 @@ Class GlfHighScore
                                 .Add "player_name", current_name
                                 .Add "value", parts(1)
                             End With
+                            
+                            
                             'msgbox category & "," & position & ", " & current_label & ", " & current_name & ", " & parts(1)
                             m_highscores(category).Add CStr(position), kwargs
                     End Select

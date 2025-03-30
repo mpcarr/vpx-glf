@@ -466,6 +466,7 @@ Public Sub Glf_Init()
 	End If
 
 	Glf_ReadMachineVars("MachineVars")
+	Glf_ReadMachineVars("HighScores")
 	glf_debugLog.WriteToLog "Init", "Finished Creating Machine Vars"
 
 	Glf_Reset()
@@ -505,6 +506,12 @@ Sub Glf_ReadMachineVars(section)
 				If glf_machine_vars(key).Persist = True Then
 	            	glf_machine_vars(key).Value = Trim(Split(line, "=")(1))
 				End If
+			Else	
+				With CreateMachineVar(key)
+					.InitialValue = Trim(Split(line, "=")(1))
+					.ValueType = "int"
+					.Persist = False
+				End With
 			End If
         End If
     Next
@@ -1111,7 +1118,7 @@ End Function
 
 Public Function Glf_ParseDispatchEventInput(value)
 	Dim templateCode : templateCode = ""
-	Dim kwargs : kawrgs = Empty
+	Dim kwargs : kwargs = Empty
 	Dim eventKey
 	Dim pos : pos = InStr(value, ":")
 	If pos > 0 Then
@@ -4661,7 +4668,7 @@ Class GlfHighScore
                 Dim category : category = Trim(key_parts(0))
                 Dim position : position = Trim(key_parts(1))
                 Dim attr : attr = Trim(key_parts(2))
-
+                Dim current_label
                 If m_categories.Exists(category) Then
                     If Not m_highscores.Exists(category) Then
                         m_highscores.Add category, CreateObject("Scripting.Dictionary")
@@ -4678,6 +4685,8 @@ Class GlfHighScore
                                 .Add "player_name", current_name
                                 .Add "value", parts(1)
                             End With
+                            
+                            
                             'msgbox category & "," & position & ", " & current_label & ", " & current_name & ", " & parts(1)
                             m_highscores(category).Add CStr(position), kwargs
                     End Select
