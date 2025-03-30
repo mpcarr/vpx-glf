@@ -101,9 +101,12 @@ Class GlfHighScore
             'eg score.
             ' get the value for each player
             Dim player_values()
+            Dim player_numbers()
             ReDiM player_values(UBound(glf_playerState.Keys()))
+            ReDiM player_numbers(UBound(glf_playerState.Keys()))
             For p=0 to UBound(glf_playerState.Keys())
                 player_values(p) = GetPlayerStateForPlayer(p, category)
+                player_numbers(p) = p+1
             Next
             'Sort the values high to low.
             Dim i, j, temp
@@ -113,6 +116,10 @@ Class GlfHighScore
                         temp = player_values(i)
                         player_values(i) = player_values(j)
                         player_values(j) = temp
+
+                        temp = player_numbers(i)
+                        player_numbers(i) = player_numbers(j)
+                        player_numbers(j) = temp
                     End If
                 Next
             Next
@@ -172,7 +179,7 @@ Class GlfHighScore
                         'new score
                         m_highscores(category)(CStr(position+1))("value") = player_values(i)
                         m_highscores(category)(CStr(position+1))("player_name") = ""
-                        m_highscores(category)(CStr(position+1))("player_num") = i+1
+                        m_highscores(category)(CStr(position+1))("player_num") = player_numbers(i)
                         m_highscores(category)(CStr(position+1))("award") = m_categories(category)(position)
                         m_highscores(category)(CStr(position+1))("category") = category
                         m_highscores(category)(CStr(position+1))("position") = position + 1
@@ -231,7 +238,7 @@ Class GlfHighScore
         For Each key in keys
             Dim s
             For Each s in m_highscores(key).Keys()
-                If m_highscores(key)(s)("player_num") = m_current_initials+1 Then
+                If m_highscores(key)(s)("player_num") = initials_item("player_num") Then
                     'msgbox "Setting Player " & m_current_initials+1 & " Name to >" & text & "<"
                     m_highscores(key)(s)("player_name") = text
                 End If
