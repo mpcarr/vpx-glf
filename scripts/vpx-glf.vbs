@@ -529,7 +529,7 @@ Sub Glf_DisableVirtualSegmentDmd()
 	DispatchPinEvent "reset_virtual_segment_lights", Null
 End Sub
 
-Sub Glf_EnableVirtualSegmentDmd()
+Sub Glf_EnableVirtualSegmentDmd(args)
 	Glf_DisableVirtualSegmentDmd()
 	Dim i
 	Set glf_flex_alphadmd = CreateObject("FlexDMD.FlexDMD")
@@ -616,8 +616,9 @@ End Sub
 
 Sub Glf_Options(ByVal eventId)
 	
-	
+	Dim glfMaxDispatch : glfMaxDispatch = 1
 
+	'***GLF_DEBUG_OPTIONS_START***
 	Dim glfDebug : glfDebug = Table1.Option("Glf Debug Log", 0, 1, 1, 0, 0, Array("Off", "On"))
 	If glfDebug = 1 Then
 		glf_debugEnabled = True
@@ -626,21 +627,7 @@ Sub Glf_Options(ByVal eventId)
 		glf_debugEnabled = False
 		glf_debugLog.DisableLogs
 	End If
-
 	glf_debugLog.WriteToLog "Options", "Start"
-
-
-	Dim ballsPerGame : ballsPerGame = Table1.Option("Balls Per Game", 1, 2, 1, 1, 0, Array("3 Balls", "5 Balls"))
-	If ballsPerGame = 1 Then
-		glf_ballsPerGame = 3
-	Else
-		glf_ballsPerGame = 5
-	End If
-
-	Dim tilt_sensitivity : tilt_sensitivity = Table1.Option("Tilt Sensitivity (digital nudge)", 1, 10, 1, 5, 0, Array("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"))
-	glf_tilt_sensitivity = tilt_sensitivity
-
-	
 
 	Dim glfDebugLevel : glfDebugLevel = Table1.Option("Glf Debug Log Level", 0, 1, 1, 0, 0, Array("Info", "Debug"))
 	If glfDebugLevel = 1 Then
@@ -649,22 +636,8 @@ Sub Glf_Options(ByVal eventId)
 		glf_debug_level = "Info"
 	End If
 
-	Dim glfMaxDispatch : glfMaxDispatch = Table1.Option("Glf Frame Dispatch", 1, 10, 1, 1, 0, Array("5", "10", "15", "20", "25", "30", "35", "40", "45", "50"))
-	glf_max_dispatch = glfMaxDispatch*5
+	glfMaxDispatch = Table1.Option("Glf Frame Dispatch", 1, 10, 1, 1, 0, Array("5", "10", "15", "20", "25", "30", "35", "40", "45", "50"))
 
-	glf_debugLog.WriteToLog "Options", "BCP Check"
-	Dim glfuseBCP : glfuseBCP = Table1.Option("Glf Backbox Control Protocol", 0, 1, 1, 0, 0, Array("Off", "On"))
-	If glfuseBCP = 1 Then
-		If IsNull(bcpController) Then
-			SetDelay "start_glf_bcp", "Glf_ConnectToBCPMediaController", Null, 500
-		End If
-	Else
-		useBCP = False
-		If Not IsNull(bcpController) Then
-			bcpController.Disconnect
-			bcpController = Null
-		End If
-	End If
 	glf_debugLog.WriteToLog "Options", "GLF Monitor Check"
 	Dim glfuseDebugBCP : glfuseDebugBCP = Table1.Option("Glf Monitor", 0, 1, 1, 0, 0, Array("Off", "On"))
 	If glfuseDebugBCP = 1 And useGlfBCPMonitor = False Then
@@ -680,10 +653,39 @@ Sub Glf_Options(ByVal eventId)
 			glf_hasDebugController = False
 		End If
 	End If
+	'***GLF_DEBUG_OPTIONS_END***
+
+
+	Dim ballsPerGame : ballsPerGame = Table1.Option("Balls Per Game", 1, 2, 1, 1, 0, Array("3 Balls", "5 Balls"))
+	If ballsPerGame = 1 Then
+		glf_ballsPerGame = 3
+	Else
+		glf_ballsPerGame = 5
+	End If
+
+	Dim tilt_sensitivity : tilt_sensitivity = Table1.Option("Tilt Sensitivity (digital nudge)", 1, 10, 1, 5, 0, Array("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"))
+	glf_tilt_sensitivity = tilt_sensitivity
+
+	glf_max_dispatch = glfMaxDispatch*5
+
+	glf_debugLog.WriteToLog "Options", "BCP Check"
+	Dim glfuseBCP : glfuseBCP = Table1.Option("Glf Backbox Control Protocol", 0, 1, 1, 0, 0, Array("Off", "On"))
+	If glfuseBCP = 1 Then
+		If IsNull(bcpController) Then
+			SetDelay "start_glf_bcp", "Glf_ConnectToBCPMediaController", Null, 500
+		End If
+	Else
+		useBCP = False
+		If Not IsNull(bcpController) Then
+			bcpController.Disconnect
+			bcpController = Null
+		End If
+	End If
+
 	glf_debugLog.WriteToLog "Options", "GLF Segments (Flex) Check"
 	Dim glfuseVirtualSegmentDMD : glfuseVirtualSegmentDMD = Table1.Option("Glf Virtual Segment DMD", 0, 1, 1, 0, 0, Array("Off", "On"))
 	If glfuseVirtualSegmentDMD = 1 And glf_flex_alphadmd_enabled = False Then
-		Glf_EnableVirtualSegmentDmd()
+		SetDelay "start_flex_segments", "Glf_EnableVirtualSegmentDmd()", Null, 500
 	ElseIf glfuseVirtualSegmentDMD = 0 And  glf_flex_alphadmd_enabled = True Then
 		Glf_DisableVirtualSegmentDmd()
 	End If
