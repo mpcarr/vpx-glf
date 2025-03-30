@@ -763,7 +763,7 @@ Public Sub Glf_KeyDown(ByVal keycode)
 	End If
 	
 	If keycode = MechanicalTilt Then 
-		RunAutoFireDispatchPinEvent "s_tilt_warning_active", Null
+		SetDelay "glf_mechcanical_tilt_debounce", "MechcanicalTiltDebounce", Null, 500
     End If
 
 	If keycode = LeftTiltKey Then 
@@ -834,6 +834,10 @@ Public Sub Glf_KeyUp(ByVal keycode)
 	If KeyCode = AddCreditKey2 Then
 		RunAutoFireDispatchPinEvent "s_add_credit_key2_inactive", Null
 	End If
+End Sub
+
+Public Sub MechcanicalTiltDebounce(args)
+	RunAutoFireDispatchPinEvent "s_tilt_warning_active", Null
 End Sub
 
 Dim glf_lastEventExecutionTime, glf_lastBcpExecutionTime, glf_lastLightUpdateExecutionTime, glf_lastTiltUpdateExecutionTime
