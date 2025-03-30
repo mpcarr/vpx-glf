@@ -16,6 +16,7 @@ Class GlfDiverter
     Private m_enabled
     Private m_active
     Private m_ball_search_hold_time
+    Private m_exclude_from_ball_search
     Private m_debug
 
     Public Property Get Name(): Name = m_name : End Property
@@ -70,6 +71,7 @@ Class GlfDiverter
     Public Property Let ActivationTime(value) : Set m_activation_time = CreateGlfInput(value) : End Property
     Public Property Let ActivationSwitches(value) : m_activation_switches = value : End Property
     Public Property Let BallSearchHoldTime(value) : Set m_ball_search_hold_time = CreateGlfInput(value) : End Property
+    Public Property Let ExcludeFromBallSearch(value) : m_exclude_from_ball_search = value : End Property
     Public Property Let Debug(value) : m_debug = value : End Property
 
 	Public default Function init(name)
@@ -84,6 +86,7 @@ Class GlfDiverter
         m_debug = False
         m_enabled = False
         m_active = False
+        m_exclude_from_ball_search = False
         glf_diverters.Add name, Me
         Set Init = Me
 	End Function
@@ -139,6 +142,9 @@ Class GlfDiverter
     End Sub
 
     Public Sub BallSearch(phase)
+        If m_exclude_from_ball_search = True Then
+            Exit Sub
+        End If
         Log "Ball Search, phase " & phase
         If m_active = False Then
             If Not IsEmpty(m_action_cb) Then

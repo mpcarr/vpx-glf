@@ -13,6 +13,7 @@ Class GlfDroptarget
 	Private m_knockdown_events
 	Private m_reset_events
     Private m_complete
+    Private m_exclude_from_ball_search
 
     
     Private m_debug
@@ -72,6 +73,7 @@ Class GlfDroptarget
 			AddPinEventListener evt, m_name & "_reset", "DroptargetEventHandler", 1000, Array("reset", Me)
 		Next
 	End Property
+    Public Property Let ExcludeFromBallSearch(value) : m_exclude_from_ball_search = value : End Property
     Public Property Let Debug(value) : m_debug = value : End Property
 
 	Public default Function init(name)
@@ -84,6 +86,7 @@ Class GlfDroptarget
 		ResetEvents = Array()
         m_complete = 0
 		m_debug = False
+        m_exclude_from_ball_search = False
         glf_droptargets.Add name, Me
         Set Init = Me
 	End Function
@@ -137,6 +140,9 @@ Class GlfDroptarget
     End Sub
 
     Public Sub BallSearch(phase)
+        If m_exclude_from_ball_search = True Then
+            Exit Sub
+        End If
         Log "Ball Search, phase " & phase
         If Not IsEmpty(m_action_cb) And m_complete = 0 Then
             GetRef(m_action_cb)(1) 'Knockdown

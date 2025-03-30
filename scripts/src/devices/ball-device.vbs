@@ -23,6 +23,7 @@ Class GlfBallDevice
     Private m_entrance_count_delay
     Private m_incoming_balls
     Private m_lost_balls
+    Private m_exclude_from_ball_search
     Private m_debug
 
     Public Property Get Name(): Name = m_name : End Property
@@ -81,7 +82,7 @@ Class GlfBallDevice
         Next
     End Property
     Public Property Let MechanicalEject(value) : m_mechanical_eject = value : End Property
-
+    Public Property Let ExcludeFromBallSearch(value) : m_exclude_from_ball_search = value : End Property
 
     Public Property Let Debug(value) : m_debug = value : End Property
         
@@ -104,6 +105,7 @@ Class GlfBallDevice
         m_eject_enable_time = 0
         m_entrance_count_delay = 500
         m_incoming_balls = 0
+        m_exclude_from_ball_search = False
         glf_ball_devices.Add name, Me
 	    Set Init = Me
 	End Function
@@ -226,6 +228,9 @@ Class GlfBallDevice
     End Sub
 
     Public Sub BallSearch(phase)
+        If m_exclude_from_ball_search = True Then
+            Exit Sub
+        End If
         Log "Ball Search, phase " & phase
         If m_default_device = True Then
             Exit Sub

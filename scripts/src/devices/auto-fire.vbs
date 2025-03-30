@@ -14,11 +14,13 @@ Class GlfAutoFireDevice
     Private m_action_cb
     Private m_disabled_cb
     Private m_enabled_cb
+    Private m_exclude_from_ball_search
     Private m_debug
 
     Public Property Let Switch(value)
         m_switch = value
     End Property
+    Public Property Let ExcludeFromBallSearch(value) : m_exclude_from_ball_search = value : End Property
     Public Property Let ActionCallback(value) : m_action_cb = value : End Property
     Public Property Let DisabledCallback(value) : m_disabled_cb = value : End Property
     Public Property Let EnabledCallback(value) : m_enabled_cb = value : End Property
@@ -58,6 +60,7 @@ Class GlfAutoFireDevice
         m_enabled_cb = Empty
         m_switch = Empty
         m_debug = False
+        m_exclude_from_ball_search = False
         glf_autofiredevices.Add name, Me
         Set Init = Me
 	End Function
@@ -102,6 +105,9 @@ Class GlfAutoFireDevice
     End Sub
 
     Public Sub BallSearch(phase)
+        If m_exclude_from_ball_search = True Then
+            Exit Sub
+        End If
         Log "Ball Search, phase " & phase
         If Not IsEmpty(m_action_cb) Then
             GetRef(m_action_cb)(Array(1, Null))
