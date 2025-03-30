@@ -322,6 +322,7 @@ Class GlfHighScore
         Set objFile = objFSO.CreateTextFile(CGameName & "_glf.ini", True)
         objFile.Write outputLines
         objFile.Close
+        Glf_ReadMachineVars("HighScores")
     End Sub
 
     Sub ReadHighScores()
@@ -366,8 +367,6 @@ Class GlfHighScore
                                 .Add "player_name", current_name
                                 .Add "value", parts(1)
                             End With
-                            
-                            
                             'msgbox category & "," & position & ", " & current_label & ", " & current_name & ", " & parts(1)
                             m_highscores(category).Add CStr(position), kwargs
                     End Select

@@ -503,9 +503,7 @@ Sub Glf_ReadMachineVars(section)
         ElseIf inSection And InStr(line, "=") > 0 Then
 			Dim key : key = Trim(Split(line, "=")(0))
 			If glf_machine_vars.Exists(key) Then
-				If glf_machine_vars(key).Persist = True Then
-	            	glf_machine_vars(key).Value = Trim(Split(line, "=")(1))
-				End If
+	            glf_machine_vars(key).Value = Trim(Split(line, "=")(1))
 			Else	
 				With CreateMachineVar(key)
 					.InitialValue = Trim(Split(line, "=")(1))

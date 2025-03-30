@@ -503,9 +503,7 @@ Sub Glf_ReadMachineVars(section)
         ElseIf inSection And InStr(line, "=") > 0 Then
 			Dim key : key = Trim(Split(line, "=")(0))
 			If glf_machine_vars.Exists(key) Then
-				If glf_machine_vars(key).Persist = True Then
-	            	glf_machine_vars(key).Value = Trim(Split(line, "=")(1))
-				End If
+	            glf_machine_vars(key).Value = Trim(Split(line, "=")(1))
 			Else	
 				With CreateMachineVar(key)
 					.InitialValue = Trim(Split(line, "=")(1))
@@ -4641,6 +4639,7 @@ Class GlfHighScore
         Set objFile = objFSO.CreateTextFile(CGameName & "_glf.ini", True)
         objFile.Write outputLines
         objFile.Close
+        Glf_ReadMachineVars("HighScores")
     End Sub
 
     Sub ReadHighScores()
@@ -4685,8 +4684,6 @@ Class GlfHighScore
                                 .Add "player_name", current_name
                                 .Add "value", parts(1)
                             End With
-                            
-                            
                             'msgbox category & "," & position & ", " & current_label & ", " & current_name & ", " & parts(1)
                             m_highscores(category).Add CStr(position), kwargs
                     End Select
