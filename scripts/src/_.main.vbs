@@ -685,7 +685,7 @@ Sub Glf_Options(ByVal eventId)
 	glf_debugLog.WriteToLog "Options", "GLF Segments (Flex) Check"
 	Dim glfuseVirtualSegmentDMD : glfuseVirtualSegmentDMD = Table1.Option("Glf Virtual Segment DMD", 0, 1, 1, 0, 0, Array("Off", "On"))
 	If glfuseVirtualSegmentDMD = 1 And glf_flex_alphadmd_enabled = False Then
-		SetDelay "start_flex_segments", "Glf_EnableVirtualSegmentDmd()", Null, 500
+		SetDelay "start_flex_segments", "Glf_EnableVirtualSegmentDmd", Null, 500
 	ElseIf glfuseVirtualSegmentDMD = 0 And  glf_flex_alphadmd_enabled = True Then
 		Glf_DisableVirtualSegmentDmd()
 	End If

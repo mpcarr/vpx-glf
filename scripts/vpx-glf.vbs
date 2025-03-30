@@ -685,7 +685,7 @@ Sub Glf_Options(ByVal eventId)
 	glf_debugLog.WriteToLog "Options", "GLF Segments (Flex) Check"
 	Dim glfuseVirtualSegmentDMD : glfuseVirtualSegmentDMD = Table1.Option("Glf Virtual Segment DMD", 0, 1, 1, 0, 0, Array("Off", "On"))
 	If glfuseVirtualSegmentDMD = 1 And glf_flex_alphadmd_enabled = False Then
-		SetDelay "start_flex_segments", "Glf_EnableVirtualSegmentDmd()", Null, 500
+		SetDelay "start_flex_segments", "Glf_EnableVirtualSegmentDmd", Null, 500
 	ElseIf glfuseVirtualSegmentDMD = 0 And  glf_flex_alphadmd_enabled = True Then
 		Glf_DisableVirtualSegmentDmd()
 	End If
@@ -4493,8 +4493,10 @@ Class GlfHighScore
                             .Add "value", 0
                         End With
                         For shift_index=position+1 to UBound(m_categories(category))
-                            If Not IsNull(hs_tmp) Then
-                                Set hs_item = hs_tmp
+                            If shift_index>position+1 Then
+                                hs_item("label") = hs_tmp("label")
+                                hs_item("player_name") = hs_tmp("player_name")
+                                hs_item("value") = hs_tmp("value")
                             Else
                                 hs_item("label") = m_highscores(category)(CStr(shift_index))("label")
                                 hs_item("player_name") = m_highscores(category)(CStr(shift_index))("player_name")

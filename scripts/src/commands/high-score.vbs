@@ -157,8 +157,10 @@ Class GlfHighScore
                             .Add "value", 0
                         End With
                         For shift_index=position+1 to UBound(m_categories(category))
-                            If Not IsNull(hs_tmp) Then
-                                Set hs_item = hs_tmp
+                            If shift_index>position+1 Then
+                                hs_item("label") = hs_tmp("label")
+                                hs_item("player_name") = hs_tmp("player_name")
+                                hs_item("value") = hs_tmp("value")
                             Else
                                 hs_item("label") = m_highscores(category)(CStr(shift_index))("label")
                                 hs_item("player_name") = m_highscores(category)(CStr(shift_index))("player_name")
