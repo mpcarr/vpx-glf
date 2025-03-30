@@ -4,8 +4,9 @@
 Dim glf_currentPlayer : glf_currentPlayer = Null
 Dim glf_canAddPlayers : glf_canAddPlayers = True
 Dim glf_PI : glf_PI = 4 * Atn(1)
-Dim glf_plunger, glf_ballsearch
+Dim glf_plunger, glf_ballsearch, glf_highscore
 glf_ballsearch = Null
+glf_highscore = Null
 Dim glf_ballsearch_enabled : glf_ballsearch_enabled = False
 Dim glf_gameStarted : glf_gameStarted = False
 Dim glf_gameTilted : glf_gameTilted = False
@@ -460,7 +461,11 @@ Public Sub Glf_Init()
         .Persist = True
     End With
 
-	Glf_ReadMachineVars()
+	If Not IsNull(glf_highscore) Then
+		glf_highscore.WriteDefaults()
+	End If
+
+	Glf_ReadMachineVars("MachineVars")
 	glf_debugLog.WriteToLog "Init", "Finished Creating Machine Vars"
 
 	Glf_Reset()
@@ -479,7 +484,7 @@ Sub Glf_SegmentInit(args)
 	Next
 End Sub
 
-Sub Glf_ReadMachineVars()
+Sub Glf_ReadMachineVars(section)
     Dim objFSO, objFile, arrLines, line, inSection
     Set objFSO = CreateObject("Scripting.FileSystemObject")
     
@@ -493,7 +498,7 @@ Sub Glf_ReadMachineVars()
     For Each line In arrLines
         line = Trim(line)
         If Left(line, 1) = "[" And Right(line, 1) = "]" Then
-            inSection = (LCase(Mid(line, 2, Len(line) - 2)) = LCase("MachineVars"))
+            inSection = (LCase(Mid(line, 2, Len(line) - 2)) = LCase(section))
         ElseIf inSection And InStr(line, "=") > 0 Then
 			Dim key : key = Trim(Split(line, "=")(0))
 			If glf_machine_vars.Exists(key) Then
@@ -537,7 +542,7 @@ Sub Glf_EnableVirtualSegmentDmd()
 	DispatchPinEvent "reset_virtual_segment_lights", Null
 End Sub
 
-Sub Glf_WriteMachineVars()
+Sub Glf_WriteMachineVars(section)
     Dim objFSO, objFile, arrLines, line, inSection, foundSection
     Dim outputLines, key
     Set objFSO = CreateObject("Scripting.FileSystemObject")
@@ -556,7 +561,7 @@ Sub Glf_WriteMachineVars()
     
     For Each line In arrLines
         If Left(line, 1) = "[" And Right(line, 1) = "]" Then
-            inSection = (LCase(Mid(line, 2, Len(line) - 2)) = LCase("MachineVars"))
+            inSection = (LCase(Mid(line, 2, Len(line) - 2)) = LCase(section))
             foundSection = foundSection Or inSection
         End If
         
@@ -585,7 +590,7 @@ Sub Glf_WriteMachineVars()
     Next
     
     If Not foundSection Then
-        outputLines = outputLines & "[MachineVars]" & vbCrLf
+        outputLines = outputLines & "["&section&"]" & vbCrLf
         For Each key In glf_machine_vars.Keys
 			If glf_machine_vars(key).Persist = True Then
             	outputLines = outputLines & key & "=" & glf_machine_vars(key).Value & vbCrLf
@@ -597,6 +602,8 @@ Sub Glf_WriteMachineVars()
     objFile.Write outputLines
     objFile.Close
 End Sub
+
+
 
 Sub Glf_Options(ByVal eventId)
 	
@@ -700,7 +707,7 @@ Public Sub Glf_Exit()
 		glf_debugLog.DisableLogs
 	End If
 	Glf_DisableVirtualSegmentDmd()
-	Glf_WriteMachineVars()
+	Glf_WriteMachineVars("MachineVars")
 End Sub
 
 Public Sub Glf_KeyDown(ByVal keycode)
@@ -1102,6 +1109,42 @@ Public Function Glf_ParseEventInput(value)
 	End If
 End Function
 
+Public Function Glf_ParseDispatchEventInput(value)
+	Dim templateCode : templateCode = ""
+	Dim kwargs : kawrgs = Empty
+	Dim eventKey
+	Dim pos : pos = InStr(value, ":")
+	If pos > 0 Then
+		eventKey = Trim(Left(value, pos - 1))
+		kwargs = Glf_IsCondition(Trim(Mid(value, pos + 1)))
+	Else
+		eventKey = value
+	End If
+
+	If IsEmpty(kwargs) Then
+		Glf_ParseDispatchEventInput = Array(eventKey, Empty)
+	Else
+		dim kwargsReplaced : kwargsReplaced = Glf_ReplaceCurrentPlayerAttributes(kwargs)
+		kwargsReplaced = Glf_ReplaceAnyPlayerAttributes(kwargsReplaced)
+		kwargsReplaced = Glf_ReplaceDeviceAttributes(kwargsReplaced)
+		kwargsReplaced = Glf_ReplaceMachineAttributes(kwargsReplaced)
+		kwargsReplaced = Glf_ReplaceModeAttributes(kwargsReplaced)
+		kwargsReplaced = Glf_ReplaceGameAttributes(kwargsReplaced)
+
+		templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
+		templateCode = templateCode & vbTab & "On Error Resume Next" & vbCrLf
+		templateCode = templateCode & vbTab & Glf_ConvertDynamicKwargs(kwargsReplaced, "Glf_" & glf_FuncCount) & vbCrLf
+		templateCode = templateCode & vbTab & "If Err Then Glf_" & glf_FuncCount & " = Null" & vbCrLf
+		templateCode = templateCode & "End Function"
+		'msgbox templateCode
+		ExecuteGlobal templateCode
+		Dim funcRef : funcRef = "Glf_" & glf_FuncCount
+		glf_FuncCount = glf_FuncCount + 1
+
+		Glf_ParseDispatchEventInput = Array(eventKey, funcRef)
+	End If
+End Function
+
 Function Glf_ReplaceCurrentPlayerAttributes(inputString)
     Dim pattern, replacement, regex, outputString
     pattern = "current_player\.([a-zA-Z0-9_]+)"
@@ -1317,6 +1360,24 @@ Function Glf_ConvertCondition(value, retName)
 	value = Replace(value, "!=", "<>")
 	value = Replace(value, "&&", "And")
 	Glf_ConvertCondition = "    "&retName&" = " & value
+End Function
+
+Function Glf_ConvertDynamicKwargs(input, retName)
+	'Value is a string of key values 
+	Dim templateCode : templateCode = ""
+	Dim arrayOfValues : arrayOfValues = Split(input, ",")
+	Dim kvp
+	templateCode = templateCode & vbTab & "Dim kwargs : Set kwargs = GlfKwargs()" & vbCrLf 
+	For Each kvp in arrayOfValues
+		Dim key,value
+		key = Split(kvp, ":")(0)
+		value = Split(kvp, ":")(1)
+		templateCode = templateCode & vbTab & "kwargs.Add """ & key & """, " & value & vbCrLf
+	Next
+
+	templateCode = templateCode & vbTab & "Set " & retName & " = kwargs"
+	
+	Glf_ConvertDynamicKwargs = templateCode
 End Function
 
 Function Glf_FormatValue(value, formatString)
@@ -2073,7 +2134,6 @@ End Function
 
 Const GLF_GAME_START = "game_start"
 Const GLF_GAME_STARTED = "game_started"
-Const GLF_GAME_OVER = "game_ended"
 Const GLF_BALL_WILL_END = "ball_will_end"
 Const GLF_BALL_ENDING = "ball_ending"
 Const GLF_BALL_ENDED = "ball_ended"

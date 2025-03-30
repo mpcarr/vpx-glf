@@ -317,7 +317,14 @@ Function Glf_EndOfBall(args)
         bcpController.SendPlayerVariable "number", Getglf_currentPlayerNumber(), previousPlayerNumber
     End If
     If GetPlayerState(GLF_CURRENT_BALL) > glf_ballsPerGame Then
-        DispatchPinEvent GLF_GAME_OVER, Null
+        Dim device
+        For Each device in glf_ball_devices.Items()
+            If device.HasBall() Then
+                device.EjectAll()
+            End If
+        Next
+        DispatchPinEvent "game_will_end", Null
+        DispatchQueuePinEvent "game_ending", Null
     Else
         SetDelay "end_of_ball_delay", "EndOfBallNextPlayer", Null, 1000 
     End If
@@ -327,10 +334,10 @@ End Function
 '****************************
 ' Game Over
 ' Event Listeners:      
-AddPinEventListener GLF_GAME_OVER, "glf_game_over", "Glf_GameOver", 20, Null
+AddPinEventListener "game_ending", "glf_game_over", "Glf_EndGame", 20, Null
 '
 '*****************************
-Function Glf_GameOver(args)
+Function Glf_EndGame(args)
     If GetPlayerStateForPlayer("0", "score") = False Then
         glf_machine_vars("player1_score").Value = 0
     Else
@@ -355,12 +362,7 @@ Function Glf_GameOver(args)
     glf_currentPlayer = Null
     glf_playerState.RemoveAll()
 
-    Dim device
-    For Each device in glf_ball_devices
-        If device.HasBall() Then
-            device.EjectAll()
-        End If
-    Next
+    DispatchPinEvent "game_ended", Null
 End Function
 
 Public Function EndOfBallNextPlayer(args)

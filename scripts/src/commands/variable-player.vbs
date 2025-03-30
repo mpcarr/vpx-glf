@@ -40,7 +40,7 @@ Class GlfVariablePlayer
         Log "Activating"
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener m_events(evt).BaseEvent.EventName, m_mode & "_variable_player_play", "VariablePlayerEventHandler", m_priority+m_events(evt).BaseEvent.Priority, Array("play", Me, evt)
+            AddPinEventListener m_events(evt).BaseEvent.EventName, m_mode & "_" & evt & "_variable_player_play", "VariablePlayerEventHandler", m_priority+m_events(evt).BaseEvent.Priority, Array("play", Me, evt)
         Next
     End Sub
 
@@ -48,7 +48,7 @@ Class GlfVariablePlayer
         Log "Deactivating"
         Dim evt
         For Each evt In m_events.Keys()
-            RemovePinEventListener m_events(evt).BaseEvent.EventName, m_mode & "_variable_player_play"
+            RemovePinEventListener m_events(evt).BaseEvent.EventName, m_mode & "_" & evt & "_variable_player_play"
         Next
     End Sub
 
@@ -126,7 +126,7 @@ Class GlfVariablePlayerItem
   
 	Public Property Let Int(input): m_int = Glf_ParseInput(input): m_type = "int" : End Property
   
-	Public Property Let String(input): m_string = input: m_type = "string" : End Property
+	Public Property Let String(input) : m_string = Glf_ParseInput(input) : m_type = "string" : End Property
 
     Public Property Get VariableType(): VariableType = m_type: End Property
     Public Property Get VariableValue()
@@ -136,7 +136,7 @@ Class GlfVariablePlayerItem
             Case "int"
                 VariableValue = GetRef(m_int(0))()
             Case "string"
-                VariableValue = m_string
+                VariableValue = GetRef(m_string(0))()
             Case Else
                 VariableValue = Empty
         End Select

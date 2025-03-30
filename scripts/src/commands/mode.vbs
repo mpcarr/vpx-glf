@@ -34,6 +34,7 @@ Class Mode
     Private m_combo_switches
     Private m_timed_switches
     Private m_tilt
+    Private m_high_score
     Private m_use_wait_queue
 
     Public Property Get Name(): Name = m_name: End Property
@@ -197,11 +198,22 @@ Class Mode
             Set Tilt = m_tilt
         End If
     End Property
+
     Public Property Get TiltConfig()
         If Not IsNull(m_tilt) Then
             Set TiltConfig = m_tilt
         Else
             TiltConfig = Null
+        End If
+    End Property
+
+    Public Property Let HighScore(value) : Set m_high_score = value : End Property
+    Public Property Get HighScore()
+        If Not IsNull(m_high_score) Then
+            Set HighScore = m_high_score
+        Else
+            Set m_high_score = (new GlfHighScore)(Me)
+            Set HighScore = m_high_score
         End If
     End Property
 
@@ -385,6 +397,7 @@ Class Mode
         m_tilt = Null
         m_showplayer = Null
         m_segment_display_player = Null
+        m_high_score = Null
         Set m_eventplayer = (new GlfEventPlayer)(Me)
         Set m_queueEventplayer = (new GlfQueueEventPlayer)(Me)
         Set m_queueRelayPlayer = (new GlfQueueRelayPlayer)(Me)

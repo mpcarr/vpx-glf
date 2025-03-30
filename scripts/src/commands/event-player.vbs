@@ -34,7 +34,15 @@ Class GlfEventPlayer
         Dim newEvent : Set newEvent = (new GlfEvent)(key)
         m_events.Add newEvent.Name, newEvent
         'msgbox newEvent.Name
-        m_eventValues.Add newEvent.Name, value  
+        Dim evtValue, evtValues(), i
+        Redim evtValues(UBound(value))
+        i=0
+        For Each evtValue in value
+            Dim newEventValue : Set newEventValue = (new GlfEventDispatch)(evtValue)
+            Set evtValues(i) = newEventValue
+            i=i+1
+        Next
+        m_eventValues.Add newEvent.Name, evtValues  
     End Sub
 
     Public Sub Activate()
@@ -62,8 +70,8 @@ Class GlfEventPlayer
         End If
         Dim evtValue
         For Each evtValue In m_eventValues(evt)
-            Log "Dispatching Event: " & evtValue
-            DispatchPinEvent evtValue, Null
+            Log "Dispatching Event: " & evtValue.EventName
+            DispatchPinEvent evtValue.EventName, evtValue.Kwargs
         Next
     End Sub
 

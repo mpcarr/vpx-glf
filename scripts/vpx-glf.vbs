@@ -4,8 +4,9 @@
 Dim glf_currentPlayer : glf_currentPlayer = Null
 Dim glf_canAddPlayers : glf_canAddPlayers = True
 Dim glf_PI : glf_PI = 4 * Atn(1)
-Dim glf_plunger, glf_ballsearch
+Dim glf_plunger, glf_ballsearch, glf_highscore
 glf_ballsearch = Null
+glf_highscore = Null
 Dim glf_ballsearch_enabled : glf_ballsearch_enabled = False
 Dim glf_gameStarted : glf_gameStarted = False
 Dim glf_gameTilted : glf_gameTilted = False
@@ -460,7 +461,11 @@ Public Sub Glf_Init()
         .Persist = True
     End With
 
-	Glf_ReadMachineVars()
+	If Not IsNull(glf_highscore) Then
+		glf_highscore.WriteDefaults()
+	End If
+
+	Glf_ReadMachineVars("MachineVars")
 	glf_debugLog.WriteToLog "Init", "Finished Creating Machine Vars"
 
 	Glf_Reset()
@@ -479,7 +484,7 @@ Sub Glf_SegmentInit(args)
 	Next
 End Sub
 
-Sub Glf_ReadMachineVars()
+Sub Glf_ReadMachineVars(section)
     Dim objFSO, objFile, arrLines, line, inSection
     Set objFSO = CreateObject("Scripting.FileSystemObject")
     
@@ -493,7 +498,7 @@ Sub Glf_ReadMachineVars()
     For Each line In arrLines
         line = Trim(line)
         If Left(line, 1) = "[" And Right(line, 1) = "]" Then
-            inSection = (LCase(Mid(line, 2, Len(line) - 2)) = LCase("MachineVars"))
+            inSection = (LCase(Mid(line, 2, Len(line) - 2)) = LCase(section))
         ElseIf inSection And InStr(line, "=") > 0 Then
 			Dim key : key = Trim(Split(line, "=")(0))
 			If glf_machine_vars.Exists(key) Then
@@ -537,7 +542,7 @@ Sub Glf_EnableVirtualSegmentDmd()
 	DispatchPinEvent "reset_virtual_segment_lights", Null
 End Sub
 
-Sub Glf_WriteMachineVars()
+Sub Glf_WriteMachineVars(section)
     Dim objFSO, objFile, arrLines, line, inSection, foundSection
     Dim outputLines, key
     Set objFSO = CreateObject("Scripting.FileSystemObject")
@@ -556,7 +561,7 @@ Sub Glf_WriteMachineVars()
     
     For Each line In arrLines
         If Left(line, 1) = "[" And Right(line, 1) = "]" Then
-            inSection = (LCase(Mid(line, 2, Len(line) - 2)) = LCase("MachineVars"))
+            inSection = (LCase(Mid(line, 2, Len(line) - 2)) = LCase(section))
             foundSection = foundSection Or inSection
         End If
         
@@ -585,7 +590,7 @@ Sub Glf_WriteMachineVars()
     Next
     
     If Not foundSection Then
-        outputLines = outputLines & "[MachineVars]" & vbCrLf
+        outputLines = outputLines & "["&section&"]" & vbCrLf
         For Each key In glf_machine_vars.Keys
 			If glf_machine_vars(key).Persist = True Then
             	outputLines = outputLines & key & "=" & glf_machine_vars(key).Value & vbCrLf
@@ -597,6 +602,8 @@ Sub Glf_WriteMachineVars()
     objFile.Write outputLines
     objFile.Close
 End Sub
+
+
 
 Sub Glf_Options(ByVal eventId)
 	
@@ -700,7 +707,7 @@ Public Sub Glf_Exit()
 		glf_debugLog.DisableLogs
 	End If
 	Glf_DisableVirtualSegmentDmd()
-	Glf_WriteMachineVars()
+	Glf_WriteMachineVars("MachineVars")
 End Sub
 
 Public Sub Glf_KeyDown(ByVal keycode)
@@ -1102,6 +1109,42 @@ Public Function Glf_ParseEventInput(value)
 	End If
 End Function
 
+Public Function Glf_ParseDispatchEventInput(value)
+	Dim templateCode : templateCode = ""
+	Dim kwargs : kawrgs = Empty
+	Dim eventKey
+	Dim pos : pos = InStr(value, ":")
+	If pos > 0 Then
+		eventKey = Trim(Left(value, pos - 1))
+		kwargs = Glf_IsCondition(Trim(Mid(value, pos + 1)))
+	Else
+		eventKey = value
+	End If
+
+	If IsEmpty(kwargs) Then
+		Glf_ParseDispatchEventInput = Array(eventKey, Empty)
+	Else
+		dim kwargsReplaced : kwargsReplaced = Glf_ReplaceCurrentPlayerAttributes(kwargs)
+		kwargsReplaced = Glf_ReplaceAnyPlayerAttributes(kwargsReplaced)
+		kwargsReplaced = Glf_ReplaceDeviceAttributes(kwargsReplaced)
+		kwargsReplaced = Glf_ReplaceMachineAttributes(kwargsReplaced)
+		kwargsReplaced = Glf_ReplaceModeAttributes(kwargsReplaced)
+		kwargsReplaced = Glf_ReplaceGameAttributes(kwargsReplaced)
+
+		templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
+		templateCode = templateCode & vbTab & "On Error Resume Next" & vbCrLf
+		templateCode = templateCode & vbTab & Glf_ConvertDynamicKwargs(kwargsReplaced, "Glf_" & glf_FuncCount) & vbCrLf
+		templateCode = templateCode & vbTab & "If Err Then Glf_" & glf_FuncCount & " = Null" & vbCrLf
+		templateCode = templateCode & "End Function"
+		'msgbox templateCode
+		ExecuteGlobal templateCode
+		Dim funcRef : funcRef = "Glf_" & glf_FuncCount
+		glf_FuncCount = glf_FuncCount + 1
+
+		Glf_ParseDispatchEventInput = Array(eventKey, funcRef)
+	End If
+End Function
+
 Function Glf_ReplaceCurrentPlayerAttributes(inputString)
     Dim pattern, replacement, regex, outputString
     pattern = "current_player\.([a-zA-Z0-9_]+)"
@@ -1317,6 +1360,24 @@ Function Glf_ConvertCondition(value, retName)
 	value = Replace(value, "!=", "<>")
 	value = Replace(value, "&&", "And")
 	Glf_ConvertCondition = "    "&retName&" = " & value
+End Function
+
+Function Glf_ConvertDynamicKwargs(input, retName)
+	'Value is a string of key values 
+	Dim templateCode : templateCode = ""
+	Dim arrayOfValues : arrayOfValues = Split(input, ",")
+	Dim kvp
+	templateCode = templateCode & vbTab & "Dim kwargs : Set kwargs = GlfKwargs()" & vbCrLf 
+	For Each kvp in arrayOfValues
+		Dim key,value
+		key = Split(kvp, ":")(0)
+		value = Split(kvp, ":")(1)
+		templateCode = templateCode & vbTab & "kwargs.Add """ & key & """, " & value & vbCrLf
+	Next
+
+	templateCode = templateCode & vbTab & "Set " & retName & " = kwargs"
+	
+	Glf_ConvertDynamicKwargs = templateCode
 End Function
 
 Function Glf_FormatValue(value, formatString)
@@ -2073,7 +2134,6 @@ End Function
 
 Const GLF_GAME_START = "game_start"
 Const GLF_GAME_STARTED = "game_started"
-Const GLF_GAME_OVER = "game_ended"
 Const GLF_BALL_WILL_END = "ball_will_end"
 Const GLF_BALL_ENDING = "ball_ending"
 Const GLF_BALL_ENDED = "ball_ended"
@@ -4048,7 +4108,15 @@ Class GlfEventPlayer
         Dim newEvent : Set newEvent = (new GlfEvent)(key)
         m_events.Add newEvent.Name, newEvent
         'msgbox newEvent.Name
-        m_eventValues.Add newEvent.Name, value  
+        Dim evtValue, evtValues(), i
+        Redim evtValues(UBound(value))
+        i=0
+        For Each evtValue in value
+            Dim newEventValue : Set newEventValue = (new GlfEventDispatch)(evtValue)
+            Set evtValues(i) = newEventValue
+            i=i+1
+        Next
+        m_eventValues.Add newEvent.Name, evtValues  
     End Sub
 
     Public Sub Activate()
@@ -4076,8 +4144,8 @@ Class GlfEventPlayer
         End If
         Dim evtValue
         For Each evtValue In m_eventValues(evt)
-            Log "Dispatching Event: " & evtValue
-            DispatchPinEvent evtValue, Null
+            Log "Dispatching Event: " & evtValue.EventName
+            DispatchPinEvent evtValue.EventName, evtValue.Kwargs
         Next
     End Sub
 
@@ -4242,6 +4310,478 @@ Function ExtraBallsHandler(args)
         ExtraBallsHandler = kwargs
     End If
 End Function
+Function EnableGlfHighScores()
+    Dim high_score_mode : Set high_score_mode = CreateGlfMode("glf_high_scores", 80)
+    high_score_mode.StartEvents = Array("game_ending")
+    high_score_mode.StopEvents = Array("high_score_complete")
+    high_score_mode.UseWaitQueue = True
+    Dim high_score : Set high_score = (new GlfHighScore)(high_score_mode)
+    high_score.Debug = True
+    high_score_mode.HighScore = high_score
+    Set glf_highscore = high_score
+	Set EnableGlfHighScores = glf_highscore
+End Function
+
+Class GlfHighScore
+
+    Private m_name
+    Private m_priority
+    Private m_mode
+    Private m_debug
+    private m_base_device
+    private m_categories
+    private m_defaults
+    private m_vars
+    private m_award_slide_display_time
+    private m_enter_initials_timeout
+    private m_reset_high_scores_events
+    private m_highscores
+    Private m_initials_needed
+    Private m_current_initials
+
+    Public Property Get Name() : Name = "high_score" : End Property
+
+    Public Property Get Categories()
+        Set Categories = m_categories
+    End Property
+
+    Public Property Get Defaults(name)
+        Dim new_default : Set new_default = CreateObject("Scripting.Dictionary")
+        m_defaults.Add name, new_default
+        Set Defaults = m_defaults(name)
+    End Property
+
+    Public Property Get Vars(name)
+        m_vars.Add name, CreateObject("Scripting.Dictionary")
+        Set Vars = m_vars(name)
+    End Property
+
+    Public Property Let AwardSlideDisplayTime(input)
+        Set m_award_slide_display_time = CreateGlfInput(input)
+    End Property
+
+    Public Property Let EnterInitialsTimeout(input)
+        Set m_enter_initials_timeout = CreateGlfInput(input)
+    End Property
+
+    Public Property Let ResetHighScoreEvents(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_reset_high_scores_events.Add newEvent.Raw, newEvent
+        Next
+    End Property
+    
+    Public Property Let Debug(value)
+        m_debug = value
+        m_base_device.Debug = value
+    End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
+    End Property
+
+	Public default Function init(mode)
+        m_name = "high_score_" & mode.name
+        m_mode = mode.Name
+        m_priority = mode.Priority
+        m_debug = False
+        Set m_award_slide_display_time = CreateGlfInput(4000)
+        Set m_enter_initials_timeout = CreateGlfInput(20000)
+        Set m_categories = CreateObject("Scripting.Dictionary")
+        Set m_defaults = CreateObject("Scripting.Dictionary")
+        Set m_vars = CreateObject("Scripting.Dictionary")
+        Set m_highscores = CreateObject("Scripting.Dictionary")
+        Set m_initials_needed = CreateObject("Scripting.Dictionary")
+        Set m_reset_high_scores_events = CreateObject("Scripting.Dictionary")
+        Set m_base_device = (new GlfBaseModeDevice)(mode, "high_score", Me)
+        ReadHighScores()
+        Set Init = Me
+	End Function
+
+    Public Sub Activate()
+        
+        'Run High Scores.
+        'Check if any player variable beats the stored value for that category.
+        'Ask for intiital if we dont have them.
+        'display award
+        'write scores.
+        'finish
+        Log "Activating"
+        Dim category, p
+        
+        For Each category in m_categories.Keys()
+            'eg score.
+            ' get the value for each player
+            Dim player_values()
+            ReDiM player_values(UBound(glf_playerState.Keys()))
+            For p=0 to UBound(glf_playerState.Keys())
+                player_values(p) = GetPlayerStateForPlayer(p, category)
+            Next
+            'Sort the values high to low.
+            Dim i, j, temp
+            For i = 0 To UBound(player_values) - 1
+                For j = i + 1 To UBound(player_values)
+                    If player_values(j) > player_values(i) Then
+                        temp = player_values(i)
+                        player_values(i) = player_values(j)
+                        player_values(j) = temp
+                    End If
+                Next
+            Next
+
+            'msgbox player_values(0)
+            
+            For i = 0 To UBound(player_values)
+                Dim position
+                'msgbox "UBound(m_categories(category)): " & UBound(m_categories(category))
+                For position=0 to UBound(m_categories(category))
+                    Dim high_score
+                    'msgbox "Category: " & category
+                    high_score = m_highscores(category)(CStr(position+1))("value")
+                    high_score = CLng(high_score)
+                    ''msgbox "HighScore: " & ">" & high_score & "<"
+                    ''msgbox "PlayerScore: " & CInt(player_values(i))
+                    'msgbox typename(high_score)
+                    'msgbox typename(player_values(i))
+                    If player_values(i) > high_score Then
+                        'msgbox "setting new high score"
+                        Log "Setting new high score"
+                        'new score
+                        m_highscores(category)(CStr(position+1))("value") = player_values(i)
+                        m_highscores(category)(CStr(position+1))("player_name") = ""
+                        m_highscores(category)(CStr(position+1))("player_num") = i+1
+                        m_highscores(category)(CStr(position+1))("award") = m_categories(category)(position)
+                        m_highscores(category)(CStr(position+1))("category") = category
+                        m_highscores(category)(CStr(position+1))("position") = position + 1
+                        If Not m_initials_needed.Exists(i+1) Then
+                            m_initials_needed.Add i+1, m_highscores(category)(CStr(position+1))
+                        End If
+                        Exit For
+                    Else
+                        'msgbox "Player Score " & player_values(i) & " is not greater than the high score: " & high_score
+                    End If
+                Next
+            Next
+        Next
+
+        'Ask for Initials
+        If Ubound(m_initials_needed.Keys())>-1 Then
+            'msgbox "Asking For Initials"
+            'msgbox m_initials_needed.Items()(0)("position")
+            Log "Asking for Initials"
+            m_current_initials = 0
+            AddPinEventListener "text_input_high_score_complete", "text_input_high_score_complete", "HighScoreEventHandler", m_priority, Array("initials_complete", Me, m_initials_needed.Items()(0))
+            DispatchPinEvent "high_score_enter_initials", m_initials_needed.Items()(0)
+            SetDelay "enter_initials_timeout", "HighScoreEventHandler", Array(Array("initials_complete", Me, m_initials_needed.Items()(0)), Null), m_enter_initials_timeout.Value
+        Else
+            'No New High Scores, End Mode
+            Log "No High Score, Ending"
+            'msgbox "No High Score, Ending"
+            DispatchPinEvent "high_score_complete", Null
+        End If
+
+    End Sub
+
+    Public Sub Deactivate()
+        
+    End Sub
+
+    Public Sub InitialsInputComplete(initials_item, kwargs)
+
+        'Show Award.
+        Log "Initials Complete"
+        'msgbox "Initials Complete"
+        RemoveDelay "enter_initials_timeout"
+        RemovePinEventListener "text_input_high_score_complete", "text_input_high_score_complete"
+
+        'm_highscores(initials_item("category"))(CStr(initials_item("position")))("player_name") = text
+
+        Dim text : text = ""
+        If Not IsNull(kwargs) Then
+            If kwargs.Exists("text") Then
+                text = kwargs("text")
+            End If
+        End If
+
+        Dim keys, key
+        keys = m_highscores.Keys()
+        For Each key in keys
+            Dim s
+            For Each s in m_highscores(key).Keys()
+                If m_highscores(key)(s)("player_num") = m_current_initials+1 Then
+                    'msgbox "Setting Player " & m_current_initials+1 & " Name to >" & text & "<"
+                    m_highscores(key)(s)("player_name") = text
+                End If
+            Next
+        Next
+
+        Log "Show Award"
+        DispatchPinEvent "high_score_award_display", initials_item
+        DispatchPinEvent initials_item("award") & "_award_display", initials_item
+        DispatchPinEvent initials_item("category") & "_award_display", initials_item
+    
+        SetDelay "award_display_time", "HighScoreEventHandler", Array(Array("award_display_complete", Me), Null), m_award_slide_display_time.Value
+
+    End Sub
+
+    Public Sub AwardDisplayComplete()
+
+        Log "Award Complete"
+        If Ubound(m_initials_needed.Keys())>m_current_initials Then
+            Log "Asking for Next Initials"
+            m_current_initials = m_current_initials + 1
+            AddPinEventListener "text_input_high_score_complete", "text_input_high_score_complete", "HighScoreEventHandler", m_priority, Array("initials_complete", Me, m_initials_needed.Items()(m_current_initials))
+            DispatchPinEvent "high_score_enter_initials", m_initials_needed.Items()(m_current_initials)
+            SetDelay "enter_initials_timeout", "HighScoreEventHandler", Array(Array("initials_complete", Me, m_initials_needed.Items()(m_current_initials)), Null), m_enter_initials_timeout.Value
+        Else
+            Log "Writing High Scores"
+            Dim keys, key
+            keys = m_highscores.Keys()
+            Dim tmp : Set tmp = CreateObject("Scripting.Dictionary")
+            For Each key in keys
+                Dim s, i
+                i=1
+                'msgbox "Key Count" & ubound(m_highscores(key).Keys())
+                For Each s in m_highscores(key).Keys()
+                    'msgbox s
+                    tmp.Add key & "_" & i & "_label", m_categories(key)(i-1)
+                    tmp.Add key & "_" & i &"_name", m_highscores(key)(s)("player_name")
+                    tmp.Add key & "_" & i &"_value", m_highscores(key)(s)("value")
+                    i=i+1
+                Next
+                WriteHighScores "HighScores", tmp
+            Next
+            Log "Ending"
+            DispatchPinEvent "high_score_complete", Null
+        End If        
+        'End Mode
+    End Sub
+
+    Public Sub WriteDefaults()
+        ReadHighScores()
+        dim key, keys, i
+        keys = m_defaults.Keys()
+        Dim tmp : Set tmp = CreateObject("Scripting.Dictionary")
+        For Each key in keys
+            For i=0 to UBound(m_defaults(key).Keys())
+                If m_highscores.Exists(key) Then
+                    If Not m_highscores(key).Exists(CStr(i+1)) Then
+                        tmp.Add key & "_" & i+1 &"_label", m_categories(key)(i)
+                        tmp.Add key & "_" & i+1 &"_name", m_defaults(key).Keys()(i)
+                        tmp.Add key & "_" & i+1 &"_value", m_defaults(key)(m_defaults(key).Keys()(i))
+                    End If
+                Else
+                    tmp.Add key & "_" & i+1 & "_label", m_categories(key)(i)
+                    tmp.Add key & "_" & i+1 &"_name", m_defaults(key).Keys()(i)
+                    tmp.Add key & "_" & i+1 &"_value", m_defaults(key)(m_defaults(key).Keys()(i))
+                End If
+            Next
+            WriteHighScores "HighScores", tmp
+        Next  
+        ReadHighScores()
+    End Sub
+
+    Private Sub WriteHighScores(section, scores)
+        Dim objFSO, objFile, arrLines, line, inSection, foundSection
+        Dim outputLines, key
+        Set objFSO = CreateObject("Scripting.FileSystemObject")
+        
+        If objFSO.FileExists(CGameName & "_glf.ini") Then
+            Set objFile = objFSO.OpenTextFile(CGameName & "_glf.ini", 1)
+            arrLines = Split(objFile.ReadAll, vbCrLf)
+            objFile.Close
+        Else
+            arrLines = Array()
+        End If
+        
+        outputLines = ""
+        inSection = False
+        foundSection = False
+        
+        For Each line In arrLines
+            If Left(line, 1) = "[" And Right(line, 1) = "]" Then
+                inSection = (LCase(Mid(line, 2, Len(line) - 2)) = LCase(section))
+                foundSection = foundSection Or inSection
+            End If
+            
+            If inSection And InStr(line, "=") > 0 Then
+                key = Trim(Split(line, "=")(0))
+                If scores.Exists(key) Then
+                    line = key & "=" & scores(key)
+                    scores.Remove key
+                End If
+            End If
+    
+            If line = "" And inSection Then
+                ' Add remaining keys in the section
+                For Each key In scores.Keys
+                    outputLines = outputLines & key & "=" & scores(key) & vbCrLf
+                Next
+                scores.RemoveAll
+            End If
+            If line <> "" Then
+                outputLines = outputLines & line & vbCrLf
+            End If
+        Next
+        
+        If Not foundSection Then
+            outputLines = outputLines & "["&section&"]" & vbCrLf
+            For Each key In scores.Keys
+                outputLines = outputLines & key & "=" & scores(key) & vbCrLf
+            Next
+        End If
+        
+        Set objFile = objFSO.CreateTextFile(CGameName & "_glf.ini", True)
+        objFile.Write outputLines
+        objFile.Close
+    End Sub
+
+    Sub ReadHighScores()
+        Dim objFSO, objFile, arrLines, line, inSection
+        Set objFSO = CreateObject("Scripting.FileSystemObject")
+        
+        If Not objFSO.FileExists(CGameName & "_glf.ini") Then Exit Sub
+        
+        Set objFile = objFSO.OpenTextFile(CGameName & "_glf.ini", 1)
+        arrLines = Split(objFile.ReadAll, vbCrLf)
+        objFile.Close
+        
+        m_highscores.RemoveAll()
+
+        inSection = False
+        Dim current_name
+        For Each line In arrLines
+            line = Trim(line)
+            If Left(line, 1) = "[" And Right(line, 1) = "]" Then
+                inSection = (LCase(Mid(line, 2, Len(line) - 2)) = LCase("HighScores"))
+            ElseIf inSection And InStr(line, "=") > 0 Then
+                Dim parts : parts = Split(line, "=")
+                Dim key_parts : key_parts = Split(parts(0), "_")
+
+                Dim category : category = Trim(key_parts(0))
+                Dim position : position = Trim(key_parts(1))
+                Dim attr : attr = Trim(key_parts(2))
+
+                If m_categories.Exists(category) Then
+                    If Not m_highscores.Exists(category) Then
+                        m_highscores.Add category, CreateObject("Scripting.Dictionary")
+                    End If
+                    Select Case attr
+                        Case "label":
+                            current_label = parts(1)
+                        Case "name":
+                            current_name = parts(1)
+                        Case "value":
+                            Dim kwargs : Set kwargs = GlfKwargs()
+                            With kwargs
+                                .Add "label", current_label
+                                .Add "player_name", current_name
+                                .Add "value", parts(1)
+                            End With
+                            'msgbox category & "," & position & ", " & current_label & ", " & current_name & ", " & parts(1)
+                            m_highscores(category).Add CStr(position), kwargs
+                    End Select
+                End If
+            End If
+        Next
+    End Sub
+    
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_mode & "_high_score", message
+        End If
+    End Sub
+
+    Public Function ToYaml()
+        Dim yaml : yaml = ""
+        ToYaml = yaml
+    End Function
+
+End Class
+
+Function HighScoreEventHandler(args)
+    Dim ownProps, kwargs : ownProps = args(0)
+    If IsObject(args(1)) Then
+        Set kwargs = args(1)
+    Else
+        kwargs = args(1) 
+    End If
+    Dim evt : evt = ownProps(0)
+    Dim high_score : Set high_score = ownProps(1)
+    Select Case evt
+        Case "activate"
+            high_score.Activate
+        Case "deactivate"
+            high_score.Deactivate
+        Case "initials_complete"
+            high_score.InitialsInputComplete ownProps(2), kwargs
+        Case "award_display_complete"
+            high_score.AwardDisplayComplete
+    End Select
+    If IsObject(args(1)) Then
+        Set HighScoreEventHandler = kwargs
+    Else
+        HighScoreEventHandler = kwargs
+    End If
+End Function
+
+Class GlfHighScoreItem
+	Private m_slide, m_action, m_expire, m_max_queue_time, m_method, m_priority, m_target, m_tokens
+    
+    Public Property Get Slide(): Slide = m_slide: End Property
+    Public Property Let Slide(input)
+        m_slide = input
+    End Property
+    
+    Public Property Get Action(): Action = m_action: End Property
+    Public Property Let Action(input)
+        m_action = input
+    End Property
+
+    Public Property Get Expire(): Expire = m_expire: End Property
+    Public Property Let Expire(input)
+        m_expire = input
+    End Property
+
+    Public Property Get MaxQueueTime(): MaxQueueTime = m_max_queue_time: End Property
+    Public Property Let MaxQueueTime(input)
+        m_max_queue_time = input
+    End Property
+
+    Public Property Get Method(): Method = m_method: End Property
+    Public Property Let Method(input)
+        m_method = input
+    End Property
+
+    Public Property Get Priority(): Priority = m_priority: End Property
+    Public Property Let Priority(input)
+        m_priority = input
+    End Property
+
+    Public Property Get Target(): Target = m_target: End Property
+    Public Property Let Target(input)
+        m_target = input
+    End Property
+
+    Public Property Get Tokens(): Tokens = m_tokens: End Property
+    Public Property Let Tokens(input)
+        m_tokens = input
+    End Property
+
+	Public default Function init()
+        m_action = "play"
+        m_slide = Empty
+        m_expire = Empty
+        m_max_queue_time = Empty
+        m_method = Empty
+        m_priority = Empty
+        m_target = Empty
+        m_tokens = Empty
+        Set Init = Me
+	End Function
+
+End Class
+
 
 Class GlfLightPlayer
 
@@ -4822,6 +5362,7 @@ Class Mode
     Private m_combo_switches
     Private m_timed_switches
     Private m_tilt
+    Private m_high_score
     Private m_use_wait_queue
 
     Public Property Get Name(): Name = m_name: End Property
@@ -4985,11 +5526,22 @@ Class Mode
             Set Tilt = m_tilt
         End If
     End Property
+
     Public Property Get TiltConfig()
         If Not IsNull(m_tilt) Then
             Set TiltConfig = m_tilt
         Else
             TiltConfig = Null
+        End If
+    End Property
+
+    Public Property Let HighScore(value) : Set m_high_score = value : End Property
+    Public Property Get HighScore()
+        If Not IsNull(m_high_score) Then
+            Set HighScore = m_high_score
+        Else
+            Set m_high_score = (new GlfHighScore)(Me)
+            Set HighScore = m_high_score
         End If
     End Property
 
@@ -5173,6 +5725,7 @@ Class Mode
         m_tilt = Null
         m_showplayer = Null
         m_segment_display_player = Null
+        m_high_score = Null
         Set m_eventplayer = (new GlfEventPlayer)(Me)
         Set m_queueEventplayer = (new GlfQueueEventPlayer)(Me)
         Set m_queueRelayPlayer = (new GlfQueueRelayPlayer)(Me)
@@ -10481,7 +11034,7 @@ Class GlfVariablePlayer
         Log "Activating"
         Dim evt
         For Each evt In m_events.Keys()
-            AddPinEventListener m_events(evt).BaseEvent.EventName, m_mode & "_variable_player_play", "VariablePlayerEventHandler", m_priority+m_events(evt).BaseEvent.Priority, Array("play", Me, evt)
+            AddPinEventListener m_events(evt).BaseEvent.EventName, m_mode & "_" & evt & "_variable_player_play", "VariablePlayerEventHandler", m_priority+m_events(evt).BaseEvent.Priority, Array("play", Me, evt)
         Next
     End Sub
 
@@ -10489,7 +11042,7 @@ Class GlfVariablePlayer
         Log "Deactivating"
         Dim evt
         For Each evt In m_events.Keys()
-            RemovePinEventListener m_events(evt).BaseEvent.EventName, m_mode & "_variable_player_play"
+            RemovePinEventListener m_events(evt).BaseEvent.EventName, m_mode & "_" & evt & "_variable_player_play"
         Next
     End Sub
 
@@ -10567,7 +11120,7 @@ Class GlfVariablePlayerItem
   
 	Public Property Let Int(input): m_int = Glf_ParseInput(input): m_type = "int" : End Property
   
-	Public Property Let String(input): m_string = input: m_type = "string" : End Property
+	Public Property Let String(input) : m_string = Glf_ParseInput(input) : m_type = "string" : End Property
 
     Public Property Get VariableType(): VariableType = m_type: End Property
     Public Property Get VariableValue()
@@ -10577,7 +11130,7 @@ Class GlfVariablePlayerItem
             Case "int"
                 VariableValue = GetRef(m_int(0))()
             Case "string"
-                VariableValue = m_string
+                VariableValue = GetRef(m_string(0))()
             Case Else
                 VariableValue = Empty
         End Select
@@ -13559,6 +14112,29 @@ Class GlfEvent
 
 End Class
 
+Class GlfEventDispatch
+	Private m_raw, m_event, m_kwargs_ref
+  
+    Public Property Get EventName() : EventName = m_event : End Property
+    Public Property Get Kwargs()
+        If IsEmpty(m_kwargs_ref) Then
+            Kwargs = Null
+        Else
+            Set Kwargs = GetRef(m_kwargs_ref)()
+        End If
+    End Property
+    Public Property Get Raw() : Raw = m_raw : End Property
+
+	Public default Function init(evt)
+        m_raw = evt
+        Dim parsedDispatchEvent : parsedDispatchEvent = Glf_ParseDispatchEventInput(evt)
+        m_event = parsedDispatchEvent(0)
+        m_kwargs_ref = parsedDispatchEvent(1)
+	    Set Init = Me
+	End Function
+
+End Class
+
 Class GlfRandomEvent
 	
     Private m_parent_key
@@ -14043,7 +14619,14 @@ Function Glf_EndOfBall(args)
         bcpController.SendPlayerVariable "number", Getglf_currentPlayerNumber(), previousPlayerNumber
     End If
     If GetPlayerState(GLF_CURRENT_BALL) > glf_ballsPerGame Then
-        DispatchPinEvent GLF_GAME_OVER, Null
+        Dim device
+        For Each device in glf_ball_devices.Items()
+            If device.HasBall() Then
+                device.EjectAll()
+            End If
+        Next
+        DispatchPinEvent "game_will_end", Null
+        DispatchQueuePinEvent "game_ending", Null
     Else
         SetDelay "end_of_ball_delay", "EndOfBallNextPlayer", Null, 1000 
     End If
@@ -14053,10 +14636,10 @@ End Function
 '****************************
 ' Game Over
 ' Event Listeners:      
-AddPinEventListener GLF_GAME_OVER, "glf_game_over", "Glf_GameOver", 20, Null
+AddPinEventListener "game_ending", "glf_game_over", "Glf_EndGame", 20, Null
 '
 '*****************************
-Function Glf_GameOver(args)
+Function Glf_EndGame(args)
     If GetPlayerStateForPlayer("0", "score") = False Then
         glf_machine_vars("player1_score").Value = 0
     Else
@@ -14081,12 +14664,7 @@ Function Glf_GameOver(args)
     glf_currentPlayer = Null
     glf_playerState.RemoveAll()
 
-    Dim device
-    For Each device in glf_ball_devices
-        If device.HasBall() Then
-            device.EjectAll()
-        End If
-    Next
+    DispatchPinEvent "game_ended", Null
 End Function
 
 Public Function EndOfBallNextPlayer(args)

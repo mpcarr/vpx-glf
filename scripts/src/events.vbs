@@ -35,6 +35,29 @@ Class GlfEvent
 
 End Class
 
+Class GlfEventDispatch
+	Private m_raw, m_event, m_kwargs_ref
+  
+    Public Property Get EventName() : EventName = m_event : End Property
+    Public Property Get Kwargs()
+        If IsEmpty(m_kwargs_ref) Then
+            Kwargs = Null
+        Else
+            Set Kwargs = GetRef(m_kwargs_ref)()
+        End If
+    End Property
+    Public Property Get Raw() : Raw = m_raw : End Property
+
+	Public default Function init(evt)
+        m_raw = evt
+        Dim parsedDispatchEvent : parsedDispatchEvent = Glf_ParseDispatchEventInput(evt)
+        m_event = parsedDispatchEvent(0)
+        m_kwargs_ref = parsedDispatchEvent(1)
+	    Set Init = Me
+	End Function
+
+End Class
+
 Class GlfRandomEvent
 	
     Private m_parent_key
