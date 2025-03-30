@@ -721,10 +721,12 @@ Public Sub Glf_KeyDown(ByVal keycode)
 			If glf_canAddPlayers = True Then
 				Glf_AddPlayer()
 			End If
+			DispatchPinEvent "s_start_active", True
 		End If
 	Else
 		If keycode = StartGameKey Then
 			DispatchRelayPinEvent "request_to_start_game", True
+			DispatchPinEvent "s_start_active", True
 		End If
 	End If
 
@@ -788,6 +790,11 @@ End Sub
 
 Public Sub Glf_KeyUp(ByVal keycode)
 	
+
+	If keycode = StartGameKey Then
+		DispatchPinEvent "s_start_inactive", True
+	End If
+
 	If KeyCode = PlungerKey Then
 		RunAutoFireDispatchPinEvent "s_plunger_key_inactive", Null
 	End If
