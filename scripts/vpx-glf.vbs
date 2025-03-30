@@ -12707,6 +12707,7 @@ Class GlfLightSegmentDisplay
             SetDelay m_name & "_update_transition", "Glf_SegmentDisplayUpdateTransition", Array(Me, transition_runner), 1000/m_default_transition_update_hz
         Else
             'no transition - subscribe to text template changes and update display
+            RemoveDelay m_name & "_update_transition"
             If top_text_stack_entry.text.IsPlayerState() Then
                 AddPlayerStateEventListener top_text_stack_entry.text.PlayerStateValue(), m_name, top_text_stack_entry.text.PlayerStatePlayer(), "Glf_SegmentTextStackEventHandler", top_text_stack_entry.priority, Me
             ElseIf top_text_stack_entry.text.IsDeviceState() Then
