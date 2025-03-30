@@ -74,6 +74,7 @@ Class GlfBallSearch
             'Fire all auto fire devices, slings, pops.
             m_devices = glf_autofiredevices.Items()
             m_current_device_type = "autofire"
+            DispatchPinEvent "ball_search_started", Null
             If UBound(m_devices) > -1 Then
                 m_devices(0).BallSearch(m_phase)
                 SetDelay "ball_search_next_device" , "BallSearchHandler", Array(Array("next_device", Me, 0), Null), m_search_interval.Value
@@ -123,11 +124,13 @@ Class GlfBallSearch
 
     Public Sub Reset()
         RemoveDelay "ball_search_next_device"
+        DispatchPinEvent "ball_search_stopped", Null
         m_phase = 0
         SetDelay "ball_search" , "BallSearchHandler", Array(Array("start", Me), Null), m_timeout.Value
     End Sub
 
     Public Sub StopBallSearch()
+        DispatchPinEvent "ball_search_stopped", Null
         RemoveDelay "ball_search_next_device"
         m_phase = 0
         RemoveDelay "ball_search"
