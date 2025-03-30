@@ -134,6 +134,41 @@ Class GlfHighScore
                     If player_values(i) > high_score Then
                         'msgbox "setting new high score"
                         Log "Setting new high score"
+
+                        'Shift everything down, knocking the bottom score off.
+                        Dim shift_index, hs_item, hs_tmp
+                        Set hs_tmp = GlfKwargs()
+                        With hs_tmp
+                            .Add "label", ""
+                            .Add "player_name", ""
+                            .Add "value", 0
+                        End With
+                        Set hs_item = GlfKwargs()
+                        With hs_item
+                            .Add "label", ""
+                            .Add "player_name", ""
+                            .Add "value", 0
+                        End With
+                        For shift_index=position+1 to UBound(m_categories(category))
+                            If Not IsNull(hs_tmp) Then
+                                Set hs_item = hs_tmp
+                            Else
+                                hs_item("label") = m_highscores(category)(CStr(shift_index))("label")
+                                hs_item("player_name") = m_highscores(category)(CStr(shift_index))("player_name")
+                                hs_item("value") = m_highscores(category)(CStr(shift_index))("value")
+                            End If
+                            hs_tmp("label") = m_highscores(category)(CStr(shift_index+1))("label")
+                            hs_tmp("player_name") = m_highscores(category)(CStr(shift_index+1))("player_name")
+                            hs_tmp("value") = m_highscores(category)(CStr(shift_index+1))("value")
+
+                            ''msgbox "hs_item" & hs_item("value")
+                            'msgbox "hs_tmp" & hs_tmp("value")
+
+                            m_highscores(category)(CStr(shift_index+1))("label") = hs_item("label")
+                            m_highscores(category)(CStr(shift_index+1))("player_name") = hs_item("player_name")
+                            m_highscores(category)(CStr(shift_index+1))("value") = hs_item("value")
+                        Next
+
                         'new score
                         m_highscores(category)(CStr(position+1))("value") = player_values(i)
                         m_highscores(category)(CStr(position+1))("player_name") = ""
