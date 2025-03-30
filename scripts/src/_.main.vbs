@@ -158,6 +158,8 @@ Public Sub Glf_Init()
 	ExecuteGlobal spinnerHitSubs
 
 	If glf_debugEnabled = True Then
+
+		'***GLFMPF_EXPORT_START***
 		glf_debugLog.WriteToLog "Init", "Exporting MPF Config"
 		' Calculate the scale factor
 		Dim scaleFactor
@@ -345,6 +347,8 @@ Public Sub Glf_Init()
 		TxtFileStream.WriteLine godotLightScene
 		TxtFileStream.Close
 		glf_debugLog.WriteToLog "Init", "Finished MPF Config"
+
+		'***GLFMPF_EXPORT_END***
 	End If
 
 	'Cache Shows

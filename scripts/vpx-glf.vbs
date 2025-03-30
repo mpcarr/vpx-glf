@@ -158,6 +158,8 @@ Public Sub Glf_Init()
 	ExecuteGlobal spinnerHitSubs
 
 	If glf_debugEnabled = True Then
+
+		'***GLFMPF_EXPORT_START***
 		glf_debugLog.WriteToLog "Init", "Exporting MPF Config"
 		' Calculate the scale factor
 		Dim scaleFactor
@@ -345,6 +347,8 @@ Public Sub Glf_Init()
 		TxtFileStream.WriteLine godotLightScene
 		TxtFileStream.Close
 		glf_debugLog.WriteToLog "Init", "Finished MPF Config"
+
+		'***GLFMPF_EXPORT_END***
 	End If
 
 	'Cache Shows
@@ -763,7 +767,7 @@ Public Sub Glf_KeyDown(ByVal keycode)
 	End If
 	
 	If keycode = MechanicalTilt Then 
-		SetDelay "glf_mechcanical_tilt_debounce", "MechcanicalTiltDebounce", Null, 500
+		SetDelay "glf_mechcanical_tilt_debounce", "MechcanicalTiltDebounce", Null, 300
     End If
 
 	If keycode = LeftTiltKey Then 
