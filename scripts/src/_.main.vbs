@@ -965,8 +965,16 @@ Public Function Glf_RunHandlers(i)
 	End If
 	Glf_RunHandlers = i
 End Function
-
+Dim glf_tmp_lmarr
 Public Function Glf_RegisterLights()
+
+	Dim elemetDict : Set elementDict = CreateObject("Scripting.Dictionary")
+
+	For Each e in GetElements()
+		If typename(e) = "Primitive" Then
+			elementDict.Add LCase(e.Name), True
+		End If
+	Next
 
 	Dim light, tags, tag
 	For Each light In Glf_Lights
@@ -983,25 +991,23 @@ Public Function Glf_RegisterLights()
 		Next
 		glf_lightPriority.Add light.Name, 0
 		
-		Dim e, lmStr: lmStr = "lmArr = Array("    
-		For Each e in GetElements()
-			On Error Resume Next
-			If InStr(LCase(e.Name), LCase("_" & light.Name & "_")) Then
-				lmStr = lmStr & e.Name & ","
+		Dim e, lmStr: lmStr = "glf_tmp_lmarr = Array("    
+		For Each e in elementDict.Keys
+			If InStr(e, LCase("_" & light.Name & "_")) Then
+				lmStr = lmStr & e & ","
 			End If
 			For Each tag in tags
 				tag = "T_" & Trim(tag)
-				If InStr(LCase(e.Name), LCase("_" & tag & "_")) Then
-					lmStr = lmStr & e.Name & ","
+				If InStr(e, LCase("_" & tag & "_")) Then
+					lmStr = lmStr & e & ","
 				End If
 			Next
-			If Err Then Log "Error: " & Err
 		Next
 		lmStr = lmStr & "Null)"
 		lmStr = Replace(lmStr, ",Null)", ")")
 		lmStr = Replace(lmStr, "Null)", ")")
-		ExecuteGlobal "Dim lmArr : "&lmStr
-		glf_lightMaps.Add light.Name, lmArr
+		ExecuteGlobal lmStr
+		glf_lightMaps.Add light.Name, glf_tmp_lmarr
 		glf_lightNames.Add light.Name, light
 		Dim lightStack : Set lightStack = (new GlfLightStack)()
 		glf_lightStacks.Add light.Name, lightStack
