@@ -187,7 +187,8 @@ Class GlfRandomEvent
                     End If
                 End If
             Next
-            chosenKey = valid_events.keys()(0)
+            Dim valid_event_keys : valid_event_keys = valid_events.keys()
+            chosenKey = valid_event_keys(0)
         End If
         
         SetPlayerState "random_" & m_mode & "_" & m_key & "_last", valid_events(chosenKey).Raw

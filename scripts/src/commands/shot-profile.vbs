@@ -77,8 +77,9 @@ Class GlfShotProfile
 
             If Ubound(state.Tokens().Keys)>-1 Then
                 yaml = yaml & "       show_tokens: " & vbCrLf
-                For Each token in state.Tokens().Keys()
-                    yaml = yaml & "         " & token & ": " & state.Tokens()(token) & vbCrLf
+                Dim state_tokens : Set state_tokens = state.Tokens()
+                For Each token in state_tokens.Keys()
+                    yaml = yaml & "         " & token & ": " & state_tokens(token) & vbCrLf
                 Next
             End If
 

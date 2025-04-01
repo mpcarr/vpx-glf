@@ -397,8 +397,9 @@ Public Sub Glf_Init()
 					Dim key
 					Dim mergedTokens : Set mergedTokens = CreateObject("Scripting.Dictionary")
 					If Not IsNull(state.Tokens) Then
-						For Each key In state.Tokens.Keys()
-							mergedTokens.Add key, state.Tokens()(key)
+						Dim state_tokens : Set state_tokens = state.Tokens()
+						For Each key In state_tokens.Keys()
+							mergedTokens.Add key, state_tokens(key)
 						Next
 					End If
 					Dim tokens
@@ -422,9 +423,9 @@ Public Sub Glf_Init()
 			Dim mode_state_machine,state_count
 			state_count = 0
 			For Each mode_state_machine in mode.ModeStateMachines
-				
-				For x=0 to UBound(mode_state_machine.StateItems)
-					Set state = mode_state_machine.StateItems()(x)
+				Dim state_items : state_items = mode_state_machine.StateItems
+				For x=0 to UBound(state_items)
+					Set state = state_items(x)
 					If state.InternalCacheId = -1 Then
 						state.InternalCacheId = CStr(state_count)
 						state_count = state_count + 1
@@ -971,7 +972,7 @@ Public Function Glf_RegisterLights()
 	Dim elemetDict : Set elementDict = CreateObject("Scripting.Dictionary")
 
 	For Each e in GetElements()
-		If typename(e) = "Primitive" Then
+		If typename(e) = "Primitive" or typename(e) = "Flasher"  Then
 			elementDict.Add LCase(e.Name), True
 		End If
 	Next
@@ -3135,24 +3136,28 @@ Class GlfBallHold
         Dim yaml
         Dim evt, x
         yaml = "  " & Replace(m_name, "ball_hold_", "") & ":" & vbCrLf
-        If UBound(m_base_device.EnableEvents().Keys) > -1 Then
+        Dim enable_events_keys : enable_events_keys = m_base_device.EnableEvents().Keys
+        Dim enable_events : Set enable_events = m_base_device.EnableEvents()
+        If UBound(enable_events_keys) > -1 Then
             yaml = yaml & "    enable_events: "
             x=0
-            For Each key in m_base_device.EnableEvents().keys
-                yaml = yaml & m_base_device.EnableEvents()(key).Raw
-                If x <> UBound(m_base_device.EnableEvents().Keys) Then
+            For Each key in enable_events_keys
+                yaml = yaml & enable_events(key).Raw
+                If x <> UBound(enable_events_keys) Then
                     yaml = yaml & ", "
                 End If
                 x = x + 1
             Next
             yaml = yaml & vbCrLf
         End If
-        If UBound(m_base_device.DisableEvents().Keys) > -1 Then
+        Dim disable_events_keys : disable_events_keys = m_base_device.DisableEvents().Keys
+        Dim disable_events : Set disable_events = m_base_device.DisableEvents()
+        If UBound(disable_events_keys) > -1 Then
             yaml = yaml & "    disable_events: "
             x=0
-            For Each key in m_base_device.DisableEvents().keys
-                yaml = yaml & m_base_device.DisableEvents()(key).Raw
-                If x <> UBound(m_base_device.DisableEvents().Keys) Then
+            For Each key in disable_events_keys
+                yaml = yaml & disable_events(key).Raw
+                If x <> UBound(disable_events_keys) Then
                     yaml = yaml & ", "
                 End If
                 x = x + 1
@@ -4540,8 +4545,6 @@ Class GlfHighScore
 
         'Ask for Initials
         If Ubound(m_initials_needed.Keys())>-1 Then
-            'msgbox "Asking For Initials"
-            'msgbox m_initials_needed.Items()(0)("position")
             Log "Asking for Initials"
             m_current_initials = 0
             AddPinEventListener "text_input_high_score_complete", "text_input_high_score_complete", "HighScoreEventHandler", m_priority, Array("initials_complete", Me, m_initials_needed.Items()(0))
@@ -7124,15 +7127,17 @@ Class GlfSegmentDisplayPlayer
 
     Public Sub Play(evt, segment_event)
         Dim i
-        For i=0 to UBound(segment_event.Displays())
-            SegmentPlayerCallbackHandler evt, segment_event.Displays()(i), m_mode, m_priority
+        Dim segment_event_displays : Set segment_event_displays = segment_event.Displays()
+        For i=0 to UBound(segment_event_displays)
+            SegmentPlayerCallbackHandler evt, segment_event_displays(i), m_mode, m_priority
         Next
     End Sub
 
     Public Function PlayOff(evt, segment_event, displays_to_update)
         Dim i, segment_item
-        For i=0 to UBound(segment_event.Displays())
-            Set segment_item = segment_event.Displays()(i)
+        Dim segment_event_displays : Set segment_event_displays = segment_event.Displays()
+        For i=0 to UBound(segment_event_displays)
+            Set segment_item = segment_event_displays(i)
             Dim key
             key = m_mode & "." & "segment_player_player." & segment_item.Display
             If Not IsEmpty(segment_item.Key) Then
@@ -8315,8 +8320,9 @@ Class GlfShotProfile
 
             If Ubound(state.Tokens().Keys)>-1 Then
                 yaml = yaml & "       show_tokens: " & vbCrLf
-                For Each token in state.Tokens().Keys()
-                    yaml = yaml & "         " & token & ": " & state.Tokens()(token) & vbCrLf
+                Dim state_tokens : Set state_tokens = state.Tokens()
+                For Each token in state_tokens.Keys()
+                    yaml = yaml & "         " & token & ": " & state_tokens(token) & vbCrLf
                 Next
             End If
 
@@ -8479,7 +8485,8 @@ Class GlfShot
         For Each evt in m_control_events.Keys
             Dim cEvt
             For Each cEvt in m_control_events(evt).Events().Keys
-                RemovePinEventListener m_control_events(evt).Events()(cEvt).EventName, m_mode & "_" & m_name & "_control_" & cEvt
+                Dim control_events_events : Set control_events_events = m_control_events(evt).Events()
+                RemovePinEventListener control_events_events(cEvt).EventName, m_mode & "_" & m_name & "_control_" & cEvt
             Next
         Next
         For Each evt in m_reset_events.Keys
@@ -8506,7 +8513,8 @@ Class GlfShot
         For Each evt in m_control_events.Keys
             Dim cEvt
             For Each cEvt in m_control_events(evt).Events().Keys
-                AddPinEventListener m_control_events(evt).Events()(cEvt).EventName, m_mode & "_" & m_name & "_control_" & cEvt, "ShotEventHandler", m_priority+m_control_events(evt).Events()(cEvt).Priority, Array("control", Me, m_control_events(evt).Events()(cEvt), m_control_events(evt))
+                Dim control_events_events : Set control_events_events = m_control_events(evt).Events()
+                AddPinEventListener control_events_events(cEvt).EventName, m_mode & "_" & m_name & "_control_" & cEvt, "ShotEventHandler", m_priority+control_events_events(cEvt)(cEvt).Priority, Array("control", Me, control_events_events(cEvt)(cEvt), m_control_events(evt))
             Next
         Next
         For Each evt in m_reset_events.Keys
@@ -8682,25 +8690,28 @@ Class GlfShot
             End If
         Next
 
-        If UBound(m_base_device.EnableEvents().Keys) > -1 Then
+        Dim enable_events_keys : enable_events_keys = m_base_device.EnableEvents().Keys
+        Dim enable_events : Set enable_events = m_base_device.EnableEvents()
+        If UBound(enable_events_keys) > -1 Then
             yaml = yaml & "    enable_events: "
             x=0
-            For Each key in m_base_device.EnableEvents().keys
-                yaml = yaml & m_base_device.EnableEvents()(key).Raw
-                If x <> UBound(m_base_device.EnableEvents().Keys) Then
+            For Each key in enable_events_keys
+                yaml = yaml & enable_events(key).Raw
+                If x <> UBound(enable_events_keys) Then
                     yaml = yaml & ", "
                 End If
                 x = x + 1
             Next
             yaml = yaml & vbCrLf
         End If
-
-        If UBound(m_base_device.DisableEvents().Keys) > -1 Then
+        Dim disable_events_keys : disable_events_keys = m_base_device.DisableEvents().Keys
+        Dim disable_events : Set disable_events = m_base_device.DisableEvents()
+        If UBound(disable_events_keys) > -1 Then
             yaml = yaml & "    disable_events: "
             x=0
-            For Each key in m_base_device.DisableEvents().keys
-                yaml = yaml & m_base_device.DisableEvents()(key).Raw
-                If x <> UBound(m_base_device.DisableEvents().Keys) Then
+            For Each key in disable_events_keys
+                yaml = yaml & disable_events(key).Raw
+                If x <> UBound(disable_events_keys) Then
                     yaml = yaml & ", "
                 End If
                 x = x + 1
@@ -9107,7 +9118,10 @@ Class GlfShow
     
     Public Property Get Steps() : Set Steps = m_steps : End Property
 
-    Public Function StepAtIndex(index) : Set StepAtIndex = m_steps.Items()(index) : End Function
+    Public Function StepAtIndex(index)
+        Dim step_at_index_items : step_at_index_items = m_steps.Items()
+        Set StepAtIndex = step_at_index_items(index)
+    End Function
     
     Public default Function init(name)
         m_name = name
@@ -9137,7 +9151,8 @@ Class GlfShow
         
 
         If UBound(m_steps.Keys()) > -1 Then
-            Dim prevStep : Set prevStep = m_steps.Items()(UBound(m_steps.Keys()))
+            Dim steps_items : steps_items = m_steps.Items()
+            Dim prevStep : Set prevStep = steps_items(UBound(m_steps.Keys()))
             prevStep.IsLastStep = False
             'need to work out previous steps duration.
             If IsNull(prevStep.Duration) Then
@@ -9265,8 +9280,9 @@ Class GlfRunningShow
         Dim key
         Dim mergedTokens : Set mergedTokens = CreateObject("Scripting.Dictionary")
         If Not IsNull(m_show_settings.Tokens) Then
-            For Each key In m_show_settings.Tokens.Keys()
-                mergedTokens.Add key, m_show_settings.Tokens()(key)
+            Dim show_settings_tokens : Set show_settings_tokens = m_show_settings.Tokens()
+            For Each key In show_settings_tokens.Keys()
+                mergedTokens.Add key, show_settings_tokens(key)
             Next
         End If
         If Not IsNull(tokens) Then
@@ -9369,9 +9385,8 @@ Function GlfShowStepHandler(args)
         Dim shows_added, replacement_color
         replacement_color = Empty
         If Not IsEmpty(running_show.ShowSettings.ColorLookup) Then
-            'msgbox ubound(running_show.ShowSettings.ColorLookup())
-            'MsgBox UBound(cached_show_seq)
-            replacement_color = running_show.ShowSettings.ColorLookup()(running_show.CurrentStep)
+            Dim show_settings_color_lookup : show_settings_color_lookup = running_show.ShowSettings.ColorLookup()
+            replacement_color = show_settings_color_lookup(running_show.CurrentStep)
         End If
         Set shows_added = LightPlayerCallbackHandler(running_show.Key, Array(cached_show_seq(running_show.CurrentStep)), running_show.ShowName, running_show.Priority + running_show.ShowSettings.Priority, True, running_show.ShowSettings.Speed, replacement_color)
         If IsObject(shows_added) Then
@@ -14363,7 +14378,8 @@ Class GlfRandomEvent
                     End If
                 End If
             Next
-            chosenKey = valid_events.keys()(0)
+            Dim valid_event_keys : valid_event_keys = valid_events.keys()
+            chosenKey = valid_event_keys(0)
         End If
         
         SetPlayerState "random_" & m_mode & "_" & m_key & "_last", valid_events(chosenKey).Raw
@@ -14461,9 +14477,11 @@ Function Glf_InitNewPlayer()
     state.Add "extra_balls", 0
     Glf_MonitorPlayerStateUpdate "extra_balls", 0
     Dim i
-    For i=0 To UBound(glf_initialVars.Keys())
-        state.Add glf_initialVars.Keys()(i), glf_initialVars.Items()(i)
-        Glf_MonitorPlayerStateUpdate glf_initialVars.Keys()(i), glf_initialVars.Items()(i)
+    Dim init_var_keys : init_var_keys = glf_initialVars.Keys()
+    Dim init_var_items : init_var_items = glf_initialVars.Items()
+    For i=0 To UBound(init_var_keys)
+        state.Add init_var_keys(i), init_var_items(i)
+        Glf_MonitorPlayerStateUpdate init_var_keys(i), init_var_items(i)
     Next
     Set Glf_InitNewPlayer = state
 End Function

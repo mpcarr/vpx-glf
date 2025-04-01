@@ -145,7 +145,8 @@ Class GlfShot
         For Each evt in m_control_events.Keys
             Dim cEvt
             For Each cEvt in m_control_events(evt).Events().Keys
-                RemovePinEventListener m_control_events(evt).Events()(cEvt).EventName, m_mode & "_" & m_name & "_control_" & cEvt
+                Dim control_events_events : Set control_events_events = m_control_events(evt).Events()
+                RemovePinEventListener control_events_events(cEvt).EventName, m_mode & "_" & m_name & "_control_" & cEvt
             Next
         Next
         For Each evt in m_reset_events.Keys
@@ -172,7 +173,8 @@ Class GlfShot
         For Each evt in m_control_events.Keys
             Dim cEvt
             For Each cEvt in m_control_events(evt).Events().Keys
-                AddPinEventListener m_control_events(evt).Events()(cEvt).EventName, m_mode & "_" & m_name & "_control_" & cEvt, "ShotEventHandler", m_priority+m_control_events(evt).Events()(cEvt).Priority, Array("control", Me, m_control_events(evt).Events()(cEvt), m_control_events(evt))
+                Dim control_events_events : Set control_events_events = m_control_events(evt).Events()
+                AddPinEventListener control_events_events(cEvt).EventName, m_mode & "_" & m_name & "_control_" & cEvt, "ShotEventHandler", m_priority+control_events_events(cEvt)(cEvt).Priority, Array("control", Me, control_events_events(cEvt)(cEvt), m_control_events(evt))
             Next
         Next
         For Each evt in m_reset_events.Keys
@@ -348,25 +350,28 @@ Class GlfShot
             End If
         Next
 
-        If UBound(m_base_device.EnableEvents().Keys) > -1 Then
+        Dim enable_events_keys : enable_events_keys = m_base_device.EnableEvents().Keys
+        Dim enable_events : Set enable_events = m_base_device.EnableEvents()
+        If UBound(enable_events_keys) > -1 Then
             yaml = yaml & "    enable_events: "
             x=0
-            For Each key in m_base_device.EnableEvents().keys
-                yaml = yaml & m_base_device.EnableEvents()(key).Raw
-                If x <> UBound(m_base_device.EnableEvents().Keys) Then
+            For Each key in enable_events_keys
+                yaml = yaml & enable_events(key).Raw
+                If x <> UBound(enable_events_keys) Then
                     yaml = yaml & ", "
                 End If
                 x = x + 1
             Next
             yaml = yaml & vbCrLf
         End If
-
-        If UBound(m_base_device.DisableEvents().Keys) > -1 Then
+        Dim disable_events_keys : disable_events_keys = m_base_device.DisableEvents().Keys
+        Dim disable_events : Set disable_events = m_base_device.DisableEvents()
+        If UBound(disable_events_keys) > -1 Then
             yaml = yaml & "    disable_events: "
             x=0
-            For Each key in m_base_device.DisableEvents().keys
-                yaml = yaml & m_base_device.DisableEvents()(key).Raw
-                If x <> UBound(m_base_device.DisableEvents().Keys) Then
+            For Each key in disable_events_keys
+                yaml = yaml & disable_events(key).Raw
+                If x <> UBound(disable_events_keys) Then
                     yaml = yaml & ", "
                 End If
                 x = x + 1

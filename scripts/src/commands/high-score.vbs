@@ -198,8 +198,6 @@ Class GlfHighScore
 
         'Ask for Initials
         If Ubound(m_initials_needed.Keys())>-1 Then
-            'msgbox "Asking For Initials"
-            'msgbox m_initials_needed.Items()(0)("position")
             Log "Asking for Initials"
             m_current_initials = 0
             AddPinEventListener "text_input_high_score_complete", "text_input_high_score_complete", "HighScoreEventHandler", m_priority, Array("initials_complete", Me, m_initials_needed.Items()(0))

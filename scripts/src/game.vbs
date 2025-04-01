@@ -60,9 +60,11 @@ Function Glf_InitNewPlayer()
     state.Add "extra_balls", 0
     Glf_MonitorPlayerStateUpdate "extra_balls", 0
     Dim i
-    For i=0 To UBound(glf_initialVars.Keys())
-        state.Add glf_initialVars.Keys()(i), glf_initialVars.Items()(i)
-        Glf_MonitorPlayerStateUpdate glf_initialVars.Keys()(i), glf_initialVars.Items()(i)
+    Dim init_var_keys : init_var_keys = glf_initialVars.Keys()
+    Dim init_var_items : init_var_items = glf_initialVars.Items()
+    For i=0 To UBound(init_var_keys)
+        state.Add init_var_keys(i), init_var_items(i)
+        Glf_MonitorPlayerStateUpdate init_var_keys(i), init_var_items(i)
     Next
     Set Glf_InitNewPlayer = state
 End Function

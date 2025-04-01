@@ -397,8 +397,9 @@ Public Sub Glf_Init()
 					Dim key
 					Dim mergedTokens : Set mergedTokens = CreateObject("Scripting.Dictionary")
 					If Not IsNull(state.Tokens) Then
-						For Each key In state.Tokens.Keys()
-							mergedTokens.Add key, state.Tokens()(key)
+						Dim state_tokens : Set state_tokens = state.Tokens()
+						For Each key In state_tokens.Keys()
+							mergedTokens.Add key, state_tokens(key)
 						Next
 					End If
 					Dim tokens
@@ -422,9 +423,9 @@ Public Sub Glf_Init()
 			Dim mode_state_machine,state_count
 			state_count = 0
 			For Each mode_state_machine in mode.ModeStateMachines
-				
-				For x=0 to UBound(mode_state_machine.StateItems)
-					Set state = mode_state_machine.StateItems()(x)
+				Dim state_items : state_items = mode_state_machine.StateItems
+				For x=0 to UBound(state_items)
+					Set state = state_items(x)
 					If state.InternalCacheId = -1 Then
 						state.InternalCacheId = CStr(state_count)
 						state_count = state_count + 1
@@ -971,7 +972,7 @@ Public Function Glf_RegisterLights()
 	Dim elemetDict : Set elementDict = CreateObject("Scripting.Dictionary")
 
 	For Each e in GetElements()
-		If typename(e) = "Primitive" Then
+		If typename(e) = "Primitive" or typename(e) = "Flasher"  Then
 			elementDict.Add LCase(e.Name), True
 		End If
 	Next

@@ -267,24 +267,28 @@ Class GlfBallHold
         Dim yaml
         Dim evt, x
         yaml = "  " & Replace(m_name, "ball_hold_", "") & ":" & vbCrLf
-        If UBound(m_base_device.EnableEvents().Keys) > -1 Then
+        Dim enable_events_keys : enable_events_keys = m_base_device.EnableEvents().Keys
+        Dim enable_events : Set enable_events = m_base_device.EnableEvents()
+        If UBound(enable_events_keys) > -1 Then
             yaml = yaml & "    enable_events: "
             x=0
-            For Each key in m_base_device.EnableEvents().keys
-                yaml = yaml & m_base_device.EnableEvents()(key).Raw
-                If x <> UBound(m_base_device.EnableEvents().Keys) Then
+            For Each key in enable_events_keys
+                yaml = yaml & enable_events(key).Raw
+                If x <> UBound(enable_events_keys) Then
                     yaml = yaml & ", "
                 End If
                 x = x + 1
             Next
             yaml = yaml & vbCrLf
         End If
-        If UBound(m_base_device.DisableEvents().Keys) > -1 Then
+        Dim disable_events_keys : disable_events_keys = m_base_device.DisableEvents().Keys
+        Dim disable_events : Set disable_events = m_base_device.DisableEvents()
+        If UBound(disable_events_keys) > -1 Then
             yaml = yaml & "    disable_events: "
             x=0
-            For Each key in m_base_device.DisableEvents().keys
-                yaml = yaml & m_base_device.DisableEvents()(key).Raw
-                If x <> UBound(m_base_device.DisableEvents().Keys) Then
+            For Each key in disable_events_keys
+                yaml = yaml & disable_events(key).Raw
+                If x <> UBound(disable_events_keys) Then
                     yaml = yaml & ", "
                 End If
                 x = x + 1

@@ -9,7 +9,10 @@ Class GlfShow
     
     Public Property Get Steps() : Set Steps = m_steps : End Property
 
-    Public Function StepAtIndex(index) : Set StepAtIndex = m_steps.Items()(index) : End Function
+    Public Function StepAtIndex(index)
+        Dim step_at_index_items : step_at_index_items = m_steps.Items()
+        Set StepAtIndex = step_at_index_items(index)
+    End Function
     
     Public default Function init(name)
         m_name = name
@@ -39,7 +42,8 @@ Class GlfShow
         
 
         If UBound(m_steps.Keys()) > -1 Then
-            Dim prevStep : Set prevStep = m_steps.Items()(UBound(m_steps.Keys()))
+            Dim steps_items : steps_items = m_steps.Items()
+            Dim prevStep : Set prevStep = steps_items(UBound(m_steps.Keys()))
             prevStep.IsLastStep = False
             'need to work out previous steps duration.
             If IsNull(prevStep.Duration) Then
@@ -167,8 +171,9 @@ Class GlfRunningShow
         Dim key
         Dim mergedTokens : Set mergedTokens = CreateObject("Scripting.Dictionary")
         If Not IsNull(m_show_settings.Tokens) Then
-            For Each key In m_show_settings.Tokens.Keys()
-                mergedTokens.Add key, m_show_settings.Tokens()(key)
+            Dim show_settings_tokens : Set show_settings_tokens = m_show_settings.Tokens()
+            For Each key In show_settings_tokens.Keys()
+                mergedTokens.Add key, show_settings_tokens(key)
             Next
         End If
         If Not IsNull(tokens) Then
@@ -271,9 +276,8 @@ Function GlfShowStepHandler(args)
         Dim shows_added, replacement_color
         replacement_color = Empty
         If Not IsEmpty(running_show.ShowSettings.ColorLookup) Then
-            'msgbox ubound(running_show.ShowSettings.ColorLookup())
-            'MsgBox UBound(cached_show_seq)
-            replacement_color = running_show.ShowSettings.ColorLookup()(running_show.CurrentStep)
+            Dim show_settings_color_lookup : show_settings_color_lookup = running_show.ShowSettings.ColorLookup()
+            replacement_color = show_settings_color_lookup(running_show.CurrentStep)
         End If
         Set shows_added = LightPlayerCallbackHandler(running_show.Key, Array(cached_show_seq(running_show.CurrentStep)), running_show.ShowName, running_show.Priority + running_show.ShowSettings.Priority, True, running_show.ShowSettings.Speed, replacement_color)
         If IsObject(shows_added) Then
