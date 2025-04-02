@@ -133,19 +133,19 @@ Class GlfTilt
     Public Sub Deactivate()
         Dim evt
         For Each evt in m_reset_warnings_events.Keys()
-            RemoveEventListener m_reset_warnings_events(evt).EventName, m_name & "_" & evt & "_reset_warnings"
+            RemovePinEventListener m_reset_warnings_events(evt).EventName, m_name & "_" & evt & "_reset_warnings"
         Next
         For Each evt in m_tilt_events.Keys()
-            RemoveEventListener m_tilt_events(evt).EventName, m_name & "_" & evt & "_tilt"
+            RemovePinEventListener m_tilt_events(evt).EventName, m_name & "_" & evt & "_tilt"
         Next
         For Each evt in m_tilt_warning_events.Keys()
-            RemoveEventListener m_tilt_warning_events(evt).EventName, m_name & "_" & evt & "_tilt_warning"
+            RemovePinEventListener m_tilt_warning_events(evt).EventName, m_name & "_" & evt & "_tilt_warning"
         Next
         For Each evt in m_tilt_slam_tilt_events.Keys()
-            RemoveEventListener m_tilt_slam_tilt_events(evt).EventName, m_name & "_" & evt & "_slam__tilt"
+            RemovePinEventListener m_tilt_slam_tilt_events(evt).EventName, m_name & "_" & evt & "_slam__tilt"
         Next
 
-        RemoveEventListener "s_tilt_warning_active", m_name & "_tilt_warning_switch_active"
+        RemovePinEventListener "s_tilt_warning_active", m_name & "_tilt_warning_switch_active"
 
     End Sub
 
@@ -213,7 +213,7 @@ Class GlfTilt
 
     Public Sub HandleTiltWarningSwitch()
         Log "Handling Tilt Warning Switch"
-        If m_last_warning = 0 Or (m_last_warning + m_multiple_hit_window.Value() * 0.001) <= gametime Then
+        If m_last_warning = 0 Or (m_last_warning + m_multiple_hit_window.Value()) <= gametime Then
             TiltWarning()
         End If
     End Sub

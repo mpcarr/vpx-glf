@@ -969,7 +969,7 @@ End Function
 Dim glf_tmp_lmarr
 Public Function Glf_RegisterLights()
 
-	Dim elemetDict : Set elementDict = CreateObject("Scripting.Dictionary")
+	Dim elementDict : Set elementDict = CreateObject("Scripting.Dictionary")
 
 	For Each e in GetElements()
 		If typename(e) = "Primitive" or typename(e) = "Flasher"  Then

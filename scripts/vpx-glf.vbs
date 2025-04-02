@@ -969,7 +969,7 @@ End Function
 Dim glf_tmp_lmarr
 Public Function Glf_RegisterLights()
 
-	Dim elemetDict : Set elementDict = CreateObject("Scripting.Dictionary")
+	Dim elementDict : Set elementDict = CreateObject("Scripting.Dictionary")
 
 	For Each e in GetElements()
 		If typename(e) = "Primitive" or typename(e) = "Flasher"  Then
@@ -4455,21 +4455,29 @@ Class GlfHighScore
                 player_values(p) = GetPlayerStateForPlayer(p, category)
                 player_numbers(p) = p+1
             Next
-            'Sort the values high to low.
-            Dim i, j, temp
-            For i = 0 To UBound(player_values) - 1
-                For j = i + 1 To UBound(player_values)
-                    If player_values(j) > player_values(i) Then
-                        temp = player_values(i)
-                        player_values(i) = player_values(j)
-                        player_values(j) = temp
-
-                        temp = player_numbers(i)
-                        player_numbers(i) = player_numbers(j)
-                        player_numbers(j) = temp
-                    End If
-                Next
-            Next
+            
+             'Sort the values high to low.
+             Dim n, i, j, temp, swapped
+             n = UBound(player_values) - LBound(player_values) + 1 
+             For i = 0 To n - 1
+                 swapped = False
+                 For j = 0 To n - i - 2 
+                     If player_values(j) < player_values(j + 1) Then 
+                         temp = player_values(j)
+                         player_values(j) = player_values(j + 1)
+                         player_values(j + 1) = temp
+ 
+                         temp = player_numbers(j)
+                         player_numbers(j) = player_numbers(j + 1)
+                         player_numbers(j + 1) = temp
+ 
+                         swapped = True 
+                     End If
+                 Next
+                 If Not swapped Then
+                     Exit For
+                 End If
+             Next
 
             'msgbox player_values(0)
             
@@ -10369,19 +10377,19 @@ Class GlfTilt
     Public Sub Deactivate()
         Dim evt
         For Each evt in m_reset_warnings_events.Keys()
-            RemoveEventListener m_reset_warnings_events(evt).EventName, m_name & "_" & evt & "_reset_warnings"
+            RemovePinEventListener m_reset_warnings_events(evt).EventName, m_name & "_" & evt & "_reset_warnings"
         Next
         For Each evt in m_tilt_events.Keys()
-            RemoveEventListener m_tilt_events(evt).EventName, m_name & "_" & evt & "_tilt"
+            RemovePinEventListener m_tilt_events(evt).EventName, m_name & "_" & evt & "_tilt"
         Next
         For Each evt in m_tilt_warning_events.Keys()
-            RemoveEventListener m_tilt_warning_events(evt).EventName, m_name & "_" & evt & "_tilt_warning"
+            RemovePinEventListener m_tilt_warning_events(evt).EventName, m_name & "_" & evt & "_tilt_warning"
         Next
         For Each evt in m_tilt_slam_tilt_events.Keys()
-            RemoveEventListener m_tilt_slam_tilt_events(evt).EventName, m_name & "_" & evt & "_slam__tilt"
+            RemovePinEventListener m_tilt_slam_tilt_events(evt).EventName, m_name & "_" & evt & "_slam__tilt"
         Next
 
-        RemoveEventListener "s_tilt_warning_active", m_name & "_tilt_warning_switch_active"
+        RemovePinEventListener "s_tilt_warning_active", m_name & "_tilt_warning_switch_active"
 
     End Sub
 
@@ -10449,7 +10457,7 @@ Class GlfTilt
 
     Public Sub HandleTiltWarningSwitch()
         Log "Handling Tilt Warning Switch"
-        If m_last_warning = 0 Or (m_last_warning + m_multiple_hit_window.Value() * 0.001) <= gametime Then
+        If m_last_warning = 0 Or (m_last_warning + m_multiple_hit_window.Value()) <= gametime Then
             TiltWarning()
         End If
     End Sub
@@ -13120,7 +13128,7 @@ FOURTEEN_SEGMENTS.Add 91, (New FourteenSegments)(0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1
 FOURTEEN_SEGMENTS.Add 92, (New FourteenSegments)(0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, Chr(92)) ' Character \
 FOURTEEN_SEGMENTS.Add 93, (New FourteenSegments)(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, "]")
 FOURTEEN_SEGMENTS.Add 94, (New FourteenSegments)(0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "^")
-FOURTEEN_SEGMENTS.Add 95, (New FourteenSegments)(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, "_")
+FOURTEEN_SEGMENTS.Add 95, (New FourteenSegments)(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, "_")
 FOURTEEN_SEGMENTS.Add 96, (New FourteenSegments)(0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, "`")
 FOURTEEN_SEGMENTS.Add 97, (New FourteenSegments)(0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, "a")
 FOURTEEN_SEGMENTS.Add 98, (New FourteenSegments)(0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, "b")
