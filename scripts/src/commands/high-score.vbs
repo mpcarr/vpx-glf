@@ -5,7 +5,7 @@ Function EnableGlfHighScores()
     high_score_mode.UseWaitQueue = True
     Dim high_score : Set high_score = (new GlfHighScore)(high_score_mode)
     high_score.Debug = True
-    high_score_mode.HighScore = high_score
+    Set high_score_mode.HighScore = high_score
     Set glf_highscore = high_score
 	Set EnableGlfHighScores = glf_highscore
 End Function

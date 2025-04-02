@@ -1091,7 +1091,7 @@ Public Function Glf_ParseInput(value)
     End Select
 	'msgbox templateCode
 	ExecuteGlobal templateCode
-	'glf_codestr = glf_codestr & templateCode & vbCrLf
+	glf_codestr = glf_codestr & templateCode & vbCrLf
 	Dim funcRef : funcRef = "Glf_" & glf_FuncCount
 	glf_FuncCount = glf_FuncCount + 1
 	Glf_ParseInput = Array(funcRef, value, True)
@@ -1130,7 +1130,7 @@ Public Function Glf_ParseEventInput(value)
 		templateCode = templateCode & vbTab & "If Err Then Glf_" & glf_FuncCount & " = False" & vbCrLf
 		templateCode = templateCode & "End Function"
 		ExecuteGlobal templateCode
-		'glf_codestr = glf_codestr & templateCode & vbCrLf
+		glf_codestr = glf_codestr & templateCode & vbCrLf
 		Dim funcRef : funcRef = "Glf_" & glf_FuncCount
 		glf_FuncCount = glf_FuncCount + 1
 
@@ -1173,7 +1173,7 @@ Public Function Glf_ParseDispatchEventInput(value)
 		templateCode = templateCode & "End Function"
 		'msgbox templateCode
 		ExecuteGlobal templateCode
-		'glf_codestr = glf_codestr & templateCode & vbCrLf
+		glf_codestr = glf_codestr & templateCode & vbCrLf
 		Dim funcRef : funcRef = "Glf_" & glf_FuncCount
 		glf_FuncCount = glf_FuncCount + 1
 
@@ -4673,7 +4673,7 @@ Function EnableGlfHighScores()
     high_score_mode.UseWaitQueue = True
     Dim high_score : Set high_score = (new GlfHighScore)(high_score_mode)
     high_score.Debug = True
-    high_score_mode.HighScore = high_score
+    Set high_score_mode.HighScore = high_score
     Set glf_highscore = high_score
 	Set EnableGlfHighScores = glf_highscore
 End Function
