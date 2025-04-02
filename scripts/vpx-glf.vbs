@@ -4555,9 +4555,10 @@ Class GlfHighScore
         If Ubound(m_initials_needed.Keys())>-1 Then
             Log "Asking for Initials"
             m_current_initials = 0
-            AddPinEventListener "text_input_high_score_complete", "text_input_high_score_complete", "HighScoreEventHandler", m_priority, Array("initials_complete", Me, m_initials_needed.Items()(0))
-            DispatchPinEvent "high_score_enter_initials", m_initials_needed.Items()(0)
-            SetDelay "enter_initials_timeout", "HighScoreEventHandler", Array(Array("initials_complete", Me, m_initials_needed.Items()(0)), Null), m_enter_initials_timeout.Value
+            Dim initials_needed_items : initials_needed_items = m_initials_needed.Items()
+            AddPinEventListener "text_input_high_score_complete", "text_input_high_score_complete", "HighScoreEventHandler", m_priority, Array("initials_complete", Me, initials_needed_items(0))
+            DispatchPinEvent "high_score_enter_initials", initials_needed_items(0)
+            SetDelay "enter_initials_timeout", "HighScoreEventHandler", Array(Array("initials_complete", Me, initials_needed_items(0)), Null), m_enter_initials_timeout.Value
         Else
             'No New High Scores, End Mode
             Log "No High Score, Ending"
@@ -4615,9 +4616,10 @@ Class GlfHighScore
         If Ubound(m_initials_needed.Keys())>m_current_initials Then
             Log "Asking for Next Initials"
             m_current_initials = m_current_initials + 1
-            AddPinEventListener "text_input_high_score_complete", "text_input_high_score_complete", "HighScoreEventHandler", m_priority, Array("initials_complete", Me, m_initials_needed.Items()(m_current_initials))
-            DispatchPinEvent "high_score_enter_initials", m_initials_needed.Items()(m_current_initials)
-            SetDelay "enter_initials_timeout", "HighScoreEventHandler", Array(Array("initials_complete", Me, m_initials_needed.Items()(m_current_initials)), Null), m_enter_initials_timeout.Value
+            Dim initials_needed_items : initials_needed_items = m_initials_needed.Items()
+            AddPinEventListener "text_input_high_score_complete", "text_input_high_score_complete", "HighScoreEventHandler", m_priority, Array("initials_complete", Me, initials_needed_items(m_current_initials))
+            DispatchPinEvent "high_score_enter_initials", initials_needed_items(m_current_initials)
+            SetDelay "enter_initials_timeout", "HighScoreEventHandler", Array(Array("initials_complete", Me, minitials_needed_items(m_current_initials)), Null), m_enter_initials_timeout.Value
         Else
             Log "Writing High Scores"
             Dim keys, key
@@ -4648,17 +4650,19 @@ Class GlfHighScore
         keys = m_defaults.Keys()
         Dim tmp : Set tmp = CreateObject("Scripting.Dictionary")
         For Each key in keys
-            For i=0 to UBound(m_defaults(key).Keys())
+            Dim default_keys : default_keys = m_defaults(key).Keys()
+            For i=0 to UBound(default_keys)
+                Dim default_value_item : default_value_item = m_defaults(key)
                 If m_highscores.Exists(key) Then
                     If Not m_highscores(key).Exists(CStr(i+1)) Then
                         tmp.Add key & "_" & i+1 &"_label", m_categories(key)(i)
-                        tmp.Add key & "_" & i+1 &"_name", m_defaults(key).Keys()(i)
-                        tmp.Add key & "_" & i+1 &"_value", m_defaults(key)(m_defaults(key).Keys()(i))
+                        tmp.Add key & "_" & i+1 &"_name", default_keys(i)
+                        tmp.Add key & "_" & i+1 &"_value", default_value_item(default_keys(i))
                     End If
                 Else
                     tmp.Add key & "_" & i+1 & "_label", m_categories(key)(i)
-                    tmp.Add key & "_" & i+1 &"_name", m_defaults(key).Keys()(i)
-                    tmp.Add key & "_" & i+1 &"_value", m_defaults(key)(m_defaults(key).Keys()(i))
+                    tmp.Add key & "_" & i+1 &"_name", default_keys(i)
+                    tmp.Add key & "_" & i+1 &"_value", default_value_item(default_keys(i))
                 End If
             Next
             WriteHighScores "HighScores", tmp
