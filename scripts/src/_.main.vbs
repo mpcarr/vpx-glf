@@ -38,7 +38,7 @@ Dim glf_lightTags : Set glf_lightTags = CreateObject("Scripting.Dictionary")
 Dim glf_lightNames : Set glf_lightNames = CreateObject("Scripting.Dictionary")
 Dim glf_modes : Set glf_modes = CreateObject("Scripting.Dictionary")
 Dim glf_timers : Set glf_timers = CreateObject("Scripting.Dictionary")
-
+Dim glf_codestr : glf_codestr = ""
 Dim glf_state_machines : Set glf_state_machines = CreateObject("Scripting.Dictionary")
 Dim glf_ball_devices : Set glf_ball_devices = CreateObject("Scripting.Dictionary")
 Dim glf_diverters : Set glf_diverters = CreateObject("Scripting.Dictionary")
@@ -134,29 +134,32 @@ Public Sub Glf_Init()
 	If glf_troughSize > 6 Then : swTrough7.DestroyBall : Set glf_ball7 = swTrough7.CreateSizedballWithMass(Ballsize / 2,Ballmass) : gBot = Array(glf_ball1, glf_ball2, glf_ball3, glf_ball4, glf_ball5, glf_ball6, glf_ball7) : Set glf_lastTroughSw = swTrough7 : End If
 	If glf_troughSize > 7 Then : Drain.DestroyBall : Set glf_ball8 = Drain.CreateSizedballWithMass(Ballsize / 2,Ballmass) : gBot = Array(glf_ball1, glf_ball2, glf_ball3, glf_ball4, glf_ball5, glf_ball6, glf_ball7, glf_ball8) : End If
 	
-	Dim switch, switchHitSubs
-	switchHitSubs = ""
+	
+    Dim codestr : codestr = ""
+	Dim switch
 	For Each switch in Glf_Switches
-		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_Hit() : If Not glf_gameTilted Then : DispatchPinEvent """ & switch.Name & "_active"", ActiveBall : glf_last_switch_hit_time = gametime : glf_last_switch_hit = """& switch.Name &""": End If : End Sub" & vbCrLf
-		switchHitSubs = switchHitSubs & "Sub " & switch.Name & "_UnHit() : If Not glf_gameTilted Then : DispatchPinEvent """ & switch.Name & "_inactive"", ActiveBall : End If  : End Sub" & vbCrLf
+		codestr = codestr & "Sub " & switch.Name & "_Hit() : If Not glf_gameTilted Then : DispatchPinEvent """ & switch.Name & "_active"", ActiveBall : glf_last_switch_hit_time = gametime : glf_last_switch_hit = """& switch.Name &""": End If : End Sub" & vbCrLf
+		codestr = codestr & "Sub " & switch.Name & "_UnHit() : If Not glf_gameTilted Then : DispatchPinEvent """ & switch.Name & "_inactive"", ActiveBall : End If  : End Sub" & vbCrLf
 	Next
 	
-	ExecuteGlobal switchHitSubs
+    codestr = codestr & vbCrLf
 
-	Dim slingshot, slingshotHitSubs
-	slingshotHitSubs = ""
+	Dim slingshot
 	For Each slingshot in Glf_Slingshots
-		slingshotHitSubs = slingshotHitSubs & "Sub " & slingshot.Name & "_Slingshot() : If Not glf_gameTilted Then : DispatchPinEvent """ & slingshot.Name & "_active"", ActiveBall : glf_last_switch_hit_time = gametime : glf_last_switch_hit = """& slingshot.Name &""": End If  : End Sub" & vbCrLf
+		codestr = codestr & "Sub " & slingshot.Name & "_Slingshot() : If Not glf_gameTilted Then : DispatchPinEvent """ & slingshot.Name & "_active"", ActiveBall : glf_last_switch_hit_time = gametime : glf_last_switch_hit = """& slingshot.Name &""": End If  : End Sub" & vbCrLf
 	Next
-	ExecuteGlobal slingshotHitSubs
+	
+    codestr = codestr & vbCrLf
 
-	Dim spinner, spinnerHitSubs
-	spinnerHitSubs = ""
+	Dim spinner
 	For Each spinner in Glf_Spinners
-		spinnerHitSubs = spinnerHitSubs & "Sub " & spinner.Name & "_Spin() : If Not glf_gameTilted Then : DispatchPinEvent """ & spinner.Name & "_active"", ActiveBall : glf_last_switch_hit_time = gametime : glf_last_switch_hit = """& spinner.Name &""": End If  : End Sub" & vbCrLf
+		codestr = codestr & "Sub " & spinner.Name & "_Spin() : If Not glf_gameTilted Then : DispatchPinEvent """ & spinner.Name & "_active"", ActiveBall : glf_last_switch_hit_time = gametime : glf_last_switch_hit = """& spinner.Name &""": End If  : End Sub" & vbCrLf
 	Next
-	ExecuteGlobal spinnerHitSubs
 
+    codestr = codestr & vbCrLf
+
+	ExecuteGlobal codestr
+	
 	If glf_debugEnabled = True Then
 
 		'***GLFMPF_EXPORT_START***
@@ -473,6 +476,7 @@ Public Sub Glf_Init()
 	Glf_ReadMachineVars("MachineVars")
 	Glf_ReadMachineVars("HighScores")
 	glf_debugLog.WriteToLog "Init", "Finished Creating Machine Vars"
+	glf_debugLog.WriteToLog "Code String", glf_codestr
 
 	Glf_Reset()
 End Sub
@@ -1087,6 +1091,7 @@ Public Function Glf_ParseInput(value)
     End Select
 	'msgbox templateCode
 	ExecuteGlobal templateCode
+	glf_codestr = glf_codestr & templateCode & vbCrLf
 	Dim funcRef : funcRef = "Glf_" & glf_FuncCount
 	glf_FuncCount = glf_FuncCount + 1
 	Glf_ParseInput = Array(funcRef, value, True)
@@ -1125,6 +1130,7 @@ Public Function Glf_ParseEventInput(value)
 		templateCode = templateCode & vbTab & "If Err Then Glf_" & glf_FuncCount & " = False" & vbCrLf
 		templateCode = templateCode & "End Function"
 		ExecuteGlobal templateCode
+		glf_codestr = glf_codestr & templateCode & vbCrLf
 		Dim funcRef : funcRef = "Glf_" & glf_FuncCount
 		glf_FuncCount = glf_FuncCount + 1
 
@@ -1167,6 +1173,7 @@ Public Function Glf_ParseDispatchEventInput(value)
 		templateCode = templateCode & "End Function"
 		'msgbox templateCode
 		ExecuteGlobal templateCode
+		glf_codestr = glf_codestr & templateCode & vbCrLf
 		Dim funcRef : funcRef = "Glf_" & glf_FuncCount
 		glf_FuncCount = glf_FuncCount + 1
 
@@ -1174,96 +1181,410 @@ Public Function Glf_ParseDispatchEventInput(value)
 	End If
 End Function
 
+' Function Glf_ReplaceCurrentPlayerAttributes(inputString)
+'     Dim pattern, replacement, regex, outputString
+'     pattern = "current_player\.([a-zA-Z0-9_]+)"
+'     Set regex = New RegExp
+'     regex.Pattern = pattern
+'     regex.IgnoreCase = True
+'     regex.Global = True
+'     replacement = "GetPlayerState(""$1"")"
+'     outputString = regex.Replace(inputString, replacement)
+'     Set regex = Nothing
+'     Glf_ReplaceCurrentPlayerAttributes = outputString
+' End Function
+
 Function Glf_ReplaceCurrentPlayerAttributes(inputString)
-    Dim pattern, replacement, regex, outputString
-    pattern = "current_player\.([a-zA-Z0-9_]+)"
-    Set regex = New RegExp
-    regex.Pattern = pattern
-    regex.IgnoreCase = True
-    regex.Global = True
-    replacement = "GetPlayerState(""$1"")"
-    outputString = regex.Replace(inputString, replacement)
-    Set regex = Nothing
+    Dim outputString, startPos, attrStart, attrEnd
+    Dim beforeMatch, afterMatch, attribute, replacement
+
+    outputString = inputString
+    startPos = InStr(outputString, "current_player.")
+
+    Do While startPos > 0
+        ' Start of the attribute is just after the dot
+        attrStart = startPos + Len("current_player.")
+        attrEnd = attrStart
+
+        ' Find the end of the attribute (until a non-word character or end of string)
+        Do While attrEnd <= Len(outputString)
+            Dim ch
+            ch = Mid(outputString, attrEnd, 1)
+            If Not (ch >= "a" And ch <= "z") And Not (ch >= "A" And ch <= "Z") And Not (ch >= "0" And ch <= "9") And ch <> "_" Then
+                Exit Do
+            End If
+            attrEnd = attrEnd + 1
+        Loop
+
+        attribute = Mid(outputString, attrStart, attrEnd - attrStart)
+        replacement = "GetPlayerState(""" & attribute & """)"
+
+        beforeMatch = Left(outputString, startPos - 1)
+        afterMatch = Mid(outputString, attrEnd)
+        outputString = beforeMatch & replacement & afterMatch
+
+        ' Search again from just after the replacement
+        startPos = InStr(startPos + Len(replacement), outputString, "current_player.")
+    Loop
+
     Glf_ReplaceCurrentPlayerAttributes = outputString
 End Function
 
+
+' Function Glf_ReplaceAnyPlayerAttributes(inputString)
+'     Dim pattern, replacement, regex, outputString
+'     pattern = "players\[([0-3]+)\]\.([a-zA-Z0-9_]+)"
+'     Set regex = New RegExp
+'     regex.Pattern = pattern
+'     regex.IgnoreCase = True
+'     regex.Global = True
+'     replacement = "GetPlayerStateForPlayer($1, ""$2"")"
+'     outputString = regex.Replace(inputString, replacement)
+'     Set regex = Nothing
+'     Glf_ReplaceAnyPlayerAttributes = outputString
+' End Function
+
 Function Glf_ReplaceAnyPlayerAttributes(inputString)
-    Dim pattern, replacement, regex, outputString
-    pattern = "players\[([0-3]+)\]\.([a-zA-Z0-9_]+)"
-    Set regex = New RegExp
-    regex.Pattern = pattern
-    regex.IgnoreCase = True
-    regex.Global = True
-    replacement = "GetPlayerStateForPlayer($1, ""$2"")"
-    outputString = regex.Replace(inputString, replacement)
-    Set regex = Nothing
+    Dim outputString, startPos, openBracket, closeBracket, dotPos
+    Dim beforeMatch, afterMatch, indexStr, attribute, replacement
+
+    outputString = inputString
+    startPos = InStr(outputString, "players[")
+
+    Do While startPos > 0
+        openBracket = InStr(startPos, outputString, "[")
+        closeBracket = InStr(openBracket, outputString, "]")
+        dotPos = InStr(closeBracket + 1, outputString, ".")
+
+        If openBracket > 0 And closeBracket > openBracket And dotPos > closeBracket Then
+            indexStr = Mid(outputString, openBracket + 1, closeBracket - openBracket - 1)
+
+            If IsNumeric(indexStr) Then
+                If CInt(indexStr) >= 0 And CInt(indexStr) <= 3 Then
+                    ' Extract attribute
+                    Dim attrStart, attrEnd, ch
+                    attrStart = dotPos + 1
+                    attrEnd = attrStart
+                    Do While attrEnd <= Len(outputString)
+                        ch = Mid(outputString, attrEnd, 1)
+                        If Not ((ch >= "a" And ch <= "z") Or (ch >= "A" And ch <= "Z") Or (ch >= "0" And ch <= "9") Or ch = "_") Then
+                            Exit Do
+                        End If
+                        attrEnd = attrEnd + 1
+                    Loop
+                    attribute = Mid(outputString, attrStart, attrEnd - attrStart)
+
+                    replacement = "GetPlayerStateForPlayer(" & indexStr & ", """ & attribute & """)"
+                    beforeMatch = Left(outputString, startPos - 1)
+                    afterMatch = Mid(outputString, attrEnd)
+                    outputString = beforeMatch & replacement & afterMatch
+
+                    startPos = InStr(startPos + Len(replacement), outputString, "players[")
+                Else
+                    ' Invalid index, move past it
+                    startPos = InStr(closeBracket + 1, outputString, "players[")
+                End If
+            Else
+                ' Not numeric index
+                startPos = InStr(closeBracket + 1, outputString, "players[")
+            End If
+        Else
+            Exit Do
+        End If
+    Loop
+
     Glf_ReplaceAnyPlayerAttributes = outputString
 End Function
 
+
+' Function Glf_ReplaceDeviceAttributes(inputString)
+'     Dim pattern, replacement, regex, outputString
+'     pattern = "devices\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)"
+'     Set regex = New RegExp
+'     regex.Pattern = pattern
+'     regex.IgnoreCase = True
+'     regex.Global = True
+' 	replacement = "glf_$1(""$2"").GetValue(""$3"")"
+'     outputString = regex.Replace(inputString, replacement)
+'     Set regex = Nothing
+'     Glf_ReplaceDeviceAttributes = outputString
+' End Function
+
 Function Glf_ReplaceDeviceAttributes(inputString)
-    Dim pattern, replacement, regex, outputString
-    pattern = "devices\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)"
-    Set regex = New RegExp
-    regex.Pattern = pattern
-    regex.IgnoreCase = True
-    regex.Global = True
-	replacement = "glf_$1(""$2"").GetValue(""$3"")"
-    outputString = regex.Replace(inputString, replacement)
-    Set regex = Nothing
+    Dim outputString, startPos, endPos, beforeMatch, afterMatch
+    Dim fullMatch, parts, deviceType, deviceId, attribute
+
+    outputString = inputString
+    startPos = InStr(outputString, "devices.")
+
+    Do While startPos > 0
+        ' Find the end of the match by looking for three dots after "devices."
+        Dim firstDot, secondDot, thirdDot
+
+        firstDot = InStr(startPos + 8, outputString, ".")
+        If firstDot = 0 Then Exit Do
+
+        secondDot = InStr(firstDot + 1, outputString, ".")
+        If secondDot = 0 Then Exit Do
+
+        ' Third part ends at the next non-word character or end of string
+        thirdDot = secondDot + 1
+        Do While thirdDot <= Len(outputString)
+            Dim ch
+            ch = Mid(outputString, thirdDot, 1)
+            If Not (ch >= "a" And ch <= "z") And Not (ch >= "A" And ch <= "Z") And Not (ch >= "0" And ch <= "9") And ch <> "_" Then
+                Exit Do
+            End If
+            thirdDot = thirdDot + 1
+        Loop
+        endPos = thirdDot - 1
+
+        ' Extract full match and parts
+        fullMatch = Mid(outputString, startPos, endPos - startPos + 1)
+        parts = Split(fullMatch, ".")
+        If UBound(parts) = 3 Then
+            deviceType = parts(1)
+            deviceId = parts(2)
+            attribute = parts(3)
+
+            ' Build replacement
+            Dim replacement
+            replacement = "glf_" & deviceType & "(""" & deviceId & """).GetValue(""" & attribute & """)"
+
+            ' Replace in outputString
+            beforeMatch = Left(outputString, startPos - 1)
+            afterMatch = Mid(outputString, endPos + 1)
+            outputString = beforeMatch & replacement & afterMatch
+
+            ' Move startPos forward
+            startPos = InStr(startPos + Len(replacement), outputString, "devices.")
+        Else
+            Exit Do
+        End If
+    Loop
+
     Glf_ReplaceDeviceAttributes = outputString
 End Function
 
+
+' Function Glf_ReplaceMachineAttributes(inputString)
+'     Dim pattern, replacement, regex, outputString
+'     pattern = "machine\.([a-zA-Z0-9_]+)"
+'     Set regex = New RegExp
+'     regex.Pattern = pattern
+'     regex.IgnoreCase = True
+'     regex.Global = True
+' 	replacement = "glf_machine_vars(""$1"").GetValue()"
+'     outputString = regex.Replace(inputString, replacement)
+'     Set regex = Nothing
+'     Glf_ReplaceMachineAttributes = outputString
+' End Function
+
 Function Glf_ReplaceMachineAttributes(inputString)
-    Dim pattern, replacement, regex, outputString
-    pattern = "machine\.([a-zA-Z0-9_]+)"
-    Set regex = New RegExp
-    regex.Pattern = pattern
-    regex.IgnoreCase = True
-    regex.Global = True
-	replacement = "glf_machine_vars(""$1"").GetValue()"
-    outputString = regex.Replace(inputString, replacement)
-    Set regex = Nothing
+    Dim outputString, startPos, attrStart, attrEnd
+    Dim beforeMatch, afterMatch, attribute, replacement
+
+    outputString = inputString
+    startPos = InStr(outputString, "machine.")
+
+    Do While startPos > 0
+        ' Position of attribute name starts after "machine."
+        attrStart = startPos + Len("machine.")
+        attrEnd = attrStart
+
+        ' Read characters in the attribute (letters, digits, or underscore)
+        Do While attrEnd <= Len(outputString)
+            Dim ch
+            ch = Mid(outputString, attrEnd, 1)
+            If Not ((ch >= "a" And ch <= "z") Or (ch >= "A" And ch <= "Z") Or (ch >= "0" And ch <= "9") Or ch = "_") Then
+                Exit Do
+            End If
+            attrEnd = attrEnd + 1
+        Loop
+
+        ' Extract attribute name
+        attribute = Mid(outputString, attrStart, attrEnd - attrStart)
+
+        ' Build replacement text
+        replacement = "glf_machine_vars(""" & attribute & """).GetValue()"
+
+        ' Reconstruct string with replacement
+        beforeMatch = Left(outputString, startPos - 1)
+        afterMatch = Mid(outputString, attrEnd)
+        outputString = beforeMatch & replacement & afterMatch
+
+        ' Continue searching after the replacement
+        startPos = InStr(startPos + Len(replacement), outputString, "machine.")
+    Loop
+
     Glf_ReplaceMachineAttributes = outputString
 End Function
 
+
+' Function Glf_ReplaceGameAttributes(inputString)
+'     Dim pattern, replacement, regex, outputString
+'     pattern = "game\.([a-zA-Z0-9_]+)"
+'     Set regex = New RegExp
+'     regex.Pattern = pattern
+'     regex.IgnoreCase = True
+'     regex.Global = True
+' 	replacement = "Glf_GameVariable(""$1"")"
+'     outputString = regex.Replace(inputString, replacement)
+'     Set regex = Nothing
+'     Glf_ReplaceGameAttributes = outputString
+' End Function
+
 Function Glf_ReplaceGameAttributes(inputString)
-    Dim pattern, replacement, regex, outputString
-    pattern = "game\.([a-zA-Z0-9_]+)"
-    Set regex = New RegExp
-    regex.Pattern = pattern
-    regex.IgnoreCase = True
-    regex.Global = True
-	replacement = "Glf_GameVariable(""$1"")"
-    outputString = regex.Replace(inputString, replacement)
-    Set regex = Nothing
+    Dim outputString, startPos, attrStart, attrEnd
+    Dim beforeMatch, afterMatch, attribute, replacement
+
+    outputString = inputString
+    startPos = InStr(outputString, "game.")
+
+    Do While startPos > 0
+        ' Position of attribute name starts after "game."
+        attrStart = startPos + Len("game.")
+        attrEnd = attrStart
+
+        ' Walk forward while characters are valid for identifier
+        Do While attrEnd <= Len(outputString)
+            Dim ch
+            ch = Mid(outputString, attrEnd, 1)
+            If Not ((ch >= "a" And ch <= "z") Or (ch >= "A" And ch <= "Z") Or (ch >= "0" And ch <= "9") Or ch = "_") Then
+                Exit Do
+            End If
+            attrEnd = attrEnd + 1
+        Loop
+
+        attribute = Mid(outputString, attrStart, attrEnd - attrStart)
+        replacement = "Glf_GameVariable(""" & attribute & """)"
+
+        beforeMatch = Left(outputString, startPos - 1)
+        afterMatch = Mid(outputString, attrEnd)
+        outputString = beforeMatch & replacement & afterMatch
+
+        startPos = InStr(startPos + Len(replacement), outputString, "game.")
+    Loop
+
     Glf_ReplaceGameAttributes = outputString
 End Function
 
+
+' Function Glf_ReplaceModeAttributes(inputString)
+'     Dim pattern, replacement, regex, outputString
+'     pattern = "modes\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)"
+'     Set regex = New RegExp
+'     regex.Pattern = pattern
+'     regex.IgnoreCase = True
+'     regex.Global = True
+' 	replacement = "glf_modes(""$1"").GetValue(""$2"")"
+'     outputString = regex.Replace(inputString, replacement)
+'     Set regex = Nothing
+'     Glf_ReplaceModeAttributes = outputString
+' End Function
+
 Function Glf_ReplaceModeAttributes(inputString)
-    Dim pattern, replacement, regex, outputString
-    pattern = "modes\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)"
-    Set regex = New RegExp
-    regex.Pattern = pattern
-    regex.IgnoreCase = True
-    regex.Global = True
-	replacement = "glf_modes(""$1"").GetValue(""$2"")"
-    outputString = regex.Replace(inputString, replacement)
-    Set regex = Nothing
+    Dim outputString, startPos, modeStart, modeEnd, attrStart, attrEnd
+    Dim beforeMatch, afterMatch, modeName, attribute, replacement
+
+    outputString = inputString
+    startPos = InStr(outputString, "modes.")
+
+    Do While startPos > 0
+        modeStart = startPos + Len("modes.")
+        modeEnd = modeStart
+
+        ' Read the mode name
+        Do While modeEnd <= Len(outputString)
+            Dim ch
+            ch = Mid(outputString, modeEnd, 1)
+            If Not ((ch >= "a" And ch <= "z") Or (ch >= "A" And ch <= "Z") Or (ch >= "0" And ch <= "9") Or ch = "_") Then
+                Exit Do
+            End If
+            modeEnd = modeEnd + 1
+        Loop
+
+        ' Ensure there's a dot after mode name
+        If Mid(outputString, modeEnd, 1) = "." Then
+            ' Now read the attribute
+            attrStart = modeEnd + 1
+            attrEnd = attrStart
+
+            Do While attrEnd <= Len(outputString)
+                ch = Mid(outputString, attrEnd, 1)
+                If Not ((ch >= "a" And ch <= "z") Or (ch >= "A" And ch <= "Z") Or (ch >= "0" And ch <= "9") Or ch = "_") Then
+                    Exit Do
+                End If
+                attrEnd = attrEnd + 1
+            Loop
+
+            modeName = Mid(outputString, modeStart, modeEnd - modeStart)
+            attribute = Mid(outputString, attrStart, attrEnd - attrStart)
+
+            replacement = "glf_modes(""" & modeName & """).GetValue(""" & attribute & """)"
+
+            beforeMatch = Left(outputString, startPos - 1)
+            afterMatch = Mid(outputString, attrEnd)
+            outputString = beforeMatch & replacement & afterMatch
+
+            startPos = InStr(startPos + Len(replacement), outputString, "modes.")
+        Else
+            ' Not a valid modes.mode.attribute, skip ahead
+            startPos = InStr(modeEnd + 1, outputString, "modes.")
+        End If
+    Loop
+
     Glf_ReplaceModeAttributes = outputString
 End Function
 
+' Function Glf_ReplaceKwargsAttributes(inputString)
+'     Dim pattern, replacement, regex, outputString
+'     pattern = "kwargs\.([a-zA-Z0-9_]+)"
+'     Set regex = New RegExp
+'     regex.Pattern = pattern
+'     regex.IgnoreCase = True
+'     regex.Global = True
+'     replacement = "glf_dispatch_current_kwargs(""$1"")"
+'     outputString = regex.Replace(inputString, replacement)
+'     Set regex = Nothing
+'     Glf_ReplaceKwargsAttributes = outputString
+' End Function
+
 Function Glf_ReplaceKwargsAttributes(inputString)
-    Dim pattern, replacement, regex, outputString
-    pattern = "kwargs\.([a-zA-Z0-9_]+)"
-    Set regex = New RegExp
-    regex.Pattern = pattern
-    regex.IgnoreCase = True
-    regex.Global = True
-    replacement = "glf_dispatch_current_kwargs(""$1"")"
-    outputString = regex.Replace(inputString, replacement)
-    Set regex = Nothing
+    Dim outputString, startPos, attrStart, attrEnd
+    Dim beforeMatch, afterMatch, attribute, replacement
+
+    outputString = inputString
+    startPos = InStr(outputString, "kwargs.")
+
+    Do While startPos > 0
+        attrStart = startPos + Len("kwargs.")
+        attrEnd = attrStart
+
+        ' Walk forward through the attribute name
+        Do While attrEnd <= Len(outputString)
+            Dim ch
+            ch = Mid(outputString, attrEnd, 1)
+            If Not ((ch >= "a" And ch <= "z") Or (ch >= "A" And ch <= "Z") Or (ch >= "0" And ch <= "9") Or ch = "_") Then
+                Exit Do
+            End If
+            attrEnd = attrEnd + 1
+        Loop
+
+        attribute = Mid(outputString, attrStart, attrEnd - attrStart)
+
+        replacement = "glf_dispatch_current_kwargs(""" & attribute & """)"
+
+        beforeMatch = Left(outputString, startPos - 1)
+        afterMatch = Mid(outputString, attrEnd)
+        outputString = beforeMatch & replacement & afterMatch
+
+        startPos = InStr(startPos + Len(replacement), outputString, "kwargs.")
+    Loop
+
     Glf_ReplaceKwargsAttributes = outputString
 End Function
+
 
 Function Glf_GameVariable(value)
 	Glf_GameVariable = False

@@ -305,7 +305,7 @@ Class GlfHighScore
         For Each key in keys
             Dim default_keys : default_keys = m_defaults(key).Keys()
             For i=0 to UBound(default_keys)
-                Dim default_value_item : default_value_item = m_defaults(key)
+                Dim default_value_item : Set default_value_item = m_defaults(key)
                 If m_highscores.Exists(key) Then
                     If Not m_highscores(key).Exists(CStr(i+1)) Then
                         tmp.Add key & "_" & i+1 &"_label", m_categories(key)(i)
