@@ -63,7 +63,7 @@ Class GlfSegmentDisplayPlayer
 
     Public Sub Play(evt, segment_event)
         Dim i
-        Dim segment_event_displays : Set segment_event_displays = segment_event.Displays()
+        Dim segment_event_displays : segment_event_displays = segment_event.Displays()
         For i=0 to UBound(segment_event_displays)
             SegmentPlayerCallbackHandler evt, segment_event_displays(i), m_mode, m_priority
         Next
@@ -71,7 +71,7 @@ Class GlfSegmentDisplayPlayer
 
     Public Function PlayOff(evt, segment_event, displays_to_update)
         Dim i, segment_item
-        Dim segment_event_displays : Set segment_event_displays = segment_event.Displays()
+        Dim segment_event_displays : segment_event_displays = segment_event.Displays()
         For i=0 to UBound(segment_event_displays)
             Set segment_item = segment_event_displays(i)
             Dim key
