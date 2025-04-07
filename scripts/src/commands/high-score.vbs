@@ -247,9 +247,10 @@ Class GlfHighScore
         For Each key in keys
             Dim s
             For Each s in m_highscores(key).Keys()
-                If m_highscores(key)(s)("player_num") = initials_item("player_num") Then
+                Dim high_scores_item : high_scores_item = m_highscores(key)
+                If high_scores_item(s)("player_num") = initials_item("player_num") Then
                     'msgbox "Setting Player " & m_current_initials+1 & " Name to >" & text & "<"
-                    m_highscores(key)(s)("player_name") = text
+                    high_scores_item(s)("player_name") = text
                 End If
             Next
         Next
@@ -283,10 +284,11 @@ Class GlfHighScore
                 i=1
                 'msgbox "Key Count" & ubound(m_highscores(key).Keys())
                 For Each s in m_highscores(key).Keys()
+                    Dim high_scores_item : high_scores_item = m_highscores(key)
                     'msgbox s
                     tmp.Add key & "_" & i & "_label", m_categories(key)(i-1)
-                    tmp.Add key & "_" & i &"_name", m_highscores(key)(s)("player_name")
-                    tmp.Add key & "_" & i &"_value", m_highscores(key)(s)("value")
+                    tmp.Add key & "_" & i &"_name", high_scores_item(s)("player_name")
+                    tmp.Add key & "_" & i &"_value", high_scores_item(s)("value")
                     i=i+1
                 Next
                 WriteHighScores "HighScores", tmp
@@ -308,12 +310,13 @@ Class GlfHighScore
                 Dim default_value_item : Set default_value_item = m_defaults(key)
                 If m_highscores.Exists(key) Then
                     If Not m_highscores(key).Exists(CStr(i+1)) Then
-                        tmp.Add key & "_" & i+1 &"_label", m_categories(key)(i)
+                        Dim cat_a1 : cat_a1 = m_categories(key)
+                        tmp.Add key & "_" & i+1 &"_label", cat_a1(i)
                         tmp.Add key & "_" & i+1 &"_name", default_keys(i)
                         tmp.Add key & "_" & i+1 &"_value", default_value_item(default_keys(i))
                     End If
                 Else
-                    tmp.Add key & "_" & i+1 & "_label", m_categories(key)(i)
+                    tmp.Add key & "_" & i+1 & "_label", cat_a1(i)
                     tmp.Add key & "_" & i+1 &"_name", default_keys(i)
                     tmp.Add key & "_" & i+1 &"_value", default_value_item(default_keys(i))
                 End If
@@ -347,7 +350,8 @@ Class GlfHighScore
             End If
             
             If inSection And InStr(line, "=") > 0 Then
-                key = Trim(Split(line, "=")(0))
+                Dim split_key : split_key = Split(line, "=")
+                key = Trim(split_key(0))
                 If scores.Exists(key) Then
                     line = key & "=" & scores(key)
                     scores.Remove key

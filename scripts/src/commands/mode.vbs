@@ -207,7 +207,7 @@ Class Mode
         End If
     End Property
 
-    Public Property Let HighScore(value) : Set m_high_score = value : End Property
+    Public Property Set HighScore(value) : Set m_high_score = value : End Property
     Public Property Get HighScore()
         If Not IsNull(m_high_score) Then
             Set HighScore = m_high_score

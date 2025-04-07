@@ -281,9 +281,6 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed, co
                     shows_added.Add cache_name, True
                     
                     If glf_cached_shows.Exists(cache_name & "__-1") Then
-                        'msgbox ubound(glf_cached_shows(cache_name & "__-1")(0))
-                        'msgbox ubound(fade_seq)
-                        'msgbox "Converted show: " & cache_name & ", steps: " & ubound(glf_cached_shows(cache_name & "__-1")(0)) & ". Fade Replacements: " & ubound(fade_seq) & ". Extracted Step Number: " & lightParts(4) 
                         Set show_settings = (new GlfShowPlayerItem)()
                         show_settings.Show = cache_name
                         show_settings.Loops = 1

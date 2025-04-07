@@ -135,8 +135,9 @@ Sub FirePlayerEventHandlers(evt, value, prevValue, player)
     Dim k
     Dim handlers : Set handlers = glf_playerEvents(evt)
     For Each k In glf_playerEventsOrder(evt)
-        If handlers(k(1))(3) = player or handlers(k(1))(3) = Getglf_currentPlayerNumber() Then
-            GetRef(handlers(k(1))(0))(Array(handlers(k(1))(2), Array(evt,value,prevValue)))
+        Dim handlers_a1 : handlers_a1 = handlers(k(1))
+        If handlers_a1(3) = player or handlers_a1(3) = Getglf_currentPlayerNumber() Then
+            GetRef(handlers_a1(0))(Array(handlers_a1(2), Array(evt,value,prevValue)))
         End If
     Next
 End Sub
@@ -177,7 +178,8 @@ Sub Sortglf_playerEventsByPriority(evt, priority, key, isAdding)
             inserted = False
             
             For i = 0 To UBound(tempArray) - 1
-                If priority > tempArray(i)(0) Then ' Compare priorities
+                Dim temp_a3 : temp_a3 = tempArray(i)
+                If priority > temp_a3(0) Then ' Compare priorities
                     ' Move existing elements to insert the new callback at the correct position
                     Dim j
                     For j = UBound(tempArray) To i + 1 Step -1
@@ -200,7 +202,8 @@ Sub Sortglf_playerEventsByPriority(evt, priority, key, isAdding)
             
             ' First, find the element's index
             For i = 0 To UBound(tempArray)
-                If tempArray(i)(1) = key Then
+                Dim temp_a4 : temp_a4 = tempArray(i)
+                If temp_a4(1) = key Then
                     foundIndex = i
                     Exit For
                 End If

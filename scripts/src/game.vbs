@@ -234,6 +234,15 @@ Function Glf_TroughReleaseBall(args)
     swTrough1.kick 90, 10
     DispatchPinEvent "trough_eject", Null
     Glf_WriteDebugLog "Release Ball", "Just Kicked"
+    If Not IsNull(args) Then
+		If IsObject(args(1)) Then
+			Set Glf_TroughReleaseBall = args(1)
+		Else
+			Glf_TroughReleaseBall = args(1)
+		End If
+	Else
+		Glf_TroughReleaseBall = Null
+	End If
 End Function
 
 '****************************
@@ -273,6 +282,15 @@ AddPinEventListener GLF_BALL_ENDING, "ball_will_end", "Glf_BallWillEnd", 10, Nul
 '*****************************
 Function Glf_BallWillEnd(args)
     DispatchPinEvent GLF_BALL_ENDED, Null
+    If Not IsNull(args) Then
+		If IsObject(args(1)) Then
+			Set Glf_BallWillEnd = args(1)
+		Else
+			Glf_BallWillEnd = args(1)
+		End If
+	Else
+		Glf_BallWillEnd = Null
+	End If
 End Function
 
 '****************************
@@ -331,6 +349,8 @@ Function Glf_EndOfBall(args)
         SetDelay "end_of_ball_delay", "EndOfBallNextPlayer", Null, 1000 
     End If
     
+
+
 End Function
 
 '****************************

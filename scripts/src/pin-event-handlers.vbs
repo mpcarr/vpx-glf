@@ -31,16 +31,16 @@ Function DispatchPinHandlers(e, args)
     If IsNull(event_args(0)) Then
         Set retArgs = GlfKwargs()
     Else
-        On Error Resume Next
-        retArgs = event_args(0)
-        If Err Then 
-        Set retArgs = event_args(0)
+        If IsObject(event_args(0)) Then
+            Set retArgs = event_args(0)
+        Else
+            retArgs = event_args(0)
         End If
     End If
-    On Error Resume Next
-        glf_dispatch_current_kwargs = retArgs	
-    If Err Then 
-        Set glf_dispatch_current_kwargs = retArgs
+    If IsObject(retArgs) Then
+        Set glf_dispatch_current_kwargs = retArgs	
+    Else
+        glf_dispatch_current_kwargs = retArgs
     End If
     If event_args(1) = 2 Then 'Queue Event
         Set retArgs = GetRef(handler(0))(Array(handler(2), retArgs, args(2)))
@@ -56,7 +56,8 @@ End Function
 
 Sub RunDispatchPinEvent(eKey, kwargs)
     Dim e
-    e=Split(eKey,";")(0)
+    Dim split_key : split_key = Split(eKey, ";")
+    e=split_key(0)
     If Not glf_pinEvents.Exists(e) Then
         Glf_WriteDebugLog "DispatchPinEvent", e & " has no listeners"
         Exit Sub
@@ -132,7 +133,8 @@ Function DispatchRelayPinEvent(e, kwargs)
     Glf_WriteDebugLog "DispatchReplayPinEvent", e
     For Each k In glf_pinEventsOrder(e)
         Glf_WriteDebugLog "DispatchReplayPinEvent_"&e, "key: " & k(1) & ", priority: " & k(0)
-        kwargs = GetRef(handlers(k(1))(0))(Array(handlers(k(1))(2), kwargs, e))
+        Dim handlers_a1 : handlers_a1 = handlers(k(1))
+        kwargs = GetRef(handlers_a1(0))(Array(handlers_a1(2), kwargs, e))
     Next
     DispatchRelayPinEvent = kwargs
     Glf_EventBlocks(e).RemoveAll
@@ -161,13 +163,12 @@ Function DispatchQueuePinEvent(e, kwargs)
     For i=0 to UBound(glf_dis_events)
         k = glf_dis_events(i)
         Glf_WriteDebugLog "DispatchQueuePinEvent"&e, "key: " & k(1) & ", priority: " & k(0)
-        'msgbox "DispatchQueuePinEvent: " & e & " , key: " & k(1) & ", priority: " & k(0)
-        'msgbox handlers(k(1))(0)
         'Call the handlers.
         'The handlers might return a waitfor command.
         'If NO wait for command, continue calling handlers.
         'IF wait for command, then AddPinEventListener for the waitfor event. The callback handler needs to be ContinueDispatchQueuePinEvent.
-        Set retArgs = GetRef(handlers(k(1))(0))(Array(handlers(k(1))(2), kwargs, e))
+        Dim handlers_a1 : handlers_a1 = handlers(k(1))
+        Set retArgs = GetRef(handlers_a1(0))(Array(handlers_a1(2), kwargs, e))
         If retArgs.Exists("wait_for") And i<Ubound(glf_dis_events) Then
             'pause execution of handlers at index I. 
             Glf_WriteDebugLog "DispatchQueuePinEvent"&e, k(1) & "_wait_for"
@@ -249,7 +250,8 @@ Sub Sortglf_pinEventsByPriority(evt, priority, key, isAdding)
             inserted = False
             
             For i = 0 To UBound(tempArray) - 1
-                If priority > tempArray(i)(0) Then ' Compare priorities
+                Dim temp_a1 : temp_a1 = tempArray(i)
+                If priority > temp_a1(0) Then ' Compare priorities
                     ' Move existing elements to insert the new callback at the correct position
                     Dim j
                     For j = UBound(tempArray) To i + 1 Step -1
@@ -272,7 +274,8 @@ Sub Sortglf_pinEventsByPriority(evt, priority, key, isAdding)
             
             ' First, find the element's index
             For i = 0 To UBound(tempArray)
-                If tempArray(i)(1) = key Then
+                Dim temp_a2 : temp_a2 = tempArray(i)
+                If temp_a2(1) = key Then
                     foundIndex = i
                     Exit For
                 End If

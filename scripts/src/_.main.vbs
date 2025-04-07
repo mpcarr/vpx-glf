@@ -487,12 +487,21 @@ End Sub
 
 AddPinEventListener "reset_complete", "initial_segment_displays", "Glf_SegmentInit", 100, Null
 AddPinEventListener "reset_virtual_segment_lights", "reset_segment_displays", "Glf_SegmentInit", 100, Null
-Sub Glf_SegmentInit(args)
+Function Glf_SegmentInit(args)
 	Dim segment_display
 	For Each segment_display in glf_segment_displays.Items()	
 		segment_display.SetVirtualDMDLights Not glf_flex_alphadmd_enabled
 	Next
-End Sub
+	If Not IsNull(args) Then
+		If IsObject(args(1)) Then
+			Set Glf_SegmentInit = args(1)
+		Else
+			Glf_SegmentInit = args(1)
+		End If
+	Else
+		Glf_SegmentInit = Null
+	End If
+End Function
 
 Sub Glf_ReadMachineVars(section)
     Dim objFSO, objFile, arrLines, line, inSection
@@ -510,12 +519,13 @@ Sub Glf_ReadMachineVars(section)
         If Left(line, 1) = "[" And Right(line, 1) = "]" Then
             inSection = (LCase(Mid(line, 2, Len(line) - 2)) = LCase(section))
         ElseIf inSection And InStr(line, "=") > 0 Then
-			Dim key : key = Trim(Split(line, "=")(0))
+			Dim split_key : split_key = Split(line, "=")
+			Dim key : key = Trim(split_key(0))
 			If glf_machine_vars.Exists(key) Then
-	            glf_machine_vars(key).Value = Trim(Split(line, "=")(1))
+	            glf_machine_vars(key).Value = Trim(split_key(1))
 			Else	
 				With CreateMachineVar(key)
-					.InitialValue = Trim(Split(line, "=")(1))
+					.InitialValue = Trim(split_key(1))
 					.ValueType = "int"
 					.Persist = False
 				End With
@@ -580,7 +590,8 @@ Sub Glf_WriteMachineVars(section)
         End If
         
         If inSection And InStr(line, "=") > 0 Then
-            key = Trim(Split(line, "=")(0))
+			Dim split_key : split_key = Split(line, "=")
+            key = Trim(split_key(0))
             If glf_machine_vars.Exists(key) Then
 				If glf_machine_vars(key).Persist = True Then
                 	line = key & "=" & glf_machine_vars(key).Value
@@ -1598,76 +1609,179 @@ Function Glf_GameVariable(value)
 	End Select
 End Function
 
+' Function Glf_CheckForGetPlayerState(inputString)
+'     Dim pattern, regex, matches, match, hasGetPlayerState, attribute, playerNumber
+' 	inputString = Glf_ReplaceCurrentPlayerAttributes(inputString)
+' 	inputString = Glf_ReplaceAnyPlayerAttributes(inputString)
+'     pattern = "GetPlayerState\(""([a-zA-Z0-9_]+)""\)"
+'     Set regex = New RegExp
+'     regex.Pattern = pattern
+'     regex.IgnoreCase = True
+'     regex.Global = False
+    
+'     Set matches = regex.Execute(inputString)
+'     If matches.Count > 0 Then
+'         hasGetPlayerState = True
+' 		playerNumber = -1 'Current Player
+'         attribute = matches(0).SubMatches(0)
+'     Else
+'         hasGetPlayerState = False
+'         attribute = ""
+' 		playerNumber = Null
+'     End If
+
+
+' 	pattern = "GetPlayerStateForPlayer\(([0-3]), ""([a-zA-Z0-9_]+)""\)"
+'     Set regex = New RegExp
+'     regex.Pattern = pattern
+'     regex.IgnoreCase = True
+'     regex.Global = False
+    
+'     Set matches = regex.Execute(inputString)
+'     If matches.Count > 0 Then
+'         hasGetPlayerState = True
+' 		playerNumber = Int(matches(0).SubMatches(0))
+'         attribute = matches(0).SubMatches(1)
+'     Else
+'         hasGetPlayerState = False
+'         attribute = ""
+' 		playerNumber = Null
+'     End If
+
+'     Set regex = Nothing
+'     Set matches = Nothing
+    
+'     Glf_CheckForGetPlayerState = Array(hasGetPlayerState, attribute, playerNumber)
+' End Function
+
 Function Glf_CheckForGetPlayerState(inputString)
-    Dim pattern, regex, matches, match, hasGetPlayerState, attribute, playerNumber
-	inputString = Glf_ReplaceCurrentPlayerAttributes(inputString)
-	inputString = Glf_ReplaceAnyPlayerAttributes(inputString)
-    pattern = "GetPlayerState\(""([a-zA-Z0-9_]+)""\)"
-    Set regex = New RegExp
-    regex.Pattern = pattern
-    regex.IgnoreCase = True
-    regex.Global = False
-    
-    Set matches = regex.Execute(inputString)
-    If matches.Count > 0 Then
+    Dim hasGetPlayerState, attribute, playerNumber
+    Dim pos, startAttr, endAttr, ch, temp
+
+    ' First, apply replacements
+    inputString = Glf_ReplaceCurrentPlayerAttributes(inputString)
+    inputString = Glf_ReplaceAnyPlayerAttributes(inputString)
+
+    ' Check for GetPlayerState("...")
+    pos = InStr(inputString, "GetPlayerState(""")
+    If pos > 0 Then
+        startAttr = pos + Len("GetPlayerState(""")
+        endAttr = startAttr
+        Do While endAttr <= Len(inputString)
+            ch = Mid(inputString, endAttr, 1)
+            If ch = """" Then Exit Do
+            endAttr = endAttr + 1
+        Loop
+
+        attribute = Mid(inputString, startAttr, endAttr - startAttr)
         hasGetPlayerState = True
-		playerNumber = -1 'Current Player
-        attribute = matches(0).SubMatches(0)
+        playerNumber = -1 ' current player
     Else
-        hasGetPlayerState = False
-        attribute = ""
-		playerNumber = Null
+        ' Check for GetPlayerStateForPlayer(n, "...")
+        pos = InStr(inputString, "GetPlayerStateForPlayer(")
+        If pos > 0 Then
+            ' Extract player number
+            startAttr = pos + Len("GetPlayerStateForPlayer(")
+            endAttr = InStr(startAttr, inputString, ",")
+            temp = Trim(Mid(inputString, startAttr, endAttr - startAttr))
+            If IsNumeric(temp) Then
+                playerNumber = CInt(temp)
+            Else
+                playerNumber = Null
+            End If
+
+            ' Extract attribute name
+            startAttr = InStr(endAttr, inputString, """") + 1
+            endAttr = InStr(startAttr, inputString, """")
+            attribute = Mid(inputString, startAttr, endAttr - startAttr)
+
+            hasGetPlayerState = True
+        Else
+            hasGetPlayerState = False
+            attribute = ""
+            playerNumber = Null
+        End If
     End If
 
-
-	pattern = "GetPlayerStateForPlayer\(([0-3]), ""([a-zA-Z0-9_]+)""\)"
-    Set regex = New RegExp
-    regex.Pattern = pattern
-    regex.IgnoreCase = True
-    regex.Global = False
-    
-    Set matches = regex.Execute(inputString)
-    If matches.Count > 0 Then
-        hasGetPlayerState = True
-		playerNumber = Int(matches(0).SubMatches(0))
-        attribute = matches(0).SubMatches(1)
-    Else
-        hasGetPlayerState = False
-        attribute = ""
-		playerNumber = Null
-    End If
-
-    Set regex = Nothing
-    Set matches = Nothing
-    
     Glf_CheckForGetPlayerState = Array(hasGetPlayerState, attribute, playerNumber)
 End Function
 
+' Function Glf_CheckForDeviceState(inputString)
+'     Dim pattern, regex, matches, match, hasDeviceState, attribute, deviceType, deviceName
+'     pattern = "devices\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)"
+'     Set regex = New RegExp
+'     regex.Pattern = pattern
+'     regex.IgnoreCase = True
+'     regex.Global = False
+'     Set matches = regex.Execute(inputString)
+'     If matches.Count > 0 Then
+'         hasDeviceState = True
+' 		deviceType = matches(0).SubMatches(0)
+' 		deviceType = Left(deviceType, Len(deviceType)-1)
+'         deviceName = matches(0).SubMatches(1)
+' 		attribute = matches(0).SubMatches(2)
+' 		attribute = Left(attribute, Len(attribute)-1)
+'     Else
+'         hasDeviceState = False
+'         deviceType = Empty
+' 		deviceName = Empty
+' 		attribute = Empty
+'     End If
+
+'     Set regex = Nothing
+'     Set matches = Nothing
+    
+'     Glf_CheckForDeviceState = Array(hasDeviceState, deviceType, deviceName, attribute)
+' End Function
+
 Function Glf_CheckForDeviceState(inputString)
-    Dim pattern, regex, matches, match, hasDeviceState, attribute, deviceType, deviceName
-    pattern = "devices\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)"
-    Set regex = New RegExp
-    regex.Pattern = pattern
-    regex.IgnoreCase = True
-    regex.Global = False
-    Set matches = regex.Execute(inputString)
-    If matches.Count > 0 Then
-        hasDeviceState = True
-		deviceType = matches(0).SubMatches(0)
-		deviceType = Left(deviceType, Len(deviceType)-1)
-        deviceName = matches(0).SubMatches(1)
-		attribute = matches(0).SubMatches(2)
-		attribute = Left(attribute, Len(attribute)-1)
-    Else
-        hasDeviceState = False
-        deviceType = Empty
-		deviceName = Empty
-		attribute = Empty
+    Dim hasDeviceState, deviceType, deviceName, attribute
+    Dim pos, segStart, segEnd, part1, part2, part3
+    Dim tempStr
+
+    hasDeviceState = False
+    deviceType = Empty
+    deviceName = Empty
+    attribute = Empty
+
+    pos = InStr(inputString, "devices.")
+    If pos > 0 Then
+        segStart = pos + Len("devices.")
+        
+        ' Get first segment (deviceType)
+        segEnd = InStr(segStart, inputString, ".")
+        If segEnd > 0 Then
+            part1 = Mid(inputString, segStart, segEnd - segStart)
+            segStart = segEnd + 1
+
+            ' Get second segment (deviceName)
+            segEnd = InStr(segStart, inputString, ".")
+            If segEnd > 0 Then
+                part2 = Mid(inputString, segStart, segEnd - segStart)
+                segStart = segEnd + 1
+
+                ' Get third segment (attribute)
+                segEnd = segStart
+                Do While segEnd <= Len(inputString)
+                    Dim ch
+                    ch = Mid(inputString, segEnd, 1)
+                    If Not ((ch >= "a" And ch <= "z") Or (ch >= "A" And ch <= "Z") Or (ch >= "0" And ch <= "9") Or ch = "_") Then
+                        Exit Do
+                    End If
+                    segEnd = segEnd + 1
+                Loop
+                part3 = Mid(inputString, segStart, segEnd - segStart)
+
+                If part1 <> "" And part2 <> "" And part3 <> "" Then
+                    hasDeviceState = True
+                    deviceType = Left(part1, Len(part1) - 1) ' mimic your original trimming
+                    deviceName = part2
+                    attribute = Left(part3, Len(part3) - 1)  ' mimic your original trimming
+                End If
+            End If
+        End If
     End If
 
-    Set regex = Nothing
-    Set matches = Nothing
-    
     Glf_CheckForDeviceState = Array(hasDeviceState, deviceType, deviceName, attribute)
 End Function
 
@@ -1720,8 +1834,10 @@ Function Glf_ConvertDynamicKwargs(input, retName)
 	templateCode = templateCode & vbTab & "Dim kwargs : Set kwargs = GlfKwargs()" & vbCrLf 
 	For Each kvp in arrayOfValues
 		Dim key,value
-		key = Split(kvp, ":")(0)
-		value = Split(kvp, ":")(1)
+		Dim split_key : split_key = Split(kvp, ":")
+		key = split_key(0)
+		split_key = Split(kvp, ":")
+		value = split_key(1)
 		templateCode = templateCode & vbTab & "kwargs.Add """ & key & """, " & value & vbCrLf
 	Next
 
@@ -1882,7 +1998,8 @@ Sub glf_ConvertYamlShowToGlfShow(yamlFilePath)
 
         ' Identify time steps
         If InStr(line, "- time:") = 1 Then
-            stepTime = Trim(Split(line, ":")(1))
+			Dim split_key : split_key = Split(line, ":")
+            stepTime = Trim(split_key(1))
             output = output & vbTab & "With .AddStep(" & stepTime & ", Null, Null)" & vbCrLf
         
 		ElseIf InStr(line, "lights:") = 1 Then
