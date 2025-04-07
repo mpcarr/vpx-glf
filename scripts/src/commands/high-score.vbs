@@ -289,6 +289,7 @@ Class GlfHighScore
                 Next
                 WriteHighScores "HighScores", tmp
             Next
+            m_initials_needed.RemoveAll
             Log "Ending"
             DispatchPinEvent "high_score_complete", Null
         End If        

@@ -1412,10 +1412,12 @@ End Function
 Function Glf_FormatValue(value, formatString)
     Dim padChar, width, result, align, hasCommas
 	
-	If CStr(value) = "False" Then
-		Glf_FormatValue = ""
-		Exit Function
-	End If
+	If TypeName(value) = "Boolean" Then
+        If Not value Then
+            Glf_FormatValue = ""
+            Exit Function
+        End If
+    End If
 
     ' Default values
     padChar = " " ' Default padding character is space

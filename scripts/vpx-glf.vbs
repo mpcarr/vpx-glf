@@ -1412,10 +1412,12 @@ End Function
 Function Glf_FormatValue(value, formatString)
     Dim padChar, width, result, align, hasCommas
 	
-	If CStr(value) = "False" Then
-		Glf_FormatValue = ""
-		Exit Function
-	End If
+	If TypeName(value) = "Boolean" Then
+        If Not value Then
+            Glf_FormatValue = ""
+            Exit Function
+        End If
+    End If
 
     ' Default values
     padChar = " " ' Default padding character is space
@@ -4636,6 +4638,7 @@ Class GlfHighScore
                 Next
                 WriteHighScores "HighScores", tmp
             Next
+            m_initials_needed.RemoveAll
             Log "Ending"
             DispatchPinEvent "high_score_complete", Null
         End If        
