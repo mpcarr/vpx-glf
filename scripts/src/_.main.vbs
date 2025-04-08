@@ -478,6 +478,18 @@ Public Sub Glf_Init()
 	glf_debugLog.WriteToLog "Init", "Finished Creating Machine Vars"
 	glf_debugLog.WriteToLog "Code String", glf_codestr
 
+	
+    With CreateGlfMode("glf_game_mode", 10)
+        .StartEvents = Array("reset_complete")
+
+        With .ComboSwitches("flipper_cancel")
+            .Switch1 = "s_left_flipper"
+			.Switch2 = "s_start"
+            .HoldTime = 5000
+            .EventsWhenBoth = Array("glf_game_cancel")
+        End With
+    End With
+
 	Glf_Reset()
 End Sub
 
@@ -1849,10 +1861,12 @@ End Function
 Function Glf_FormatValue(value, formatString)
     Dim padChar, width, result, align, hasCommas
 	
-	If CStr(value) = "False" Then
-		Glf_FormatValue = ""
-		Exit Function
-	End If
+	If TypeName(value) = "Boolean" Then
+        If Not value Then
+            Glf_FormatValue = ""
+            Exit Function
+        End If
+    End If
 
     ' Default values
     padChar = " " ' Default padding character is space

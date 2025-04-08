@@ -478,6 +478,18 @@ Public Sub Glf_Init()
 	glf_debugLog.WriteToLog "Init", "Finished Creating Machine Vars"
 	glf_debugLog.WriteToLog "Code String", glf_codestr
 
+	
+    With CreateGlfMode("glf_game_mode", 10)
+        .StartEvents = Array("reset_complete")
+
+        With .ComboSwitches("flipper_cancel")
+            .Switch1 = "s_left_flipper"
+			.Switch2 = "s_start"
+            .HoldTime = 5000
+            .EventsWhenBoth = Array("glf_game_cancel")
+        End With
+    End With
+
 	Glf_Reset()
 End Sub
 
@@ -1849,10 +1861,12 @@ End Function
 Function Glf_FormatValue(value, formatString)
     Dim padChar, width, result, align, hasCommas
 	
-	If CStr(value) = "False" Then
-		Glf_FormatValue = ""
-		Exit Function
-	End If
+	If TypeName(value) = "Boolean" Then
+        If Not value Then
+            Glf_FormatValue = ""
+            Exit Function
+        End If
+    End If
 
     ' Default values
     padChar = " " ' Default padding character is space
@@ -5078,6 +5092,7 @@ Class GlfHighScore
                 Next
                 WriteHighScores "HighScores", tmp
             Next
+            m_initials_needed.RemoveAll
             Log "Ending"
             DispatchPinEvent "high_score_complete", Null
         End If        
@@ -15121,7 +15136,7 @@ End Function
 '*****************************
 Function Glf_Drain(args)
     
-    If Not glf_gameTilted Then
+    If Not glf_gameTilted And glf_gameStarted = True Then
         Dim ballsToSave : ballsToSave = args(1) 
         Glf_WriteDebugLog "end_of_ball, unclaimed balls", CStr(ballsToSave)
         Glf_WriteDebugLog "end_of_ball, balls in play", CStr(glf_BIP)
@@ -15253,6 +15268,32 @@ Function Glf_EndGame(args)
     glf_playerState.RemoveAll()
 
     DispatchPinEvent "game_ended", Null
+End Function
+
+AddPinEventListener "glf_game_cancel", "glf_game_cancel", "Glf_GameCancel", 20, Null
+
+Function Glf_GameCancel(args)
+    Dim device
+    For Each device in glf_ball_devices.Items()
+        If device.HasBall() Then
+            device.EjectAll()
+        End If
+    Next
+    Dim mode
+    For Each mode in glf_modes.Items()
+        mode.StopMode()
+    Next
+    Dim flipper
+    For Each flipper in glf_flippers.Items()
+        flipper.Disable()
+    Next
+    Dim auto_fire_device
+    For Each auto_fire_device in glf_autofiredevices.Items()
+        auto_fire_device.Disable()
+    Next
+    glf_bip = 0
+    Glf_EndGame Null
+    Glf_Reset()
 End Function
 
 Public Function EndOfBallNextPlayer(args)
