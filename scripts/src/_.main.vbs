@@ -474,6 +474,18 @@ Public Sub Glf_Init()
 	Glf_ReadMachineVars("HighScores")
 	glf_debugLog.WriteToLog "Init", "Finished Creating Machine Vars"
 
+	
+    With CreateGlfMode("glf_game_mode", 10)
+        .StartEvents = Array("reset_complete")
+
+        With .ComboSwitches("flipper_cancel")
+            .Switch1 = "s_left_flipper"
+			.Switch2 = "s_start"
+            .HoldTime = 5000
+            .EventsWhenBoth = Array("glf_game_cancel")
+        End With
+    End With
+
 	Glf_Reset()
 End Sub
 
