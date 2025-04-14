@@ -60,12 +60,11 @@ Class GlfLightPlayer
         Log "Reloading Lights"
         Dim evt
         For Each evt in m_events.Keys()
-            Dim lightName, light
+            Dim lightName, light,lightsCount,x,tagLight, tagLights
             'First get light counts
+            lightsCount = 0
             For Each lightName in m_events(evt).LightNames
                 Set light = m_events(evt).Lights(lightName)
-                Dim lightsCount, x,tagLight, tagLights
-                lightsCount = 0
                 If Not glf_lightNames.Exists(lightName) Then
                     tagLights = glf_lightTags("T_"&lightName).Keys()
                     Log "Tag Lights: " & Join(tagLights)
