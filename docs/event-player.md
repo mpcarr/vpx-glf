@@ -1,38 +1,109 @@
-# Event Player
+# Event Player Configuration
 
-The event player listens for one event and emits one or more other events.
+The event player configuration allows you to set up and customize event mapping and playback in your pinball machine. Event players are useful for creating complex event chains where one event can trigger multiple other events, with optional conditions.
 
-## Example
+## Configuration Options
 
-```
-Dim event_player_super_pops
-Set event_player_super_pops = (New EventPlayer)("super_pops", mode_super_pops)
-
-event_player_super_pops.Add "mode_super_pops_started", _
-Array(_
-"play_super_pops_start_sound", _
-"play_pops_light_show", _
-"activate_top_gate _
-")
-
-event_player_super_pops.Add "mode_super_pops_ended",  _
-Array(_
-"play_super_pops_end_sound", _
-"play_pops_ended_light_show", _
-"deactivate_top_gate _
-")
+### Basic Configuration
+```vbscript
+' Basic event player configuration within a mode
+With CreateGlfMode("mode_name", priority)
+    .StartEvents = Array("ball_started")
+    .StopEvents = Array("ball_ended")
+    
+    With .EventPlayer
+        .Add "trigger_event", Array("event1", "event2") ' When trigger_event occurs, play event1 and event2
+    End With
+End With
 ```
 
-In the above example we created a event player called **event_player_super_pops** that belongs to the mode called **mode_super_pops**. The event player listens for the *mode_super_pops_started* event and emits three other events to play a sound, a light show and activate a diverter gate. It also listens for the *mode_super_pops_ended* event and then emits a end sound, end light show and deactivated the diverter.
+### Advanced Configuration
+```vbscript
+' Advanced event player configuration within a mode
+With CreateGlfMode("mode_name", priority)
+    .StartEvents = Array("ball_started")
+    .StopEvents = Array("ball_ended")
+    
+    With .EventPlayer
+        ' Map multiple trigger events to their corresponding response events
+        .Add "trigger_event1", Array("response_event1", "response_event2")
+        .Add "trigger_event2", Array("response_event3", "response_event4")
+        
+        ' Debug settings
+        .Debug = True ' Enable debug logging for this event player
+    End With
+End With
+```
 
-## Required Setings
+## Property Descriptions
 
-### Name
-```String```
+### Event Mapping
+- `Add(key, value)`: Maps a trigger event to an array of response events
+  - `key`: The trigger event name
+  - `value`: Array of response event names to be played when the trigger event occurs
 
-The name of this device. Events emitted from the device will be in the format **name_event_player**
+### Debug Settings
+- `Debug`: Boolean to enable debug logging for this event player (Default: False)
 
-### Mode
-```String```
+## Example Configurations
 
-This is the mode the event player belongs to. 
+### Basic Event Player Example
+```vbscript
+' Basic event player configuration within a mode
+With CreateGlfMode("base", 10)
+    .StartEvents = Array("ball_started")
+    .StopEvents = Array("ball_ended")
+    
+    With .EventPlayer
+        .Add "ramp_complete", Array("ramp_award", "ramp_light")
+    End With
+End With
+```
+
+### Advanced Event Player Example
+```vbscript
+' Advanced event player configuration within a mode
+With CreateGlfMode("multiball", 20)
+    .StartEvents = Array("ball_started")
+    .StopEvents = Array("ball_ended")
+    
+    With .EventPlayer
+        ' Map multiple trigger events to their corresponding response events
+        .Add "left_ramp_complete", Array("left_ramp_award", "left_ramp_light")
+        .Add "right_ramp_complete", Array("right_ramp_award", "right_ramp_light")
+        .Add "multiball_start", Array("multiball_light", "multiball_sound", "multiball_effect")
+        
+        ' Debug settings
+        .Debug = True
+    End With
+End With
+```
+
+## Event Handling
+
+The event player system works by:
+
+1. Listening for trigger events specified in the configuration
+2. When a trigger event occurs, it plays all the response events associated with that trigger
+3. Events are played in the order they appear in the array
+4. The event player automatically handles event registration and cleanup when the mode is activated or deactivated
+
+## Events
+
+The event player system doesn't generate its own events, but it listens for and responds to events defined in your configuration. When a trigger event occurs, the event player will automatically dispatch all the response events associated with that trigger.
+
+## Default Behavior
+
+By default, event players are configured with:
+- No event mappings
+- Debug logging disabled
+
+## Notes
+
+- Event players are managed within the context of a mode
+- The event player system automatically handles event registration and cleanup
+- Debug logging can be enabled to track event player operations
+- Event players can be used to create complex event chains
+- Event players can be configured to work with specific game modes or features
+- The event player system is useful for creating reusable event patterns
+- Event players can be used to simplify complex event handling logic 
