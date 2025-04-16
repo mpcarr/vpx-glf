@@ -14124,7 +14124,7 @@ Class GlfMagnet
         m_active = False
         m_release_in_progress = True
         Log "Flinging Ball"
-        DispatchPinEvent m_name & "flinging_ball", Null
+        DispatchPinEvent m_name & "_flinging_ball", Null
         GetRef(m_action_cb)(0)
         SetDelay m_name & "_fling_reenable", "MagnetEventHandler" , Array(Array("fling_reenable", Me),Null), m_fling_drop_time.Value
     End Sub
@@ -14162,14 +14162,14 @@ Class GlfMagnet
         m_active = False
         m_release_in_progress = True
         Log "Releasing Ball"
-        DispatchPinEvent m_name & "releasing_ball", Null
+        DispatchPinEvent m_name & "_releasing_ball", Null
         GetRef(m_action_cb)(0)
         SetDelay m_name & "_release_done", "MagnetEventHandler" , Array(Array("release_done", Me),Null), m_release_time.Value
     End Sub
 
     Public Sub ReleaseDone()
         m_release_in_progress = False
-        DispatchPinEvent m_name & "released_ball", Null
+        DispatchPinEvent m_name & "_released_ball", Null
     End Sub
 
     Private Sub Log(message)
