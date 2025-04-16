@@ -193,6 +193,82 @@ Class BallSave
         yaml = yaml & vbCrLf
         yaml = yaml & "    auto_launch: " & LCase(m_auto_launch) & vbCrLf
         yaml = yaml & "    balls_to_save: " & m_balls_to_save & vbCrLf
+        
+        ' Add disable_events if any exist
+        If m_disable_events.Count > 0 Then
+            yaml = yaml & "    disable_events: "
+            x = 0
+            For Each evt in m_disable_events.Keys
+                yaml = yaml & m_disable_events(evt).Raw
+                If x <> UBound(m_disable_events.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        
+        ' Add timer_stop_events if any exist
+        If m_timer_stop_events.Count > 0 Then
+            yaml = yaml & "    timer_stop_events: "
+            x = 0
+            For Each evt in m_timer_stop_events.Keys
+                yaml = yaml & m_timer_stop_events(evt).Raw
+                If x <> UBound(m_timer_stop_events.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        
+        ' Add timer_complete_events if any exist
+        If m_timer_complete_events.Count > 0 Then
+            yaml = yaml & "    timer_complete_events: "
+            x = 0
+            For Each evt in m_timer_complete_events.Keys
+                yaml = yaml & m_timer_complete_events(evt).Raw
+                If x <> UBound(m_timer_complete_events.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        
+        ' Add ball_save_events if any exist
+        If m_ball_save_events.Count > 0 Then
+            yaml = yaml & "    ball_save_events: "
+            x = 0
+            For Each evt in m_ball_save_events.Keys
+                yaml = yaml & m_ball_save_events(evt).Raw
+                If x <> UBound(m_ball_save_events.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        
+        ' Add ball_save_complete_events if any exist
+        If m_ball_save_complete_events.Count > 0 Then
+            yaml = yaml & "    ball_save_complete_events: "
+            x = 0
+            For Each evt in m_ball_save_complete_events.Keys
+                yaml = yaml & m_ball_save_complete_events(evt).Raw
+                If x <> UBound(m_ball_save_complete_events.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        
+        ' Add debug setting if enabled
+        If m_debug Then
+            yaml = yaml & "    debug: true" & vbCrLf
+        End If
+        
         ToYaml = yaml
     End Function
 End Class

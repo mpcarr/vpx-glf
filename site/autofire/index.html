@@ -757,15 +757,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#ball-search-settings" class="md-nav__link">
-    <span class="md-ellipsis">
-      Ball Search Settings
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#debug-settings" class="md-nav__link">
     <span class="md-ellipsis">
       Debug Settings
@@ -831,15 +822,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#advanced-auto-fire-callback" class="md-nav__link">
-    <span class="md-ellipsis">
-      Advanced Auto-Fire Callback
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -858,15 +840,6 @@
   <a href="#default-behavior" class="md-nav__link">
     <span class="md-ellipsis">
       Default Behavior
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#notes" class="md-nav__link">
-    <span class="md-ellipsis">
-      Notes
     </span>
   </a>
   
@@ -1661,15 +1634,6 @@
 </li>
         
           <li class="md-nav__item">
-  <a href="#ball-search-settings" class="md-nav__link">
-    <span class="md-ellipsis">
-      Ball Search Settings
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
   <a href="#debug-settings" class="md-nav__link">
     <span class="md-ellipsis">
       Debug Settings
@@ -1735,15 +1699,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#advanced-auto-fire-callback" class="md-nav__link">
-    <span class="md-ellipsis">
-      Advanced Auto-Fire Callback
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -1762,15 +1717,6 @@
   <a href="#default-behavior" class="md-nav__link">
     <span class="md-ellipsis">
       Default Behavior
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#notes" class="md-nav__link">
-    <span class="md-ellipsis">
-      Notes
     </span>
   </a>
   
@@ -1798,7 +1744,6 @@
 <pre><code class="language-vbscript">' Basic auto-fire configuration
 With CreateGlfAutoFire(&quot;autofire_name&quot;)
     .Switch = &quot;s_autofire_switch&quot;       ' Name of the switch that triggers the auto-fire
-    .Coil = &quot;c_autofire_coil&quot;           ' Name of the coil to fire
     .ActionCallback = &quot;AutoFireAction&quot;  ' Name of the callback function for auto-fire actions
 End With
 </code></pre>
@@ -1807,18 +1752,11 @@ End With
 With CreateGlfAutoFire(&quot;autofire_name&quot;)
     ' Basic settings
     .Switch = &quot;s_autofire_switch&quot;
-    .Coil = &quot;c_autofire_coil&quot;
     .ActionCallback = &quot;AutoFireAction&quot;
 
     ' Event settings
     .EnableEvents = Array(&quot;ball_started&quot;)                    ' Events that enable the auto-fire
     .DisableEvents = Array(&quot;ball_will_end&quot;, &quot;service_mode&quot;)  ' Events that disable the auto-fire
-    .FireEvents = Array(&quot;event1&quot;, &quot;event2&quot;)                  ' Events that trigger firing
-    .ResetEvents = Array(&quot;event3&quot;, &quot;event4&quot;)                 ' Events that reset the auto-fire
-
-    ' Ball search settings
-    .BallSearchEvents = Array(&quot;ball_search_started&quot;)         ' Events that trigger ball search
-    .BallSearchDelay = 500                                   ' Delay before ball search firing
 
     ' Debug settings
     .Debug = True                                           ' Enable debug logging for this device
@@ -1828,20 +1766,12 @@ End With
 <h3 id="basic-settings">Basic Settings</h3>
 <ul>
 <li><code>Switch</code>: String name of the switch that triggers the auto-fire (Default: Empty)</li>
-<li><code>Coil</code>: String name of the coil to fire (Default: Empty)</li>
 <li><code>ActionCallback</code>: String name of the callback function that executes when the auto-fire is triggered (Default: Empty)</li>
 </ul>
 <h3 id="event-control">Event Control</h3>
 <ul>
 <li><code>EnableEvents</code>: Array of event names that will enable the auto-fire (Default: Array("ball_started"))</li>
 <li><code>DisableEvents</code>: Array of event names that will disable the auto-fire (Default: Array("ball_will_end", "service_mode_entered"))</li>
-<li><code>FireEvents</code>: Array of event names that will trigger firing (Default: Empty Array)</li>
-<li><code>ResetEvents</code>: Array of event names that will reset the auto-fire (Default: Array("machine_reset_phase_3", "ball_starting"))</li>
-</ul>
-<h3 id="ball-search-settings">Ball Search Settings</h3>
-<ul>
-<li><code>BallSearchEvents</code>: Array of event names that will trigger ball search (Default: Array("ball_search_started"))</li>
-<li><code>BallSearchDelay</code>: Integer specifying the delay in milliseconds before firing during ball search (Default: 500)</li>
 </ul>
 <h3 id="debug-settings">Debug Settings</h3>
 <ul>
@@ -1852,7 +1782,6 @@ End With
 <pre><code class="language-vbscript">' Basic auto-fire configuration
 With CreateGlfAutoFire(&quot;pop1&quot;)
     .Switch = &quot;s_pop1&quot;
-    .Coil = &quot;c_pop1&quot;
     .ActionCallback = &quot;PopBumperAction&quot;
 End With
 </code></pre>
@@ -1860,13 +1789,9 @@ End With
 <pre><code class="language-vbscript">' Advanced auto-fire configuration
 With CreateGlfAutoFire(&quot;slingshot1&quot;)
     .Switch = &quot;s_slingshot1&quot;
-    .Coil = &quot;c_slingshot1&quot;
     .ActionCallback = &quot;SlingshotAction&quot;
     .EnableEvents = Array(&quot;multiball_started&quot;)
     .DisableEvents = Array(&quot;multiball_ended&quot;)
-    .FireEvents = Array(&quot;slingshot_ready&quot;)
-    .BallSearchEvents = Array(&quot;ball_search_started&quot;, &quot;ball_search_ended&quot;)
-    .BallSearchDelay = 750
     .Debug = True
 End With
 </code></pre>
@@ -1881,47 +1806,12 @@ Sub AutoFireAction(Enabled)
     End If
 End Sub
 </code></pre>
-<h3 id="advanced-auto-fire-callback">Advanced Auto-Fire Callback</h3>
-<pre><code class="language-vbscript">' Advanced auto-fire callback with additional logic
-Sub AutoFireAction(Enabled)
-    If Enabled Then
-        ' Auto-fire is being triggered
-        PlaySound &quot;autofire_sound&quot;
-        LightOn &quot;l_autofire_active&quot;
-
-        ' Add score
-        AddScore 1000
-    Else
-        ' Auto-fire is being reset
-        LightOff &quot;l_autofire_active&quot;
-    End If
-End Sub
-</code></pre>
 <h2 id="events">Events</h2>
-<p>The auto-fire system generates several events that you can listen to:</p>
-<ul>
-<li><code>{autofire_name}_firing</code>: Triggered when the auto-fire is triggered</li>
-<li><code>{autofire_name}_fired</code>: Triggered when the auto-fire has completed firing</li>
-<li><code>{autofire_name}_enabled</code>: Triggered when the auto-fire is enabled</li>
-<li><code>{autofire_name}_disabled</code>: Triggered when the auto-fire is disabled</li>
-</ul>
-<p>Replace <code>{autofire_name}</code> with your actual auto-fire name (prefixed with "autofire_" internally).</p>
 <h2 id="default-behavior">Default Behavior</h2>
 <p>By default, auto-fire devices are configured with:
 - Enabled on <code>ball_started</code> event
 - Disabled on <code>ball_will_end</code> and <code>service_mode_entered</code> events
-- Reset on <code>machine_reset_phase_3</code> and <code>ball_starting</code> events
-- Ball search triggered on <code>ball_search_started</code> event
-- Ball search delay of 500 milliseconds
 - Debug logging disabled</p>
-<h2 id="notes">Notes</h2>
-<ul>
-<li>The auto-fire system automatically manages enable/disable states based on configured events</li>
-<li>Action callbacks receive a parameter indicating the state (1 for fire/activate, 0 for reset/deactivate)</li>
-<li>Debug logging can be enabled to track auto-fire state changes</li>
-<li>Auto-fire devices can be configured to fire during ball search with a configurable delay</li>
-<li>The system prevents multiple firing operations from overlapping </li>
-</ul>
 
 
 

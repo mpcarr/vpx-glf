@@ -449,6 +449,8 @@ Class Mode
 
     Public Function ToYaml()
         dim yaml, child
+
+        
         yaml = "#config_version=6" & vbCrLf & vbCrLf
 
         yaml = yaml & "mode:" & vbCrLf
@@ -477,9 +479,10 @@ Class Mode
             Next
             yaml = yaml & vbCrLf
         End If
-
         yaml = yaml & "  priority: " & m_priority & vbCrLf
         
+
+
         If UBound(m_ballsaves.Keys)>-1 Then
             yaml = yaml & vbCrLf
             yaml = yaml & "ball_saves: " & vbCrLf
@@ -554,6 +557,7 @@ Class Mode
             Next
         End If
         yaml = yaml & vbCrLf
+        
         
         Dim fso, modesFolder, TxtFileStream
         Set fso = CreateObject("Scripting.FileSystemObject")
