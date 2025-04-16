@@ -11,14 +11,14 @@
         <link rel="canonical" href="https://mpcarr.github.io/vpx-gle-framework/ball-device/">
       
       
-        <link rel="prev" href="../tutorial/tutorial-ballsave/">
+        <link rel="prev" href="../autofire/">
       
       
-        <link rel="next" href="../flipper/">
+        <link rel="next" href="../diverter/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.28">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.25">
     
     
       
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#glfballdevice-class-documentation" class="md-skip">
+        <a href="#ball-device-configuration" class="md-skip">
           Skip to content
         </a>
       
@@ -173,7 +173,7 @@
       
     </form>
     <div class="md-search__output">
-      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+      <div class="md-search__scrollwrap" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
             Initializing search
@@ -235,7 +235,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="./" class="md-tabs__link">
+        <a href="../autofire/" class="md-tabs__link">
           
   
   Game Logic
@@ -645,6 +645,27 @@
                 
   
   
+  
+  
+    <li class="md-nav__item">
+      <a href="../autofire/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Auto Fire Device
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
     
   
   
@@ -696,82 +717,28 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#properties" class="md-nav__link">
+  <a href="#configuration-options" class="md-nav__link">
     <span class="md-ellipsis">
-      Properties
+      Configuration Options
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Properties">
+    <nav class="md-nav" aria-label="Configuration Options">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#ballswitches" class="md-nav__link">
+  <a href="#basic-configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      BallSwitches
+      Basic Configuration
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#defaultdevice" class="md-nav__link">
+  <a href="#advanced-configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      DefaultDevice
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ejectallevents" class="md-nav__link">
-    <span class="md-ellipsis">
-      EjectAllEvents
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ejectcallback" class="md-nav__link">
-    <span class="md-ellipsis">
-      EjectCallback
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ejecttargets" class="md-nav__link">
-    <span class="md-ellipsis">
-      EjectTargets
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ejecttimeout" class="md-nav__link">
-    <span class="md-ellipsis">
-      EjectTimeout
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#mechcanicaleject" class="md-nav__link">
-    <span class="md-ellipsis">
-      MechcanicalEject
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#playercontrolledejectevent" class="md-nav__link">
-    <span class="md-ellipsis">
-      PlayerControlledEjectEvent
+      Advanced Configuration
     </span>
   </a>
   
@@ -783,9 +750,153 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#example-usage" class="md-nav__link">
+  <a href="#property-descriptions" class="md-nav__link">
     <span class="md-ellipsis">
-      Example Usage
+      Property Descriptions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Property Descriptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Settings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ejection-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ejection Control
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#event-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      Event Control
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ball-tracking" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ball Tracking
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#debug-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Debug Settings
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-configurations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Configurations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Example Configurations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-ball-device-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Ball Device Example
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-ball-device-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Ball Device Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#callback-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Callback Examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Callback Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-ball-device-callback" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Ball Device Callback
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-ball-device-callback" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Ball Device Callback
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#events" class="md-nav__link">
+    <span class="md-ellipsis">
+      Events
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#default-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      Default Behavior
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notes
     </span>
   </a>
   
@@ -795,6 +906,48 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../diverter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Diverter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../drop-target/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Drop Target
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -828,11 +981,561 @@
   
   
     <li class="md-nav__item">
-      <a href="../autofire/" class="md-nav__link">
+      <a href="../magnet/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Auto Fire Device
+    Magnet
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Modes
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            Modes
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ball-save/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Save
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../combo-switches/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Combo Switches
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dof-player-config.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DOF Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../event-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../extra-ball/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Extra Ball
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../high-score/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    High Score
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../light-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Light Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mode/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Modes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../multiball/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multiball
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../multiball-locks/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multiball Locks
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../queue-event-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Queue Event Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../random-event-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Random Event Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shot/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shot-group/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shot Group
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shot-profile/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shot Profile
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sequence-shot/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sequence Shot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../show-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Show Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../slide-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Slide Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sound-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sound Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../state-machine/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    State Machine
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../timer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Timer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../timed-switches/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Timed Switches
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tilt/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Tilt
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../variable-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Variable Player
   </span>
   
 
@@ -906,82 +1609,28 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#properties" class="md-nav__link">
+  <a href="#configuration-options" class="md-nav__link">
     <span class="md-ellipsis">
-      Properties
+      Configuration Options
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Properties">
+    <nav class="md-nav" aria-label="Configuration Options">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#ballswitches" class="md-nav__link">
+  <a href="#basic-configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      BallSwitches
+      Basic Configuration
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#defaultdevice" class="md-nav__link">
+  <a href="#advanced-configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      DefaultDevice
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ejectallevents" class="md-nav__link">
-    <span class="md-ellipsis">
-      EjectAllEvents
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ejectcallback" class="md-nav__link">
-    <span class="md-ellipsis">
-      EjectCallback
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ejecttargets" class="md-nav__link">
-    <span class="md-ellipsis">
-      EjectTargets
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#ejecttimeout" class="md-nav__link">
-    <span class="md-ellipsis">
-      EjectTimeout
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#mechcanicaleject" class="md-nav__link">
-    <span class="md-ellipsis">
-      MechcanicalEject
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#playercontrolledejectevent" class="md-nav__link">
-    <span class="md-ellipsis">
-      PlayerControlledEjectEvent
+      Advanced Configuration
     </span>
   </a>
   
@@ -993,9 +1642,153 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#example-usage" class="md-nav__link">
+  <a href="#property-descriptions" class="md-nav__link">
     <span class="md-ellipsis">
-      Example Usage
+      Property Descriptions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Property Descriptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Settings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ejection-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ejection Control
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#event-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      Event Control
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ball-tracking" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ball Tracking
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#debug-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Debug Settings
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-configurations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Configurations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Example Configurations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-ball-device-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Ball Device Example
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-ball-device-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Ball Device Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#callback-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Callback Examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Callback Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-ball-device-callback" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Ball Device Callback
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-ball-device-callback" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Ball Device Callback
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#events" class="md-nav__link">
+    <span class="md-ellipsis">
+      Events
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#default-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      Default Behavior
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notes
     </span>
   </a>
   
@@ -1016,51 +1809,161 @@
                   
 
 
-<h1 id="glfballdevice-class-documentation"><code>GlfBallDevice</code> Class Documentation</h1>
-<p>The <code>GlfBallDevice</code> class is used to manage and configure ball devices in a pinball machine. The class provides methods and properties to handle ball movement, events, and device-specific configurations.</p>
-<p><a href="../tutorial/tutorial-ball-devices">See Ball Devices</a></p>
-<hr />
-<h2 id="properties">Properties</h2>
-<h3 id="ballswitches"><strong>BallSwitches</strong></h3>
-<p><code>Array&lt;String&gt;</code><br />
-An array of switch names that detect ball presence in the device.</p>
-<hr />
-<h3 id="defaultdevice"><strong>DefaultDevice</strong></h3>
-<p><code>Boolean</code><br />
-Specifies whether this device is the default ball device. If set to <code>True</code>, this device becomes the global plunger reference.</p>
-<hr />
-<h3 id="ejectallevents"><strong>EjectAllEvents</strong></h3>
-<p><code>Array&lt;String&gt;</code><br />
-An array of event names that will trigger the ejection of all balls in the device.</p>
-<hr />
-<h3 id="ejectcallback"><strong>EjectCallback</strong></h3>
-<p><code>String</code><br />
-The name of the callback function to execute when a ball is ejected.</p>
-<hr />
-<h3 id="ejecttargets"><strong>EjectTargets</strong></h3>
-<p><code>Array&lt;String&gt;</code><br />
-An array of target event names for ejection.</p>
-<hr />
-<h3 id="ejecttimeout"><strong>EjectTimeout</strong></h3>
-<p><code>Integer</code><br />
-The timeout for an ejection attempt, in seconds.</p>
-<hr />
-<h3 id="mechcanicaleject"><strong>MechcanicalEject</strong></h3>
-<p><code>Boolean</code><br />
-Specifies whether the device uses mechanical ejection.</p>
-<hr />
-<h3 id="playercontrolledejectevent"><strong>PlayerControlledEjectEvent</strong></h3>
-<p><code>Array&lt;String&gt;</code><br />
-event name triggered by player-controlled eject attempts.</p>
-<hr />
-<h2 id="example-usage">Example Usage</h2>
-<p>Here’s an example of how to configure a ball device:</p>
-<pre><code>With CreateGlfBallDevice(&quot;scoop&quot;)
-    .BallSwitches = Array(&quot;sw04&quot;)
-    .EjectTimeout = 2000
-    .EjectCallback = &quot;ScoopEjectCallback&quot;
+<h1 id="ball-device-configuration">Ball Device Configuration</h1>
+<p>The ball device configuration allows you to set up and customize ball devices in your pinball machine. Ball devices are used to manage balls, including tracking their location, ejecting them, and handling ball-related events.</p>
+<h2 id="configuration-options">Configuration Options</h2>
+<h3 id="basic-configuration">Basic Configuration</h3>
+<pre><code class="language-vbscript">' Basic ball device configuration
+With CreateGlfBallDevice(&quot;device_name&quot;)
+    .BallSwitches = Array(&quot;s_switch1&quot;, &quot;s_switch2&quot;)  ' Array of switches that detect balls
+    .EjectCoil = &quot;c_eject_coil&quot;                      ' Name of the coil to eject balls
+    .ActionCallback = &quot;BallDeviceAction&quot;              ' Name of the callback function for ball device actions
 End With
 </code></pre>
+<h3 id="advanced-configuration">Advanced Configuration</h3>
+<pre><code class="language-vbscript">' Advanced ball device configuration
+With CreateGlfBallDevice(&quot;device_name&quot;)
+    ' Basic settings
+    .BallSwitches = Array(&quot;s_switch1&quot;, &quot;s_switch2&quot;)
+    .EjectCoil = &quot;c_eject_coil&quot;
+    .ActionCallback = &quot;BallDeviceAction&quot;
+
+    ' Ejection control
+    .EjectTimeout = 5000                              ' Timeout in milliseconds for ejection
+    .MechanicalEject = False                          ' Whether the device uses mechanical ejection
+    .DefaultDevice = &quot;default_device&quot;                 ' Default device to send balls to
+
+    ' Event settings
+    .EnableEvents = Array(&quot;ball_started&quot;)                    ' Events that enable the ball device
+    .DisableEvents = Array(&quot;ball_will_end&quot;, &quot;service_mode&quot;)  ' Events that disable the ball device
+    .EjectAllEvents = Array(&quot;event1&quot;, &quot;event2&quot;)              ' Events that trigger ejection of all balls
+    .EjectCallback = &quot;EjectCallback&quot;                         ' Callback for ejection events
+
+    ' Ball tracking
+    .TrackBalls = True                                ' Whether to track balls in this device
+    .BallCount = 2                                    ' Maximum number of balls this device can hold
+
+    ' Debug settings
+    .Debug = True                                     ' Enable debug logging for this device
+End With
+</code></pre>
+<h2 id="property-descriptions">Property Descriptions</h2>
+<h3 id="basic-settings">Basic Settings</h3>
+<ul>
+<li><code>BallSwitches</code>: Array of switch names that detect balls in the device (Default: Empty Array)</li>
+<li><code>EjectCoil</code>: String name of the coil to eject balls (Default: Empty)</li>
+<li><code>ActionCallback</code>: String name of the callback function that executes when the ball device state changes (Default: Empty)</li>
+</ul>
+<h3 id="ejection-control">Ejection Control</h3>
+<ul>
+<li><code>EjectTimeout</code>: Integer specifying the timeout in milliseconds for ejection (Default: 5000)</li>
+<li><code>MechanicalEject</code>: Boolean indicating whether the device uses mechanical ejection (Default: False)</li>
+<li><code>DefaultDevice</code>: String name of the default device to send balls to (Default: Empty)</li>
+</ul>
+<h3 id="event-control">Event Control</h3>
+<ul>
+<li><code>EnableEvents</code>: Array of event names that will enable the ball device (Default: Array("ball_started"))</li>
+<li><code>DisableEvents</code>: Array of event names that will disable the ball device (Default: Array("ball_will_end", "service_mode_entered"))</li>
+<li><code>EjectAllEvents</code>: Array of event names that will trigger ejection of all balls (Default: Empty Array)</li>
+<li><code>EjectCallback</code>: String name of the callback function for ejection events (Default: Empty)</li>
+</ul>
+<h3 id="ball-tracking">Ball Tracking</h3>
+<ul>
+<li><code>TrackBalls</code>: Boolean indicating whether to track balls in this device (Default: True)</li>
+<li><code>BallCount</code>: Integer specifying the maximum number of balls this device can hold (Default: 1)</li>
+</ul>
+<h3 id="debug-settings">Debug Settings</h3>
+<ul>
+<li><code>Debug</code>: Boolean to enable debug logging for this device (Default: False)</li>
+</ul>
+<h2 id="example-configurations">Example Configurations</h2>
+<h3 id="basic-ball-device-example">Basic Ball Device Example</h3>
+<pre><code class="language-vbscript">' Basic ball device configuration
+With CreateGlfBallDevice(&quot;plunger&quot;)
+    .BallSwitches = Array(&quot;s_plunger&quot;)
+    .EjectCoil = &quot;c_plunger&quot;
+    .ActionCallback = &quot;PlungerAction&quot;
+End With
+</code></pre>
+<h3 id="advanced-ball-device-example">Advanced Ball Device Example</h3>
+<pre><code class="language-vbscript">' Advanced ball device configuration
+With CreateGlfBallDevice(&quot;scoop&quot;)
+    .BallSwitches = Array(&quot;s_scoop_entry&quot;, &quot;s_scoop_exit&quot;)
+    .EjectCoil = &quot;c_scoop_eject&quot;
+    .ActionCallback = &quot;ScoopAction&quot;
+    .EjectTimeout = 3000
+    .MechanicalEject = False
+    .DefaultDevice = &quot;playfield&quot;
+    .EnableEvents = Array(&quot;multiball_started&quot;)
+    .DisableEvents = Array(&quot;multiball_ended&quot;)
+    .EjectAllEvents = Array(&quot;scoop_eject_all&quot;)
+    .EjectCallback = &quot;ScoopEjectCallback&quot;
+    .TrackBalls = True
+    .BallCount = 3
+    .Debug = True
+End With
+</code></pre>
+<h2 id="callback-examples">Callback Examples</h2>
+<h3 id="basic-ball-device-callback">Basic Ball Device Callback</h3>
+<pre><code class="language-vbscript">' Basic ball device callback
+Sub BallDeviceAction(State)
+    ' Code to handle ball device action
+    If State = 1 Then
+        ' Ball device is being activated
+        PlaySound &quot;device_activate&quot;
+    Else
+        ' Ball device is being deactivated
+        PlaySound &quot;device_deactivate&quot;
+    End If
+End Sub
+</code></pre>
+<h3 id="advanced-ball-device-callback">Advanced Ball Device Callback</h3>
+<pre><code class="language-vbscript">' Advanced ball device callback with additional logic
+Sub BallDeviceAction(State)
+    If State = 1 Then
+        ' Ball device is being activated
+        PlaySound &quot;device_activate&quot;
+        LightOn &quot;l_device_active&quot;
+
+        ' Add score
+        AddScore 1000
+    Else
+        ' Ball device is being deactivated
+        PlaySound &quot;device_deactivate&quot;
+        LightOff &quot;l_device_active&quot;
+    End If
+End Sub
+</code></pre>
+<h2 id="events">Events</h2>
+<p>The ball device system generates several events that you can listen to:</p>
+<ul>
+<li><code>{device_name}_ball_added</code>: Triggered when a ball is added to the device</li>
+<li><code>{device_name}_ball_removed</code>: Triggered when a ball is removed from the device</li>
+<li><code>{device_name}_ejecting</code>: Triggered when the device is ejecting a ball</li>
+<li><code>{device_name}_ejected</code>: Triggered when the device has ejected a ball</li>
+<li><code>{device_name}_enabled</code>: Triggered when the device is enabled</li>
+<li><code>{device_name}_disabled</code>: Triggered when the device is disabled</li>
+</ul>
+<p>Replace <code>{device_name}</code> with your actual ball device name (prefixed with "ball_device_" internally).</p>
+<h2 id="default-behavior">Default Behavior</h2>
+<p>By default, ball devices are configured with:
+- Enabled on <code>ball_started</code> event
+- Disabled on <code>ball_will_end</code> and <code>service_mode_entered</code> events
+- Eject timeout of 5000 milliseconds
+- Mechanical ejection disabled
+- Ball tracking enabled
+- Maximum ball count of 1
+- Debug logging disabled</p>
+<h2 id="notes">Notes</h2>
+<ul>
+<li>The ball device system automatically manages enable/disable states based on configured events</li>
+<li>Action callbacks receive a parameter indicating the state (1 for activate, 0 for deactivate)</li>
+<li>Debug logging can be enabled to track ball device state changes</li>
+<li>Ball devices can be configured to eject balls during specific game modes</li>
+<li>The system prevents multiple ejection operations from overlapping</li>
+<li>Ball tracking can be enabled or disabled based on your needs</li>
+<li>The maximum ball count can be adjusted to accommodate multiple balls </li>
+</ul>
 
 
 
@@ -1110,7 +2013,7 @@ End With
     <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "navigation.instant", "navigation.tabs"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+      <script src="../assets/javascripts/bundle.081f42fc.min.js"></script>
       
     
   </body>

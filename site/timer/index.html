@@ -11,10 +11,14 @@
         <link rel="canonical" href="https://mpcarr.github.io/vpx-gle-framework/timer/">
       
       
+        <link rel="prev" href="../state-machine/">
+      
+      
+        <link rel="next" href="../timed-switches/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.28">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.25">
     
     
       
@@ -72,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#timer" class="md-skip">
+        <a href="#timer-configuration" class="md-skip">
           Skip to content
         </a>
       
@@ -169,7 +173,7 @@
       
     </form>
     <div class="md-search__output">
-      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+      <div class="md-search__scrollwrap" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
             Initializing search
@@ -217,17 +221,21 @@
         
   
   
+    
+  
   
     
     
       
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../ball-device/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../autofire/" class="md-tabs__link">
           
   
   Game Logic
@@ -554,23 +562,28 @@
       
   
   
+    
   
   
+  
     
     
     
-      
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   <span class="md-ellipsis">
@@ -581,7 +594,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             Game Logic
@@ -633,11 +646,74 @@
   
   
     <li class="md-nav__item">
+      <a href="../autofire/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Auto Fire Device
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../ball-device/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
     Ball Device
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../diverter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Diverter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../drop-target/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Drop Target
   </span>
   
 
@@ -675,11 +751,740 @@
   
   
     <li class="md-nav__item">
-      <a href="../autofire/" class="md-nav__link">
+      <a href="../magnet/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Auto Fire Device
+    Magnet
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Modes
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            Modes
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ball-save/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Save
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../combo-switches/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Combo Switches
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dof-player-config.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DOF Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../event-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../extra-ball/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Extra Ball
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../high-score/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    High Score
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../light-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Light Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mode/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Modes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../multiball/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multiball
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../multiball-locks/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multiball Locks
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../queue-event-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Queue Event Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../random-event-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Random Event Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shot/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shot-group/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shot Group
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shot-profile/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shot Profile
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sequence-shot/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sequence Shot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../show-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Show Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../slide-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Slide Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sound-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sound Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../state-machine/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    State Machine
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Timer
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Timer
+  </span>
+  
+
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      Configuration Options
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration Options">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#property-descriptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Property Descriptions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Property Descriptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#timer-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Timer Settings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#debug-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Debug Settings
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-configurations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Configurations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Example Configurations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-timer-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Timer Example
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-timer-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Timer Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#timer-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Timer System
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#events" class="md-nav__link">
+    <span class="md-ellipsis">
+      Events
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#default-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      Default Behavior
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notes
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../timed-switches/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Timed Switches
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tilt/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Tilt
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../variable-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Variable Player
   </span>
   
 
@@ -753,19 +1558,28 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#example" class="md-nav__link">
+  <a href="#configuration-options" class="md-nav__link">
     <span class="md-ellipsis">
-      Example
+      Configuration Options
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Example">
+    <nav class="md-nav" aria-label="Configuration Options">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#events" class="md-nav__link">
+  <a href="#basic-configuration" class="md-nav__link">
     <span class="md-ellipsis">
-      Events
+      Basic Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Configuration
     </span>
   </a>
   
@@ -773,6 +1587,108 @@
         
       </ul>
     </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#property-descriptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Property Descriptions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Property Descriptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#timer-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Timer Settings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#debug-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Debug Settings
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-configurations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Configurations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Example Configurations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-timer-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Timer Example
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-timer-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Timer Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#timer-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      Timer System
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#events" class="md-nav__link">
+    <span class="md-ellipsis">
+      Events
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#default-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      Default Behavior
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notes
+    </span>
+  </a>
   
 </li>
       
@@ -791,25 +1707,139 @@
                   
 
 
-<h1 id="timer">Timer</h1>
-<p>Timers manage event durations, triggering multiball modes, bonus rounds, and target resets.</p>
-<h2 id="example">Example</h2>
-<pre><code>Dim timer_beasts_panther
-Set timer_beasts_panther = (new ModeTimer)(&quot;beasts_panther&quot;, mode_beasts)
+<h1 id="timer-configuration">Timer Configuration</h1>
+<p>The timer configuration allows you to set up and customize countdown or count-up timers in your pinball machine. Timers are useful for creating time-limited modes, bonus rounds, and other time-based events.</p>
+<h2 id="configuration-options">Configuration Options</h2>
+<h3 id="basic-configuration">Basic Configuration</h3>
+<pre><code class="language-vbscript">' Basic timer configuration within a mode
+With CreateGlfMode(&quot;mode_name&quot;, priority)
+    .StartEvents = Array(&quot;ball_started&quot;)
+    .StopEvents = Array(&quot;ball_ended&quot;)
 
-With timer_beasts_panther
-    .StartEvents = Array(&quot;sw01_active&quot;)
-    .StopEvents = Array(&quot;sw01_inactive&quot;)
-    .Direction = &quot;down&quot;
-    .StartValue = 10
-    .EndValue = 0
+    With .Timer(&quot;timer_name&quot;)
+        .StartEvents = Array(&quot;start_event&quot;)
+        .StopEvents = Array(&quot;stop_event&quot;)
+        .Direction = &quot;down&quot;
+        .StartValue = 10
+        .EndValue = 0
+    End With
 End With
 </code></pre>
-<h3 id="events">Events</h3>
-<p><code>timer_*name*_started</code></p>
-<p><code>timer_*name*_stopped</code></p>
-<p><code>timer_*name*_complete</code></p>
-<p><code>timer_*name*_tick</code></p>
+<h3 id="advanced-configuration">Advanced Configuration</h3>
+<pre><code class="language-vbscript">' Advanced timer configuration within a mode
+With CreateGlfMode(&quot;mode_name&quot;, priority)
+    .StartEvents = Array(&quot;ball_started&quot;)
+    .StopEvents = Array(&quot;ball_ended&quot;)
+
+    With .Timer(&quot;timer_name&quot;)
+        ' Configure start and stop events
+        .StartEvents = Array(&quot;start_event1&quot;, &quot;start_event2&quot;)
+        .StopEvents = Array(&quot;stop_event1&quot;, &quot;stop_event2&quot;)
+
+        ' Configure timer direction and values
+        .Direction = &quot;down&quot;
+        .StartValue = 30
+        .EndValue = 0
+
+        ' Configure tick interval
+        .TickInterval = 1000    ' Tick every 1000 milliseconds (1 second)
+
+        ' Configure debug
+        .Debug = True
+    End With
+End With
+</code></pre>
+<h2 id="property-descriptions">Property Descriptions</h2>
+<h3 id="timer-settings">Timer Settings</h3>
+<ul>
+<li><code>StartEvents</code>: Array of events that will start the timer</li>
+<li><code>StopEvents</code>: Array of events that will stop the timer</li>
+<li><code>Direction</code>: Direction of the timer ("up" or "down") (Default: "down")</li>
+<li><code>StartValue</code>: Initial value of the timer (Default: 10)</li>
+<li><code>EndValue</code>: Final value of the timer (Default: 0)</li>
+<li><code>TickInterval</code>: Interval between timer ticks in milliseconds (Default: 1000)</li>
+</ul>
+<h3 id="debug-settings">Debug Settings</h3>
+<ul>
+<li><code>Debug</code>: Boolean to enable debug logging for this timer (Default: False)</li>
+</ul>
+<h2 id="example-configurations">Example Configurations</h2>
+<h3 id="basic-timer-example">Basic Timer Example</h3>
+<pre><code class="language-vbscript">' Basic timer configuration within a mode
+With CreateGlfMode(&quot;base&quot;, 10)
+    .StartEvents = Array(&quot;ball_started&quot;)
+    .StopEvents = Array(&quot;ball_ended&quot;)
+
+    With .Timer(&quot;bonus_timer&quot;)
+        .StartEvents = Array(&quot;bonus_start&quot;)
+        .StopEvents = Array(&quot;bonus_end&quot;)
+        .Direction = &quot;down&quot;
+        .StartValue = 10
+        .EndValue = 0
+    End With
+End With
+</code></pre>
+<h3 id="advanced-timer-example">Advanced Timer Example</h3>
+<pre><code class="language-vbscript">' Advanced timer configuration within a mode
+With CreateGlfMode(&quot;multiball&quot;, 20)
+    .StartEvents = Array(&quot;ball_started&quot;)
+    .StopEvents = Array(&quot;ball_ended&quot;)
+
+    With .Timer(&quot;jackpot_timer&quot;)
+        ' Configure start and stop events
+        .StartEvents = Array(&quot;jackpot_start&quot;)
+        .StopEvents = Array(&quot;jackpot_end&quot;, &quot;jackpot_complete&quot;)
+
+        ' Configure timer direction and values
+        .Direction = &quot;down&quot;
+        .StartValue = 30
+        .EndValue = 0
+
+        ' Configure tick interval
+        .TickInterval = 1000    ' Tick every 1000 milliseconds (1 second)
+
+        ' Configure debug
+        .Debug = True
+    End With
+End With
+</code></pre>
+<h2 id="timer-system">Timer System</h2>
+<p>The timer system manages countdown or count-up timers with the following features:</p>
+<ul>
+<li>Timers can count up or down</li>
+<li>Timers can be started and stopped by events</li>
+<li>Timers can have configurable tick intervals</li>
+<li>Timers can trigger events when they complete</li>
+<li>Timers are managed within the context of a mode</li>
+</ul>
+<h2 id="events">Events</h2>
+<p>The timer system generates the following events:</p>
+<ul>
+<li><code>timer_name_started</code>: Fired when the timer starts</li>
+<li><code>timer_name_stopped</code>: Fired when the timer stops</li>
+<li><code>timer_name_complete</code>: Fired when the timer reaches its end value</li>
+<li><code>timer_name_tick</code>: Fired on each timer tick</li>
+</ul>
+<h2 id="default-behavior">Default Behavior</h2>
+<p>By default, timers are configured with:
+- No start or stop events
+- Down direction
+- Start value of 10
+- End value of 0
+- Tick interval of 1000 milliseconds (1 second)
+- Debug logging disabled</p>
+<h2 id="notes">Notes</h2>
+<ul>
+<li>Timers are managed within the context of a mode</li>
+<li>The timer system automatically handles timer ticks and completion</li>
+<li>Debug logging can be enabled to track timer operations</li>
+<li>Timers can be configured to work with specific game modes or features</li>
+<li>The timer system prevents timers from conflicting with each other</li>
+<li>Countdown timers are useful for creating urgency in game modes</li>
+<li>Count-up timers are useful for tracking elapsed time</li>
+<li>Tick events can be used to update displays or trigger other events</li>
+<li>Timer completion events can be used to end modes or trigger rewards</li>
+</ul>
 
 
 
@@ -859,7 +1889,7 @@ End With
     <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "navigation.instant", "navigation.tabs"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+      <script src="../assets/javascripts/bundle.081f42fc.min.js"></script>
       
     
   </body>

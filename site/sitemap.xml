@@ -2,152 +2,237 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/about/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/autofire/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/ball-device/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/ball-save/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://mpcarr.github.io/vpx-gle-framework/combo-switches/</loc>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/commands/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/counter/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/diverter/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://mpcarr.github.io/vpx-gle-framework/dof-player/</loc>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/drop-target/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/event-player/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/events/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://mpcarr.github.io/vpx-gle-framework/extra-ball/</loc>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/features/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/flipper/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/getting-started/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://mpcarr.github.io/vpx-gle-framework/high-score/</loc>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/installing/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/light-controller/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/light-player/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://mpcarr.github.io/vpx-gle-framework/magnet/</loc>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/mode/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/multiball-locks/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/multiball/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/player-state/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://mpcarr.github.io/vpx-gle-framework/queue-event-player/</loc>
+         <lastmod>2025-04-16</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://mpcarr.github.io/vpx-gle-framework/random-event-player/</loc>
+         <lastmod>2025-04-16</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://mpcarr.github.io/vpx-gle-framework/sequence-shot/</loc>
+         <lastmod>2025-04-16</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://mpcarr.github.io/vpx-gle-framework/shot-group/</loc>
+         <lastmod>2025-04-16</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://mpcarr.github.io/vpx-gle-framework/shot-profile/</loc>
+         <lastmod>2025-04-16</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://mpcarr.github.io/vpx-gle-framework/shot/</loc>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/show-player/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://mpcarr.github.io/vpx-gle-framework/slide-player/</loc>
+         <lastmod>2025-04-16</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://mpcarr.github.io/vpx-gle-framework/sound-player/</loc>
+         <lastmod>2025-04-16</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://mpcarr.github.io/vpx-gle-framework/state-machine/</loc>
+         <lastmod>2025-04-16</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://mpcarr.github.io/vpx-gle-framework/tilt/</loc>
+         <lastmod>2025-04-16</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://mpcarr.github.io/vpx-gle-framework/timed-switches/</loc>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/timer/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://mpcarr.github.io/vpx-gle-framework/variable-player/</loc>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/tutorial/tutorial-autofire/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/tutorial/tutorial-ball-devices/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/tutorial/tutorial-ballsave/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/tutorial/tutorial-flippers/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/tutorial/tutorial-lights/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/tutorial/tutorial-plunger/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-gle-framework/tutorial/tutorial-trough/</loc>
-         <lastmod>2025-03-08</lastmod>
+         <lastmod>2025-04-16</lastmod>
          <changefreq>daily</changefreq>
     </url>
 </urlset>

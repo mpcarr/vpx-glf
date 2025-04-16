@@ -11,14 +11,14 @@
         <link rel="canonical" href="https://mpcarr.github.io/vpx-gle-framework/autofire/">
       
       
-        <link rel="prev" href="../flipper/">
+        <link rel="prev" href="../tutorial/tutorial-ballsave/">
       
       
-        <link rel="next" href="../about/">
+        <link rel="next" href="../ball-device/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.28">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.25">
     
     
       
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#glfautofire-class-documentation" class="md-skip">
+        <a href="#auto-fire-configuration" class="md-skip">
           Skip to content
         </a>
       
@@ -173,7 +173,7 @@
       
     </form>
     <div class="md-search__output">
-      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+      <div class="md-search__scrollwrap" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
             Initializing search
@@ -235,7 +235,7 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../ball-device/" class="md-tabs__link">
+        <a href="./" class="md-tabs__link">
           
   
   Game Logic
@@ -645,48 +645,6 @@
                 
   
   
-  
-  
-    <li class="md-nav__item">
-      <a href="../ball-device/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Ball Device
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../flipper/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Flipper
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
     
   
   
@@ -738,18 +696,177 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#properties" class="md-nav__link">
+  <a href="#configuration-options" class="md-nav__link">
     <span class="md-ellipsis">
-      Properties
+      Configuration Options
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration Options">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#property-descriptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Property Descriptions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Property Descriptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Settings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#event-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      Event Control
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ball-search-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ball Search Settings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#debug-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Debug Settings
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-configurations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Configurations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Example Configurations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-auto-fire-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Auto-Fire Example
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-auto-fire-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Auto-Fire Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#callback-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Callback Examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Callback Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-auto-fire-callback" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Auto-Fire Callback
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-auto-fire-callback" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Auto-Fire Callback
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#events" class="md-nav__link">
+    <span class="md-ellipsis">
+      Events
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#example-usage" class="md-nav__link">
+  <a href="#default-behavior" class="md-nav__link">
     <span class="md-ellipsis">
-      Example Usage
+      Default Behavior
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notes
     </span>
   </a>
   
@@ -759,6 +876,661 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ball-device/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Device
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../diverter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Diverter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../drop-target/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Drop Target
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../flipper/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Flipper
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../magnet/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Magnet
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Modes
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            Modes
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ball-save/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Save
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../combo-switches/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Combo Switches
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dof-player-config.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    DOF Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../event-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../extra-ball/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Extra Ball
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../high-score/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    High Score
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../light-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Light Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../mode/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Modes
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../multiball/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multiball
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../multiball-locks/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multiball Locks
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../queue-event-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Queue Event Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../random-event-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Random Event Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shot/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shot-group/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shot Group
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../shot-profile/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shot Profile
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sequence-shot/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sequence Shot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../show-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Show Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../slide-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Slide Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sound-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sound Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../state-machine/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    State Machine
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../timer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Timer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../timed-switches/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Timed Switches
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tilt/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Tilt
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../variable-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Variable Player
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -828,18 +1600,177 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#properties" class="md-nav__link">
+  <a href="#configuration-options" class="md-nav__link">
     <span class="md-ellipsis">
-      Properties
+      Configuration Options
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration Options">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Configuration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#property-descriptions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Property Descriptions
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Property Descriptions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Settings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#event-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      Event Control
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ball-search-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ball Search Settings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#debug-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Debug Settings
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#example-configurations" class="md-nav__link">
+    <span class="md-ellipsis">
+      Example Configurations
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Example Configurations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-auto-fire-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Auto-Fire Example
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-auto-fire-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Auto-Fire Example
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#callback-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      Callback Examples
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Callback Examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-auto-fire-callback" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Auto-Fire Callback
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-auto-fire-callback" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Auto-Fire Callback
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#events" class="md-nav__link">
+    <span class="md-ellipsis">
+      Events
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#example-usage" class="md-nav__link">
+  <a href="#default-behavior" class="md-nav__link">
     <span class="md-ellipsis">
-      Example Usage
+      Default Behavior
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#notes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Notes
     </span>
   </a>
   
@@ -860,14 +1791,137 @@
                   
 
 
-<h1 id="glfautofire-class-documentation"><code>GlfAutoFire</code> Class Documentation</h1>
-<p>The <code>GlfAutoFireDevice</code> class is used to manage and configure devices such as slingshots and bumpers in a pinball machine.</p>
-<p><a href="../tutorial/tutorial-autofire">See Auto Fire Devices tutorial</a></p>
-<hr />
-<h2 id="properties">Properties</h2>
-<h2 id="example-usage">Example Usage</h2>
-<pre><code>
+<h1 id="auto-fire-configuration">Auto-Fire Configuration</h1>
+<p>The auto-fire configuration allows you to set up and customize auto-firing devices in your pinball machine. Auto-fire devices are used to automatically fire coils or other devices when triggered by switches or events.</p>
+<h2 id="configuration-options">Configuration Options</h2>
+<h3 id="basic-configuration">Basic Configuration</h3>
+<pre><code class="language-vbscript">' Basic auto-fire configuration
+With CreateGlfAutoFire(&quot;autofire_name&quot;)
+    .Switch = &quot;s_autofire_switch&quot;       ' Name of the switch that triggers the auto-fire
+    .Coil = &quot;c_autofire_coil&quot;           ' Name of the coil to fire
+    .ActionCallback = &quot;AutoFireAction&quot;  ' Name of the callback function for auto-fire actions
+End With
 </code></pre>
+<h3 id="advanced-configuration">Advanced Configuration</h3>
+<pre><code class="language-vbscript">' Advanced auto-fire configuration
+With CreateGlfAutoFire(&quot;autofire_name&quot;)
+    ' Basic settings
+    .Switch = &quot;s_autofire_switch&quot;
+    .Coil = &quot;c_autofire_coil&quot;
+    .ActionCallback = &quot;AutoFireAction&quot;
+
+    ' Event settings
+    .EnableEvents = Array(&quot;ball_started&quot;)                    ' Events that enable the auto-fire
+    .DisableEvents = Array(&quot;ball_will_end&quot;, &quot;service_mode&quot;)  ' Events that disable the auto-fire
+    .FireEvents = Array(&quot;event1&quot;, &quot;event2&quot;)                  ' Events that trigger firing
+    .ResetEvents = Array(&quot;event3&quot;, &quot;event4&quot;)                 ' Events that reset the auto-fire
+
+    ' Ball search settings
+    .BallSearchEvents = Array(&quot;ball_search_started&quot;)         ' Events that trigger ball search
+    .BallSearchDelay = 500                                   ' Delay before ball search firing
+
+    ' Debug settings
+    .Debug = True                                           ' Enable debug logging for this device
+End With
+</code></pre>
+<h2 id="property-descriptions">Property Descriptions</h2>
+<h3 id="basic-settings">Basic Settings</h3>
+<ul>
+<li><code>Switch</code>: String name of the switch that triggers the auto-fire (Default: Empty)</li>
+<li><code>Coil</code>: String name of the coil to fire (Default: Empty)</li>
+<li><code>ActionCallback</code>: String name of the callback function that executes when the auto-fire is triggered (Default: Empty)</li>
+</ul>
+<h3 id="event-control">Event Control</h3>
+<ul>
+<li><code>EnableEvents</code>: Array of event names that will enable the auto-fire (Default: Array("ball_started"))</li>
+<li><code>DisableEvents</code>: Array of event names that will disable the auto-fire (Default: Array("ball_will_end", "service_mode_entered"))</li>
+<li><code>FireEvents</code>: Array of event names that will trigger firing (Default: Empty Array)</li>
+<li><code>ResetEvents</code>: Array of event names that will reset the auto-fire (Default: Array("machine_reset_phase_3", "ball_starting"))</li>
+</ul>
+<h3 id="ball-search-settings">Ball Search Settings</h3>
+<ul>
+<li><code>BallSearchEvents</code>: Array of event names that will trigger ball search (Default: Array("ball_search_started"))</li>
+<li><code>BallSearchDelay</code>: Integer specifying the delay in milliseconds before firing during ball search (Default: 500)</li>
+</ul>
+<h3 id="debug-settings">Debug Settings</h3>
+<ul>
+<li><code>Debug</code>: Boolean to enable debug logging for this device (Default: False)</li>
+</ul>
+<h2 id="example-configurations">Example Configurations</h2>
+<h3 id="basic-auto-fire-example">Basic Auto-Fire Example</h3>
+<pre><code class="language-vbscript">' Basic auto-fire configuration
+With CreateGlfAutoFire(&quot;pop1&quot;)
+    .Switch = &quot;s_pop1&quot;
+    .Coil = &quot;c_pop1&quot;
+    .ActionCallback = &quot;PopBumperAction&quot;
+End With
+</code></pre>
+<h3 id="advanced-auto-fire-example">Advanced Auto-Fire Example</h3>
+<pre><code class="language-vbscript">' Advanced auto-fire configuration
+With CreateGlfAutoFire(&quot;slingshot1&quot;)
+    .Switch = &quot;s_slingshot1&quot;
+    .Coil = &quot;c_slingshot1&quot;
+    .ActionCallback = &quot;SlingshotAction&quot;
+    .EnableEvents = Array(&quot;multiball_started&quot;)
+    .DisableEvents = Array(&quot;multiball_ended&quot;)
+    .FireEvents = Array(&quot;slingshot_ready&quot;)
+    .BallSearchEvents = Array(&quot;ball_search_started&quot;, &quot;ball_search_ended&quot;)
+    .BallSearchDelay = 750
+    .Debug = True
+End With
+</code></pre>
+<h2 id="callback-examples">Callback Examples</h2>
+<h3 id="basic-auto-fire-callback">Basic Auto-Fire Callback</h3>
+<pre><code class="language-vbscript">' Basic auto-fire callback
+Sub AutoFireAction(Enabled)
+    ' Code to handle auto-fire action
+    If Enabled Then
+        ' Auto-fire is being triggered
+        PlaySound &quot;autofire_sound&quot;
+    End If
+End Sub
+</code></pre>
+<h3 id="advanced-auto-fire-callback">Advanced Auto-Fire Callback</h3>
+<pre><code class="language-vbscript">' Advanced auto-fire callback with additional logic
+Sub AutoFireAction(Enabled)
+    If Enabled Then
+        ' Auto-fire is being triggered
+        PlaySound &quot;autofire_sound&quot;
+        LightOn &quot;l_autofire_active&quot;
+
+        ' Add score
+        AddScore 1000
+    Else
+        ' Auto-fire is being reset
+        LightOff &quot;l_autofire_active&quot;
+    End If
+End Sub
+</code></pre>
+<h2 id="events">Events</h2>
+<p>The auto-fire system generates several events that you can listen to:</p>
+<ul>
+<li><code>{autofire_name}_firing</code>: Triggered when the auto-fire is triggered</li>
+<li><code>{autofire_name}_fired</code>: Triggered when the auto-fire has completed firing</li>
+<li><code>{autofire_name}_enabled</code>: Triggered when the auto-fire is enabled</li>
+<li><code>{autofire_name}_disabled</code>: Triggered when the auto-fire is disabled</li>
+</ul>
+<p>Replace <code>{autofire_name}</code> with your actual auto-fire name (prefixed with "autofire_" internally).</p>
+<h2 id="default-behavior">Default Behavior</h2>
+<p>By default, auto-fire devices are configured with:
+- Enabled on <code>ball_started</code> event
+- Disabled on <code>ball_will_end</code> and <code>service_mode_entered</code> events
+- Reset on <code>machine_reset_phase_3</code> and <code>ball_starting</code> events
+- Ball search triggered on <code>ball_search_started</code> event
+- Ball search delay of 500 milliseconds
+- Debug logging disabled</p>
+<h2 id="notes">Notes</h2>
+<ul>
+<li>The auto-fire system automatically manages enable/disable states based on configured events</li>
+<li>Action callbacks receive a parameter indicating the state (1 for fire/activate, 0 for reset/deactivate)</li>
+<li>Debug logging can be enabled to track auto-fire state changes</li>
+<li>Auto-fire devices can be configured to fire during ball search with a configurable delay</li>
+<li>The system prevents multiple firing operations from overlapping </li>
+</ul>
 
 
 
@@ -917,7 +1971,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "navigation.instant", "navigation.tabs"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+      <script src="../assets/javascripts/bundle.081f42fc.min.js"></script>
       
     
   </body>
