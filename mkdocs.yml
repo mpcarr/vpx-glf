@@ -15,21 +15,38 @@ nav:
   #- 'Features': features.md
   - 'Game Logic':
     - Virtual Devices:
-          - 'Ball Device': ball-device.md
-          - 'Flipper': flipper.md
           - 'Auto Fire Device': autofire.md
-    #      - 'Diverter': diverter.md
-    #      - 'Drop Target': drop-target.md
-    #- 'Game Logic Commands':
-    #      - 'Ball Save': ball-save.md
-    #      - 'Counter': counter.md
-    #      - 'Event Player': event-player.md
-    #      - 'Light Player': light-player.md
-    #      - 'Mode': mode.md
-    #      - 'Multiball Locks': multiball-locks.md
-    #      - 'Multiball': multiball.md
-    #      - 'Show Player': show-player.md
-    #      - 'Timer': timer.md
+          - 'Ball Device': ball-device.md
+          - 'Diverter': diverter.md
+          - 'Drop Target': drop-target.md
+          - 'Flipper': flipper.md
+          - 'Magnet': magnet.md
+    - Modes:
+          - 'Ball Save': ball-save.md
+          - 'Combo Switches': combo-switches.md
+          - 'DOF Player': dof-player-config.md
+          - 'Event Player': event-player.md
+          - 'Extra Ball': extra-ball.md
+          - 'High Score': high-score.md
+          - 'Light Player': light-player.md
+          - 'Modes': mode.md
+          - 'Multiball': multiball.md
+          - 'Multiball Locks': multiball-locks.md
+          - 'Queue Event Player': queue-event-player.md
+          - 'Random Event Player': random-event-player.md
+          - 'Shot': shot.md
+          - 'Shot Group': shot-group.md
+          - 'Shot Profile': shot-profile.md
+          - 'Sequence Shot': sequence-shot.md
+          - 'Show Player': show-player.md
+          - 'Slide Player': slide-player.md
+          - 'Sound Player': sound-player.md
+          - 'State Machine': state-machine.md
+          - 'Timer': timer.md
+          - 'Timed Switches': timed-switches.md
+          - 'Tilt': tilt.md
+          - 'Variable Player': variable-player.md
+
     #- 'Events System': events.md
     #- 'Player State': player-state.md
   #- 'Light Controller': light-controller.md
