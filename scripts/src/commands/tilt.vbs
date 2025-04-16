@@ -37,33 +37,9 @@ Class GlfTilt
             m_reset_warnings_events.Add newEvent.Raw, newEvent
         Next
     End Property
-    'Public Property Let TiltEvents(value)
-    '    Dim x
-    '    For x=0 to UBound(value)
-    '        Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-    '        m_tilt_events.Add newEvent.Raw, newEvent
-    '    Next
-    'End Property
-    'Public Property Let TiltWarningEvents(value)
-    '    Dim x
-    '    For x=0 to UBound(value)
-    '        Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-    '        m_tilt_warning_events.Add newEvent.Raw, newEvent
-    '    Next
-    'End Property
-    'Public Property Let SlamTiltEvents(value)
-    '    Dim x
-    '    For x=0 to UBound(value)
-    '        Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-    '        m_tilt_slam_tilt_events.Add newEvent.Raw, newEvent
-    '    Next
-    'End Property
     Public Property Let SettleTime(value): Set m_settle_time = CreateGlfInput(value): End Property
     Public Property Let WarningsToTilt(value): Set m_warnings_to_tilt = CreateGlfInput(value): End Property
     Public Property Let MultipleHitWindow(value): Set m_multiple_hit_window = CreateGlfInput(value): End Property
-    'Public Property Let TiltWarningSwitch(value): m_tilt_warning_switch = value: End Property
-    'Public Property Let TiltSwitch(value): m_tilt_switch = value: End Property
-    'Public Property Let SlamTiltSwitch(value): m_slam_tilt_switch = value: End Property
 
     Private Property Get TiltSettleMsRemaining()
         TiltSettleMsRemaining = 0

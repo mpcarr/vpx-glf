@@ -174,7 +174,7 @@ Class GlfShot
             Dim cEvt
             For Each cEvt in m_control_events(evt).Events().Keys
                 Dim control_events_events : Set control_events_events = m_control_events(evt).Events()
-                AddPinEventListener control_events_events(cEvt).EventName, m_mode & "_" & m_name & "_control_" & cEvt, "ShotEventHandler", m_priority+control_events_events(cEvt)(cEvt).Priority, Array("control", Me, control_events_events(cEvt)(cEvt), m_control_events(evt))
+                AddPinEventListener control_events_events(cEvt).EventName, m_mode & "_" & m_name & "_control_" & cEvt, "ShotEventHandler", m_priority+control_events_events(cEvt).Priority, Array("control", Me, control_events_events(cEvt), m_control_events(evt))
             Next
         Next
         For Each evt in m_reset_events.Keys
@@ -515,7 +515,7 @@ Class GlfShotControlEvent
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-            m_events.Add newEvent.Name, newEvent
+            m_events.Add newEvent.Raw, newEvent
         Next
     End Property
 

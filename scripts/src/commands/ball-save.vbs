@@ -31,7 +31,7 @@ Class BallSave
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-            m_timer_start_events.Add newEvent.Name, newEvent
+            m_timer_start_events.Add newEvent.Raw, newEvent
         Next
     End Property
     Public Property Let AutoLaunch(value) : m_auto_launch = value : End Property

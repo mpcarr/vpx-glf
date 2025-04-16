@@ -13,7 +13,7 @@ Class GlfBaseModeDevice
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-            m_enable_events.Add newEvent.Name, newEvent
+            m_enable_events.Add newEvent.Raw, newEvent
         Next
     End Property
     Public Property Get DisableEvents(): Set DisableEvents = m_disable_events: End Property
@@ -21,7 +21,7 @@ Class GlfBaseModeDevice
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-            m_disable_events.Add newEvent.Name, newEvent
+            m_disable_events.Add newEvent.Raw, newEvent
         Next
     End Property
 

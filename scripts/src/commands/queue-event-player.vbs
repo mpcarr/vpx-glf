@@ -32,9 +32,9 @@ Class GlfQueueEventPlayer
 
     Public Sub Add(key, value)
         Dim newEvent : Set newEvent = (new GlfEvent)(key)
-        m_events.Add newEvent.Name, newEvent
+        m_events.Add newEvent.Raw, newEvent
         'msgbox newEvent.Name
-        m_eventValues.Add newEvent.Name, value  
+        m_eventValues.Add newEvent.Raw, value  
     End Sub
 
     Public Sub Activate()

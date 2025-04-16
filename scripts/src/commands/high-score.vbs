@@ -247,7 +247,7 @@ Class GlfHighScore
         For Each key in keys
             Dim s
             For Each s in m_highscores(key).Keys()
-                Dim high_scores_item : high_scores_item = m_highscores(key)
+                Dim high_scores_item : Set high_scores_item = m_highscores(key)
                 If high_scores_item(s)("player_num") = initials_item("player_num") Then
                     'msgbox "Setting Player " & m_current_initials+1 & " Name to >" & text & "<"
                     high_scores_item(s)("player_name") = text

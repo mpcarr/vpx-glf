@@ -61,7 +61,7 @@ Dim glf_achievements : Set glf_achievements = CreateObject("Scripting.Dictionary
 Dim glf_sound_buses : Set glf_sound_buses = CreateObject("Scripting.Dictionary")
 Dim glf_sounds : Set glf_sounds = CreateObject("Scripting.Dictionary")
 Dim glf_combo_switches : Set glf_combo_switches = CreateObject("Scripting.Dictionary")
-
+Dim glf_funcRefMap : Set glf_funcRefMap = CreateObject("Scripting.Dictionary")
 Dim bcpController : bcpController = Null
 Dim glf_debugBcpController : glf_debugBcpController = Null
 Dim glf_hasDebugController : glf_hasDebugController = False
@@ -69,13 +69,13 @@ Dim glf_monitor_player_state : glf_monitor_player_state = ""
 Dim glf_monitor_modes : glf_monitor_modes = ""
 Dim glf_monitor_event_stream : glf_monitor_event_stream = ""
 Dim glf_running_modes : glf_running_modes = ""
-
+Dim glf_production_mode : glf_production_mode = True
 Dim useGlfBCPMonitor : useGlfBCPMonitor = False
 Dim useBCP : useBCP = False
 Dim bcpPort : bcpPort = 5050
 Dim bcpExeName : bcpExeName = ""
 Dim glf_BIP : glf_BIP = 0
-Dim glf_FuncCount : glf_FuncCount = 0
+Dim glf_FuncCount : glf_FuncCount = 2000
 Dim glf_SeqCount : glf_SeqCount = 0
 Dim glf_max_dispatch : glf_max_dispatch = 25
 Dim glf_max_lightmap_sync : glf_max_lightmap_sync = -1
@@ -92,7 +92,7 @@ Dim glf_debugLog : Set glf_debugLog = (new GlfDebugLogFile)()
 Dim glf_debugEnabled : glf_debugEnabled = False
 Dim glf_debug_level : glf_debug_level = "Info"
 
-Glf_RegisterLights()
+
 Dim glf_ball1, glf_ball2, glf_ball3, glf_ball4, glf_ball5, glf_ball6, glf_ball7, glf_ball8	
 
 Public Sub Glf_ConnectToBCPMediaController(args)
@@ -123,7 +123,7 @@ End Function
 
 Public Sub Glf_Init()
 	Glf_Options Null 'Force Options Check
-
+	Glf_RegisterLights()
 	glf_debugLog.WriteToLog "Init", "Start"
 	If glf_troughSize > 0 Then : swTrough1.DestroyBall : Set glf_ball1 = swTrough1.CreateSizedballWithMass(Ballsize / 2,Ballmass) : gBot = Array(glf_ball1) : Set glf_lastTroughSw = swTrough1 : End If
 	If glf_troughSize > 1 Then : swTrough2.DestroyBall : Set glf_ball2 = swTrough2.CreateSizedballWithMass(Ballsize / 2,Ballmass) : gBot = Array(glf_ball1, glf_ball2) : Set glf_lastTroughSw = swTrough2 : End If
@@ -477,18 +477,6 @@ Public Sub Glf_Init()
 	Glf_ReadMachineVars("HighScores")
 	glf_debugLog.WriteToLog "Init", "Finished Creating Machine Vars"
 	glf_debugLog.WriteToLog "Code String", glf_codestr
-
-	
-    With CreateGlfMode("glf_game_mode", 10)
-        .StartEvents = Array("reset_complete")
-
-        With .ComboSwitches("flipper_cancel")
-            .Switch1 = "s_left_flipper"
-			.Switch2 = "s_start"
-            .HoldTime = 5000
-            .EventsWhenBoth = Array("glf_game_cancel")
-        End With
-    End With
 
 	Glf_Reset()
 End Sub
@@ -996,13 +984,15 @@ End Function
 Dim glf_tmp_lmarr
 Public Function Glf_RegisterLights()
 
-	Dim elementDict : Set elementDict = CreateObject("Scripting.Dictionary")
+	If glf_production_mode = False Then
+		Dim elementDict : Set elementDict = CreateObject("Scripting.Dictionary")
 
-	For Each e in GetElements()
-		If typename(e) = "Primitive" or typename(e) = "Flasher"  Then
-			elementDict.Add LCase(e.Name), True
-		End If
-	Next
+		For Each e in GetElements()
+			If typename(e) = "Primitive" or typename(e) = "Flasher"  Then
+				elementDict.Add LCase(e.Name), True
+			End If
+		Next
+	End If
 
 	Dim light, tags, tag
 	For Each light In Glf_Lights
@@ -1018,24 +1008,25 @@ Public Function Glf_RegisterLights()
 			End If
 		Next
 		glf_lightPriority.Add light.Name, 0
-		
-		Dim e, lmStr: lmStr = "glf_tmp_lmarr = Array("    
-		For Each e in elementDict.Keys
-			If InStr(e, LCase("_" & light.Name & "_")) Then
-				lmStr = lmStr & e & ","
-			End If
-			For Each tag in tags
-				tag = "T_" & Trim(tag)
-				If InStr(e, LCase("_" & tag & "_")) Then
+		If glf_production_mode = False Then
+			Dim e, lmStr: lmStr = "glf_tmp_lmarr = Array("    
+			For Each e in elementDict.Keys
+				If InStr(e, LCase("_" & light.Name & "_")) Then
 					lmStr = lmStr & e & ","
 				End If
+				For Each tag in tags
+					tag = "T_" & Trim(tag)
+					If InStr(e, LCase("_" & tag & "_")) Then
+						lmStr = lmStr & e & ","
+					End If
+				Next
 			Next
-		Next
-		lmStr = lmStr & "Null)"
-		lmStr = Replace(lmStr, ",Null)", ")")
-		lmStr = Replace(lmStr, "Null)", ")")
-		ExecuteGlobal lmStr
-		glf_lightMaps.Add light.Name, glf_tmp_lmarr
+			lmStr = lmStr & "Null)"
+			lmStr = Replace(lmStr, ",Null)", ")")
+			lmStr = Replace(lmStr, "Null)", ")")
+			ExecuteGlobal lmStr
+			glf_lightMaps.Add light.Name, glf_tmp_lmarr
+		End If
 		glf_lightNames.Add light.Name, light
 		Dim lightStack : Set lightStack = (new GlfLightStack)()
 		glf_lightStacks.Add light.Name, lightStack
@@ -1072,21 +1063,39 @@ Public Function Glf_ParseInput(value)
 	Dim templateCode : templateCode = ""
 	Dim tmp: tmp = value
 	Dim isVariable, parts
-    Select Case VarType(value)
-        Case 8 ' vbString
-			tmp = Glf_ReplaceCurrentPlayerAttributes(tmp)
-			tmp = Glf_ReplaceAnyPlayerAttributes(tmp)
-			tmp = Glf_ReplaceDeviceAttributes(tmp)
-			tmp = Glf_ReplaceMachineAttributes(tmp)
-			tmp = Glf_ReplaceModeAttributes(tmp)
-			tmp = Glf_ReplaceGameAttributes(tmp)
-			tmp = Glf_ReplaceKwargsAttributes(tmp)
-			'msgbox tmp
-			If InStr(tmp, " if ") Then
-				templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
-				templateCode = templateCode & vbTab & Glf_ConvertIf(tmp, "Glf_" & glf_FuncCount) & vbCrLf
-				templateCode = templateCode & "End Function"
-			Else
+	If glf_funcRefMap.Exists(CStr(value)) Then
+		'msgbox "match " & value & " REF: " & glf_funcRefMap(value)
+		Glf_ParseInput = Array(glf_funcRefMap(CStr(value)), value, True)
+	Else
+		Select Case VarType(value)
+			Case 8 ' vbString
+				tmp = Glf_ReplaceCurrentPlayerAttributes(tmp)
+				tmp = Glf_ReplaceAnyPlayerAttributes(tmp)
+				tmp = Glf_ReplaceDeviceAttributes(tmp)
+				tmp = Glf_ReplaceMachineAttributes(tmp)
+				tmp = Glf_ReplaceModeAttributes(tmp)
+				tmp = Glf_ReplaceGameAttributes(tmp)
+				tmp = Glf_ReplaceKwargsAttributes(tmp)
+				'msgbox tmp
+				If InStr(tmp, " if ") Then
+					templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
+					templateCode = templateCode & vbTab & Glf_ConvertIf(tmp, "Glf_" & glf_FuncCount) & vbCrLf
+					templateCode = templateCode & "End Function"
+				Else
+					isVariable = Glf_IsCondition(tmp)
+					If Not IsNull(isVariable) Then
+						'The input needs formatting
+						parts = Split(isVariable, ":")
+						If UBound(parts) = 1 Then
+							tmp = "Glf_FormatValue(" & parts(0) & ", """ & parts(1) & """)"
+						End If
+					End If
+					templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
+					templateCode = templateCode & vbTab & "Glf_" & glf_FuncCount & " = " & tmp & vbCrLf
+					templateCode = templateCode & "End Function"
+				End IF
+			Case Else
+				templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf			
 				isVariable = Glf_IsCondition(tmp)
 				If Not IsNull(isVariable) Then
 					'The input needs formatting
@@ -1095,29 +1104,20 @@ Public Function Glf_ParseInput(value)
 						tmp = "Glf_FormatValue(" & parts(0) & ", """ & parts(1) & """)"
 					End If
 				End If
-				templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
 				templateCode = templateCode & vbTab & "Glf_" & glf_FuncCount & " = " & tmp & vbCrLf
 				templateCode = templateCode & "End Function"
-			End IF
-        Case Else
-			templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf			
-			isVariable = Glf_IsCondition(tmp)
-			If Not IsNull(isVariable) Then
-				'The input needs formatting
-				parts = Split(isVariable, ":")
-				If UBound(parts) = 1 Then
-					tmp = "Glf_FormatValue(" & parts(0) & ", """ & parts(1) & """)"
-				End If
-			End If
-			templateCode = templateCode & vbTab & "Glf_" & glf_FuncCount & " = " & tmp & vbCrLf
-			templateCode = templateCode & "End Function"
-    End Select
-	'msgbox templateCode
-	ExecuteGlobal templateCode
-	glf_codestr = glf_codestr & templateCode & vbCrLf
-	Dim funcRef : funcRef = "Glf_" & glf_FuncCount
-	glf_FuncCount = glf_FuncCount + 1
-	Glf_ParseInput = Array(funcRef, value, True)
+		End Select
+		'msgbox templateCode
+		ExecuteGlobal templateCode
+		glf_codestr = glf_codestr & templateCode & vbCrLf
+		Dim funcRef : funcRef = "Glf_" & glf_FuncCount
+		If Not glf_funcRefMap.Exists(CStr(value)) Then
+			glf_codestr = glf_codestr & "glf_funcRefMap.Add """ & Replace(value, """", """""") & """, """ & funcRef & """" & vbCrLf
+			glf_funcRefMap.Add CStr(value), funcRef
+		End If
+		glf_FuncCount = glf_FuncCount + 1
+		Glf_ParseInput = Array(funcRef, value, True)
+	End If
 End Function
 
 Public Function Glf_ParseEventInput(value)
@@ -1139,6 +1139,19 @@ Public Function Glf_ParseEventInput(value)
 		End If
 		Glf_ParseEventInput = Array(value, value, Null, event_delay, priority)
 	Else
+
+		If glf_funcRefMap.Exists(value) Then
+			Dim func_ref : func_ref = glf_funcRefMap(value)
+			value = Replace(value, "{"&condition&"}", "")
+			parts = Split(value, ".")
+			If UBound(parts) = 1 Then
+				value = parts(0)
+				priority= parts(1)
+			End If
+			Glf_ParseEventInput = Array(value & func_ref, value, func_ref, event_delay, priority)
+			Exit Function
+		End If
+
 		dim conditionReplaced : conditionReplaced = Glf_ReplaceCurrentPlayerAttributes(condition)
 		conditionReplaced = Glf_ReplaceAnyPlayerAttributes(conditionReplaced)
 		conditionReplaced = Glf_ReplaceDeviceAttributes(conditionReplaced)
@@ -1156,7 +1169,10 @@ Public Function Glf_ParseEventInput(value)
 		glf_codestr = glf_codestr & templateCode & vbCrLf
 		Dim funcRef : funcRef = "Glf_" & glf_FuncCount
 		glf_FuncCount = glf_FuncCount + 1
-
+		If Not glf_funcRefMap.Exists(value) Then
+			glf_codestr = glf_codestr & "glf_funcRefMap.Add """ & Replace(value, """", """""") & """, """ & funcRef & """" & vbCrLf
+			glf_funcRefMap.Add value, funcRef
+		End If
 		value = Replace(value, "{"&condition&"}", "")
 		parts = Split(value, ".")
 		If UBound(parts) = 1 Then
@@ -1196,7 +1212,7 @@ Public Function Glf_ParseDispatchEventInput(value)
 		templateCode = templateCode & "End Function"
 		'msgbox templateCode
 		ExecuteGlobal templateCode
-		glf_codestr = glf_codestr & templateCode & vbCrLf
+		'glf_codestr = glf_codestr & templateCode & vbCrLf
 		Dim funcRef : funcRef = "Glf_" & glf_FuncCount
 		glf_FuncCount = glf_FuncCount + 1
 
@@ -2410,6 +2426,7 @@ Class GlfInput
 	End Property
 
     Public Property Get Raw() : Raw = m_raw : End Property
+	Public Property Get RawMValue() : RawMValue = m_value : End Property
 
 	Public Property Get IsPlayerState() : IsPlayerState = m_isPlayerState : End Property
 	Public Property Get PlayerStateValue() : PlayerStateValue = m_playerStateValue : End Property		
@@ -2607,7 +2624,6 @@ Function PadHex(hexValue)
         PadHex = hexValue
     End If
 End Function
-
 
 '******************************************************
 '*****   GLF Pin Events                            ****

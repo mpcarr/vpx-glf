@@ -249,7 +249,7 @@ Class GlfStateMachineState
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-            m_events_when_started.Add newEvent.Name, newEvent
+            m_events_when_started.Add newEvent.Raw, newEvent
         Next    
     End Property
  
@@ -258,7 +258,7 @@ Class GlfStateMachineState
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-            m_events_when_stopped.Add newEvent.Name, newEvent
+            m_events_when_stopped.Add newEvent.Raw, newEvent
         Next
     End Property
  
@@ -293,7 +293,7 @@ Class GlfStateMachineTranistion
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-            m_events.Add newEvent.Name, newEvent
+            m_events.Add newEvent.Raw, newEvent
         Next    
     End Property
  
@@ -302,7 +302,7 @@ Class GlfStateMachineTranistion
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-            m_events_when_transitioning.Add newEvent.Name, newEvent
+            m_events_when_transitioning.Add newEvent.Raw, newEvent
         Next    
     End Property
  

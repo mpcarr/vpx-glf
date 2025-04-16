@@ -46,7 +46,7 @@ Class GlfBallHold
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-            m_release_all_events.Add newEvent.Name, newEvent
+            m_release_all_events.Add newEvent.Raw, newEvent
         Next
     End Property
 
@@ -55,7 +55,7 @@ Class GlfBallHold
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-            m_release_one_events.Add newEvent.Name, newEvent
+            m_release_one_events.Add newEvent.Raw, newEvent
         Next
     End Property
 
@@ -64,7 +64,7 @@ Class GlfBallHold
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-            m_release_one_if_full_events.Add newEvent.Name, newEvent
+            m_release_one_if_full_events.Add newEvent.Raw, newEvent
         Next
     End Property
 

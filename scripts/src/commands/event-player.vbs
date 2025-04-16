@@ -32,8 +32,8 @@ Class GlfEventPlayer
 
     Public Sub Add(key, value)
         Dim newEvent : Set newEvent = (new GlfEvent)(key)
-        m_events.Add newEvent.Name, newEvent
-        'msgbox newEvent.Name
+        m_events.Add newEvent.Raw, newEvent
+        
         Dim evtValue, evtValues(), i
         Redim evtValues(UBound(value))
         i=0
@@ -42,7 +42,7 @@ Class GlfEventPlayer
             Set evtValues(i) = newEventValue
             i=i+1
         Next
-        m_eventValues.Add newEvent.Name, evtValues  
+        m_eventValues.Add newEvent.Raw, evtValues  
     End Sub
 
     Public Sub Activate()

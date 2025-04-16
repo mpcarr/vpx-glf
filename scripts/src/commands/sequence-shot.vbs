@@ -43,7 +43,7 @@ Class GlfSequenceShots
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-            m_cancel_events.Add newEvent.Name, newEvent
+            m_cancel_events.Add newEvent.Raw, newEvent
         Next
     End Property
     Public Property Let CancelSwitches(value): m_cancel_switches = value: End Property
@@ -51,7 +51,7 @@ Class GlfSequenceShots
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-            m_delay_event_list.Add newEvent.Name, newEvent
+            m_delay_event_list.Add newEvent.Raw, newEvent
         Next
     End Property
     Public Property Let DelaySwitchList(value): m_delay_switch_list = value: End Property

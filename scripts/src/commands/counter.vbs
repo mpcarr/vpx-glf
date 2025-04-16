@@ -19,14 +19,14 @@ Class GlfCounter
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-            m_enable_events.Add newEvent.Name, newEvent
+            m_enable_events.Add newEvent.Raw, newEvent
         Next
     End Property
     Public Property Let CountEvents(value)
         Dim x
         For x=0 to UBound(value)
             Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
-            m_count_events.Add newEvent.Name, newEvent
+            m_count_events.Add newEvent.Raw, newEvent
         Next
     End Property
     Public Property Let CountCompleteValue(value) : m_count_complete_value = value : End Property
