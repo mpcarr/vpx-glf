@@ -1,5 +1,12 @@
 site_name: VPX Game Logic Framework
 site_url: https://mpcarr.github.io/vpx-gle-framework/
+site_author: flux
+site_description: A Visual Pinball X framework for creating pinball game logic and rules using Visual Basic Script
+# Repository
+repo_name: mpcarr/vpx-gle-framework
+repo_url: https://github.com/mpcarr/vpx-gle-framework
+
+
 nav:
   - 'Getting Started':
     - 'Installation': installing.md
@@ -53,7 +60,6 @@ nav:
     #- 'Player State': player-state.md
   #- 'Light Controller': light-controller.md
   #- 'DMD / LCD': dmd-lcd.md
-  - About: about.md
 extra_css:
   - stylesheets/extra.css
 theme:
