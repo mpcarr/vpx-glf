@@ -1,5 +1,7 @@
 # Shot Configuration
 
+> For a step-by-step guide on how to configure shots, see the [Shots Tutorial](../tutorial/tutorial-shots.md).
+
 The shot configuration allows you to set up and customize individual shots in your pinball machine. Shots are the primary interactive elements that players can hit to score points and trigger game events.
 
 ## Configuration Options

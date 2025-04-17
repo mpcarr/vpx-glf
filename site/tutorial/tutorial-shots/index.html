@@ -8,28 +8,28 @@
       
       
       
-        <link rel="canonical" href="https://mpcarr.github.io/vpx-gle-framework/multiball-locks/">
+        <link rel="canonical" href="https://mpcarr.github.io/vpx-gle-framework/tutorial/tutorial-shots/">
       
       
-        <link rel="prev" href="../multiball/">
+        <link rel="prev" href="../tutorial-scoring/">
       
       
-        <link rel="next" href="../queue-event-player/">
+        <link rel="next" href="../../autofire/">
       
       
-      <link rel="icon" href="../assets/images/favicon.png">
+      <link rel="icon" href="../../assets/images/favicon.png">
       <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.25">
     
     
       
-        <title>Multiball Locks - VPX Game Logic Framework</title>
+        <title>Shots - VPX Game Logic Framework</title>
       
     
     
-      <link rel="stylesheet" href="../assets/stylesheets/main.6543a935.min.css">
+      <link rel="stylesheet" href="../../assets/stylesheets/main.6543a935.min.css">
       
         
-        <link rel="stylesheet" href="../assets/stylesheets/palette.06af60db.min.css">
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.06af60db.min.css">
       
       
 
@@ -48,9 +48,9 @@
       
     
     
-      <link rel="stylesheet" href="../stylesheets/extra.css">
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
     
-    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
 
@@ -76,7 +76,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#multiball-locks-configuration" class="md-skip">
+        <a href="#tutorial-shots" class="md-skip">
           Skip to content
         </a>
       
@@ -90,7 +90,7 @@
 
 <header class="md-header" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
-    <a href=".." title="VPX Game Logic Framework" class="md-header__button md-logo" aria-label="VPX Game Logic Framework" data-md-component="logo">
+    <a href="../.." title="VPX Game Logic Framework" class="md-header__button md-logo" aria-label="VPX Game Logic Framework" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -110,7 +110,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Multiball Locks
+              Shots
             
           </span>
         </div>
@@ -203,11 +203,13 @@
         
   
   
+    
+  
   
     
     
-      <li class="md-tabs__item">
-        <a href="../installing/" class="md-tabs__link">
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../../installing/" class="md-tabs__link">
           
   
   Getting Started
@@ -221,21 +223,17 @@
         
   
   
-    
-  
   
     
     
       
   
   
-    
-  
   
     
     
-      <li class="md-tabs__item md-tabs__item--active">
-        <a href="../autofire/" class="md-tabs__link">
+      <li class="md-tabs__item">
+        <a href="../../autofire/" class="md-tabs__link">
           
   
   Game Logic
@@ -254,7 +252,7 @@
   
   
     <li class="md-tabs__item">
-      <a href="../about/" class="md-tabs__link">
+      <a href="../../about/" class="md-tabs__link">
         
   
     
@@ -288,7 +286,7 @@
 
 <nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
-    <a href=".." title="VPX Game Logic Framework" class="md-nav__button md-logo" aria-label="VPX Game Logic Framework" data-md-component="logo">
+    <a href="../.." title="VPX Game Logic Framework" class="md-nav__button md-logo" aria-label="VPX Game Logic Framework" data-md-component="logo">
       
   
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
@@ -298,307 +296,6 @@
   </label>
   
   <ul class="md-nav__list" data-md-scrollfix>
-    
-      
-      
-  
-  
-  
-  
-    
-    
-    
-      
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" >
-        
-          
-          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="0">
-            
-  
-  <span class="md-ellipsis">
-    Getting Started
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_1">
-            <span class="md-nav__icon md-icon"></span>
-            Getting Started
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../installing/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Installation
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    
-    
-    
-      
-      
-    
-    
-    <li class="md-nav__item md-nav__item--nested">
-      
-        
-        
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" >
-        
-          
-          <label class="md-nav__link" for="__nav_1_2" id="__nav_1_2_label" tabindex="0">
-            
-  
-  <span class="md-ellipsis">
-    Tutorial
-  </span>
-  
-
-            <span class="md-nav__icon md-icon"></span>
-          </label>
-        
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_1_2">
-            <span class="md-nav__icon md-icon"></span>
-            Tutorial
-          </label>
-          <ul class="md-nav__list" data-md-scrollfix>
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial/tutorial-trough/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Trough
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial/tutorial-plunger/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Plunger
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial/tutorial-flippers/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Flippers
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial/tutorial-autofire/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Auto Fire Devices
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial/tutorial-lights/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Lights
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial/tutorial-ball-devices/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Ball Devices
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial/tutorial-ballsave/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Ball Save
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial/tutorial-scoring/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Scoring
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial/tutorial-shots/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Shots
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
-              
-            
-          </ul>
-        </nav>
-      
-    </li>
-  
-
     
       
       
@@ -622,10 +319,460 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1" checked>
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+          <label class="md-nav__link" for="__nav_1" id="__nav_1_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Getting Started
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1">
+            <span class="md-nav__icon md-icon"></span>
+            Getting Started
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../installing/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Installation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_1_2" id="__nav_1_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Tutorial
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1_2">
+            <span class="md-nav__icon md-icon"></span>
+            Tutorial
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-trough/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Trough
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-plunger/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Plunger
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-flippers/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Flippers
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-autofire/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Auto Fire Devices
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-lights/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Lights
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-ball-devices/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Devices
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-ballsave/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Save
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-scoring/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scoring
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Shots
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Shots
+  </span>
+  
+
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#what-are-shots" class="md-nav__link">
+    <span class="md-ellipsis">
+      What are Shots?
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#shot-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shot Configuration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Shot Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#basic-shot-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Basic Shot Setup
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shot-profiles" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shot Profiles
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-shot-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Shot Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shot-groups" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shot Groups
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#shot-states-and-events" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shot States and Events
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mode-specific-shot-behavior" class="md-nav__link">
+    <span class="md-ellipsis">
+      Mode-Specific Shot Behavior
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#sequence-shots" class="md-nav__link">
+    <span class="md-ellipsis">
+      Sequence Shots
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#enabling-the-modes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Enabling the Modes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conclusion
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -636,7 +783,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
             Game Logic
@@ -688,7 +835,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../autofire/" class="md-nav__link">
+      <a href="../../autofire/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -709,7 +856,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ball-device/" class="md-nav__link">
+      <a href="../../ball-device/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -730,7 +877,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../diverter/" class="md-nav__link">
+      <a href="../../diverter/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -751,7 +898,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../drop-target/" class="md-nav__link">
+      <a href="../../drop-target/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -772,7 +919,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../flipper/" class="md-nav__link">
+      <a href="../../flipper/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -793,7 +940,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../magnet/" class="md-nav__link">
+      <a href="../../magnet/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -819,8 +966,6 @@
                 
   
   
-    
-  
   
   
     
@@ -830,11 +975,11 @@
       
     
     
-    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--nested">
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
         
           
           <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
@@ -848,7 +993,7 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="true">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2_2">
             <span class="md-nav__icon md-icon"></span>
             Modes
@@ -862,7 +1007,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../ball-save/" class="md-nav__link">
+      <a href="../../ball-save/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -883,7 +1028,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../combo-switches/" class="md-nav__link">
+      <a href="../../combo-switches/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -904,7 +1049,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../dof-player-config.md" class="md-nav__link">
+      <a href="../../dof-player-config.md" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -925,7 +1070,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../event-player/" class="md-nav__link">
+      <a href="../../event-player/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -946,7 +1091,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../extra-ball/" class="md-nav__link">
+      <a href="../../extra-ball/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -967,7 +1112,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../high-score/" class="md-nav__link">
+      <a href="../../high-score/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -988,7 +1133,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../light-player/" class="md-nav__link">
+      <a href="../../light-player/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1009,7 +1154,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../mode/" class="md-nav__link">
+      <a href="../../mode/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1030,7 +1175,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../multiball/" class="md-nav__link">
+      <a href="../../multiball/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1048,30 +1193,10 @@
                 
   
   
-    
   
   
-  
-    <li class="md-nav__item md-nav__item--active">
-      
-      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
-      
-      
-        
-      
-      
-        <label class="md-nav__link md-nav__link--active" for="__toc">
-          
-  
-  <span class="md-ellipsis">
-    Multiball Locks
-  </span>
-  
-
-          <span class="md-nav__icon md-icon"></span>
-        </label>
-      
-      <a href="./" class="md-nav__link md-nav__link--active">
+    <li class="md-nav__item">
+      <a href="../../multiball-locks/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1080,172 +1205,6 @@
   
 
       </a>
-      
-        
-
-  
-
-<nav class="md-nav md-nav--secondary" aria-label="On this page">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      On this page
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#configuration-options" class="md-nav__link">
-    <span class="md-ellipsis">
-      Configuration Options
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Configuration Options">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#basic-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Basic Configuration
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#advanced-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Advanced Configuration
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#property-descriptions" class="md-nav__link">
-    <span class="md-ellipsis">
-      Property Descriptions
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Property Descriptions">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#lock-settings" class="md-nav__link">
-    <span class="md-ellipsis">
-      Lock Settings
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#event-control" class="md-nav__link">
-    <span class="md-ellipsis">
-      Event Control
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#debug-settings" class="md-nav__link">
-    <span class="md-ellipsis">
-      Debug Settings
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#example-configurations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Example Configurations
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Example Configurations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#basic-multiball-lock-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      Basic Multiball Lock Example
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#advanced-multiball-lock-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      Advanced Multiball Lock Example
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#lock-tracking" class="md-nav__link">
-    <span class="md-ellipsis">
-      Lock Tracking
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#events" class="md-nav__link">
-    <span class="md-ellipsis">
-      Events
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#default-behavior" class="md-nav__link">
-    <span class="md-ellipsis">
-      Default Behavior
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#notes" class="md-nav__link">
-    <span class="md-ellipsis">
-      Notes
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-      
     </li>
   
 
@@ -1258,7 +1217,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../queue-event-player/" class="md-nav__link">
+      <a href="../../queue-event-player/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1279,7 +1238,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../random-event-player/" class="md-nav__link">
+      <a href="../../random-event-player/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1300,7 +1259,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../shot/" class="md-nav__link">
+      <a href="../../shot/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1321,7 +1280,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../shot-group/" class="md-nav__link">
+      <a href="../../shot-group/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1342,7 +1301,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../shot-profile/" class="md-nav__link">
+      <a href="../../shot-profile/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1363,7 +1322,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../sequence-shot/" class="md-nav__link">
+      <a href="../../sequence-shot/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1384,7 +1343,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../show-player/" class="md-nav__link">
+      <a href="../../show-player/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1405,7 +1364,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../slide-player/" class="md-nav__link">
+      <a href="../../slide-player/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1426,7 +1385,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../sound-player/" class="md-nav__link">
+      <a href="../../sound-player/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1447,7 +1406,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../state-machine/" class="md-nav__link">
+      <a href="../../state-machine/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1468,7 +1427,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../timer/" class="md-nav__link">
+      <a href="../../timer/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1489,7 +1448,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../timed-switches/" class="md-nav__link">
+      <a href="../../timed-switches/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1510,7 +1469,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../tilt/" class="md-nav__link">
+      <a href="../../tilt/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1531,7 +1490,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../variable-player/" class="md-nav__link">
+      <a href="../../variable-player/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1567,7 +1526,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../about/" class="md-nav__link">
+      <a href="../../about/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1609,28 +1568,55 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#configuration-options" class="md-nav__link">
+  <a href="#what-are-shots" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuration Options
+      What are Shots?
     </span>
   </a>
   
-    <nav class="md-nav" aria-label="Configuration Options">
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#shot-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shot Configuration
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Shot Configuration">
       <ul class="md-nav__list">
         
           <li class="md-nav__item">
-  <a href="#basic-configuration" class="md-nav__link">
+  <a href="#basic-shot-setup" class="md-nav__link">
     <span class="md-ellipsis">
-      Basic Configuration
+      Basic Shot Setup
     </span>
   </a>
   
 </li>
         
           <li class="md-nav__item">
-  <a href="#advanced-configuration" class="md-nav__link">
+  <a href="#shot-profiles" class="md-nav__link">
     <span class="md-ellipsis">
-      Advanced Configuration
+      Shot Profiles
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#advanced-shot-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Advanced Shot Configuration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shot-groups" class="md-nav__link">
+    <span class="md-ellipsis">
+      Shot Groups
     </span>
   </a>
   
@@ -1642,111 +1628,45 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#property-descriptions" class="md-nav__link">
+  <a href="#shot-states-and-events" class="md-nav__link">
     <span class="md-ellipsis">
-      Property Descriptions
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Property Descriptions">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#lock-settings" class="md-nav__link">
-    <span class="md-ellipsis">
-      Lock Settings
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#event-control" class="md-nav__link">
-    <span class="md-ellipsis">
-      Event Control
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#debug-settings" class="md-nav__link">
-    <span class="md-ellipsis">
-      Debug Settings
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#example-configurations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Example Configurations
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Example Configurations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#basic-multiball-lock-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      Basic Multiball Lock Example
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#advanced-multiball-lock-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      Advanced Multiball Lock Example
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#lock-tracking" class="md-nav__link">
-    <span class="md-ellipsis">
-      Lock Tracking
+      Shot States and Events
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#events" class="md-nav__link">
+  <a href="#mode-specific-shot-behavior" class="md-nav__link">
     <span class="md-ellipsis">
-      Events
+      Mode-Specific Shot Behavior
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#default-behavior" class="md-nav__link">
+  <a href="#sequence-shots" class="md-nav__link">
     <span class="md-ellipsis">
-      Default Behavior
+      Sequence Shots
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#notes" class="md-nav__link">
+  <a href="#enabling-the-modes" class="md-nav__link">
     <span class="md-ellipsis">
-      Notes
+      Enabling the Modes
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#conclusion" class="md-nav__link">
+    <span class="md-ellipsis">
+      Conclusion
     </span>
   </a>
   
@@ -1767,122 +1687,205 @@
                   
 
 
-<h1 id="multiball-locks-configuration">Multiball Locks Configuration</h1>
-<p>The multiball locks configuration allows you to set up and customize ball locking mechanisms for multiball modes in your pinball machine. Multiball locks are devices that capture and hold balls until they are released for multiball play.</p>
-<h2 id="configuration-options">Configuration Options</h2>
-<h3 id="basic-configuration">Basic Configuration</h3>
-<pre><code class="language-vbscript">' Basic multiball lock configuration within a mode
-With CreateGlfMode(&quot;mode_name&quot;, priority)
-    .StartEvents = Array(&quot;ball_started&quot;)
-    .StopEvents = Array(&quot;ball_ended&quot;)
-
-    With .MultiballLock(&quot;lock_name&quot;)
-        .LockDevice = &quot;ball_device&quot;   ' Ball device that acts as the lock
-        .BallsToLock = 3              ' Number of balls that can be locked
+<h1 id="tutorial-shots">Tutorial - Shots</h1>
+<p>Let's add shots to our pinball table. Shots are the primary interactive elements that players can hit to score points and trigger game events. In this tutorial, we'll learn how to configure shots, shot profiles, and shot groups.</p>
+<h2 id="what-are-shots">What are Shots?</h2>
+<p>In pinball, a "shot" is a switch (or combination of switches) that the player shoots for. Examples include:</p>
+<ul>
+<li>A standup target, drop target, or rollover lane</li>
+<li>A ramp, loop, or orbit</li>
+<li>A toy, subway, or VUK (Vertical Up Kicker)</li>
+</ul>
+<p>Most shots have lights or LEDs associated with them which are on, off, flashing, and/or certain colors to reflect what "state" the shot is in.</p>
+<h2 id="shot-configuration">Shot Configuration</h2>
+<h3 id="basic-shot-setup">Basic Shot Setup</h3>
+<p>First, let's create a basic shot configuration:</p>
+<pre><code>Sub CreateBaseMode()
+    With CreateGlfMode(&quot;base&quot;, 1000)
+        ' Configure a basic shot
+        With .Shot(&quot;left_ramp&quot;)
+            .Switch = &quot;sw_left_ramp&quot;
+            .Profile = &quot;ramp_profile&quot;
+        End With
     End With
-End With
+End Sub
 </code></pre>
-<h3 id="advanced-configuration">Advanced Configuration</h3>
-<pre><code class="language-vbscript">' Advanced multiball lock configuration within a mode
-With CreateGlfMode(&quot;mode_name&quot;, priority)
-    .StartEvents = Array(&quot;ball_started&quot;)
-    .StopEvents = Array(&quot;ball_ended&quot;)
+<p>This configuration:
+1. Creates a shot called "left_ramp" in the "base" mode
+2. Configures it to be triggered by the "sw_left_ramp" switch
+3. Uses the "ramp_profile" shot profile to define its behavior</p>
+<h3 id="shot-profiles">Shot Profiles</h3>
+<p>Before we can use a shot profile, we need to define it. Shot profiles define how shots behave, including their states and visual effects:</p>
+<pre><code>Sub CreateShotProfiles()
+    ' Create a basic ramp profile
+    With CreateGlfShotProfile(&quot;ramp_profile&quot;)
+        ' Configure basic settings
+        .AdvanceOnHit = True
+        .Block = False
+        .ProfileLoop = False
 
-    With .MultiballLock(&quot;lock_name&quot;)
-        ' Lock settings
-        .LockDevice = &quot;ball_device&quot;   ' Ball device that acts as the lock
-        .BallsToLock = 3              ' Number of balls that can be locked
-        .BallsToReplace = 1           ' Number of balls to replace when locked (Default: -1, meaning all)
+        ' Configure states
+        With .States(&quot;unlit&quot;)
+            .Show = &quot;off&quot;
+            .Key = &quot;key_ramp_unlit&quot;
+        End With
 
-        ' Event settings
-        .LockEvents = Array(&quot;event1&quot;, &quot;event2&quot;) ' Events that trigger ball locking
-        .ResetEvents = Array(&quot;event3&quot;, &quot;event4&quot;) ' Events that reset the lock count
+        With .States(&quot;flashing&quot;)
+            .Show = &quot;flash&quot;
+            .Key = &quot;key_ramp_flashing&quot;
+            With .Tokens
+                .Add &quot;color&quot;, &quot;yellow&quot;
+            End With
+        End With
 
-        ' Debug settings
-        .Debug = True                 ' Enable debug logging for this lock
+        With .States(&quot;lit&quot;)
+            .Show = &quot;on&quot;
+            .Key = &quot;key_ramp_lit&quot;
+            With .Tokens
+                .Add &quot;color&quot;, &quot;red&quot;
+            End With
+        End With
     End With
-End With
+End Sub
 </code></pre>
-<h2 id="property-descriptions">Property Descriptions</h2>
-<h3 id="lock-settings">Lock Settings</h3>
-<ul>
-<li><code>LockDevice</code>: Ball device that acts as the lock (Default: Empty)</li>
-<li><code>BallsToLock</code>: Number of balls that can be locked (Default: 0)</li>
-<li><code>BallsToReplace</code>: Number of balls to replace when locked (Default: -1, meaning all)</li>
-</ul>
-<h3 id="event-control">Event Control</h3>
-<ul>
-<li><code>LockEvents</code>: Array of event names that trigger ball locking (Default: Empty Array)</li>
-<li><code>ResetEvents</code>: Array of event names that reset the lock count (Default: Empty Array)</li>
-<li><code>EnableEvents</code>: Array of event names that enable the lock (Default: Empty Array)</li>
-<li><code>DisableEvents</code>: Array of event names that disable the lock (Default: Empty Array)</li>
-</ul>
-<h3 id="debug-settings">Debug Settings</h3>
-<ul>
-<li><code>Debug</code>: Boolean to enable debug logging for this lock (Default: False)</li>
-</ul>
-<h2 id="example-configurations">Example Configurations</h2>
-<h3 id="basic-multiball-lock-example">Basic Multiball Lock Example</h3>
-<pre><code class="language-vbscript">' Basic multiball lock configuration within a mode
-With CreateGlfMode(&quot;base&quot;, 10)
-    .StartEvents = Array(&quot;ball_started&quot;)
-    .StopEvents = Array(&quot;ball_ended&quot;)
+<p>This profile defines three states for the shot:
+1. "unlit" - The shot is off
+2. "flashing" - The shot is flashing yellow
+3. "lit" - The shot is on with a red color (final state)</p>
+<h3 id="advanced-shot-configuration">Advanced Shot Configuration</h3>
+<p>Now let's create a more advanced shot configuration:</p>
+<pre><code>Sub CreateBaseMode()
+    With CreateGlfMode(&quot;base&quot;, 1000)
+        ' Configure an advanced shot
+        With .Shot(&quot;jackpot&quot;)
+            ' Configure switches
+            .Switches = Array(&quot;sw_left_ramp&quot;, &quot;sw_right_ramp&quot;, &quot;sw_center_ramp&quot;)
 
-    With .MultiballLock(&quot;basic_lock&quot;)
-        .LockDevice = &quot;lock_device&quot;
-        .BallsToLock = 3
+            ' Configure profile
+            .Profile = &quot;jackpot_profile&quot;
+
+            ' Configure enable events
+            .EnableEvents = Array(&quot;multiball_start&quot;)
+
+            ' Configure disable events
+            .DisableEvents = Array(&quot;multiball_end&quot;, &quot;ball_lost&quot;)
+
+            ' Configure hit events
+            .HitEvents = Array(&quot;add_score_1000&quot;)
+
+            ' Configure show tokens
+            With .Tokens
+                .Add &quot;color&quot;, &quot;red&quot;
+            End With
+
+            ' Configure start enabled
+            .StartEnabled = True
+
+            ' Configure persist
+            .Persist = True
+        End With
     End With
-End With
+End Sub
 </code></pre>
-<h3 id="advanced-multiball-lock-example">Advanced Multiball Lock Example</h3>
-<pre><code class="language-vbscript">' Advanced multiball lock configuration within a mode
-With CreateGlfMode(&quot;multiball&quot;, 20)
-    .StartEvents = Array(&quot;ball_started&quot;)
-    .StopEvents = Array(&quot;ball_ended&quot;)
-
-    With .MultiballLock(&quot;jackpot_lock&quot;)
-        ' Lock settings
-        .LockDevice = &quot;lock_device&quot;
-        .BallsToLock = 3
-        .BallsToReplace = 1
-
-        ' Event settings
-        .LockEvents = Array(&quot;lock_ready&quot;)
-        .ResetEvents = Array(&quot;multiball_reset&quot;)
-
-        ' Debug settings
-        .Debug = True
+<p>This advanced configuration:
+1. Creates a shot called "jackpot" that can be triggered by any of three switches
+2. Uses the "jackpot_profile" shot profile
+3. Enables the shot when "multiball_start" event occurs
+4. Disables the shot when "multiball_end" or "ball_lost" events occur
+5. Adds 1000 points when the shot is hit
+6. Passes custom tokens to the show
+7. Starts enabled
+8. Persists its state between balls</p>
+<h3 id="shot-groups">Shot Groups</h3>
+<p>Shot groups allow you to manage multiple shots together. For example, you might want to track when all shots in a group reach a certain state:</p>
+<pre><code>Sub CreateBaseMode()
+    With CreateGlfMode(&quot;base&quot;, 1000)
+        ' Configure shot group
+        With .ShotGroup(&quot;ramps&quot;)
+            .Shots = Array(&quot;left_ramp&quot;, &quot;right_ramp&quot;, &quot;center_ramp&quot;)
+            .CompleteEvents = Array(&quot;all_ramps_complete&quot;)
+        End With
     End With
-End With
+End Sub
 </code></pre>
-<h2 id="lock-tracking">Lock Tracking</h2>
-<p>The multiball lock system tracks:
-- The number of balls currently locked
-- Whether the lock is enabled or disabled</p>
-<h2 id="events">Events</h2>
-<p>The multiball lock system generates several events that you can listen to:</p>
+<p>This configuration:
+1. Creates a shot group called "ramps" that includes three shots
+2. Triggers the "all_ramps_complete" event when all shots in the group reach their final state</p>
+<h2 id="shot-states-and-events">Shot States and Events</h2>
+<p>Shots can be in different states, and the system generates events when shots change state:</p>
 <ul>
-<li><code>{lock_name}_locked_ball</code>: Triggered when a ball is locked, with the count of locked balls</li>
-<li><code>{lock_name}_full</code>: Triggered when the lock is full, with the count of locked balls</li>
+<li><code>shot_name_hit</code>: Fired when the shot is hit</li>
+<li><code>shot_name_profile_hit</code>: Fired when the shot is hit with the profile name</li>
+<li><code>shot_name_profile_state_hit</code>: Fired when the shot is hit with the profile name and state</li>
+<li><code>shot_name_state_hit</code>: Fired when the shot is hit with the state name</li>
 </ul>
-<p>Replace <code>{lock_name}</code> with your actual lock name (prefixed with "multiball_lock_" internally).</p>
-<h2 id="default-behavior">Default Behavior</h2>
-<p>By default, multiball locks are configured with:
-- No lock device
-- 0 balls to lock
-- -1 balls to replace (meaning all)
-- No lock or reset events
-- Debug logging disabled</p>
-<h2 id="notes">Notes</h2>
-<ul>
-<li>Multiball locks are managed within the context of a mode</li>
-<li>The multiball lock system automatically tracks the number of balls locked</li>
-<li>Debug logging can be enabled to track lock operations</li>
-<li>Multiball locks can be configured to work with specific game modes or features</li>
-<li>The multiball lock system prevents exceeding the maximum number of balls that can be locked</li>
-<li>Multiball locks can be configured to replace a specific number of balls when locked</li>
-<li>The lock count is tracked per player using player state </li>
-</ul>
+<p>You can use these events to trigger scores, achievements, shows, etc.</p>
+<h2 id="mode-specific-shot-behavior">Mode-Specific Shot Behavior</h2>
+<p>Shots can behave differently in different modes. For example, a ramp shot might score 1,000 points in the base mode, but score a jackpot in the multiball mode:</p>
+<pre><code>Sub CreateBaseMode()
+    With CreateGlfMode(&quot;base&quot;, 1000)
+        ' Configure a shot in the base mode
+        With .Shot(&quot;left_ramp&quot;)
+            .Switch = &quot;sw_left_ramp&quot;
+            .Profile = &quot;ramp_profile&quot;
+            .HitEvents = Array(&quot;add_score_1000&quot;)
+        End With
+    End With
+End Sub
+
+Sub CreateMultiballMode()
+    With CreateGlfMode(&quot;multiball&quot;, 2000)
+        ' Configure the same shot in the multiball mode
+        With .Shot(&quot;left_ramp_multiball&quot;)
+            .Switch = &quot;sw_left_ramp&quot;
+            .Profile = &quot;jackpot_profile&quot;
+            .HitEvents = Array(&quot;add_score_10000&quot;, &quot;jackpot_collected&quot;)
+        End With
+    End With
+End Sub
+</code></pre>
+<h2 id="sequence-shots">Sequence Shots</h2>
+<p>You can also configure shots that are only considered to be hit based on a series of switches that must be hit in the right order within a certain time frame:</p>
+<pre><code>Sub CreateBaseMode()
+    With CreateGlfMode(&quot;base&quot;, 1000)
+        ' Configure a sequence shot
+        With .SequenceShot(&quot;orbit_left&quot;)
+            .Switches = Array(&quot;sw_orbit_left&quot;, &quot;sw_orbit_center&quot;, &quot;sw_orbit_right&quot;)
+            .TimeWindow = 3000  ' 3 seconds
+            .HitEvents = Array(&quot;add_score_5000&quot;)
+        End With
+
+        With .SequenceShot(&quot;orbit_right&quot;)
+            .Switches = Array(&quot;sw_orbit_right&quot;, &quot;sw_orbit_center&quot;, &quot;sw_orbit_left&quot;)
+            .TimeWindow = 3000  ' 3 seconds
+            .HitEvents = Array(&quot;add_score_5000&quot;)
+        End With
+    End With
+End Sub
+</code></pre>
+<p>This configuration:
+1. Creates two sequence shots that use the same switches but in different orders
+2. Sets a 3-second time window for the sequence to be completed
+3. Adds 5,000 points when the sequence is completed</p>
+<h2 id="enabling-the-modes">Enabling the Modes</h2>
+<p>Finally, we need to enable these modes in our game by calling the appropriate subs in our <code>ConfigureGlfDevices</code> Sub:</p>
+<pre><code>Sub ConfigureGlfDevices
+    CreateShotProfiles()  ' Create shot profiles
+    CreateBaseMode()      ' Create base mode with shots
+    CreateMultiballMode() ' Create multiball mode with shots
+
+    'Other device config....
+End Sub
+</code></pre>
+<h2 id="conclusion">Conclusion</h2>
+<p>With these configurations, you now have a comprehensive shot system for your pinball game. You can:</p>
+<ol>
+<li>Create basic and advanced shots</li>
+<li>Define shot profiles with different states and visual effects</li>
+<li>Group shots together for collective behavior</li>
+<li>Configure mode-specific shot behavior</li>
+<li>Create sequence shots for complex interactions</li>
+</ol>
 
 
 
@@ -1929,10 +1932,10 @@ End With
     </div>
     
     
-    <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "navigation.instant", "navigation.tabs"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "navigation.instant", "navigation.tabs"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.081f42fc.min.js"></script>
+      <script src="../../assets/javascripts/bundle.081f42fc.min.js"></script>
       
     
   </body>

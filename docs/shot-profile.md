@@ -9,23 +9,18 @@ The shot profile configuration allows you to define the behavior and states of s
 ' Basic shot profile configuration
 With CreateGlfShotProfile("profile_name")
     ' Configure basic settings
-    .AdvanceOnHit = True
-    .Block = False
-    .ProfileLoop = False
-    .RotationPattern = Array("r")
-    
     ' Configure states
     With .States("state1")
         .Show = "show_name"
         .Loops = 1
-        .Speed = 1.0
+        .Speed = 1
         .SyncMs = 0
     End With
     
     With .States("state2")
         .Show = "show_name2"
         .Loops = 1
-        .Speed = 1.0
+        .Speed = 1
         .SyncMs = 0
     End With
 End With
@@ -51,8 +46,9 @@ With CreateGlfShotProfile("profile_name")
     With .States("state1")
         .Show = "show_name"
         .Loops = 1
-        .Speed = 1.0
+        .Speed = 1
         .SyncMs = 0
+        .Key = "key_state1"
         
         ' Configure show tokens
         With .Tokens
@@ -66,6 +62,7 @@ With CreateGlfShotProfile("profile_name")
         .Loops = 2
         .Speed = 1.5
         .SyncMs = 100
+        .Key = "key_state2"
         
         ' Configure show tokens
         With .Tokens
@@ -88,8 +85,9 @@ End With
 - `States`: Dictionary of states for the shot profile
   - `Show`: Name of the show to play for this state
   - `Loops`: Number of times to loop the show (Default: 1)
-  - `Speed`: Speed multiplier for the show (Default: 1.0)
+  - `Speed`: Speed multiplier for the show (Default: 1)
   - `SyncMs`: Synchronization time in milliseconds (Default: 0)
+  - `Key`: Unique key for the state, used for show identification
   - `Tokens`: Dictionary of tokens to pass to the show
 
 ### Rotation Settings
@@ -114,6 +112,7 @@ With CreateGlfShotProfile("ramp_profile")
         .Loops = 1
         .Speed = 1.0
         .SyncMs = 0
+        .Key = "key_ramp_lit"
     End With
     
     With .States("unlit")
@@ -121,6 +120,7 @@ With CreateGlfShotProfile("ramp_profile")
         .Loops = 1
         .Speed = 1.0
         .SyncMs = 0
+        .Key = "key_ramp_unlit"
     End With
 End With
 ```
@@ -145,15 +145,17 @@ With CreateGlfShotProfile("jackpot_profile")
     With .States("unlit")
         .Show = "jackpot_unlit"
         .Loops = 1
-        .Speed = 1.0
+        .Speed = 1
         .SyncMs = 0
+        .Key = "key_jackpot_unlit"
     End With
     
     With .States("lit")
         .Show = "jackpot_lit"
         .Loops = 1
-        .Speed = 1.0
+        .Speed = 1
         .SyncMs = 0
+        .Key = "key_jackpot_lit"
         
         ' Configure show tokens
         With .Tokens
@@ -164,8 +166,9 @@ With CreateGlfShotProfile("jackpot_profile")
     With .States("super_lit")
         .Show = "jackpot_super_lit"
         .Loops = 2
-        .Speed = 1.5
+        .Speed = 1
         .SyncMs = 100
+        .Key = "key_jackpot_super_lit"
         
         ' Configure show tokens
         With .Tokens
@@ -177,8 +180,51 @@ With CreateGlfShotProfile("jackpot_profile")
     With .States("completed")
         .Show = "jackpot_completed"
         .Loops = 1
-        .Speed = 1.0
+        .Speed = 1
         .SyncMs = 0
+        .Key = "key_jackpot_completed"
+    End With
+End With
+```
+
+### Double Scoring Profile Example
+```vbscript
+' Double scoring profile configuration
+With CreateGlfShotProfile("double_scoring")
+    ' Configure basic settings
+    .AdvanceOnHit = True
+    .Block = False
+    .ProfileLoop = False
+    
+    ' Configure states
+    With .States("unlit")
+        .Show = "off"
+        .Key = "key_off_ds"
+        With .Tokens
+            .Add "lights", "LDS"
+            .Add "color", DoubleScoringColor
+        End With
+    End With
+    
+    With .States("flashing")
+        .Show = "flash_color_with_fade"
+        .Key = "key_flashing_ds"
+        .Speed = 2
+        With .Tokens
+            .Add "lights", "LDS"
+            .Add "fade", 500
+            .Add "color", DoubleScoringColor
+        End With
+    End With
+    
+    With .States("hurry")
+        .Show = "flash_color"
+        .Key = "key_hurry_ds"
+        .Speed = 7
+        With .Tokens
+            .Add "lights", "LDS"
+            .Add "color", DoubleScoringColor
+        End With
     End With
 End With
 ```
@@ -193,6 +239,8 @@ The shot profile system manages shot behavior with the following features:
 - Shots can have multiple states with different shows and behaviors
 - Shots can be rotated according to a pattern
 - Some states can be excluded from rotation
+- Each state can have a unique key for identification
+- States can pass tokens to shows for customization
 
 ## Events
 
@@ -207,6 +255,8 @@ By default, shot profiles are configured with:
 - Right rotation pattern
 - No states defined
 - No states to rotate or not to rotate
+- No keys defined for states
+- No tokens defined for states
 
 ## Notes
 
@@ -217,4 +267,5 @@ By default, shot profiles are configured with:
 - Rotation patterns can be used to create variety in shot behavior
 - Show tokens can be used to customize shows for different states
 - State synchronization can be used to coordinate multiple shots
-- The loop feature can be used to create continuous shot patterns 
+- The loop feature can be used to create continuous shot patterns
+- Tokens can be used to pass dynamic values to shows, such as colors or light groups 

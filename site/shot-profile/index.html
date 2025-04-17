@@ -543,6 +543,48 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/tutorial-scoring/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Scoring
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/tutorial-shots/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Shots
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1264,6 +1306,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#double-scoring-profile-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Double Scoring Profile Example
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1669,6 +1720,15 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#double-scoring-profile-example" class="md-nav__link">
+    <span class="md-ellipsis">
+      Double Scoring Profile Example
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1732,23 +1792,18 @@
 <pre><code class="language-vbscript">' Basic shot profile configuration
 With CreateGlfShotProfile(&quot;profile_name&quot;)
     ' Configure basic settings
-    .AdvanceOnHit = True
-    .Block = False
-    .ProfileLoop = False
-    .RotationPattern = Array(&quot;r&quot;)
-
     ' Configure states
     With .States(&quot;state1&quot;)
         .Show = &quot;show_name&quot;
         .Loops = 1
-        .Speed = 1.0
+        .Speed = 1
         .SyncMs = 0
     End With
 
     With .States(&quot;state2&quot;)
         .Show = &quot;show_name2&quot;
         .Loops = 1
-        .Speed = 1.0
+        .Speed = 1
         .SyncMs = 0
     End With
 End With
@@ -1772,8 +1827,9 @@ With CreateGlfShotProfile(&quot;profile_name&quot;)
     With .States(&quot;state1&quot;)
         .Show = &quot;show_name&quot;
         .Loops = 1
-        .Speed = 1.0
+        .Speed = 1
         .SyncMs = 0
+        .Key = &quot;key_state1&quot;
 
         ' Configure show tokens
         With .Tokens
@@ -1787,6 +1843,7 @@ With CreateGlfShotProfile(&quot;profile_name&quot;)
         .Loops = 2
         .Speed = 1.5
         .SyncMs = 100
+        .Key = &quot;key_state2&quot;
 
         ' Configure show tokens
         With .Tokens
@@ -1809,8 +1866,9 @@ End With
 <li><code>States</code>: Dictionary of states for the shot profile</li>
 <li><code>Show</code>: Name of the show to play for this state</li>
 <li><code>Loops</code>: Number of times to loop the show (Default: 1)</li>
-<li><code>Speed</code>: Speed multiplier for the show (Default: 1.0)</li>
+<li><code>Speed</code>: Speed multiplier for the show (Default: 1)</li>
 <li><code>SyncMs</code>: Synchronization time in milliseconds (Default: 0)</li>
+<li><code>Key</code>: Unique key for the state, used for show identification</li>
 <li><code>Tokens</code>: Dictionary of tokens to pass to the show</li>
 </ul>
 <h3 id="rotation-settings">Rotation Settings</h3>
@@ -1834,6 +1892,7 @@ With CreateGlfShotProfile(&quot;ramp_profile&quot;)
         .Loops = 1
         .Speed = 1.0
         .SyncMs = 0
+        .Key = &quot;key_ramp_lit&quot;
     End With
 
     With .States(&quot;unlit&quot;)
@@ -1841,6 +1900,7 @@ With CreateGlfShotProfile(&quot;ramp_profile&quot;)
         .Loops = 1
         .Speed = 1.0
         .SyncMs = 0
+        .Key = &quot;key_ramp_unlit&quot;
     End With
 End With
 </code></pre>
@@ -1863,15 +1923,17 @@ With CreateGlfShotProfile(&quot;jackpot_profile&quot;)
     With .States(&quot;unlit&quot;)
         .Show = &quot;jackpot_unlit&quot;
         .Loops = 1
-        .Speed = 1.0
+        .Speed = 1
         .SyncMs = 0
+        .Key = &quot;key_jackpot_unlit&quot;
     End With
 
     With .States(&quot;lit&quot;)
         .Show = &quot;jackpot_lit&quot;
         .Loops = 1
-        .Speed = 1.0
+        .Speed = 1
         .SyncMs = 0
+        .Key = &quot;key_jackpot_lit&quot;
 
         ' Configure show tokens
         With .Tokens
@@ -1882,8 +1944,9 @@ With CreateGlfShotProfile(&quot;jackpot_profile&quot;)
     With .States(&quot;super_lit&quot;)
         .Show = &quot;jackpot_super_lit&quot;
         .Loops = 2
-        .Speed = 1.5
+        .Speed = 1
         .SyncMs = 100
+        .Key = &quot;key_jackpot_super_lit&quot;
 
         ' Configure show tokens
         With .Tokens
@@ -1895,8 +1958,49 @@ With CreateGlfShotProfile(&quot;jackpot_profile&quot;)
     With .States(&quot;completed&quot;)
         .Show = &quot;jackpot_completed&quot;
         .Loops = 1
-        .Speed = 1.0
+        .Speed = 1
         .SyncMs = 0
+        .Key = &quot;key_jackpot_completed&quot;
+    End With
+End With
+</code></pre>
+<h3 id="double-scoring-profile-example">Double Scoring Profile Example</h3>
+<pre><code class="language-vbscript">' Double scoring profile configuration
+With CreateGlfShotProfile(&quot;double_scoring&quot;)
+    ' Configure basic settings
+    .AdvanceOnHit = True
+    .Block = False
+    .ProfileLoop = False
+
+    ' Configure states
+    With .States(&quot;unlit&quot;)
+        .Show = &quot;off&quot;
+        .Key = &quot;key_off_ds&quot;
+        With .Tokens
+            .Add &quot;lights&quot;, &quot;LDS&quot;
+            .Add &quot;color&quot;, DoubleScoringColor
+        End With
+    End With
+
+    With .States(&quot;flashing&quot;)
+        .Show = &quot;flash_color_with_fade&quot;
+        .Key = &quot;key_flashing_ds&quot;
+        .Speed = 2
+        With .Tokens
+            .Add &quot;lights&quot;, &quot;LDS&quot;
+            .Add &quot;fade&quot;, 500
+            .Add &quot;color&quot;, DoubleScoringColor
+        End With
+    End With
+
+    With .States(&quot;hurry&quot;)
+        .Show = &quot;flash_color&quot;
+        .Key = &quot;key_hurry_ds&quot;
+        .Speed = 7
+        With .Tokens
+            .Add &quot;lights&quot;, &quot;LDS&quot;
+            .Add &quot;color&quot;, DoubleScoringColor
+        End With
     End With
 End With
 </code></pre>
@@ -1909,6 +2013,8 @@ End With
 <li>Shots can have multiple states with different shows and behaviors</li>
 <li>Shots can be rotated according to a pattern</li>
 <li>Some states can be excluded from rotation</li>
+<li>Each state can have a unique key for identification</li>
+<li>States can pass tokens to shows for customization</li>
 </ul>
 <h2 id="events">Events</h2>
 <p>The shot profile system doesn't generate its own events, but it defines the behavior of shots that use the profile.</p>
@@ -1919,7 +2025,9 @@ End With
 - Loop disabled
 - Right rotation pattern
 - No states defined
-- No states to rotate or not to rotate</p>
+- No states to rotate or not to rotate
+- No keys defined for states
+- No tokens defined for states</p>
 <h2 id="notes">Notes</h2>
 <ul>
 <li>Shot profiles are used by shots to define their behavior</li>
@@ -1929,7 +2037,8 @@ End With
 <li>Rotation patterns can be used to create variety in shot behavior</li>
 <li>Show tokens can be used to customize shows for different states</li>
 <li>State synchronization can be used to coordinate multiple shots</li>
-<li>The loop feature can be used to create continuous shot patterns </li>
+<li>The loop feature can be used to create continuous shot patterns</li>
+<li>Tokens can be used to pass dynamic values to shows, such as colors or light groups </li>
 </ul>
 
 

@@ -11,6 +11,8 @@ nav:
       - 'Lights': 'tutorial/tutorial-lights.md'
       - 'Ball Devices': 'tutorial/tutorial-ball-devices.md'
       - 'Ball Save': 'tutorial/tutorial-ballsave.md'
+      - 'Scoring': 'tutorial/tutorial-scoring.md'
+      - 'Shots': 'tutorial/tutorial-shots.md'
       #- 'Shows': 'tutorial/tutorial-shows.md'
   #- 'Features': features.md
   - 'Game Logic':
