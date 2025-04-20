@@ -478,10 +478,10 @@ Public Sub Glf_Init()
 	glf_debugLog.WriteToLog "Init", "Finished Creating Machine Vars"
 	glf_debugLog.WriteToLog "Code String", glf_codestr
 
-	Glf_Reset()
+	SetDelay "reset", "Glf_Reset", Null, 1000
 End Sub
 
-Sub Glf_Reset()
+Sub Glf_Reset(args)
 	DispatchQueuePinEvent "reset_complete", Null
 End Sub
 

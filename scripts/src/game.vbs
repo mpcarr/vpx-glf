@@ -411,7 +411,7 @@ Function Glf_GameCancel(args)
     Next
     glf_bip = 0
     Glf_EndGame Null
-    Glf_Reset()
+    Glf_Reset(Null)
 End Function
 
 Public Function EndOfBallNextPlayer(args)
