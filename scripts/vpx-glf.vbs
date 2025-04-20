@@ -478,10 +478,10 @@ Public Sub Glf_Init()
 	glf_debugLog.WriteToLog "Init", "Finished Creating Machine Vars"
 	glf_debugLog.WriteToLog "Code String", glf_codestr
 
-	Glf_Reset()
+	SetDelay "reset", "Glf_Reset", Null, 1000
 End Sub
 
-Sub Glf_Reset()
+Sub Glf_Reset(args)
 	DispatchQueuePinEvent "reset_complete", Null
 End Sub
 
@@ -5200,9 +5200,9 @@ Class GlfHighScore
             Dim default_keys : default_keys = m_defaults(key).Keys()
             For i=0 to UBound(default_keys)
                 Dim default_value_item : Set default_value_item = m_defaults(key)
+                Dim cat_a1 : cat_a1 = m_categories(key)
                 If m_highscores.Exists(key) Then
                     If Not m_highscores(key).Exists(CStr(i+1)) Then
-                        Dim cat_a1 : cat_a1 = m_categories(key)
                         tmp.Add key & "_" & i+1 &"_label", cat_a1(i)
                         tmp.Add key & "_" & i+1 &"_name", default_keys(i)
                         tmp.Add key & "_" & i+1 &"_value", default_value_item(default_keys(i))
@@ -15365,7 +15365,7 @@ Function Glf_GameCancel(args)
     Next
     glf_bip = 0
     Glf_EndGame Null
-    Glf_Reset()
+    Glf_Reset(Null)
 End Function
 
 Public Function EndOfBallNextPlayer(args)
