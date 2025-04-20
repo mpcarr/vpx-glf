@@ -20,6 +20,8 @@ nav:
       - 'Ball Save': 'tutorial/tutorial-ballsave.md'
       - 'Scoring': 'tutorial/tutorial-scoring.md'
       - 'Shots': 'tutorial/tutorial-shots.md'
+      - 'Event Player': 'tutorial/tutorial-event-player.md'
+      - 'Timer': 'tutorial/tutorial-timer.md'
       #- 'Shows': 'tutorial/tutorial-shows.md'
   #- 'Features': features.md
   - 'Game Logic':
@@ -60,6 +62,7 @@ nav:
     #- 'Player State': player-state.md
   #- 'Light Controller': light-controller.md
   #- 'DMD / LCD': dmd-lcd.md
+  - About: about.md
 extra_css:
   - stylesheets/extra.css
 theme:
