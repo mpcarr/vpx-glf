@@ -386,6 +386,15 @@ Function Glf_EndGame(args)
     glf_playerState.RemoveAll()
 
     DispatchPinEvent "game_ended", Null
+    If Not IsNull(args) Then
+		If IsObject(args(1)) Then
+			Set Glf_EndGame = args(1)
+		Else
+			Glf_EndGame = args(1)
+		End If
+	Else
+		Glf_EndGame = Null
+	End If
 End Function
 
 AddPinEventListener "glf_game_cancel", "glf_game_cancel", "Glf_GameCancel", 20, Null

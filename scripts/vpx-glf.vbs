@@ -1009,7 +1009,7 @@ Public Function Glf_RegisterLights()
 		Next
 		glf_lightPriority.Add light.Name, 0
 		If glf_production_mode = False Then
-			Dim e, lmStr: lmStr = "glf_tmp_lmarr = Array("    
+			Dim e, lmStr: lmStr = "Dim glf_" & light.name & "_lmarr : glf_" & light.name & "_lmarr = Array("    
 			For Each e in elementDict.Keys
 				If InStr(e, LCase("_" & light.Name & "_")) Then
 					lmStr = lmStr & e & ","
@@ -1025,8 +1025,11 @@ Public Function Glf_RegisterLights()
 			lmStr = Replace(lmStr, ",Null)", ")")
 			lmStr = Replace(lmStr, "Null)", ")")
 			ExecuteGlobal lmStr
-			glf_lightMaps.Add light.Name, glf_tmp_lmarr
+			glf_lightMaps.Add light.Name, Eval("glf_" & light.name & "_lmarr")
+			glf_codestr = glf_codestr & lmStr & vbCrLf
+			glf_codestr = glf_codestr & "glf_lightMaps.Add """ & light.name & """, glf_" & light.Name & "_lmarr" & vbCrLf
 		End If
+
 		glf_lightNames.Add light.Name, light
 		Dim lightStack : Set lightStack = (new GlfLightStack)()
 		glf_lightStacks.Add light.Name, lightStack
@@ -1078,7 +1081,7 @@ Public Function Glf_ParseInput(value)
 				tmp = Glf_ReplaceKwargsAttributes(tmp)
 				'msgbox tmp
 				If InStr(tmp, " if ") Then
-					templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
+					templateCode = "Function Glf_" & glf_FuncCount & "(args)" & vbCrLf
 					templateCode = templateCode & vbTab & Glf_ConvertIf(tmp, "Glf_" & glf_FuncCount) & vbCrLf
 					templateCode = templateCode & "End Function"
 				Else
@@ -1090,12 +1093,12 @@ Public Function Glf_ParseInput(value)
 							tmp = "Glf_FormatValue(" & parts(0) & ", """ & parts(1) & """)"
 						End If
 					End If
-					templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
+					templateCode = "Function Glf_" & glf_FuncCount & "(args)" & vbCrLf
 					templateCode = templateCode & vbTab & "Glf_" & glf_FuncCount & " = " & tmp & vbCrLf
 					templateCode = templateCode & "End Function"
 				End IF
 			Case Else
-				templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf			
+				templateCode = "Function Glf_" & glf_FuncCount & "(args)" & vbCrLf			
 				isVariable = Glf_IsCondition(tmp)
 				If Not IsNull(isVariable) Then
 					'The input needs formatting
@@ -1160,7 +1163,7 @@ Public Function Glf_ParseEventInput(value)
 		conditionReplaced = Glf_ReplaceGameAttributes(conditionReplaced)
 
 		conditionReplaced = Glf_ReplaceKwargsAttributes(conditionReplaced)
-		templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
+		templateCode = "Function Glf_" & glf_FuncCount & "(args)" & vbCrLf
 		templateCode = templateCode & vbTab & "On Error Resume Next" & vbCrLf
 		templateCode = templateCode & vbTab & Glf_ConvertCondition(conditionReplaced, "Glf_" & glf_FuncCount) & vbCrLf
 		templateCode = templateCode & vbTab & "If Err Then Glf_" & glf_FuncCount & " = False" & vbCrLf
@@ -1205,7 +1208,7 @@ Public Function Glf_ParseDispatchEventInput(value)
 		kwargsReplaced = Glf_ReplaceModeAttributes(kwargsReplaced)
 		kwargsReplaced = Glf_ReplaceGameAttributes(kwargsReplaced)
 
-		templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
+		templateCode = "Function Glf_" & glf_FuncCount & "(args)" & vbCrLf
 		templateCode = templateCode & vbTab & "On Error Resume Next" & vbCrLf
 		templateCode = templateCode & vbTab & Glf_ConvertDynamicKwargs(kwargsReplaced, "Glf_" & glf_FuncCount) & vbCrLf
 		templateCode = templateCode & vbTab & "If Err Then Glf_" & glf_FuncCount & " = Null" & vbCrLf
@@ -1851,6 +1854,7 @@ Function Glf_ConvertCondition(value, retName)
 	value = Replace(value, "==", "=")
 	value = Replace(value, "!=", "<>")
 	value = Replace(value, "&&", "And")
+	value = Replace(value, "||", "Or")
 	Glf_ConvertCondition = "    "&retName&" = " & value
 End Function
 
@@ -2419,7 +2423,7 @@ Class GlfInput
   
     Public Property Get Value() 
 		If m_isGetRef = True Then
-			Value = GetRef(m_value)()
+			Value = GetRef(m_value)(Null)
 		Else
 			Value = m_value
 		End If
@@ -3852,15 +3856,15 @@ Class BallSave
         m_timer_started=True
         DispatchPinEvent m_name&"_timer_start", Null
         If Not IsNull(m_active_time) Then
-            Dim active_time : active_time = GetRef(m_active_time(0))()
+            Dim active_time : active_time = GetRef(m_active_time(0))(Null)
             Dim grace_period, hurry_up_time
             If Not IsNull(m_grace_period) Then
-                grace_period = GetRef(m_grace_period(0))()
+                grace_period = GetRef(m_grace_period(0))(Null)
             Else
                 grace_period = 0
             End If
             If Not IsNull(m_hurry_up_time) Then
-                hurry_up_time = GetRef(m_hurry_up_time(0))()
+                hurry_up_time = GetRef(m_hurry_up_time(0))(Null)
             Else
                 hurry_up_time = 0
             End If
@@ -4717,7 +4721,7 @@ Class GlfEventPlayer
         Log "Dispatching Event: " & evt
         If Not IsNull(m_events(evt).Condition) Then
             'msgbox m_events(evt).Condition
-            If GetRef(m_events(evt).Condition)() = False Then
+            If GetRef(m_events(evt).Condition)(Null) = False Then
                 Exit Sub
             End If
         End If
@@ -5538,7 +5542,7 @@ Class GlfLightPlayer
 
     Public Function ToYaml()
         Dim yaml
-        Dim evt
+        Dim evt, key
         If UBound(m_events.Keys) > -1 Then
             For Each key in m_events.keys
                 yaml = yaml & "  " & key & ": " & vbCrLf
@@ -5568,7 +5572,7 @@ Class GlfLightPlayerEventItem
     Public Property Let LightSeq(input) : m_lightSeq = input : End Property
 
     Public Function ToYaml()
-        Dim yaml
+        Dim yaml, key
         If UBound(m_lights.Keys) > -1 Then
             For Each key in m_lights.keys
                 yaml = yaml & "    " & key & ": " & vbCrLf
@@ -5627,6 +5631,7 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed, co
     Dim shows_added
     Dim lightStack
     Dim lightParts, light
+    Set shows_added = CreateObject("Scripting.Dictionary")
     If play = False Then
         For Each light in lights(0)
             lightParts = Split(light,"|")
@@ -5651,10 +5656,12 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed, co
                 End If
             End If
         Next
+        Set LightPlayerCallbackHandler = shows_added
         Exit Function
         'glf_debugLog.WriteToLog "LightPlayer", "Removing Light Seq" & mode & "_" & key
     Else
         If UBound(lights) = -1 Then
+            Set LightPlayerCallbackHandler = shows_added
             Exit Function
         End If
         If IsArray(lights) Then
@@ -5663,7 +5670,6 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed, co
             'glf_debugLog.WriteToLog "LightPlayer", "Lights not an array!?"
         End If
         'glf_debugLog.WriteToLog "LightPlayer", "Adding Light Seq" & Join(lights) & ". Key:" & mode & "_" & key
-        Set shows_added = CreateObject("Scripting.Dictionary")
         For Each light in lights(0)
             lightParts = Split(light,"|")
             
@@ -6411,7 +6417,7 @@ Class Mode
     End Sub
 
     Public Function ToYaml()
-        dim yaml, child
+        dim yaml, child,x, key
 
         
         yaml = "#config_version=6" & vbCrLf & vbCrLf
@@ -11532,7 +11538,6 @@ Class GlfTimer
         m_ticks = new_value
         timer_value = new_value - timer_value
 
-        Dim kwargs : Set kwargs = GlfKwargs()
         With kwargs
             .Add "ticks", m_ticks
             .Add "ticks_added", timer_value
@@ -11753,11 +11758,11 @@ Class GlfVariablePlayerItem
     Public Property Get VariableValue()
         Select Case m_type
             Case "float"
-                VariableValue = GetRef(m_float(0))()
+                VariableValue = GetRef(m_float(0))(Null)
             Case "int"
-                VariableValue = GetRef(m_int(0))()
+                VariableValue = GetRef(m_int(0))(Null)
             Case "string"
-                VariableValue = GetRef(m_string(0))()
+                VariableValue = GetRef(m_string(0))(Null)
             Case Else
                 VariableValue = Empty
         End Select
@@ -12003,7 +12008,7 @@ Class GlfAutoFireDevice
         Log "Enabling"
         m_enabled = True
         If Not IsEmpty(m_enabled_cb) Then
-            GetRef(m_enabled_cb)()
+            GetRef(m_enabled_cb)(Null)
         End If
         If Not IsEmpty(m_switch) Then
             AddPinEventListener m_switch & "_active", m_name & "_active", "AutoFireDeviceEventHandler", 1000, Array("activate", Me)
@@ -12015,7 +12020,7 @@ Class GlfAutoFireDevice
         Log "Disabling"
         m_enabled = False
         If Not IsEmpty(m_disabled_cb) Then
-            GetRef(m_disabled_cb)()
+            GetRef(m_disabled_cb)(Null)
         End If
         Deactivate(Null)
         RemovePinEventListener m_switch & "_active", m_name & "_active"
@@ -14739,7 +14744,7 @@ Class GlfEvent
 
     Public Function Evaluate()
         If has_condition = True Then
-            Evaluate = GetRef(m_condition)()
+            Evaluate = GetRef(m_condition)(Null)
         Else
             Evaluate = True
         End If
@@ -14771,7 +14776,7 @@ Class GlfEventDispatch
         If IsEmpty(m_kwargs_ref) Then
             Kwargs = Null
         Else
-            Set Kwargs = GetRef(m_kwargs_ref)()
+            Set Kwargs = GetRef(m_kwargs_ref)(Null)
         End If
     End Property
     Public Property Get Raw() : Raw = m_raw : End Property
@@ -15340,6 +15345,15 @@ Function Glf_EndGame(args)
     glf_playerState.RemoveAll()
 
     DispatchPinEvent "game_ended", Null
+    If Not IsNull(args) Then
+		If IsObject(args(1)) Then
+			Set Glf_EndGame = args(1)
+		Else
+			Glf_EndGame = args(1)
+		End If
+	Else
+		Glf_EndGame = Null
+	End If
 End Function
 
 AddPinEventListener "glf_game_cancel", "glf_game_cancel", "Glf_GameCancel", 20, Null

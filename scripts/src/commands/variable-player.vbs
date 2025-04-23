@@ -132,11 +132,11 @@ Class GlfVariablePlayerItem
     Public Property Get VariableValue()
         Select Case m_type
             Case "float"
-                VariableValue = GetRef(m_float(0))()
+                VariableValue = GetRef(m_float(0))(Null)
             Case "int"
-                VariableValue = GetRef(m_int(0))()
+                VariableValue = GetRef(m_int(0))(Null)
             Case "string"
-                VariableValue = GetRef(m_string(0))()
+                VariableValue = GetRef(m_string(0))(Null)
             Case Else
                 VariableValue = Empty
         End Select

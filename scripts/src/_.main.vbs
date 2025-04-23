@@ -1009,7 +1009,7 @@ Public Function Glf_RegisterLights()
 		Next
 		glf_lightPriority.Add light.Name, 0
 		If glf_production_mode = False Then
-			Dim e, lmStr: lmStr = "glf_tmp_lmarr = Array("    
+			Dim e, lmStr: lmStr = "Dim glf_" & light.name & "_lmarr : glf_" & light.name & "_lmarr = Array("    
 			For Each e in elementDict.Keys
 				If InStr(e, LCase("_" & light.Name & "_")) Then
 					lmStr = lmStr & e & ","
@@ -1025,8 +1025,11 @@ Public Function Glf_RegisterLights()
 			lmStr = Replace(lmStr, ",Null)", ")")
 			lmStr = Replace(lmStr, "Null)", ")")
 			ExecuteGlobal lmStr
-			glf_lightMaps.Add light.Name, glf_tmp_lmarr
+			glf_lightMaps.Add light.Name, Eval("glf_" & light.name & "_lmarr")
+			glf_codestr = glf_codestr & lmStr & vbCrLf
+			glf_codestr = glf_codestr & "glf_lightMaps.Add """ & light.name & """, glf_" & light.Name & "_lmarr" & vbCrLf
 		End If
+
 		glf_lightNames.Add light.Name, light
 		Dim lightStack : Set lightStack = (new GlfLightStack)()
 		glf_lightStacks.Add light.Name, lightStack
@@ -1078,7 +1081,7 @@ Public Function Glf_ParseInput(value)
 				tmp = Glf_ReplaceKwargsAttributes(tmp)
 				'msgbox tmp
 				If InStr(tmp, " if ") Then
-					templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
+					templateCode = "Function Glf_" & glf_FuncCount & "(args)" & vbCrLf
 					templateCode = templateCode & vbTab & Glf_ConvertIf(tmp, "Glf_" & glf_FuncCount) & vbCrLf
 					templateCode = templateCode & "End Function"
 				Else
@@ -1090,12 +1093,12 @@ Public Function Glf_ParseInput(value)
 							tmp = "Glf_FormatValue(" & parts(0) & ", """ & parts(1) & """)"
 						End If
 					End If
-					templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
+					templateCode = "Function Glf_" & glf_FuncCount & "(args)" & vbCrLf
 					templateCode = templateCode & vbTab & "Glf_" & glf_FuncCount & " = " & tmp & vbCrLf
 					templateCode = templateCode & "End Function"
 				End IF
 			Case Else
-				templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf			
+				templateCode = "Function Glf_" & glf_FuncCount & "(args)" & vbCrLf			
 				isVariable = Glf_IsCondition(tmp)
 				If Not IsNull(isVariable) Then
 					'The input needs formatting
@@ -1160,7 +1163,7 @@ Public Function Glf_ParseEventInput(value)
 		conditionReplaced = Glf_ReplaceGameAttributes(conditionReplaced)
 
 		conditionReplaced = Glf_ReplaceKwargsAttributes(conditionReplaced)
-		templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
+		templateCode = "Function Glf_" & glf_FuncCount & "(args)" & vbCrLf
 		templateCode = templateCode & vbTab & "On Error Resume Next" & vbCrLf
 		templateCode = templateCode & vbTab & Glf_ConvertCondition(conditionReplaced, "Glf_" & glf_FuncCount) & vbCrLf
 		templateCode = templateCode & vbTab & "If Err Then Glf_" & glf_FuncCount & " = False" & vbCrLf
@@ -1205,7 +1208,7 @@ Public Function Glf_ParseDispatchEventInput(value)
 		kwargsReplaced = Glf_ReplaceModeAttributes(kwargsReplaced)
 		kwargsReplaced = Glf_ReplaceGameAttributes(kwargsReplaced)
 
-		templateCode = "Function Glf_" & glf_FuncCount & "()" & vbCrLf
+		templateCode = "Function Glf_" & glf_FuncCount & "(args)" & vbCrLf
 		templateCode = templateCode & vbTab & "On Error Resume Next" & vbCrLf
 		templateCode = templateCode & vbTab & Glf_ConvertDynamicKwargs(kwargsReplaced, "Glf_" & glf_FuncCount) & vbCrLf
 		templateCode = templateCode & vbTab & "If Err Then Glf_" & glf_FuncCount & " = Null" & vbCrLf
@@ -1851,6 +1854,7 @@ Function Glf_ConvertCondition(value, retName)
 	value = Replace(value, "==", "=")
 	value = Replace(value, "!=", "<>")
 	value = Replace(value, "&&", "And")
+	value = Replace(value, "||", "Or")
 	Glf_ConvertCondition = "    "&retName&" = " & value
 End Function
 
@@ -2419,7 +2423,7 @@ Class GlfInput
   
     Public Property Get Value() 
 		If m_isGetRef = True Then
-			Value = GetRef(m_value)()
+			Value = GetRef(m_value)(Null)
 		Else
 			Value = m_value
 		End If

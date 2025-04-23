@@ -64,7 +64,7 @@ Class GlfEventPlayer
         Log "Dispatching Event: " & evt
         If Not IsNull(m_events(evt).Condition) Then
             'msgbox m_events(evt).Condition
-            If GetRef(m_events(evt).Condition)() = False Then
+            If GetRef(m_events(evt).Condition)(Null) = False Then
                 Exit Sub
             End If
         End If

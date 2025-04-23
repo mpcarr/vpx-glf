@@ -69,7 +69,7 @@ Class GlfAutoFireDevice
         Log "Enabling"
         m_enabled = True
         If Not IsEmpty(m_enabled_cb) Then
-            GetRef(m_enabled_cb)()
+            GetRef(m_enabled_cb)(Null)
         End If
         If Not IsEmpty(m_switch) Then
             AddPinEventListener m_switch & "_active", m_name & "_active", "AutoFireDeviceEventHandler", 1000, Array("activate", Me)
@@ -81,7 +81,7 @@ Class GlfAutoFireDevice
         Log "Disabling"
         m_enabled = False
         If Not IsEmpty(m_disabled_cb) Then
-            GetRef(m_disabled_cb)()
+            GetRef(m_disabled_cb)(Null)
         End If
         Deactivate(Null)
         RemovePinEventListener m_switch & "_active", m_name & "_active"

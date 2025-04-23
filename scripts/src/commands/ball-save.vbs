@@ -131,15 +131,15 @@ Class BallSave
         m_timer_started=True
         DispatchPinEvent m_name&"_timer_start", Null
         If Not IsNull(m_active_time) Then
-            Dim active_time : active_time = GetRef(m_active_time(0))()
+            Dim active_time : active_time = GetRef(m_active_time(0))(Null)
             Dim grace_period, hurry_up_time
             If Not IsNull(m_grace_period) Then
-                grace_period = GetRef(m_grace_period(0))()
+                grace_period = GetRef(m_grace_period(0))(Null)
             Else
                 grace_period = 0
             End If
             If Not IsNull(m_hurry_up_time) Then
-                hurry_up_time = GetRef(m_hurry_up_time(0))()
+                hurry_up_time = GetRef(m_hurry_up_time(0))(Null)
             Else
                 hurry_up_time = 0
             End If

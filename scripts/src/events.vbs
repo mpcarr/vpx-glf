@@ -11,7 +11,7 @@ Class GlfEvent
 
     Public Function Evaluate()
         If has_condition = True Then
-            Evaluate = GetRef(m_condition)()
+            Evaluate = GetRef(m_condition)(Null)
         Else
             Evaluate = True
         End If
@@ -43,7 +43,7 @@ Class GlfEventDispatch
         If IsEmpty(m_kwargs_ref) Then
             Kwargs = Null
         Else
-            Set Kwargs = GetRef(m_kwargs_ref)()
+            Set Kwargs = GetRef(m_kwargs_ref)(Null)
         End If
     End Property
     Public Property Get Raw() : Raw = m_raw : End Property

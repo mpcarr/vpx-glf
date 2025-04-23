@@ -314,7 +314,6 @@ Class GlfTimer
         m_ticks = new_value
         timer_value = new_value - timer_value
 
-        Dim kwargs : Set kwargs = GlfKwargs()
         With kwargs
             .Add "ticks", m_ticks
             .Add "ticks_added", timer_value

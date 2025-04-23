@@ -115,7 +115,7 @@ Class GlfLightPlayer
 
     Public Function ToYaml()
         Dim yaml
-        Dim evt
+        Dim evt, key
         If UBound(m_events.Keys) > -1 Then
             For Each key in m_events.keys
                 yaml = yaml & "  " & key & ": " & vbCrLf
@@ -145,7 +145,7 @@ Class GlfLightPlayerEventItem
     Public Property Let LightSeq(input) : m_lightSeq = input : End Property
 
     Public Function ToYaml()
-        Dim yaml
+        Dim yaml, key
         If UBound(m_lights.Keys) > -1 Then
             For Each key in m_lights.keys
                 yaml = yaml & "    " & key & ": " & vbCrLf
@@ -204,6 +204,7 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed, co
     Dim shows_added
     Dim lightStack
     Dim lightParts, light
+    Set shows_added = CreateObject("Scripting.Dictionary")
     If play = False Then
         For Each light in lights(0)
             lightParts = Split(light,"|")
@@ -228,10 +229,12 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed, co
                 End If
             End If
         Next
+        Set LightPlayerCallbackHandler = shows_added
         Exit Function
         'glf_debugLog.WriteToLog "LightPlayer", "Removing Light Seq" & mode & "_" & key
     Else
         If UBound(lights) = -1 Then
+            Set LightPlayerCallbackHandler = shows_added
             Exit Function
         End If
         If IsArray(lights) Then
@@ -240,7 +243,6 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed, co
             'glf_debugLog.WriteToLog "LightPlayer", "Lights not an array!?"
         End If
         'glf_debugLog.WriteToLog "LightPlayer", "Adding Light Seq" & Join(lights) & ". Key:" & mode & "_" & key
-        Set shows_added = CreateObject("Scripting.Dictionary")
         For Each light in lights(0)
             lightParts = Split(light,"|")
             

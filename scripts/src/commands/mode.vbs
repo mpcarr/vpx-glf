@@ -448,7 +448,7 @@ Class Mode
     End Sub
 
     Public Function ToYaml()
-        dim yaml, child
+        dim yaml, child,x, key
 
         
         yaml = "#config_version=6" & vbCrLf & vbCrLf
