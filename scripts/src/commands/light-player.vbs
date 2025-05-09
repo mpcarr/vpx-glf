@@ -228,12 +228,12 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed, co
                 End If
             End If
         Next
-        LightPlayerCallbackHandler = Null
+        LightPlayerCallbackHandler = Array(Null)
         Exit Function
         'glf_debugLog.WriteToLog "LightPlayer", "Removing Light Seq" & mode & "_" & key
     Else
         If UBound(lights) = -1 Then
-            LightPlayerCallbackHandler = Null
+            LightPlayerCallbackHandler = Array(Null)
             Exit Function
         End If
         If IsArray(lights) Then
@@ -242,7 +242,7 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed, co
             'glf_debugLog.WriteToLog "LightPlayer", "Lights not an array!?"
         End If
         'glf_debugLog.WriteToLog "LightPlayer", "Adding Light Seq" & Join(lights) & ". Key:" & mode & "_" & key
-        shows_added = CreateObject("Scripting.Dictionary")
+        Set shows_added = CreateObject("Scripting.Dictionary")
         For Each light in lights(0)
             lightParts = Split(light,"|")
             
@@ -292,7 +292,7 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed, co
                 End If
             End If
         Next
-        Set LightPlayerCallbackHandler = shows_added
+        LightPlayerCallbackHandler = Array(shows_added)
     End If
 End Function
 

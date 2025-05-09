@@ -151,13 +151,14 @@ Class GlfRunningShow
             Set ShowsAdded = m_shows_added
         End If
     End Property
-    Public Property Let ShowsAdded(input)
-        If IsNull(input) Then
-            m_shows_added = Null
-        Else
-            Set m_shows_added = input
-        End If
-    End Property
+
+    Public Sub SetShowsAdded(shows)
+        Set m_shows_added = shows
+    End Sub
+
+    Public Sub ClearShowsAdded()
+        m_shows_added = Null
+    End Sub
     
     Public default Function init(rname, rkey, show_settings, priority, tokens, cache_id)
         m_show_name = rname
@@ -263,14 +264,14 @@ Function GlfShowStepHandler(args)
             msgbox running_show.CacheName & " show not cached! Problem with caching"
         End If
 
-        If Not IsNull(running_show.ShowsAdded) Then
+        If Not IsNull(running_show.ShowsAdded()) Then
             Dim show_added
-            For Each show_added in running_show.ShowsAdded.Keys()
+            For Each show_added in running_show.ShowsAdded().Keys()
                 If glf_running_shows.Exists(show_added) Then 
                     glf_running_shows(show_added).StopRunningShow()
                 End If
             Next
-            running_show.ShowsAdded = Null
+            running_show.ClearShowsAdded()
         End If  
 
         Dim shows_added, replacement_color
@@ -279,10 +280,10 @@ Function GlfShowStepHandler(args)
             Dim show_settings_color_lookup : show_settings_color_lookup = running_show.ShowSettings.ColorLookup()
             replacement_color = show_settings_color_lookup(running_show.CurrentStep)
         End If
-        Set shows_added = LightPlayerCallbackHandler(running_show.Key, Array(cached_show_seq(running_show.CurrentStep)), running_show.ShowName, running_show.Priority + running_show.ShowSettings.Priority, True, running_show.ShowSettings.Speed, replacement_color)
-        If IsObject(shows_added) Then
+        shows_added = LightPlayerCallbackHandler(running_show.Key, Array(cached_show_seq(running_show.CurrentStep)), running_show.ShowName, running_show.Priority + running_show.ShowSettings.Priority, True, running_show.ShowSettings.Speed, replacement_color)
+        If Not IsNull(shows_added(0)) Then
             'Fade shows were added, log them agains the current show.
-            running_show.ShowsAdded = shows_added
+            running_show.SetShowsAdded(shows_added(0))
         End If
     End If
     If UBound(nextStep.ShowsInStep().Keys())>-1 Then
