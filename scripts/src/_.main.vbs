@@ -191,7 +191,7 @@ Public Sub Glf_Init()
 
 		Dim lightsYaml : lightsYaml = "#config_version=6" & vbCrLf & vbCrLf
 		lightsYaml = lightsYaml + "lights:" & vbCrLf
-		Dim monitorYaml : monitorYaml = "light:" & vbCrLf
+		Dim monitorYaml : monitorYaml = "lights:" & vbCrLf
 		Dim godotLightScene : godotLightScene = ""
 		For Each light in glf_lights
 			monitorYaml = monitorYaml + "  " & light.name & ":"&vbCrLf
@@ -204,6 +204,8 @@ Public Sub Glf_Init()
 			lightsYaml = lightsYaml + "    subtype: led" & vbCrLf
 			lightsYaml = lightsYaml + "    type: rgb" & vbCrLf
 			lightsYaml = lightsYaml + "    tags: " & light.BlinkPattern & vbCrLf
+			lightsYaml = lightsYaml + "    x: "& light.x/tablewidth & vbCrLf
+			lightsYaml = lightsYaml + "    y: "& light.y/tableheight & vbCrLf
 			lightsNumber = lightsNumber + 1
 
 			godotLightScene = godotLightScene + "[node name="""&light.name&""" type=""Sprite2D"" parent=""lights""]" & vbCrLf
@@ -225,7 +227,7 @@ Public Sub Glf_Init()
 		Next
 
 		monitorYaml = monitorYaml + vbCrLf
-		monitorYaml = monitorYaml + "switch:" & vbCrLf
+		monitorYaml = monitorYaml + "switches:" & vbCrLf
 		switchesYaml = switchesYaml + "switches:" & vbCrLf
 
 		For Each switch in glf_switches
@@ -237,6 +239,8 @@ Public Sub Glf_Init()
 			switchesYaml = switchesYaml + "  " & switch.name & ":"&vbCrLf
 			switchesYaml = switchesYaml + "    number: " & switchNumber & vbCrLf
 			switchesYaml = switchesYaml + "    tags: " & vbCrLf
+			switchesYaml = switchesYaml + "    x: "& switch.x/tablewidth & vbCrLf
+			switchesYaml = switchesYaml + "    y: "& switch.y/tableheight & vbCrLf
 			switchNumber = switchNumber + 1
 		Next
 		For Each switch in glf_spinners
