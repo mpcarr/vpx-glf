@@ -2871,6 +2871,18 @@ Class GlfVpxBcpController
         End If
     End Sub
 
+    Public Sub SlidesClear(context)
+        If m_connected Then
+            m_bcpController.Send "trigger?name=slides_clear&context=" & context
+        End If
+    End Sub
+
+    Public Sub ModeStop(context)
+        If m_connected Then
+            m_bcpController.Send "mode_stop?context=" & context
+        End If
+    End Sub
+
     Public Sub SendPlayerVariable(name, value, prevValue)
 		If m_connected Then
             m_bcpController.Send "player_variable?name=" & name & "&value=" & EncodeVariable(value) & "&prev_value=" & EncodeVariable(prevValue) & "&change=" & EncodeVariable(VariableVariance(value, prevValue)) & "&player_num=int:" & Getglf_currentPlayerNumber
@@ -6010,7 +6022,8 @@ Class Mode
     Private m_high_score
     Private m_use_wait_queue
 
-    Public Property Get Name(): Name = m_name: End Property
+    Public Property Get Name(): Name = m_name : End Property
+    Public Property Get ModeName(): ModeName = m_modename : End Property
     Public Property Get GetValue(value)
         Select Case value
             Case "active":
@@ -6410,6 +6423,10 @@ Class Mode
         'MsgBox m_name & "Stopped"
         DispatchPinEvent m_name & "_stopped", Null
         Glf_MonitorModeUpdate Me
+        If useBcp Then
+            bcpController.SlidesClear(m_modename)
+            bcpController.ModeStop(m_modename)
+        End If
         glf_running_modes = Replace(glf_running_modes, "["""&m_modename&""", " & m_priority & "],", "")
         Log "Stopped"
     End Sub
@@ -6506,9 +6523,15 @@ Class Mode
             If UBound(m_lightplayer.EventNames)>-1 Then
                 yaml = yaml & vbCrLf
                 yaml = yaml & "light_player: " & vbCrLf
-                For Each child in m_lightplayer.EventNames
-                    yaml = yaml & m_lightplayer.ToYaml()
-                Next
+                yaml = yaml & m_lightplayer.ToYaml()
+            End If
+        End If
+
+        If Not IsNull(m_slide_player) Then
+            If UBound(m_slide_player.EventNames)>-1 Then
+                yaml = yaml & vbCrLf
+                yaml = yaml & "slide_player: " & vbCrLf
+                yaml = yaml & m_slide_player.ToYaml()
             End If
         End If
 
@@ -10149,6 +10172,7 @@ Class GlfSlidePlayer
 
     Public Property Get Name() : Name = "slide_player" : End Property
 
+    Public Property Get EventNames() : EventNames = m_events.Keys() : End Property   
     Public Property Get EventName(name)
         Dim newEvent : Set newEvent = (new GlfEvent)(name)
         m_events.Add newEvent.Raw, newEvent
@@ -10167,7 +10191,7 @@ Class GlfSlidePlayer
 
 	Public default Function init(mode)
         m_name = "slide_player_" & mode.name
-        m_mode = mode.Name
+        m_mode = mode.ModeName
         m_priority = mode.Priority
         m_debug = False
         Set m_events = CreateObject("Scripting.Dictionary")
@@ -10194,7 +10218,7 @@ Class GlfSlidePlayer
         Play = Empty
         If m_events(evt).Evaluate() Then
             'Fire Slide
-            bcpController.PlaySlide m_eventValues(evt).Slide, m_mode, m_events(evt).EventName, m_priority
+            bcpController.PlaySlide m_eventValues(evt).Slide, m_mode, m_events(evt).EventName, m_priority+m_eventValues(evt).Priority
         End If
     End Function
 
@@ -10210,7 +10234,7 @@ Class GlfSlidePlayer
         If UBound(m_events.Keys) > -1 Then
             For Each key in m_events.keys
                 yaml = yaml & "  " & key & ": " & vbCrLf
-                yaml = yaml & m_events(key).ToYaml
+                yaml = yaml & m_eventValues(key).ToYaml
             Next
             yaml = yaml & vbCrLf
         End If
@@ -10292,11 +10316,24 @@ Class GlfSlidePlayerItem
         m_expire = Empty
         m_max_queue_time = Empty
         m_method = Empty
-        m_priority = Empty
+        m_priority = 0
         m_target = Empty
         m_tokens = Empty
         Set Init = Me
 	End Function
+
+    Public Function ToYaml()
+        Dim yaml
+        yaml = yaml & "    "& m_slide & ":" & vbCrLf
+        yaml = yaml & "      action: " & m_action & vbCrLf
+        If Not IsEmpty(m_expire) Then
+            yaml = yaml & "      expire: " & m_expire & "ms" & vbCrLf
+        End If
+        If m_priority <> 0 Then
+            yaml = yaml & "      priority: " & m_priority & vbCrLf
+        End If
+        ToYaml = yaml
+    End Function
 
 End Class
 

@@ -37,7 +37,8 @@ Class Mode
     Private m_high_score
     Private m_use_wait_queue
 
-    Public Property Get Name(): Name = m_name: End Property
+    Public Property Get Name(): Name = m_name : End Property
+    Public Property Get ModeName(): ModeName = m_modename : End Property
     Public Property Get GetValue(value)
         Select Case value
             Case "active":
@@ -437,6 +438,10 @@ Class Mode
         'MsgBox m_name & "Stopped"
         DispatchPinEvent m_name & "_stopped", Null
         Glf_MonitorModeUpdate Me
+        If useBcp Then
+            bcpController.SlidesClear(m_modename)
+            bcpController.ModeStop(m_modename)
+        End If
         glf_running_modes = Replace(glf_running_modes, "["""&m_modename&""", " & m_priority & "],", "")
         Log "Stopped"
     End Sub
@@ -533,9 +538,15 @@ Class Mode
             If UBound(m_lightplayer.EventNames)>-1 Then
                 yaml = yaml & vbCrLf
                 yaml = yaml & "light_player: " & vbCrLf
-                For Each child in m_lightplayer.EventNames
-                    yaml = yaml & m_lightplayer.ToYaml()
-                Next
+                yaml = yaml & m_lightplayer.ToYaml()
+            End If
+        End If
+
+        If Not IsNull(m_slide_player) Then
+            If UBound(m_slide_player.EventNames)>-1 Then
+                yaml = yaml & vbCrLf
+                yaml = yaml & "slide_player: " & vbCrLf
+                yaml = yaml & m_slide_player.ToYaml()
             End If
         End If
 

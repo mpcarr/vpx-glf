@@ -52,6 +52,18 @@ Class GlfVpxBcpController
         End If
     End Sub
 
+    Public Sub SlidesClear(context)
+        If m_connected Then
+            m_bcpController.Send "trigger?name=slides_clear&context=" & context
+        End If
+    End Sub
+
+    Public Sub ModeStop(context)
+        If m_connected Then
+            m_bcpController.Send "mode_stop?context=" & context
+        End If
+    End Sub
+
     Public Sub SendPlayerVariable(name, value, prevValue)
 		If m_connected Then
             m_bcpController.Send "player_variable?name=" & name & "&value=" & EncodeVariable(value) & "&prev_value=" & EncodeVariable(prevValue) & "&change=" & EncodeVariable(VariableVariance(value, prevValue)) & "&player_num=int:" & Getglf_currentPlayerNumber
