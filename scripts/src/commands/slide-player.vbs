@@ -125,40 +125,16 @@ Class GlfSlidePlayerItem
         m_expire = input
     End Property
 
-    Public Property Get MaxQueueTime(): MaxQueueTime = m_max_queue_time: End Property
-    Public Property Let MaxQueueTime(input)
-        m_max_queue_time = input
-    End Property
-
-    Public Property Get Method(): Method = m_method: End Property
-    Public Property Let Method(input)
-        m_method = input
-    End Property
-
     Public Property Get Priority(): Priority = m_priority: End Property
     Public Property Let Priority(input)
         m_priority = input
-    End Property
-
-    Public Property Get Target(): Target = m_target: End Property
-    Public Property Let Target(input)
-        m_target = input
-    End Property
-
-    Public Property Get Tokens(): Tokens = m_tokens: End Property
-    Public Property Let Tokens(input)
-        m_tokens = input
     End Property
 
 	Public default Function init()
         m_action = "play"
         m_slide = Empty
         m_expire = Empty
-        m_max_queue_time = Empty
-        m_method = Empty
         m_priority = 0
-        m_target = Empty
-        m_tokens = Empty
         Set Init = Me
 	End Function
 
