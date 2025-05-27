@@ -13,7 +13,7 @@ With CreateGlfMode("mode_name", priority)
     .StartEvents = Array("ball_started")
     .StopEvents = Array("ball_ended")
     
-    With .Shot("shot_name")
+    With .Shots("shot_name")
         .Switch = "switch_name"
         .Profile = "profile_name"
     End With
@@ -27,7 +27,7 @@ With CreateGlfMode("mode_name", priority)
     .StartEvents = Array("ball_started")
     .StopEvents = Array("ball_ended")
     
-    With .Shot("shot_name")
+    With .Shots("shot_name")
         ' Configure switches
         .Switches = Array("switch1", "switch2", "switch3")
         
@@ -115,7 +115,7 @@ With CreateGlfMode("base", 10)
     .StartEvents = Array("ball_started")
     .StopEvents = Array("ball_ended")
     
-    With .Shot("left_ramp")
+    With .Shots("left_ramp")
         .Switch = "sw_left_ramp"
         .Profile = "ramp_profile"
     End With
@@ -129,7 +129,7 @@ With CreateGlfMode("multiball", 20)
     .StartEvents = Array("ball_started")
     .StopEvents = Array("ball_ended")
     
-    With .Shot("jackpot")
+    With .Shots("jackpot")
         ' Configure switches
         .Switches = Array("sw_left_ramp", "sw_right_ramp", "sw_center_ramp")
         

@@ -58,7 +58,9 @@ Class GlfSlidePlayer
         Play = Empty
         If m_events(evt).Evaluate() Then
             'Fire Slide
-            bcpController.PlaySlide m_eventValues(evt).Slide, m_mode, m_events(evt).EventName, m_priority+m_eventValues(evt).Priority
+            If useBcp = True Then
+                bcpController.PlaySlide m_eventValues(evt).Slide, m_mode, m_events(evt).EventName, m_priority+m_eventValues(evt).Priority
+            End If
         End If
     End Function
 
@@ -70,7 +72,7 @@ Class GlfSlidePlayer
 
     Public Function ToYaml()
         Dim yaml
-        Dim evt
+        Dim key
         If UBound(m_events.Keys) > -1 Then
             For Each key in m_events.keys
                 yaml = yaml & "  " & key & ": " & vbCrLf

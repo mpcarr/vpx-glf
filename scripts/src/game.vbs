@@ -158,11 +158,6 @@ Function Glf_StartGame(args)
         glf_gameStarted = True
         glf_canAddPlayers = True
         DispatchPinEvent GLF_GAME_START, Null
-        If useBcp Then
-            bcpController.Send "player_turn_start?player_num=int:1"
-            bcpController.Send "ball_start?player_num=int:1&ball=int:1"
-            bcpController.SendPlayerVariable "number", 1, 0
-        End If
         SetDelay GLF_GAME_STARTED, "Glf_DispatchGameStarted", Null, 50
     End If
 End Function
@@ -334,9 +329,6 @@ Function Glf_EndOfBall(args)
             glf_currentPlayer = "PLAYER 1"
     End Select
     
-    If useBcp Then
-        bcpController.SendPlayerVariable "number", Getglf_currentPlayerNumber(), previousPlayerNumber
-    End If
     If GetPlayerState(GLF_CURRENT_BALL) > glf_ballsPerGame Then
         Dim device
         For Each device in glf_ball_devices.Items()

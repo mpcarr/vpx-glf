@@ -273,6 +273,46 @@ Class GlfSequenceShots
         DispatchPinEvent m_name & "_timeout", Null
     End Sub
 
+     Public Function ToYaml()
+        Dim yaml, key, x
+        yaml = "  " & Replace(m_name, "sequence_shot_", "") & ":" & vbCrLf
+        If UBound(m_switch_sequence) > -1 Then
+            yaml = yaml & "    switch_sequence: " & vbCrLf
+            For Each key in m_switch_sequence
+                yaml = yaml & "      - " & key & vbCrLf
+            Next
+        End If
+        If UBound(m_event_sequence) > -1 Then
+            yaml = yaml & "    event_sequence: " & vbCrLf
+            For Each key in m_event_sequence
+                yaml = yaml & "      - " & key & vbCrLf
+            Next
+        End If
+        If UBound(m_cancel_events.Keys) > -1 Then
+            yaml = yaml & "    cancel_events: " & vbCrLf
+            For Each key in m_cancel_events.Keys
+                yaml = yaml & "      - " & key & vbCrLf
+            Next
+        End If
+        If UBound(m_cancel_switches) > -1 Then
+            yaml = yaml & "    cancel_swithces: " & vbCrLf
+            For Each key in m_cancel_switches
+                yaml = yaml & "      - " & key & vbCrLf
+            Next
+        End If
+        If UBound(m_delay_event_list.Keys()) > -1 Then
+            yaml = yaml & "    delay_event_list: " & vbCrLf
+            For Each key in m_delay_event_list.Keys()
+                yaml = yaml & "      - " & key & vbCrLf
+            Next
+        End If
+        If m_sequence_timeout.Raw <> 0 Then
+            yaml = yaml & "    sequence_timeout: " & m_sequence_timeout.Raw & vbCrLf
+        End If
+
+        ToYaml = yaml
+    End Function
+
     Private Sub Log(message)
         If m_debug = True Then
             glf_debugLog.WriteToLog m_name, message

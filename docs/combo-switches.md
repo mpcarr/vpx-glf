@@ -1,6 +1,6 @@
 # Combo Switches Configuration
 
-The combo switches configuration allows you to set up and customize combinations of switches that trigger events when activated in specific patterns. Combo switches are useful for creating complex gameplay mechanics that require multiple switches to be activated in sequence or simultaneously.
+The combo switches configuration allows you to set up and customize combinations of switches that trigger events when activated in specific patterns. Combo switches are useful for creating complex gameplay mechanics that require multiple switches to be activated in sequence.
 
 ## Configuration Options
 

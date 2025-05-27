@@ -15,6 +15,10 @@ Class GlfVpxBcpController
         m_connected = True
         useBcp = True
         m_mode_list = ""
+        AddPinEventListener "player_added", "bcp_player_added", "GlfVpxBcpControllerEventHandler", 50, Array("player_added")
+        AddPinEventListener "next_player", "bcp_player_next_player", "GlfVpxBcpControllerEventHandler", 50, Array("next_player")
+        AddPinEventListener "game_started", "bcp_player_next_player", "GlfVpxBcpControllerEventHandler", 50, Array("next_player")
+        AddPinEventListener "ball_ended", "bcp_player_ball_end", "GlfVpxBcpControllerEventHandler", 50, Array("ball_end")
         If Err Then MsgBox("Can not start VPX BCP Controller") : m_connected = False
         Set Init = Me
 	End Function
@@ -58,15 +62,22 @@ Class GlfVpxBcpController
         End If
     End Sub
 
-    Public Sub ModeStop(context)
+    Public Sub ModeStart(name, priority)
         If m_connected Then
-            m_bcpController.Send "mode_stop?context=" & context
+            m_bcpController.Send "mode_start?priority=int:" & priority & "&name=" & name
         End If
     End Sub
 
+    Public Sub ModeStop(name)
+        If m_connected Then
+            m_bcpController.Send "mode_stop?name=" & name
+        End If
+    End Sub
+
+
     Public Sub SendPlayerVariable(name, value, prevValue)
 		If m_connected Then
-            m_bcpController.Send "player_variable?name=" & name & "&value=" & EncodeVariable(value) & "&prev_value=" & EncodeVariable(prevValue) & "&change=" & EncodeVariable(VariableVariance(value, prevValue)) & "&player_num=int:" & Getglf_currentPlayerNumber
+            m_bcpController.Send "player_variable?name=" & name & "&value=" & EncodeVariable(value) & "&prev_value=" & EncodeVariable(prevValue) & "&change=" & EncodeVariable(VariableVariance(value, prevValue)) & "&player_num=int:" & Getglf_currentPlayerNumber+1
         End If
 	End Sub
 
@@ -78,7 +89,7 @@ Class GlfVpxBcpController
             Case vbSingle, vbDouble
                 retValue = "float:" & value
             Case vbString
-                retValue = "string:" & value
+                retValue = value
             Case vbBoolean
                 retValue = "bool:" & CStr(value)
             Case Else
@@ -142,8 +153,9 @@ Sub Glf_BcpUpdate()
                 case "monitor_start"
                     Dim category : category = message.GetValue("category")
                     If category = "player_vars" Then
-                        AddPlayerStateEventListener "score", "bcp_player_var_score_0", 0, "Glf_BcpSendPlayerVar", 1000, Null
-                        AddPlayerStateEventListener "current_ball", "bcp_player_var_ball_0", 0, "Glf_BcpSendPlayerVar", 1000, Null
+                        glf_monitor_player_vars = True
+                        'AddPlayerStateEventListener "score", "bcp_player_var_score_0", 0, "Glf_BcpSendPlayerVar", 1000, Null
+                        'AddPlayerStateEventListener "current_ball", "bcp_player_var_ball_0", 0, "Glf_BcpSendPlayerVar", 1000, Null
                     End If
                 case "register_trigger"
                     eventName = message.GetValue("event")
@@ -152,6 +164,35 @@ Sub Glf_BcpUpdate()
     End If
     bcpController.ModeList()
 End Sub
+
+Function GlfVpxBcpControllerEventHandler(args)
+    
+    Dim ownProps, kwargs : ownProps = args(0)
+    If IsObject(args(1)) Then
+        Set kwargs = args(1) 
+    Else
+        kwargs = args(1)
+    End If
+    Dim evt : evt = ownProps(0)
+    Select Case evt
+        Case "player_added"
+            bcpController.Send "player_added?player_num=int:" & kwargs("num")
+        Case "next_player"
+            Dim p_num : p_num = Getglf_currentPlayerNumber() + 1
+            bcpController.Send "player_turn_start?player_num=int:" & p_num
+            bcpController.Send "ball_start?player_num=int:" & p_num & "&ball=int:" & GetPlayerState("ball")
+            bcpController.SendPlayerVariable "number", p_num, p_num-1
+            'bcpController.SendPlayerVariable "number", 1, 0
+        Case "ball_end"
+            bcpController.Send "ball_end"
+    End Select
+    If IsObject(args(1)) Then
+        Set GlfVpxBcpControllerEventHandler = kwargs
+    Else
+        GlfVpxBcpControllerEventHandler = kwargs
+    End If
+    
+End Function
 
 '*****************************************************************************************************************************************
 '  Vpx Glf Bcp Controller

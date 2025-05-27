@@ -89,6 +89,9 @@ Function SetPlayerState(key, value)
         Glf_WriteDebugLog "Player State", "Variable "& key &" changed from " & CStr(p) & " to " & CStr(v)
     End If
     Glf_MonitorPlayerStateUpdate key, value
+    If glf_monitor_player_vars = True Then
+        Glf_BcpSendPlayerVar Array(Null, Array(key, value, prevValue))
+    End If
     If glf_playerEvents.Exists(key) Then
         SetDelay "FirePlayerEventHandlers_" & key, "FirePlayerEventHandlersProxy",  Array(key, value, prevValue, -1), 200
         'FirePlayerEventHandlers key, value, prevValue, -1

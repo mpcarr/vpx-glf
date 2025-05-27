@@ -279,6 +279,58 @@ Class GlfComboSwitches
 
     End Sub
 
+    Public Function ToYaml()
+        Dim yaml, key, x
+        yaml = "  " & Replace(m_name, "combo_switch_", "") & ":" & vbCrLf
+        If Not IsEmpty(m_switch_1) Then
+            yaml = yaml & "    switches_1: " & m_switch_1 & vbCrLf
+        End If
+        If Not IsEmpty(m_switch_2) Then
+            yaml = yaml & "    switches_2: " & m_switch_2 & vbCrLf
+        End If
+        If UBound(m_events_when_both.Keys()) > -1 Then
+            yaml = yaml & "    events_when_both: " & vbCrLf
+            For Each key in m_events_when_both.Keys()
+                yaml = yaml & "      - " & key & vbCrLf
+            Next
+        End If
+        If UBound(m_events_when_inactive.Keys()) > -1 Then
+            yaml = yaml & "    events_when_inactive: " & vbCrLf
+            For Each key in m_events_when_inactive.Keys()
+                yaml = yaml & "      - " & key & vbCrLf
+            Next
+        End If
+        If UBound(m_events_when_switch_1.Keys()) > -1 Then
+            yaml = yaml & "    events_when_switches_1: " & vbCrLf
+            For Each key in m_events_when_switch_1.Keys()
+                yaml = yaml & "      - " & key & vbCrLf
+            Next
+        End If
+        If UBound(m_events_when_switch_2.Keys()) > -1 Then
+            yaml = yaml & "    events_when_switches_2: " & vbCrLf
+            For Each key in m_events_when_switch_2.Keys()
+                yaml = yaml & "      - " & key & vbCrLf
+            Next
+        End If
+        If UBound(m_events_when_switch_2.Keys()) > -1 Then
+            yaml = yaml & "    events_when_switches_2: " & vbCrLf
+            For Each key in m_events_when_switch_2.Keys()
+                yaml = yaml & "      - " & key & vbCrLf
+            Next
+        End If
+        If m_hold_time.Raw <> 0 Then
+            yaml = yaml & "    hold_time: " & m_hold_time.Raw & vbCrLf
+        End If
+        If m_max_offset_time.Raw <> 0 Then
+            yaml = yaml & "    max_offset_time: " & m_max_offset_time.Raw & vbCrLf
+        End If
+        If m_release_time.Raw <> 0 Then
+            yaml = yaml & "    release_time: " & m_release_time.Raw & vbCrLf
+        End If
+
+        ToYaml = yaml
+    End Function
+
     Private Sub Log(message)
         If m_debug = True Then
             glf_debugLog.WriteToLog m_name, message

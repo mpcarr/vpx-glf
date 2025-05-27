@@ -74,6 +74,9 @@ Class GlfShotProfile
             yaml = yaml & "       loops: " & m_states(evt).Loops & vbCrLf
             yaml = yaml & "       speed: " & m_states(evt).Speed & vbCrLf
             yaml = yaml & "       sync_ms: " & m_states(evt).SyncMs & vbCrLf
+            If UBound(m_states(evt).EventsWhenCompleted) > -1 Then
+                yaml = yaml & "       events_when_completed: " & Join(m_states(evt).EventsWhenCompleted, ",") & vbCrLf
+            End If
 
             If Ubound(state.Tokens().Keys)>-1 Then
                 yaml = yaml & "       show_tokens: " & vbCrLf

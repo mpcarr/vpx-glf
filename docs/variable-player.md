@@ -1,6 +1,6 @@
 # Variable Player Configuration
 
-The variable player configuration allows you to set up and customize variable manipulation in your pinball machine. Variable players are used to modify player and machine variables based on events.
+The variable player configuration allows you to set up and customize variable manipulation in your game. Variable players are used to modify player and machine variables based on events.
 
 ## Configuration Options
 

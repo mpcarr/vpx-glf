@@ -416,6 +416,9 @@ Class Mode
     Public Sub StartMode()
         Log "Starting"
         m_started=True
+        If useBcp Then
+            bcpController.ModeStart m_modename, m_priority
+        End If
         DispatchQueuePinEvent m_name & "_starting", Null
     End Sub
 
@@ -423,6 +426,10 @@ Class Mode
         If m_started = True Then
             m_started = False
             Log "Stopping"
+            If useBcp Then
+                bcpController.SlidesClear(m_modename)
+                bcpController.ModeStop(m_modename)
+            End If
             DispatchQueuePinEvent m_name & "_stopping", Null
         End If
     End Sub
@@ -438,10 +445,6 @@ Class Mode
         'MsgBox m_name & "Stopped"
         DispatchPinEvent m_name & "_stopped", Null
         Glf_MonitorModeUpdate Me
-        If useBcp Then
-            bcpController.SlidesClear(m_modename)
-            bcpController.ModeStop(m_modename)
-        End If
         glf_running_modes = Replace(glf_running_modes, "["""&m_modename&""", " & m_priority & "],", "")
         Log "Stopped"
     End Sub
@@ -455,7 +458,6 @@ Class Mode
     Public Function ToYaml()
         dim yaml, child,x, key
 
-        
         yaml = "#config_version=6" & vbCrLf & vbCrLf
 
         yaml = yaml & "mode:" & vbCrLf
@@ -486,13 +488,27 @@ Class Mode
         End If
         yaml = yaml & "  priority: " & m_priority & vbCrLf
         
-
-
         If UBound(m_ballsaves.Keys)>-1 Then
             yaml = yaml & vbCrLf
             yaml = yaml & "ball_saves: " & vbCrLf
             For Each child in m_ballsaves.Keys
                 yaml = yaml & m_ballsaves(child).ToYaml
+            Next
+        End If
+
+        If UBound(m_combo_switches.Keys)>-1 Then
+            yaml = yaml & vbCrLf
+            yaml = yaml & "combo_switches: " & vbCrLf
+            For Each child in m_combo_switches.Keys
+                yaml = yaml & m_combo_switches(child).ToYaml
+            Next
+        End If
+
+        If UBound(m_sequence_shots.Keys)>-1 Then
+            yaml = yaml & vbCrLf
+            yaml = yaml & "sequence_shots: " & vbCrLf
+            For Each child in m_sequence_shots.Keys
+                yaml = yaml & m_sequence_shots(child).ToYaml
             Next
         End If
         
@@ -547,6 +563,22 @@ Class Mode
                 yaml = yaml & vbCrLf
                 yaml = yaml & "slide_player: " & vbCrLf
                 yaml = yaml & m_slide_player.ToYaml()
+            End If
+        End If
+
+        If Not IsNull(m_variableplayer) Then
+            If UBound(m_variableplayer.EventNames)>-1 Then
+                yaml = yaml & vbCrLf
+                yaml = yaml & "variable_player: " & vbCrLf
+                yaml = yaml & m_variableplayer.ToYaml()
+            End If
+        End If
+
+        If Not IsNull(m_random_event_player) Then
+            If UBound(m_random_event_player.EventNames)>-1 Then
+                yaml = yaml & vbCrLf
+                yaml = yaml & "random_event_player: " & vbCrLf
+                yaml = yaml & m_random_event_player.ToYaml()
             End If
         End If
 

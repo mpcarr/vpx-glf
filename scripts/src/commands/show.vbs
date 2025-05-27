@@ -73,33 +73,22 @@ Class GlfShow
     End Function
 
     Public Function ToYaml()
-        'Dim yaml
-        'yaml = yaml & "  " & Replace(m_name, "shotprofile_", "") & ":" & vbCrLf
-        'yaml = yaml & "    states: " & vbCrLf
-        'Dim token,evt,x : x = 0
-        'For Each evt in m_states.Keys
-        '    yaml = yaml & "     - name: " & StateName(x) & vbCrLf
-            'yaml = yaml & "       show: " & m_states(evt).Show & vbCrLf
-            'yaml = yaml & "       loops: " & m_states(evt).Loops & vbCrLf
-            'yaml = yaml & "       speed: " & m_states(evt).Speed & vbCrLf
-            'yaml = yaml & "       sync_ms: " & m_states(evt).SyncMs & vbCrLf
-
-            'If Ubound(m_states(evt).Tokens().Keys)>-1 Then
-            '    yaml = yaml & "       show_tokens: " & vbCrLf
-            '    For Each token in m_states(evt).Tokens().Keys()
-            '        yaml = yaml & "         " & token & ": " & m_states(evt).Tokens(token) & vbCrLf
-            '    Next
-            'End If
-
-            'yaml = yaml & "     block: " & m_block & vbCrLf
-            'yaml = yaml & "     advance_on_hit: " & m_advance_on_hit & vbCrLf
-            'yaml = yaml & "     loop: " & m_loop & vbCrLf
-            'yaml = yaml & "     rotation_pattern: " & m_rotation_pattern & vbCrLf
-            'yaml = yaml & "     state_names_to_not_rotate: " & m_states_not_to_rotate & vbCrLf
-            'yaml = yaml & "     state_names_to_rotate: " & m_states_to_rotate & vbCrLf
-         '   x = x +1
-        'Next
-        'ToYaml = yaml
+        Dim yaml, show_step
+        For Each show_step in m_steps.Items()
+            If Not IsNull(show_step.Duration) Then
+                yaml = yaml & "- duration: " & show_step.Duration & "s" & vbCrLf
+            Else
+                If Not IsNull(show_step.AbsoluteTime) Then
+                    yaml = yaml & "- time: " & show_step.AbsoluteTime & "s" & vbCrLf
+                End If
+                If Not IsNull(show_step.RelativeTime) Then
+                    yaml = yaml & "- time: +" & show_step.RelativeTime & "s" & vbCrLf
+                End If
+            End If
+            
+            yaml = yaml & show_step.toYaml() & vbCrLf
+        Next
+        ToYaml = yaml
     End Function
 
 End Class
@@ -402,7 +391,9 @@ Class GlfShowStep
         End If
     End Property
 
+    Public Property Get RelativeTime() : RelativeTime = m_relTime: End Property
     Public Property Let RelativeTime(input) : m_relTime = input: End Property
+    Public Property Get AbsoluteTime() : AbsoluteTime = m_absTime: End Property
     Public Property Let AbsoluteTime(input) : m_absTime = input: End Property
 
     Public Property Get Duration(): Duration = m_duration: End Property
@@ -425,33 +416,21 @@ Class GlfShowStep
 	End Function
 
     Public Function ToYaml()
-        'Dim yaml
-        'yaml = yaml & "  " & Replace(m_name, "shotprofile_", "") & ":" & vbCrLf
-        'yaml = yaml & "    states: " & vbCrLf
-        'Dim token,evt,x : x = 0
-        'For Each evt in m_states.Keys
-        '    yaml = yaml & "     - name: " & StateName(x) & vbCrLf
-            'yaml = yaml & "       show: " & m_states(evt).Show & vbCrLf
-            'yaml = yaml & "       loops: " & m_states(evt).Loops & vbCrLf
-            'yaml = yaml & "       speed: " & m_states(evt).Speed & vbCrLf
-            'yaml = yaml & "       sync_ms: " & m_states(evt).SyncMs & vbCrLf
-
-            'If Ubound(m_states(evt).Tokens().Keys)>-1 Then
-            '    yaml = yaml & "       show_tokens: " & vbCrLf
-            '    For Each token in m_states(evt).Tokens().Keys()
-            '        yaml = yaml & "         " & token & ": " & m_states(evt).Tokens(token) & vbCrLf
-            '    Next
-            'End If
-
-            'yaml = yaml & "     block: " & m_block & vbCrLf
-            'yaml = yaml & "     advance_on_hit: " & m_advance_on_hit & vbCrLf
-            'yaml = yaml & "     loop: " & m_loop & vbCrLf
-            'yaml = yaml & "     rotation_pattern: " & m_rotation_pattern & vbCrLf
-            'yaml = yaml & "     state_names_to_not_rotate: " & m_states_not_to_rotate & vbCrLf
-            'yaml = yaml & "     state_names_to_rotate: " & m_states_to_rotate & vbCrLf
-         '   x = x +1
-        'Next
-        'ToYaml = yaml
+        Dim yaml
+        If UBound(m_lights) > -1 Then
+            yaml = yaml & "  lights:" & vbCrLf
+            Dim light
+            For Each light in m_lights
+                Dim light_parts
+                light_parts = Split(light, "|")
+                If UBound(light_parts) = 1 Then
+                    yaml = yaml & "    " & light_parts(0) & ": ffffff%" & light_parts(1) & vbCrLf
+                Else
+                    yaml = yaml & "    " & light_parts(0) & ": " & light_parts(2) & "%" & light_parts(1) & vbCrLf
+                End If
+            Next
+        End If
+        ToYaml = yaml
     End Function
 
 End Class

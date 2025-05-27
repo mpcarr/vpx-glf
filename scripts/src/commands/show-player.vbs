@@ -85,10 +85,10 @@ Class GlfShowPlayer
     Public Function ToYaml()
         Dim yaml
         Dim evt
-        If UBound(m_events.Keys) > -1 Then
-            For Each key in m_events.keys
+        If UBound(m_eventValues.Keys) > -1 Then
+            For Each key in m_eventValues.keys
                 yaml = yaml & "  " & key & ": " & vbCrLf
-                yaml = yaml & m_events(key).ToYaml
+                yaml = yaml & m_eventValues(key).ToYaml
             Next
             yaml = yaml & vbCrLf
         End If
@@ -204,6 +204,11 @@ Class GlfShowPlayerItem
                 yaml = yaml & "        " & key & ": " & m_tokens(key) & vbCrLf
             Next
         End If
+
+        If UBound(m_events_when_completed) > -1 Then
+            yaml = yaml & "      events_when_completed: " & Join(m_events_when_completed, ",") & vbCrLf
+        End If
+
         If m_syncms > 0 Then
             yaml = yaml & "      sync_ms: " & m_syncms & vbCrLf
         End If

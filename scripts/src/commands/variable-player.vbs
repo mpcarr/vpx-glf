@@ -10,7 +10,7 @@ Class GlfVariablePlayer
     Private m_value
 
     Public Property Get Name() : Name = m_name : End Property
-
+    Public Property Get EventNames() : EventNames = m_events.Keys() : End Property 
     Public Property Get EventName(name)
         Dim newEvent : Set newEvent = (new GlfVariablePlayerEvent)(name)
         m_events.Add newEvent.BaseEvent.Raw, newEvent
@@ -79,6 +79,19 @@ Class GlfVariablePlayer
         Next
     End Sub
 
+    Public Function ToYaml()
+        Dim yaml
+        Dim key
+        If UBound(m_events.Keys) > -1 Then
+            For Each key in m_events.keys
+                yaml = yaml & "  " & key & ": " & vbCrLf
+                yaml = yaml & m_events(key).ToYaml
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        ToYaml = yaml
+    End Function
+
     Private Sub Log(message)
         If m_debug = True Then
             glf_debugLog.WriteToLog m_mode & "_variable_player", message
@@ -111,6 +124,19 @@ Class GlfVariablePlayerEvent
 	    Set Init = Me
 	End Function
 
+    Public Function ToYaml()
+        Dim yaml
+        Dim key
+        If UBound(m_variables.Keys) > -1 Then
+            For Each key in m_variables.keys
+                yaml = yaml & "    " & key & ": " & vbCrLf
+                yaml = yaml & m_variables(key).ToYaml
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        ToYaml = yaml
+    End Function
+
 End Class
 
 Class GlfVariablePlayerItem
@@ -122,21 +148,21 @@ Class GlfVariablePlayerItem
     Public Property Get Block(): Block = m_block End Property
     Public Property Let Block(input): m_block = input End Property
 
-	Public Property Let Float(input): m_float = Glf_ParseInput(input): m_type = "float" : End Property
+	Public Property Let Float(input): Set m_float = CreateGlfInput(input): m_type = "float" : End Property
   
-	Public Property Let Int(input): m_int = Glf_ParseInput(input): m_type = "int" : End Property
+	Public Property Let Int(input): Set m_int = CreateGlfInput(input): m_type = "int" : End Property
   
-	Public Property Let String(input) : m_string = Glf_ParseInput(input) : m_type = "string" : End Property
+	Public Property Let String(input) : Set m_string = CreateGlfInput(input) : m_type = "string" : End Property
 
     Public Property Get VariableType(): VariableType = m_type: End Property
     Public Property Get VariableValue()
         Select Case m_type
             Case "float"
-                VariableValue = GetRef(m_float(0))(Null)
+                VariableValue = m_float.Value()
             Case "int"
-                VariableValue = GetRef(m_int(0))(Null)
+                VariableValue = m_int.Value()
             Case "string"
-                VariableValue = GetRef(m_string(0))(Null)
+                VariableValue = m_string.Value()
             Case Else
                 VariableValue = Empty
         End Select
@@ -155,6 +181,27 @@ Class GlfVariablePlayerItem
         m_player = Empty
 	    Set Init = Me
 	End Function
+
+    Public Function ToYaml()
+        Dim yaml
+        yaml = yaml & "      "& "action" & ": " & m_action & vbCrLf
+        If m_block = True Then
+            yaml = yaml & "      "& "block" & ": true" & vbCrLf
+        End If
+        If Not IsEmpty(m_int) Then
+            yaml = yaml & "      "& "int" & ": " & m_int.Raw & vbCrLf
+        End If
+        If Not IsEmpty(m_float) Then
+            yaml = yaml & "      "& "float" & ": " & m_float.Raw & vbCrLf
+        End If
+        If Not IsEmpty(m_string) Then
+            yaml = yaml & "      "& "string" & ": " & m_string.Raw & vbCrLf
+        End If
+        If Not IsEmpty(m_player) Then
+            yaml = yaml & "      "& "player" & ": " & m_strinm_playerg & vbCrLf
+        End If
+        ToYaml = yaml
+    End Function
 
 End Class
 

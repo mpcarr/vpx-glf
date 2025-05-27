@@ -74,6 +74,7 @@ Dim useGlfBCPMonitor : useGlfBCPMonitor = False
 Dim useBCP : useBCP = False
 Dim bcpPort : bcpPort = 5050
 Dim bcpExeName : bcpExeName = ""
+Dim glf_monitor_player_vars : glf_monitor_player_vars = false
 Dim glf_BIP : glf_BIP = 0
 Dim glf_FuncCount : glf_FuncCount = 0
 Dim glf_SeqCount : glf_SeqCount = 0
@@ -175,6 +176,8 @@ Public Sub Glf_Init()
 		Dim switchesYaml : switchesYaml = "#config_version=6" & vbCrLf & vbCrLf
 		Dim coilsYaml : coilsYaml = "#config_version=6" & vbCrLf & vbCrLf
 		coilsYaml = coilsYaml + "coils:" & vbCrLf
+		Dim shotProfilesYaml : shotProfilesYaml = "#config_version=6" & vbCrLf & vbCrLf
+		shotProfilesYaml = shotProfilesYaml + "shot_profiles:" & vbCrLf
 		Dim ballDevicesYaml : ballDevicesYaml = "#config_version=6" & vbCrLf & vbCrLf
 		ballDevicesYaml = ballDevicesYaml + "ball_devices:" & vbCrLf
 		Dim configYaml : configYaml = "#config_version=6" & vbCrLf & vbCrLf
@@ -318,10 +321,14 @@ Public Sub Glf_Init()
 			coilsYaml = coilsYaml + "    number: " & coilsNumber & vbCrLf 
 			coilsNumber = coilsNumber + 1
 		Next
+		For Each device in Glf_ShotProfiles.Items()
+			shotProfilesYaml = shotProfilesYaml + device.ToYaml()
+		Next
 
-		Dim fso, modesFolder, TxtFileStream, monitorFolder, configFolder
+		Dim fso, modesFolder, TxtFileStream, monitorFolder, configFolder, showsFolder
 		Set fso = CreateObject("Scripting.FileSystemObject")
 		monitorFolder = "glf_mpf\monitor\"
+		showsFolder = "glf_mpf\shows\"
 		configFolder = "glf_mpf\config\"
 		If Not fso.FolderExists("glf_mpf") Then
 			fso.CreateFolder "glf_mpf"
@@ -331,6 +338,9 @@ Public Sub Glf_Init()
 		End If
 		If Not fso.FolderExists("glf_mpf\config") Then
 			fso.CreateFolder "glf_mpf\config"
+		End If
+		If Not fso.FolderExists("glf_mpf\shows") Then
+			fso.CreateFolder "glf_mpf\shows"
 		End If
 		Set TxtFileStream = fso.OpenTextFile(monitorFolder & "\monitor.yaml", 2, True)
 		TxtFileStream.WriteLine monitorYaml
@@ -344,6 +354,9 @@ Public Sub Glf_Init()
 		Set TxtFileStream = fso.OpenTextFile(configFolder & "\coils.yaml", 2, True)
 		TxtFileStream.WriteLine coilsYaml
 		TxtFileStream.Close
+		Set TxtFileStream = fso.OpenTextFile(configFolder & "\shot_profiles.yaml", 2, True)
+		TxtFileStream.WriteLine shotProfilesYaml
+		TxtFileStream.Close
 		Set TxtFileStream = fso.OpenTextFile(configFolder & "\switches.yaml", 2, True)
 		TxtFileStream.WriteLine switchesYaml
 		TxtFileStream.Close
@@ -353,6 +366,14 @@ Public Sub Glf_Init()
 		Set TxtFileStream = fso.OpenTextFile(monitorFolder & "\gotdotlights.txt", 2, True)
 		TxtFileStream.WriteLine godotLightScene
 		TxtFileStream.Close
+		Dim showsYaml
+		For Each device in glf_shows.Items()
+			showsYaml = "#show_version=6" & vbCrLf & vbCrLf
+			showsYaml = showsYaml + device.ToYaml()
+			Set TxtFileStream = fso.OpenTextFile(showsFolder & "\" & device.Name & ".yaml", 2, True)
+			TxtFileStream.WriteLine showsYaml
+			TxtFileStream.Close
+		Next
 		glf_debugLog.WriteToLog "Init", "Finished MPF Config"
 
 		'***GLFMPF_EXPORT_END***

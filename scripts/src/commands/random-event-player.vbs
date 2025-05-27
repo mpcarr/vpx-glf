@@ -18,6 +18,7 @@ Class GlfRandomEventPlayer
         If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
     End Property
 
+    Public Property Get EventNames() : EventNames = m_events.Keys : End Property
     Public Property Get EventName(value)
         
         Dim newEvent : Set newEvent = (new GlfEvent)(value)
@@ -75,7 +76,15 @@ Class GlfRandomEventPlayer
     End Sub
 
     Public Function ToYaml()
-        Dim yaml : yaml = ""
+            Dim yaml
+        Dim evt
+        If UBound(m_eventValues.Keys) > -1 Then
+            For Each key in m_eventValues.keys
+                yaml = yaml & "  " & key & ": " & vbCrLf
+                yaml = yaml & m_eventValues(key).ToYaml 
+            Next
+            yaml = yaml & vbCrLf
+        End If
         ToYaml = yaml
     End Function
 

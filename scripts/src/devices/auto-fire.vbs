@@ -52,6 +52,7 @@ Class GlfAutoFireDevice
 
 	Public default Function init(name)
         m_name = "auto_fire_coil_" & name
+        m_device_name = name
         EnableEvents = Array("ball_started")
         DisableEvents = Array("ball_will_end", "service_mode_entered")
         m_enabled = False
