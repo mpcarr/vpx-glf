@@ -68,12 +68,15 @@ End With
 
 ## Callback Examples
 
+The callback will received an array with two params (enabled, ball). This is useful if you want to play a sound at the balls location or if using advanced physics, you need to correct the balls velocity at the slingshots.
+
 ### Basic Auto-Fire Callback
 ```vbscript
 ' Basic auto-fire callback
-Sub AutoFireAction(Enabled)
+Sub AutoFireAction(args)
+    Dim enabled, ball : enabled = args(0)
     ' Code to handle auto-fire action
-    If Enabled Then
+    If enabled Then
         ' Auto-fire is being triggered
         PlaySound "autofire_sound"
     End If
@@ -81,7 +84,6 @@ End Sub
 ```
 
 ## Events
-
 
 ## Default Behavior
 
