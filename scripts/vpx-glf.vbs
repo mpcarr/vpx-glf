@@ -12195,6 +12195,7 @@ End Function
 Class GlfAutoFireDevice
 
     Private m_name
+    Private m_device_name
     Private m_enable_events
     Private m_disable_events
     Private m_enabled
