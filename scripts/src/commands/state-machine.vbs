@@ -143,6 +143,9 @@ Class GlfStateMachine
     Public Sub StopCurrentState()
         Log "Stopping state " & State()
         RemoveHandlers()
+        If IsNull(state) Then
+            Exit Sub
+        End If
         Dim state_config : Set state_config = m_states(state)
 
         If UBound(state_config.EventsWhenStopped().Keys()) > -1 Then
@@ -160,6 +163,9 @@ Class GlfStateMachine
     End Sub
 
     Public Sub RunShowForCurrentState()
+        If IsNull(state) Then
+            Exit Sub
+        End If
         Log state
         Dim state_config : Set state_config = m_states(state)
         If Not IsNull(state_config.ShowWhenActive().Show) Then
@@ -171,6 +177,9 @@ Class GlfStateMachine
     End Sub
 
     Public Sub StopShowForCurrentState()
+        If IsNull(state) Then
+            Exit Sub
+        End If
         Dim state_config : Set state_config = m_states(state)
         If Not IsNull(state_config.ShowWhenActive().Show) Then
             Dim show : Set show = state_config.ShowWhenActive
