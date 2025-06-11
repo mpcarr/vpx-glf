@@ -329,7 +329,7 @@ Function Glf_EndOfBall(args)
             glf_currentPlayer = "PLAYER 1"
     End Select
     
-    If GetPlayerState(GLF_CURRENT_BALL) > glf_ballsPerGame Then
+    If GetPlayerState(GLF_CURRENT_BALL) > glf_game.BallsPerGame() Then
         Dim device
         For Each device in glf_ball_devices.Items()
             If device.HasBall() Then

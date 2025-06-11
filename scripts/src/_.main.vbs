@@ -85,10 +85,13 @@ Dim glf_max_lights_test : glf_max_lights_test = 0
 
 Dim glf_master_volume : glf_master_volume = 0.8
 
-Dim glf_ballsPerGame : glf_ballsPerGame = 3
+
 Dim glf_troughSize : glf_troughSize = tnob
 Dim glf_lastTroughSw : glf_lastTroughSw = Null
-
+Dim glf_game
+With GlfGame()
+	.BallsPerGame = 3
+End With
 Dim glf_debugLog : Set glf_debugLog = (new GlfDebugLogFile)()
 Dim glf_debugEnabled : glf_debugEnabled = False
 Dim glf_debug_level : glf_debug_level = "Info"
@@ -695,15 +698,12 @@ Sub Glf_Options(ByVal eventId)
 		End If
 	End If
 	'***GLF_DEBUG_OPTIONS_END***
-
-
 	Dim ballsPerGame : ballsPerGame = Table1.Option("Balls Per Game", 1, 2, 1, 1, 0, Array("3 Balls", "5 Balls"))
 	If ballsPerGame = 1 Then
-		glf_ballsPerGame = 3
+		glf_game.BallsPerGame = 3
 	Else
-		glf_ballsPerGame = 5
+		glf_game.BallsPerGame = 5
 	End If
-
 	Dim tilt_sensitivity : tilt_sensitivity = Table1.Option("Tilt Sensitivity (digital nudge)", 1, 10, 1, 5, 0, Array("1", "2", "3", "4", "5", "6", "7", "8", "9", "10"))
 	glf_tilt_sensitivity = tilt_sensitivity
 
@@ -1659,7 +1659,7 @@ Function Glf_GameVariable(value)
 		Case "tilted"
 			Glf_GameVariable = glf_gameTilted
 		Case "balls_per_game"
-			Glf_GameVariable = glf_ballsPerGame
+			Glf_GameVariable = glf_game.BallsPerGame()
 		Case "balls_in_play"
 			Glf_GameVariable = glf_BIP
 	End Select
