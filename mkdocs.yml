@@ -24,7 +24,7 @@ nav:
       - 'Timer': 'tutorial/tutorial-timer.md'
       #- 'Shows': 'tutorial/tutorial-shows.md'
   #- 'Features': features.md
-  - 'Game Logic':
+  - 'Game Logic Commands':
     - Virtual Devices:
           - 'Auto Fire Device': autofire.md
           - 'Ball Device': ball-device.md
@@ -62,7 +62,7 @@ nav:
     #- 'Player State': player-state.md
   #- 'Light Controller': light-controller.md
   #- 'DMD / LCD': dmd-lcd.md
-  - About: about.md
+  # - About: about.md
 extra_css:
   - stylesheets/extra.css
 theme:

@@ -2,9 +2,11 @@
 
 The timer configuration allows you to set up and customize countdown or count-up timers in your pinball machine. Timers are useful for creating time-limited modes, bonus rounds, and other time-based events.
 
-## Configuration Options
+## Configuration Overview
 
-### Basic Configuration
+Timers are always managed within the context of a mode. The mode itself is responsible for starting and stopping, and you can configure the timer to start running automatically or control it via events and control actions.
+
+## Basic Configuration
 ```vbscript
 ' Basic timer configuration within a mode
 With CreateGlfMode("mode_name", priority)
@@ -12,37 +14,30 @@ With CreateGlfMode("mode_name", priority)
     .StopEvents = Array("ball_ended")
     
     With .Timer("timer_name")
-        .StartEvents = Array("start_event")
-        .StopEvents = Array("stop_event")
-        .Direction = "down"
-        .StartValue = 10
-        .EndValue = 0
+        .StartRunning = True         ' Start timer automatically when mode starts
+        .Direction = "down"         ' Count down
+        .StartValue = 10            ' Start at 10
+        .EndValue = 0               ' End at 0
+        .TickInterval = 1000        ' Tick every 1 second
     End With
 End With
 ```
 
-### Advanced Configuration
+## Controlling the Timer with Events
+You can control the timer dynamically using control events. For example, you can add time, pause, or change the tick interval:
+
 ```vbscript
-' Advanced timer configuration within a mode
-With CreateGlfMode("mode_name", priority)
-    .StartEvents = Array("ball_started")
-    .StopEvents = Array("ball_ended")
-    
-    With .Timer("timer_name")
-        ' Configure start and stop events
-        .StartEvents = Array("start_event1", "start_event2")
-        .StopEvents = Array("stop_event1", "stop_event2")
-        
-        ' Configure timer direction and values
-        .Direction = "down"
-        .StartValue = 30
-        .EndValue = 0
-        
-        ' Configure tick interval
-        .TickInterval = 1000    ' Tick every 1000 milliseconds (1 second)
-        
-        ' Configure debug
-        .Debug = True
+With .Timer("timer_name")
+    ' ... basic config ...
+    With .ControlEvents
+        .EventName = "add_time"
+        .Action = "add"
+        .Value = 5000   ' Add 5000 ticks (or ms, depending on your logic)
+    End With
+    With .ControlEvents
+        .EventName = "pause_timer"
+        .Action = "pause"
+        .Value = 2000   ' Pause for 2 seconds
     End With
 End With
 ```
@@ -50,84 +45,51 @@ End With
 ## Property Descriptions
 
 ### Timer Settings
-- `StartEvents`: Array of events that will start the timer
-- `StopEvents`: Array of events that will stop the timer
+- `StartRunning`: Boolean, if true, timer starts automatically when the mode starts
 - `Direction`: Direction of the timer ("up" or "down") (Default: "down")
 - `StartValue`: Initial value of the timer (Default: 10)
 - `EndValue`: Final value of the timer (Default: 0)
 - `TickInterval`: Interval between timer ticks in milliseconds (Default: 1000)
 
+### Control Events
+- `ControlEvents`: Configure actions (add, subtract, pause, etc.) that can be triggered by events
+
 ### Debug Settings
 - `Debug`: Boolean to enable debug logging for this timer (Default: False)
 
-## Example Configurations
-
-### Basic Timer Example
+## Example Configuration
 ```vbscript
-' Basic timer configuration within a mode
-With CreateGlfMode("base", 10)
-    .StartEvents = Array("ball_started")
-    .StopEvents = Array("ball_ended")
-    
-    With .Timer("bonus_timer")
-        .StartEvents = Array("bonus_start")
-        .StopEvents = Array("bonus_end")
+With CreateGlfMode("hurry_up", 10)
+    .StartEvents = Array("hurry_up_start")
+    .StopEvents = Array("timer_hurry_up_complete")
+
+    With .Timer("hurry_up_timer")
+        .StartRunning = True
         .Direction = "down"
-        .StartValue = 10
+        .StartValue = 15
         .EndValue = 0
+        .TickInterval = 1000
     End With
 End With
 ```
 
-### Advanced Timer Example
-```vbscript
-' Advanced timer configuration within a mode
-With CreateGlfMode("multiball", 20)
-    .StartEvents = Array("ball_started")
-    .StopEvents = Array("ball_ended")
-    
-    With .Timer("jackpot_timer")
-        ' Configure start and stop events
-        .StartEvents = Array("jackpot_start")
-        .StopEvents = Array("jackpot_end", "jackpot_complete")
-        
-        ' Configure timer direction and values
-        .Direction = "down"
-        .StartValue = 30
-        .EndValue = 0
-        
-        ' Configure tick interval
-        .TickInterval = 1000    ' Tick every 1000 milliseconds (1 second)
-        
-        ' Configure debug
-        .Debug = True
-    End With
-End With
-```
-
-## Timer System
-
-The timer system manages countdown or count-up timers with the following features:
-
+## Timer System Features
 - Timers can count up or down
-- Timers can be started and stopped by events
+- Timers can be started automatically or controlled by events/actions
 - Timers can have configurable tick intervals
 - Timers can trigger events when they complete
 - Timers are managed within the context of a mode
 
-## Events
-
+## Timer Events
 The timer system generates the following events:
-
 - `timer_name_started`: Fired when the timer starts
 - `timer_name_stopped`: Fired when the timer stops
 - `timer_name_complete`: Fired when the timer reaches its end value
 - `timer_name_tick`: Fired on each timer tick
 
 ## Default Behavior
-
 By default, timers are configured with:
-- No start or stop events
+- Not running until started by the mode or a control event
 - Down direction
 - Start value of 10
 - End value of 0
@@ -135,7 +97,6 @@ By default, timers are configured with:
 - Debug logging disabled
 
 ## Notes
-
 - Timers are managed within the context of a mode
 - The timer system automatically handles timer ticks and completion
 - Debug logging can be enabled to track timer operations

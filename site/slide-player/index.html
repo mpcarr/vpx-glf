@@ -22,7 +22,7 @@
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.28">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.25">
     
     
       
@@ -177,7 +177,7 @@
       
     </form>
     <div class="md-search__output">
-      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+      <div class="md-search__scrollwrap" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
             Initializing search
@@ -254,7 +254,7 @@
         <a href="../autofire/" class="md-tabs__link">
           
   
-  Game Logic
+  Game Logic Commands
 
         </a>
       </li>
@@ -596,6 +596,48 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/tutorial-event-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Event Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/tutorial-timer/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Timer
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -640,7 +682,7 @@
             
   
   <span class="md-ellipsis">
-    Game Logic
+    Game Logic Commands
   </span>
   
 
@@ -650,7 +692,7 @@
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
           <label class="md-nav__title" for="__nav_2">
             <span class="md-nav__icon md-icon"></span>
-            Game Logic
+            Game Logic Commands
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
             
@@ -1296,15 +1338,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#advanced-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Advanced Configuration
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -1324,39 +1357,6 @@
   <a href="#slide-settings" class="md-nav__link">
     <span class="md-ellipsis">
       Slide Settings
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#example-configurations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Example Configurations
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Example Configurations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#basic-slide-player-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      Basic Slide Player Example
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#advanced-slide-player-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      Advanced Slide Player Example
     </span>
   </a>
   
@@ -1600,15 +1600,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#advanced-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Advanced Configuration
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -1628,39 +1619,6 @@
   <a href="#slide-settings" class="md-nav__link">
     <span class="md-ellipsis">
       Slide Settings
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#example-configurations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Example Configurations
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Example Configurations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#basic-slide-player-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      Basic Slide Player Example
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#advanced-slide-player-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      Advanced Slide Player Example
     </span>
   </a>
   
@@ -1742,102 +1700,19 @@ With CreateGlfMode(&quot;mode_name&quot;, priority)
     End With
 End With
 </code></pre>
-<h3 id="advanced-configuration">Advanced Configuration</h3>
-<pre><code class="language-vbscript">' Advanced slide player configuration within a mode
-With CreateGlfMode(&quot;mode_name&quot;, priority)
-    .StartEvents = Array(&quot;ball_started&quot;)
-    .StopEvents = Array(&quot;ball_ended&quot;)
-
-    With .SlidePlayer
-        ' Configure debug
-        .Debug = True
-
-        ' Configure slide events
-        With .EventName(&quot;target_hit&quot;)
-            .Slide = &quot;target_slide&quot;
-            .Action = &quot;play&quot;
-            .Expire = 5000  ' 5000 milliseconds (5 seconds) expire time
-            .MaxQueueTime = 1000  ' 1000 milliseconds (1 second) max queue time
-            .Method = &quot;queue&quot;
-            .Priority = 10
-            .Target = &quot;display1&quot;
-            .Tokens = Array(&quot;token1&quot;, &quot;token2&quot;)
-        End With
-
-        With .EventName(&quot;multiball_start&quot;)
-            .Slide = &quot;multiball_slide&quot;
-            .Action = &quot;play&quot;
-            .Method = &quot;immediate&quot;
-            .Priority = 20
-            .Target = &quot;display1&quot;
-        End With
-    End With
-End With
-</code></pre>
 <h2 id="property-descriptions">Property Descriptions</h2>
 <h3 id="slide-settings">Slide Settings</h3>
 <ul>
 <li><code>Slide</code>: The name of the slide to play</li>
 <li><code>Action</code>: Action to perform on the slide ("play") (Default: "play")</li>
 <li><code>Expire</code>: Time in milliseconds before the slide expires (Default: Empty)</li>
-<li><code>MaxQueueTime</code>: Maximum time in milliseconds to queue the slide (Default: Empty)</li>
-<li><code>Method</code>: Method to use for playing the slide ("queue" or "immediate") (Default: Empty)</li>
 <li><code>Priority</code>: Priority level for the slide (Default: Empty)</li>
-<li><code>Target</code>: Target display for the slide (Default: Empty)</li>
-<li><code>Tokens</code>: Array of tokens to pass to the slide (Default: Empty)</li>
 <li><code>Debug</code>: Boolean to enable debug logging for this slide player (Default: False)</li>
 </ul>
-<h2 id="example-configurations">Example Configurations</h2>
-<h3 id="basic-slide-player-example">Basic Slide Player Example</h3>
-<pre><code class="language-vbscript">' Basic slide player configuration within a mode
-With CreateGlfMode(&quot;base&quot;, 10)
-    .StartEvents = Array(&quot;ball_started&quot;)
-    .StopEvents = Array(&quot;ball_ended&quot;)
-
-    With .SlidePlayer
-        With .EventName(&quot;target_hit&quot;)
-            .Slide = &quot;target_slide&quot;
-            .Action = &quot;play&quot;
-        End With
-    End With
-End With
-</code></pre>
-<h3 id="advanced-slide-player-example">Advanced Slide Player Example</h3>
-<pre><code class="language-vbscript">' Advanced slide player configuration within a mode
-With CreateGlfMode(&quot;multiball&quot;, 20)
-    .StartEvents = Array(&quot;ball_started&quot;)
-    .StopEvents = Array(&quot;ball_ended&quot;)
-
-    With .SlidePlayer
-        ' Configure debug
-        .Debug = True
-
-        ' Configure slide events
-        With .EventName(&quot;jackpot_hit&quot;)
-            .Slide = &quot;jackpot_slide&quot;
-            .Action = &quot;play&quot;
-            .Method = &quot;immediate&quot;
-            .Priority = 30
-            .Target = &quot;display1&quot;
-            .Tokens = Array(&quot;score&quot;, &quot;10000&quot;)
-        End With
-
-        With .EventName(&quot;multiball_start&quot;)
-            .Slide = &quot;multiball_slide&quot;
-            .Action = &quot;play&quot;
-            .Method = &quot;queue&quot;
-            .Priority = 20
-            .Target = &quot;display1&quot;
-            .Expire = 10000  ' 10000 milliseconds (10 seconds) expire time
-        End With
-    End With
-End With
-</code></pre>
 <h2 id="slide-player-system">Slide Player System</h2>
 <p>The slide player system manages slide animations with the following features:</p>
 <ul>
 <li>Slides can be played in response to events</li>
-<li>Slides can be configured with various settings like expire time, queue time, method, priority, target, and tokens</li>
 <li>Slide players are managed within the context of a mode</li>
 </ul>
 <h2 id="events">Events</h2>
@@ -1852,16 +1727,6 @@ End With
 <li>The slide player system automatically handles slide playback</li>
 <li>Debug logging can be enabled to track slide player operations</li>
 <li>Slide players can be configured to work with specific game modes or features</li>
-<li>The slide player system prevents slide conflicts</li>
-<li>Slides must be defined in the slide system before they can be played</li>
-<li>The <code>Method</code> property determines how the slide is played:</li>
-<li><code>queue</code>: The slide is queued and played when its turn comes</li>
-<li><code>immediate</code>: The slide is played immediately, interrupting any currently playing slides</li>
-<li>The <code>Priority</code> property determines the order in which queued slides are played</li>
-<li>The <code>Target</code> property specifies which display the slide is played on</li>
-<li>The <code>Tokens</code> property can be used to pass data to the slide</li>
-<li>The <code>Expire</code> property determines how long the slide can be queued before it expires</li>
-<li>The <code>MaxQueueTime</code> property determines the maximum time a slide can be queued </li>
 </ul>
 
 
@@ -1912,7 +1777,7 @@ End With
     <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "navigation.instant", "navigation.tabs"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+      <script src="../assets/javascripts/bundle.081f42fc.min.js"></script>
       
     
   </body>
