@@ -2,7 +2,7 @@
 
 Now that we have a basic game life cycle, we can introduce some lights management to our table. We are going to setup a light player for the GI so that it turns on when the ball starts and off when the ball ends.
 
-The light player is used to turn lights on and off when events happen. It inherits the priority of the mode its assigned to. For more information check out the [Light Player](/vpx-gle-framework/light-player) command reference
+The light player is used to turn lights on and off when events happen. It inherits the priority of the mode its assigned to. For more information check out the [Light Player](../../light-player) command reference
 
 ![lights](../images/tutorial-lights.gif)
 
