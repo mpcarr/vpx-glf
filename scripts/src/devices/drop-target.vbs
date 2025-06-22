@@ -18,6 +18,10 @@ Class GlfDroptarget
     
     Private m_debug
 
+
+    Public Property Get Name()
+        Name = Replace(m_name, "drop_target_", "")
+    End Property
 	Public Property Let Switch(value)
 		m_switch = value
 		AddPinEventListener m_switch & "_active", m_name & "_switch_active", "DroptargetEventHandler", 1000, Array("switch_active", Me)

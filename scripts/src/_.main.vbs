@@ -160,18 +160,18 @@ Public Sub Glf_Init()
 		codestr = codestr & "Sub " & spinner.Name & "_Spin() : If Not glf_gameTilted Then : DispatchPinEvent """ & spinner.Name & "_active"", ActiveBall : glf_last_switch_hit_time = gametime : glf_last_switch_hit = """& spinner.Name &""": End If  : End Sub" & vbCrLf
 	Next
 
-	Dim drop_target, drop_index,
+	Dim drop_target, drop_index
 	Dim drop_array, using_roth_drops
 	using_roth_drops = False
 	drop_array = Array()
 	drop_index = 1
-	For Each drop_target in Glf_droptargets
-		codestr = codestr & "Sub " & drop_target.Name & "_Hit() : If Not glf_gameTilted Then : If glf_drop_targets(""" & drop_target.Name & """).UseRothDroptarget = True Then : DTHit """ & drop_index & """ : Else : DispatchPinEvent """ & drop_target.Name & "_active"", ActiveBall : glf_last_switch_hit_time = gametime : glf_last_switch_hit = """& drop_target.Name &""": End If  : End Sub" & vbCrLf
+	For Each drop_target in glf_drop_targets.Items()
+		codestr = codestr & "Sub " & drop_target.Switch & "_Hit() : If Not glf_gameTilted Then : If glf_drop_targets(""" & drop_target.Name & """).UseRothDroptarget = True Then : DTHit """ & drop_index & """ : Else : DispatchPinEvent """ & drop_target.Switch & "_active"", ActiveBall : glf_last_switch_hit_time = gametime : glf_last_switch_hit = """& drop_target.Switch &""": End If  : End Sub" & vbCrLf
 		
-		If glf_drop_targets(drop_target.Name).UseRothDroptarget = True Then
+		If drop_target.UseRothDroptarget = True Then
 			using_roth_drops = True
 			Dim DT, dt_switch
-			dt_switch = glf_drop_targets(drop_target.Name).Switch
+			dt_switch = drop_target.Switch
     		Set DT = (new DropTarget)(dt_switch, Eval(dt_switch & "a"), Eval("BM_" & dt_switch), drop_index, 0, False)
 			drop_array = AppendArray(drop_array, DT)
 			drop_index = drop_index + 1
