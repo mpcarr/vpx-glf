@@ -47,7 +47,7 @@ Dim glf_autofiredevices : Set glf_autofiredevices = CreateObject("Scripting.Dict
 Dim glf_ball_holds : Set glf_ball_holds = CreateObject("Scripting.Dictionary")
 Dim glf_magnets : Set glf_magnets = CreateObject("Scripting.Dictionary")
 Dim glf_segment_displays : Set glf_segment_displays = CreateObject("Scripting.Dictionary")
-Dim glf_droptargets : Set glf_droptargets = CreateObject("Scripting.Dictionary")
+Dim glf_drop_targets : Set glf_drop_targets = CreateObject("Scripting.Dictionary")
 Dim glf_multiball_locks : Set glf_multiball_locks = CreateObject("Scripting.Dictionary")
 Dim glf_multiballs : Set glf_multiballs = CreateObject("Scripting.Dictionary")
 Dim glf_shows : Set glf_shows = CreateObject("Scripting.Dictionary")
@@ -159,6 +159,28 @@ Public Sub Glf_Init()
 	For Each spinner in Glf_Spinners
 		codestr = codestr & "Sub " & spinner.Name & "_Spin() : If Not glf_gameTilted Then : DispatchPinEvent """ & spinner.Name & "_active"", ActiveBall : glf_last_switch_hit_time = gametime : glf_last_switch_hit = """& spinner.Name &""": End If  : End Sub" & vbCrLf
 	Next
+
+	Dim drop_target, drop_index,
+	Dim drop_array, using_roth_drops
+	using_roth_drops = False
+	drop_array = Array()
+	drop_index = 1
+	For Each drop_target in Glf_droptargets
+		codestr = codestr & "Sub " & drop_target.Name & "_Hit() : If Not glf_gameTilted Then : If glf_drop_targets(""" & drop_target.Name & """).UseRothDroptarget = True Then : DTHit """ & drop_index & """ : Else : DispatchPinEvent """ & drop_target.Name & "_active"", ActiveBall : glf_last_switch_hit_time = gametime : glf_last_switch_hit = """& drop_target.Name &""": End If  : End Sub" & vbCrLf
+		
+		If glf_drop_targets(drop_target.Name).UseRothDroptarget = True Then
+			using_roth_drops = True
+			Dim DT, dt_switch
+			dt_switch = glf_drop_targets(drop_target.Name).Switch
+    		Set DT = (new DropTarget)(dt_switch, Eval(dt_switch & "a"), Eval("BM_" & dt_switch), drop_index, 0, False)
+			drop_array = AppendArray(drop_array, DT)
+			drop_index = drop_index + 1
+		End If
+	Next
+	
+	If using_roth_drops = True Then
+		DTArray = drop_array
+	End If
 
     codestr = codestr & vbCrLf
 

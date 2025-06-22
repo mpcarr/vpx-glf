@@ -14,7 +14,7 @@ Class GlfDroptarget
 	Private m_reset_events
     Private m_complete
     Private m_exclude_from_ball_search
-
+    Private m_use_roth
     
     Private m_debug
 
@@ -74,6 +74,12 @@ Class GlfDroptarget
 		Next
 	End Property
     Public Property Let ExcludeFromBallSearch(value) : m_exclude_from_ball_search = value : End Property
+    Public Property Get UseRothDroptarget()
+        UseRothDroptarget = m_use_roth
+    End Property
+    Public Property Let UseRothDroptarget(value)
+        m_use_roth = value
+    End Property
     Public Property Let Debug(value) : m_debug = value : End Property
 
 	Public default Function init(name)
@@ -86,8 +92,9 @@ Class GlfDroptarget
 		ResetEvents = Array()
         m_complete = 0
 		m_debug = False
+        m_use_roth = False
         m_exclude_from_ball_search = False
-        glf_droptargets.Add name, Me
+        glf_drop_targets.Add name, Me
         Set Init = Me
 	End Function
 

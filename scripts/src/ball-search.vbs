@@ -96,7 +96,7 @@ Class GlfBallSearch
                     SetDelay "ball_search_next_device" , "BallSearchHandler", Array(Array("next_device", Me, 0), Null), m_search_interval.Value
                 End If
             ElseIf m_current_device_type = "balldevices" Then
-                m_devices = glf_droptargets.Items()
+                m_devices = glf_drop_targets.Items()
                 m_current_device_type = "droptargets"
                 If UBound(m_devices) > -1 Then
                     m_devices(0).BallSearch(m_phase)
