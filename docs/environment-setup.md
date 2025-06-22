@@ -34,11 +34,11 @@ Download and install vpxtool, then make sure it is available on your command lin
    ```
    npm install
    ```
-6. **Rename the project:**
+6. **Rename the project and reset git history:**
    ```
-   npm run rename-project -- NEW_NAME
+   npm run rename-project -- NEW_NAME --git
    ```
-   This uses script to rename the exmaple table to your new project name.
+   This uses script to rename the example table to your new project name. The optional --git command will reset the git commit history so you have a clean repo for your new project.
 
 7. **Build the VPX file:**
    ```
@@ -51,6 +51,8 @@ Download and install vpxtool, then make sure it is available on your command lin
    npm run script-watcher
    ```
    This will start a file watcher process that automatically rebuilds the table script used by VPX whenever you make changes. Any edits you make to the scripts will now be automatically updated.
+
+   To cancel the watch you can press Ctrl+C within the terminal window.
 
 9. **Open the VPX table and press Play!**
 

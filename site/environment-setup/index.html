@@ -1665,9 +1665,9 @@
    <code>npm install</code></p>
 </li>
 <li>
-<p><strong>Rename the project:</strong>
-   <code>npm run rename-project -- NEW_NAME</code>
-   This uses script to rename the exmaple table to your new project name.</p>
+<p><strong>Rename the project and reset git history:</strong>
+   <code>npm run rename-project -- NEW_NAME --git</code>
+   This uses script to rename the example table to your new project name. The optional --git command will reset the git commit history so you have a clean repo for your new project.</p>
 </li>
 <li>
 <p><strong>Build the VPX file:</strong>
@@ -1679,9 +1679,10 @@
    <code>npm run script-watcher</code>
    This will start a file watcher process that automatically rebuilds the table script used by VPX whenever you make changes. Any edits you make to the scripts will now be automatically updated.</p>
 </li>
-<li>
-<p><strong>Open the VPX table and press Play!</strong></p>
-</li>
+</ol>
+<p>To cancel the watch you can press Ctrl+C within the terminal window.</p>
+<ol>
+<li><strong>Open the VPX table and press Play!</strong></li>
 </ol>
 <p>You are now ready to develop and test your VPX GLF table with a modern, efficient workflow.</p>
 
