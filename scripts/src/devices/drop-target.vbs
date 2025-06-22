@@ -27,6 +27,9 @@ Class GlfDroptarget
 		AddPinEventListener m_switch & "_active", m_name & "_switch_active", "DroptargetEventHandler", 1000, Array("switch_active", Me)
 		AddPinEventListener m_switch & "_inactive", m_name & "_switch_inactive", "DroptargetEventHandler", 1000, Array("switch_inactive", Me)
 	End Property
+    Public Property Get Switch()
+        Switch = m_switch
+    End Property
     Public Property Let EnableKeepUpEvents(value)
         Dim evt
         If IsArray(m_enable_keep_up_events) Then
