@@ -809,15 +809,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#advanced-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Advanced Configuration
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -852,66 +843,18 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#ball-search-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ball Search Settings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#debug-settings" class="md-nav__link">
     <span class="md-ellipsis">
       Debug Settings
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#example-configurations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Example Configurations
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Example Configurations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#basic-auto-fire-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      Basic Auto-Fire Example
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#advanced-auto-fire-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      Advanced Auto-Fire Example
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#callback-examples" class="md-nav__link">
-    <span class="md-ellipsis">
-      Callback Examples
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Callback Examples">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#basic-auto-fire-callback" class="md-nav__link">
-    <span class="md-ellipsis">
-      Basic Auto-Fire Callback
     </span>
   </a>
   
@@ -1666,15 +1609,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#advanced-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Advanced Configuration
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -1709,66 +1643,18 @@
 </li>
         
           <li class="md-nav__item">
+  <a href="#ball-search-settings" class="md-nav__link">
+    <span class="md-ellipsis">
+      Ball Search Settings
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
   <a href="#debug-settings" class="md-nav__link">
     <span class="md-ellipsis">
       Debug Settings
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#example-configurations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Example Configurations
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Example Configurations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#basic-auto-fire-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      Basic Auto-Fire Example
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#advanced-auto-fire-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      Advanced Auto-Fire Example
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#callback-examples" class="md-nav__link">
-    <span class="md-ellipsis">
-      Callback Examples
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Callback Examples">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#basic-auto-fire-callback" class="md-nav__link">
-    <span class="md-ellipsis">
-      Basic Auto-Fire Callback
     </span>
   </a>
   
@@ -1816,28 +1702,18 @@
 
 
 <h1 id="auto-fire-configuration">Auto-Fire Configuration</h1>
-<p>The auto-fire configuration allows you to set up and customize auto-firing devices in your pinball machine. Auto-fire devices are used to automatically fire coils or other devices when triggered by switches or events.</p>
+<p>The auto-fire configuration allows you to set up and customize auto-firing devices in your pinball machine. Auto-fire devices are used to automatically fire coils or other devices when triggered by switches or events. Examples include Pop Bumpers, Slingshots</p>
 <h2 id="configuration-options">Configuration Options</h2>
 <h3 id="basic-configuration">Basic Configuration</h3>
 <pre><code class="language-vbscript">' Basic auto-fire configuration
-With CreateGlfAutoFire(&quot;autofire_name&quot;)
-    .Switch = &quot;s_autofire_switch&quot;       ' Name of the switch that triggers the auto-fire
-    .ActionCallback = &quot;AutoFireAction&quot;  ' Name of the callback function for auto-fire actions
-End With
-</code></pre>
-<h3 id="advanced-configuration">Advanced Configuration</h3>
-<pre><code class="language-vbscript">' Advanced auto-fire configuration
-With CreateGlfAutoFire(&quot;autofire_name&quot;)
-    ' Basic settings
-    .Switch = &quot;s_autofire_switch&quot;
-    .ActionCallback = &quot;AutoFireAction&quot;
-
-    ' Event settings
-    .EnableEvents = Array(&quot;ball_started&quot;)                    ' Events that enable the auto-fire
-    .DisableEvents = Array(&quot;ball_will_end&quot;, &quot;service_mode&quot;)  ' Events that disable the auto-fire
-
-    ' Debug settings
-    .Debug = True                                           ' Enable debug logging for this device
+With CreateGlfAutoFireDevice(&quot;left_sling&quot;)
+    .Switch = &quot;s_LeftSlingshot&quot;
+    .ActionCallback = &quot;LeftSlingshotAction&quot;
+    .DisabledCallback = &quot;LeftSlingshotDisabled&quot;
+    .EnabledCallback = &quot;LeftSlingshotEnabled&quot;
+    .DisableEvents = Array(&quot;kill_flippers&quot;)
+    .EnableEvents = Array(&quot;ball_started&quot;,&quot;enable_flippers&quot;)
+    .ExcludeFromBallSearch = False
 End With
 </code></pre>
 <h2 id="property-descriptions">Property Descriptions</h2>
@@ -1845,48 +1721,29 @@ End With
 <ul>
 <li><code>Switch</code>: String name of the switch that triggers the auto-fire (Default: Empty)</li>
 <li><code>ActionCallback</code>: String name of the callback function that executes when the auto-fire is triggered (Default: Empty)</li>
+<li><code>EnabledCallback</code>: String name of the callback function that executes when the auto-fire is enabled (Default: Empty)</li>
+<li><code>DisabledCallback</code>: String name of the callback function that executes when the auto-fire is disabled (Default: Empty)</li>
 </ul>
 <h3 id="event-control">Event Control</h3>
 <ul>
 <li><code>EnableEvents</code>: Array of event names that will enable the auto-fire (Default: Array("ball_started"))</li>
 <li><code>DisableEvents</code>: Array of event names that will disable the auto-fire (Default: Array("ball_will_end", "service_mode_entered"))</li>
 </ul>
+<h3 id="ball-search-settings">Ball Search Settings</h3>
+<ul>
+<li><code>ExcludeFromBallSearch</code>: Boolean indicating whether to exclude this device from ball search operations (Default: False)</li>
+</ul>
 <h3 id="debug-settings">Debug Settings</h3>
 <ul>
 <li><code>Debug</code>: Boolean to enable debug logging for this device (Default: False)</li>
 </ul>
-<h2 id="example-configurations">Example Configurations</h2>
-<h3 id="basic-auto-fire-example">Basic Auto-Fire Example</h3>
-<pre><code class="language-vbscript">' Basic auto-fire configuration
-With CreateGlfAutoFire(&quot;pop1&quot;)
-    .Switch = &quot;s_pop1&quot;
-    .ActionCallback = &quot;PopBumperAction&quot;
-End With
-</code></pre>
-<h3 id="advanced-auto-fire-example">Advanced Auto-Fire Example</h3>
-<pre><code class="language-vbscript">' Advanced auto-fire configuration
-With CreateGlfAutoFire(&quot;slingshot1&quot;)
-    .Switch = &quot;s_slingshot1&quot;
-    .ActionCallback = &quot;SlingshotAction&quot;
-    .EnableEvents = Array(&quot;multiball_started&quot;)
-    .DisableEvents = Array(&quot;multiball_ended&quot;)
-    .Debug = True
-End With
-</code></pre>
-<h2 id="callback-examples">Callback Examples</h2>
-<p>The callback will received an array with two params (enabled, ball). This is useful if you want to play a sound at the balls location or if using advanced physics, you need to correct the balls velocity at the slingshots.</p>
-<h3 id="basic-auto-fire-callback">Basic Auto-Fire Callback</h3>
-<pre><code class="language-vbscript">' Basic auto-fire callback
-Sub AutoFireAction(args)
-    Dim enabled, ball : enabled = args(0)
-    ' Code to handle auto-fire action
-    If enabled Then
-        ' Auto-fire is being triggered
-        PlaySound &quot;autofire_sound&quot;
-    End If
-End Sub
-</code></pre>
 <h2 id="events">Events</h2>
+<p>The auto-fire device system generates several events that you can listen to:</p>
+<ul>
+<li><code>auto_fire_coil_{device_name}_activate</code>: Triggered when the auto-fire device is activated</li>
+<li><code>auto_fire_coil_{device_name}_deactivate</code>: Triggered when the auto-fire device is deactivated</li>
+</ul>
+<p>Replace <code>{device_name}</code> with your actual auto-fire device name.</p>
 <h2 id="default-behavior">Default Behavior</h2>
 <p>By default, auto-fire devices are configured with:
 - Enabled on <code>ball_started</code> event

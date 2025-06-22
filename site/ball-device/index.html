@@ -830,15 +830,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#advanced-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Advanced Configuration
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -905,84 +896,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#example-configurations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Example Configurations
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Example Configurations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#basic-ball-device-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      Basic Ball Device Example
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#advanced-ball-device-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      Advanced Ball Device Example
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#callback-examples" class="md-nav__link">
-    <span class="md-ellipsis">
-      Callback Examples
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Callback Examples">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#basic-ball-device-callback" class="md-nav__link">
-    <span class="md-ellipsis">
-      Basic Ball Device Callback
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#advanced-ball-device-callback" class="md-nav__link">
-    <span class="md-ellipsis">
-      Advanced Ball Device Callback
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#events" class="md-nav__link">
     <span class="md-ellipsis">
       Events
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#default-behavior" class="md-nav__link">
-    <span class="md-ellipsis">
-      Default Behavior
     </span>
   </a>
   
@@ -1702,15 +1618,6 @@
   
 </li>
         
-          <li class="md-nav__item">
-  <a href="#advanced-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Advanced Configuration
-    </span>
-  </a>
-  
-</li>
-        
       </ul>
     </nav>
   
@@ -1777,84 +1684,9 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#example-configurations" class="md-nav__link">
-    <span class="md-ellipsis">
-      Example Configurations
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Example Configurations">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#basic-ball-device-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      Basic Ball Device Example
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#advanced-ball-device-example" class="md-nav__link">
-    <span class="md-ellipsis">
-      Advanced Ball Device Example
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#callback-examples" class="md-nav__link">
-    <span class="md-ellipsis">
-      Callback Examples
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Callback Examples">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#basic-ball-device-callback" class="md-nav__link">
-    <span class="md-ellipsis">
-      Basic Ball Device Callback
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#advanced-ball-device-callback" class="md-nav__link">
-    <span class="md-ellipsis">
-      Advanced Ball Device Callback
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#events" class="md-nav__link">
     <span class="md-ellipsis">
       Events
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#default-behavior" class="md-nav__link">
-    <span class="md-ellipsis">
-      Default Behavior
     </span>
   </a>
   
@@ -1888,159 +1720,79 @@
 
 
 <h1 id="ball-device-configuration">Ball Device Configuration</h1>
-<p>The ball device configuration allows you to set up and customize ball devices in your pinball machine. Ball devices are used to manage balls, including tracking their location, ejecting them, and handling ball-related events.</p>
+<p>The ball device configuration allows you to set up and customize ball devices in your pinball machine. Ball devices are used for scoops, physical ball locks, staging areas. Anywhere you want to hold a ball on the table. </p>
 <h2 id="configuration-options">Configuration Options</h2>
 <h3 id="basic-configuration">Basic Configuration</h3>
 <pre><code class="language-vbscript">' Basic ball device configuration
-With CreateGlfBallDevice(&quot;device_name&quot;)
-    .BallSwitches = Array(&quot;s_switch1&quot;, &quot;s_switch2&quot;)  ' Array of switches that detect balls
-    .EjectCoil = &quot;c_eject_coil&quot;                      ' Name of the coil to eject balls
-    .ActionCallback = &quot;BallDeviceAction&quot;              ' Name of the callback function for ball device actions
+With CreateGlfBallDevice(&quot;scoop&quot;)
+    .BallSwitches = Array(&quot;s_scoop1&quot;)
+    .EjectTimemout = 2000
+    .EjectCallback = &quot;ScoopEjectCallback&quot;              ' Name of the callback function for ball device
 End With
 </code></pre>
-<h3 id="advanced-configuration">Advanced Configuration</h3>
-<pre><code class="language-vbscript">' Advanced ball device configuration
-With CreateGlfBallDevice(&quot;device_name&quot;)
-    ' Basic settings
-    .BallSwitches = Array(&quot;s_switch1&quot;, &quot;s_switch2&quot;)
-    .EjectCoil = &quot;c_eject_coil&quot;
-    .ActionCallback = &quot;BallDeviceAction&quot;
-
-    ' Ejection control
-    .EjectTimeout = 5000                              ' Timeout in milliseconds for ejection
-    .MechanicalEject = False                          ' Whether the device uses mechanical ejection
-    .DefaultDevice = &quot;default_device&quot;                 ' Default device to send balls to
-
-    ' Event settings
-    .EnableEvents = Array(&quot;ball_started&quot;)                    ' Events that enable the ball device
-    .DisableEvents = Array(&quot;ball_will_end&quot;, &quot;service_mode&quot;)  ' Events that disable the ball device
-    .EjectAllEvents = Array(&quot;event1&quot;, &quot;event2&quot;)              ' Events that trigger ejection of all balls
-    .EjectCallback = &quot;EjectCallback&quot;                         ' Callback for ejection events
-
-    ' Ball tracking
-    .TrackBalls = True                                ' Whether to track balls in this device
-    .BallCount = 2                                    ' Maximum number of balls this device can hold
-
-    ' Debug settings
-    .Debug = True                                     ' Enable debug logging for this device
-End With
+<p>Each device will have a <code>Eject Callback</code> setting. This calls your defined function / sub when the ball should be ejected from the device. In a real pinball machine this would be the coil firing to eject the ball. In VPX, you need to implement this function to virutally <em>kick</em> the ball out from the device. Below is an example of how to you could do that.</p>
+<pre><code>Sub ScoopEjectCallback(ball)
+    Dim ang, vel
+    If s_scoop1.BallCntOver &gt; 0 Then 'Check if the ball is positioned on the switch / kicker
+        ang = 14.8 + ScoopAngleTol*2*(rnd-0.5) 'generate some randomness to the angle
+        vel = 70.0 + ScoopStrengthTol*2*(rnd-0.5) 'generare some randomness to the velocity
+        KickBall ball, ang, vel, 0, 0 'actually kick the ball
+        SoundSaucerKick 1, s_Scoop 'play a sound to simulate the coil firing
+    Else
+        SoundSaucerKick 0, s_Scoop 'play a sound if even if the ball wasn't on the switch (failed kick)
+    End If
+    DOF 109, DOFPulse 'Optionally call a DOF event.
+End Sub
 </code></pre>
 <h2 id="property-descriptions">Property Descriptions</h2>
 <h3 id="basic-settings">Basic Settings</h3>
 <ul>
 <li><code>BallSwitches</code>: Array of switch names that detect balls in the device (Default: Empty Array)</li>
-<li><code>EjectCoil</code>: String name of the coil to eject balls (Default: Empty)</li>
-<li><code>ActionCallback</code>: String name of the callback function that executes when the ball device state changes (Default: Empty)</li>
+<li><code>EjectCallback</code>: String name of the callback function that executes when the ball device ejects a ball (Default: Null)</li>
 </ul>
 <h3 id="ejection-control">Ejection Control</h3>
 <ul>
-<li><code>EjectTimeout</code>: Integer specifying the timeout in milliseconds for ejection (Default: 5000)</li>
+<li><code>EjectTimeout</code>: Integer specifying the timeout in milliseconds for ejection (Default: 1000)</li>
+<li><code>EjectEnableTime</code>: Integer specifying the enable time in milliseconds for ejection (Default: 0)</li>
 <li><code>MechanicalEject</code>: Boolean indicating whether the device uses mechanical ejection (Default: False)</li>
-<li><code>DefaultDevice</code>: String name of the default device to send balls to (Default: Empty)</li>
+<li><code>DefaultDevice</code>: Boolean indicating whether this is the default ball device (Default: False)</li>
+<li><code>PlayerControlledEjectEvent</code>: String name of the event that triggers player-controlled ejection (Default: Empty)</li>
 </ul>
 <h3 id="event-control">Event Control</h3>
 <ul>
-<li><code>EnableEvents</code>: Array of event names that will enable the ball device (Default: Array("ball_started"))</li>
-<li><code>DisableEvents</code>: Array of event names that will disable the ball device (Default: Array("ball_will_end", "service_mode_entered"))</li>
 <li><code>EjectAllEvents</code>: Array of event names that will trigger ejection of all balls (Default: Empty Array)</li>
-<li><code>EjectCallback</code>: String name of the callback function for ejection events (Default: Empty)</li>
+<li><code>EjectTargets</code>: Array of target names that will trigger ejection timeout when activated (Default: Empty Array)</li>
 </ul>
 <h3 id="ball-tracking">Ball Tracking</h3>
 <ul>
-<li><code>TrackBalls</code>: Boolean indicating whether to track balls in this device (Default: True)</li>
-<li><code>BallCount</code>: Integer specifying the maximum number of balls this device can hold (Default: 1)</li>
+<li><code>EntranceCountDelay</code>: Integer specifying the delay in milliseconds before counting a ball as entered (Default: 500)</li>
+<li><code>ExcludeFromBallSearch</code>: Boolean indicating whether to exclude this device from ball search operations (Default: False)</li>
 </ul>
 <h3 id="debug-settings">Debug Settings</h3>
 <ul>
 <li><code>Debug</code>: Boolean to enable debug logging for this device (Default: False)</li>
 </ul>
-<h2 id="example-configurations">Example Configurations</h2>
-<h3 id="basic-ball-device-example">Basic Ball Device Example</h3>
-<pre><code class="language-vbscript">' Basic ball device configuration
-With CreateGlfBallDevice(&quot;plunger&quot;)
-    .BallSwitches = Array(&quot;s_plunger&quot;)
-    .EjectCoil = &quot;c_plunger&quot;
-    .ActionCallback = &quot;PlungerAction&quot;
-End With
-</code></pre>
-<h3 id="advanced-ball-device-example">Advanced Ball Device Example</h3>
-<pre><code class="language-vbscript">' Advanced ball device configuration
-With CreateGlfBallDevice(&quot;scoop&quot;)
-    .BallSwitches = Array(&quot;s_scoop_entry&quot;, &quot;s_scoop_exit&quot;)
-    .EjectCoil = &quot;c_scoop_eject&quot;
-    .ActionCallback = &quot;ScoopAction&quot;
-    .EjectTimeout = 3000
-    .MechanicalEject = False
-    .DefaultDevice = &quot;playfield&quot;
-    .EnableEvents = Array(&quot;multiball_started&quot;)
-    .DisableEvents = Array(&quot;multiball_ended&quot;)
-    .EjectAllEvents = Array(&quot;scoop_eject_all&quot;)
-    .EjectCallback = &quot;ScoopEjectCallback&quot;
-    .TrackBalls = True
-    .BallCount = 3
-    .Debug = True
-End With
-</code></pre>
-<h2 id="callback-examples">Callback Examples</h2>
-<h3 id="basic-ball-device-callback">Basic Ball Device Callback</h3>
-<pre><code class="language-vbscript">' Basic ball device callback
-Sub BallDeviceAction(State)
-    ' Code to handle ball device action
-    If State = 1 Then
-        ' Ball device is being activated
-        PlaySound &quot;device_activate&quot;
-    Else
-        ' Ball device is being deactivated
-        PlaySound &quot;device_deactivate&quot;
-    End If
-End Sub
-</code></pre>
-<h3 id="advanced-ball-device-callback">Advanced Ball Device Callback</h3>
-<pre><code class="language-vbscript">' Advanced ball device callback with additional logic
-Sub BallDeviceAction(State)
-    If State = 1 Then
-        ' Ball device is being activated
-        PlaySound &quot;device_activate&quot;
-        LightOn &quot;l_device_active&quot;
-
-        ' Add score
-        AddScore 1000
-    Else
-        ' Ball device is being deactivated
-        PlaySound &quot;device_deactivate&quot;
-        LightOff &quot;l_device_active&quot;
-    End If
-End Sub
-</code></pre>
 <h2 id="events">Events</h2>
 <p>The ball device system generates several events that you can listen to:</p>
 <ul>
-<li><code>{device_name}_ball_added</code>: Triggered when a ball is added to the device</li>
-<li><code>{device_name}_ball_removed</code>: Triggered when a ball is removed from the device</li>
-<li><code>{device_name}_ejecting</code>: Triggered when the device is ejecting a ball</li>
-<li><code>{device_name}_ejected</code>: Triggered when the device has ejected a ball</li>
-<li><code>{device_name}_enabled</code>: Triggered when the device is enabled</li>
-<li><code>{device_name}_disabled</code>: Triggered when the device is disabled</li>
+<li><code>balldevice_{device_name}_ball_enter</code>: Relay event triggered when a ball is entering the device (can be claimed by other systems)</li>
+<li><code>balldevice_{device_name}_ball_entered</code>: Triggered when a ball has successfully entered the device</li>
+<li><code>balldevice_{device_name}_ball_exiting</code>: Triggered when a ball is exiting the device</li>
+<li><code>balldevice_{device_name}_ball_eject_success</code>: Triggered when a ball has been successfully ejected from the device</li>
 </ul>
-<p>Replace <code>{device_name}</code> with your actual ball device name (prefixed with "ball_device_" internally).</p>
-<h2 id="default-behavior">Default Behavior</h2>
-<p>By default, ball devices are configured with:
-- Enabled on <code>ball_started</code> event
-- Disabled on <code>ball_will_end</code> and <code>service_mode_entered</code> events
-- Eject timeout of 5000 milliseconds
-- Mechanical ejection disabled
-- Ball tracking enabled
-- Maximum ball count of 1
-- Debug logging disabled</p>
+<p>Replace <code>{device_name}</code> with your actual ball device name.</p>
 <h2 id="notes">Notes</h2>
 <ul>
-<li>The ball device system automatically manages enable/disable states based on configured events</li>
-<li>Action callbacks receive a parameter indicating the state (1 for activate, 0 for deactivate)</li>
+<li>The ball device system automatically manages ball tracking and ejection based on configured switches</li>
+<li>Eject callbacks receive a ball parameter (can be Null for enable time callbacks)</li>
 <li>Debug logging can be enabled to track ball device state changes</li>
-<li>Ball devices can be configured to eject balls during specific game modes</li>
+<li>Ball devices can be configured to eject balls during specific game modes using EjectAllEvents</li>
 <li>The system prevents multiple ejection operations from overlapping</li>
-<li>Ball tracking can be enabled or disabled based on your needs</li>
-<li>The maximum ball count can be adjusted to accommodate multiple balls </li>
+<li>Ball tracking is always enabled and managed automatically</li>
+<li>The entrance count delay helps prevent false ball detection</li>
+<li>Mechanical ejection mode uses timeouts to track successful ball exits</li>
+<li>Player controlled ejection allows manual triggering via events</li>
+<li>Eject targets can be used to trigger ejection timeouts when specific targets are hit </li>
 </ul>
 
 
