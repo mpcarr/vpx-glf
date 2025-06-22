@@ -60,7 +60,8 @@ nav:
 
     #- 'Events System': events.md
     #- 'Player State': player-state.md
-  #- 'Light Controller': light-controller.md
+  - 'Light Shows': light-shows.md
+  - 'Environment Setup': environment-setup.md
   #- 'DMD / LCD': dmd-lcd.md
   # - About: about.md
 extra_css:

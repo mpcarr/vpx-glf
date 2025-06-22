@@ -56,6 +56,11 @@
          <changefreq>daily</changefreq>
     </url>
     <url>
+         <loc>https://mpcarr.github.io/vpx-glf/environment-setup/</loc>
+         <lastmod>2025-06-22</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
          <loc>https://mpcarr.github.io/vpx-glf/event-player/</loc>
          <lastmod>2025-06-22</lastmod>
          <changefreq>daily</changefreq>
@@ -102,6 +107,11 @@
     </url>
     <url>
          <loc>https://mpcarr.github.io/vpx-glf/light-player/</loc>
+         <lastmod>2025-06-22</lastmod>
+         <changefreq>daily</changefreq>
+    </url>
+    <url>
+         <loc>https://mpcarr.github.io/vpx-glf/light-shows/</loc>
          <lastmod>2025-06-22</lastmod>
          <changefreq>daily</changefreq>
     </url>
