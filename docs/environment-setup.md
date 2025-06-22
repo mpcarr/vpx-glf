@@ -44,7 +44,7 @@ Download and install vpxtool, then make sure it is available on your command lin
    ```
    npm run assemble-vpx
    ```
-   This uses vpxtool to build the VPX file from the repository. You ould now have a `VPXExampleGLF.vpx` file in your local directory.
+   This uses vpxtool to build the VPX file from the repository. You sould now have a `MyProjectName.vpx` file in your local directory.
 
 8. **Start the script watcher:**
    ```
