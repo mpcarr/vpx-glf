@@ -1,6 +1,6 @@
-Function GlfGame()
+Function GlfGameSettings()
     Set glf_game = (new GlfGame)()
-	Set GlfGame = glf_game
+	Set GlfGameSettings = glf_game
 End Function
 
 Class GlfGame
@@ -14,7 +14,7 @@ Class GlfGame
         Set m_balls_per_game = CreateGlfInput(input)
     End Property
 
-	Public default Function init(mode)
+	Public default Function init()
 
         Set m_balls_per_game = CreateGlfInput(3)
        

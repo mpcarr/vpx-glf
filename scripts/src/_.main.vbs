@@ -89,7 +89,7 @@ Dim glf_master_volume : glf_master_volume = 0.8
 Dim glf_troughSize : glf_troughSize = tnob
 Dim glf_lastTroughSw : glf_lastTroughSw = Null
 Dim glf_game
-With GlfGame()
+With GlfGameSettings()
 	.BallsPerGame = 3
 End With
 Dim glf_debugLog : Set glf_debugLog = (new GlfDebugLogFile)()

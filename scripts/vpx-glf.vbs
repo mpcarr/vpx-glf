@@ -89,7 +89,7 @@ Dim glf_master_volume : glf_master_volume = 0.8
 Dim glf_troughSize : glf_troughSize = tnob
 Dim glf_lastTroughSw : glf_lastTroughSw = Null
 Dim glf_game
-With GlfGame()
+With GlfGameSettings()
 	.BallsPerGame = 3
 End With
 Dim glf_debugLog : Set glf_debugLog = (new GlfDebugLogFile)()
@@ -5023,9 +5023,9 @@ Function ExtraBallsHandler(args)
         ExtraBallsHandler = kwargs
     End If
 End Function
-Function GlfGame()
+Function GlfGameSettings()
     Set glf_game = (new GlfGame)()
-	Set GlfGame = glf_game
+	Set GlfGameSettings = glf_game
 End Function
 
 Class GlfGame
@@ -5039,7 +5039,7 @@ Class GlfGame
         Set m_balls_per_game = CreateGlfInput(input)
     End Property
 
-	Public default Function init(mode)
+	Public default Function init()
 
         Set m_balls_per_game = CreateGlfInput(3)
        
