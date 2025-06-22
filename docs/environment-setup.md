@@ -50,9 +50,7 @@ Download and install vpxtool, then make sure it is available on your command lin
    ```
    npm run script-watcher
    ```
-   This will start a file watcher process that automatically rebuilds the table script used by VPX whenever you make changes. Any edits you make to the scripts will now be automatically updated.
-
-   To cancel the watch you can press Ctrl+C within the terminal window.
+   This will start a file watcher process that automatically rebuilds the table script used by VPX whenever you make changes. Any edits you make to the scripts will now be automatically updated. To cancel the watch you can press Ctrl+C within the terminal window.
 
 9. **Open the VPX table and press Play!**
 
