@@ -28,7 +28,7 @@ Public Sub CreateGIMode()
         .StartEvents = Array("ball_started")
         .StopEvents = Array("ball_ended") 
         With .LightPlayer()
-            With .Events("mode_gi_control_started")
+            With .EventName("mode_gi_control_started")
                 With .Lights("GI")
                     .Color = "ffffff"
                 End With
