@@ -160,16 +160,14 @@ Public Sub Glf_Init()
 		codestr = codestr & "Sub " & spinner.Name & "_Spin() : If Not glf_gameTilted Then : DispatchPinEvent """ & spinner.Name & "_active"", ActiveBall : glf_last_switch_hit_time = gametime : glf_last_switch_hit = """& spinner.Name &""": End If  : End Sub" & vbCrLf
 	Next
 
-	Dim drop_target, drop_index
+	Dim drop_target
 	Dim drop_array, using_roth_drops
 	using_roth_drops = False
 	drop_array = Array()
-	drop_index = 1
 	For Each drop_target in glf_drop_targets.Items()
-		codestr = codestr & "Sub " & drop_target.Switch & "_Hit() : If Not glf_gameTilted Then : If glf_drop_targets(""" & drop_target.Name & """).UseRothDroptarget = True Then : DTHit """ & drop_index & """ : Else : DispatchPinEvent """ & drop_target.Switch & "_active"", ActiveBall : glf_last_switch_hit_time = gametime : glf_last_switch_hit = """& drop_target.Switch &""": End If : End If : End Sub" & vbCrLf
-		drop_index = drop_index + 1
+		codestr = codestr & "Sub " & drop_target.Switch & "_Hit() : If Not glf_gameTilted Then : If glf_drop_targets(""" & drop_target.Name & """).UseRothDroptarget = True Then : DTHit glf_drop_targets(""" & drop_target.Name & """).RothDTArrayIndex : Else : DispatchPinEvent """ & drop_target.Switch & "_active"", ActiveBall : glf_last_switch_hit_time = gametime : glf_last_switch_hit = """& drop_target.Switch &""": End If : End If : End Sub" & vbCrLf
 	Next
-
+	
     codestr = codestr & vbCrLf
 
 	ExecuteGlobal codestr
@@ -12906,6 +12904,7 @@ Class GlfDroptarget
     Private m_complete
     Private m_exclude_from_ball_search
     Private m_use_roth
+    Private m_roth_array_index
     
     Private m_debug
 
@@ -12978,6 +12977,13 @@ Class GlfDroptarget
     Public Property Let UseRothDroptarget(value)
         m_use_roth = value
     End Property
+    Public Property Get RothDTArrayIndex()
+        RothDTArrayIndex = m_roth_array_index
+    End Property
+    Public Property Let RothDTArrayIndex(value)
+        m_roth_array_index = value
+    End Property
+    
     Public Property Let Debug(value) : m_debug = value : End Property
 
 	Public default Function init(name)
@@ -12991,6 +12997,7 @@ Class GlfDroptarget
         m_complete = 0
 		m_debug = False
         m_use_roth = False
+        m_roth_array_index = -1
         m_exclude_from_ball_search = False
         glf_drop_targets.Add name, Me
         Set Init = Me

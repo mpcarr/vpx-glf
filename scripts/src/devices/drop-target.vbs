@@ -15,6 +15,7 @@ Class GlfDroptarget
     Private m_complete
     Private m_exclude_from_ball_search
     Private m_use_roth
+    Private m_roth_array_index
     
     Private m_debug
 
@@ -87,6 +88,13 @@ Class GlfDroptarget
     Public Property Let UseRothDroptarget(value)
         m_use_roth = value
     End Property
+    Public Property Get RothDTArrayIndex()
+        RothDTArrayIndex = m_roth_array_index
+    End Property
+    Public Property Let RothDTArrayIndex(value)
+        m_roth_array_index = value
+    End Property
+    
     Public Property Let Debug(value) : m_debug = value : End Property
 
 	Public default Function init(name)
@@ -100,6 +108,7 @@ Class GlfDroptarget
         m_complete = 0
 		m_debug = False
         m_use_roth = False
+        m_roth_array_index = -1
         m_exclude_from_ball_search = False
         glf_drop_targets.Add name, Me
         Set Init = Me
