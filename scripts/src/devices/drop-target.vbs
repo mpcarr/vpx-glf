@@ -88,10 +88,10 @@ Class GlfDroptarget
     Public Property Let UseRothDroptarget(value)
         m_use_roth = value
     End Property
-    Public Property Get RothDTArrayIndex()
-        RothDTArrayIndex = m_roth_array_index
+    Public Property Get RothDTSwitchID()
+        RothDTSwitchID = m_roth_array_index
     End Property
-    Public Property Let RothDTArrayIndex(value)
+    Public Property Let RothDTSwitchID(value)
         m_roth_array_index = value
     End Property
     
