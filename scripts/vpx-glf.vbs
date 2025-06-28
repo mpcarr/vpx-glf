@@ -48,6 +48,7 @@ Dim glf_ball_holds : Set glf_ball_holds = CreateObject("Scripting.Dictionary")
 Dim glf_magnets : Set glf_magnets = CreateObject("Scripting.Dictionary")
 Dim glf_segment_displays : Set glf_segment_displays = CreateObject("Scripting.Dictionary")
 Dim glf_drop_targets : Set glf_drop_targets = CreateObject("Scripting.Dictionary")
+Dim glf_standup_targets : Set glf_standup_targets = CreateObject("Scripting.Dictionary")
 Dim glf_multiball_locks : Set glf_multiball_locks = CreateObject("Scripting.Dictionary")
 Dim glf_multiballs : Set glf_multiballs = CreateObject("Scripting.Dictionary")
 Dim glf_shows : Set glf_shows = CreateObject("Scripting.Dictionary")
@@ -166,6 +167,11 @@ Public Sub Glf_Init()
 	drop_array = Array()
 	For Each drop_target in glf_drop_targets.Items()
 		codestr = codestr & "Sub " & drop_target.Switch & "_Hit() : If Not glf_gameTilted Then : If glf_drop_targets(""" & drop_target.Name & """).UseRothDroptarget = True Then : DTHit glf_drop_targets(""" & drop_target.Name & """).RothDTSwitchID : Else : DispatchPinEvent """ & drop_target.Switch & "_active"", ActiveBall : glf_last_switch_hit_time = gametime : glf_last_switch_hit = """& drop_target.Switch &""": End If : End If : End Sub" & vbCrLf
+	Next
+
+	Dim standup_target
+	For Each standup_target in glf_standup_targets.Items()
+		codestr = codestr & "Sub " & glf_standup_targets.Switch & "_Hit() : If Not glf_gameTilted Then : If glf_standup_targets(""" & standup_target.Name & """).UseRothStanduptarget = True Then : STHit glf_standup_targets(""" & standup_target.Name & """).RothSTSwitchID : Else : DispatchPinEvent """ & standup_target.Switch & "_active"", ActiveBall : glf_last_switch_hit_time = gametime : glf_last_switch_hit = """& standup_target.Switch &""": End If : End If : End Sub" & vbCrLf
 	Next
 	
     codestr = codestr & vbCrLf
@@ -15120,6 +15126,60 @@ Class GlfSound
         End If
     End Sub
 
+End Class
+Function CreateGlfStanduptarget(name)
+	Dim standuptarget : Set standuptarget = (new GlfStandupTarget)(name)
+	Set CreateGlfStanduptarget = standuptarget
+End Function
+
+Class GlfStandupTarget
+
+    Private m_name
+	Private m_switch
+    Private m_use_roth
+    Private m_roth_array_index
+    
+    Private m_debug
+
+    Public Property Get Name()
+        Name = Replace(m_name, "standup_target_", "")
+    End Property
+	Public Property Let Switch(value)
+		m_switch = value
+	End Property
+    Public Property Get Switch()
+        Switch = m_switch
+    End Property
+    Public Property Get UseRothStanduptarget()
+        UseRothStanduptarget = m_use_roth
+    End Property
+    Public Property Let UseRothStanduptarget(value)
+        m_use_roth = value
+    End Property
+    Public Property Get RothSTSwitchID()
+        RothSTSwitchID = m_roth_array_index
+    End Property
+    Public Property Let RothSTSwitchID(value)
+        m_roth_array_index = value
+    End Property
+    
+    Public Property Let Debug(value) : m_debug = value : End Property
+
+	Public default Function init(name)
+        m_name = "standup_target_" & name
+		m_switch = Empty
+		m_debug = False
+        m_use_roth = False
+        m_roth_array_index = -1
+        glf_standup_targets.Add name, Me
+        Set Init = Me
+	End Function
+ 
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_name, message
+        End If
+    End Sub
 End Class
 
 Class GlfEvent

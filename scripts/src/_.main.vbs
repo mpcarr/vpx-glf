@@ -48,6 +48,7 @@ Dim glf_ball_holds : Set glf_ball_holds = CreateObject("Scripting.Dictionary")
 Dim glf_magnets : Set glf_magnets = CreateObject("Scripting.Dictionary")
 Dim glf_segment_displays : Set glf_segment_displays = CreateObject("Scripting.Dictionary")
 Dim glf_drop_targets : Set glf_drop_targets = CreateObject("Scripting.Dictionary")
+Dim glf_standup_targets : Set glf_standup_targets = CreateObject("Scripting.Dictionary")
 Dim glf_multiball_locks : Set glf_multiball_locks = CreateObject("Scripting.Dictionary")
 Dim glf_multiballs : Set glf_multiballs = CreateObject("Scripting.Dictionary")
 Dim glf_shows : Set glf_shows = CreateObject("Scripting.Dictionary")
@@ -166,6 +167,11 @@ Public Sub Glf_Init()
 	drop_array = Array()
 	For Each drop_target in glf_drop_targets.Items()
 		codestr = codestr & "Sub " & drop_target.Switch & "_Hit() : If Not glf_gameTilted Then : If glf_drop_targets(""" & drop_target.Name & """).UseRothDroptarget = True Then : DTHit glf_drop_targets(""" & drop_target.Name & """).RothDTSwitchID : Else : DispatchPinEvent """ & drop_target.Switch & "_active"", ActiveBall : glf_last_switch_hit_time = gametime : glf_last_switch_hit = """& drop_target.Switch &""": End If : End If : End Sub" & vbCrLf
+	Next
+
+	Dim standup_target
+	For Each standup_target in glf_standup_targets.Items()
+		codestr = codestr & "Sub " & glf_standup_targets.Switch & "_Hit() : If Not glf_gameTilted Then : If glf_standup_targets(""" & standup_target.Name & """).UseRothStanduptarget = True Then : STHit glf_standup_targets(""" & standup_target.Name & """).RothSTSwitchID : Else : DispatchPinEvent """ & standup_target.Switch & "_active"", ActiveBall : glf_last_switch_hit_time = gametime : glf_last_switch_hit = """& standup_target.Switch &""": End If : End If : End Sub" & vbCrLf
 	Next
 	
     codestr = codestr & vbCrLf
