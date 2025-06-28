@@ -13263,6 +13263,7 @@ Class GlfLightSegmentDisplay
     private m_default_transition_update_hz
     private m_color
     private m_flex_dmd_index
+    private m_b2s_dmd_index
 
     Public Property Get Name() : Name = m_name : End Property
 
@@ -13314,6 +13315,10 @@ Class GlfLightSegmentDisplay
         m_flex_dmd_index = input
     End Property
 
+    Public Property Let ExternalB2SSegmentIndex(input)
+        m_b2s_dmd_index = input
+    End Property
+
     Public Property Get DefaultTransitionUpdateHz() : DefaultTransitionUpdateHz = m_default_transition_update_hz : End Property
     Public Property Let DefaultTransitionUpdateHz(input) : m_default_transition_update_hz = input : End Property
 
@@ -13341,6 +13346,7 @@ Class GlfLightSegmentDisplay
         m_integrated_dots = False
         m_use_dots_for_commas = False
         m_flex_dmd_index = -1
+        m_b2s_dmd_index = -1
 
         m_display_flash_duty = 30
         m_default_transition_update_hz = 30
@@ -13479,6 +13485,13 @@ Class GlfLightSegmentDisplay
 				    If Err Then Debug.Print "Error: " & Err
                     'glf_flex_alphadmd_segments(m_flex_dmd_index+i) = segment.CharMapping '&h2A0F '0010101000001111
                     glf_flex_alphadmd.Segments = glf_flex_alphadmd_segments
+                End If
+                If m_b2s_dmd_index > -1 Then
+                    dim b2sChar
+                    b2sChar = segment.B2SLEDValue
+                    On Error Resume Next
+				    controller.B2SSetLED m_b2s_dmd_index+i, b2sChar
+				    If Err Then Debug.Print "Error: " & Err
                 End If
                 segment_idx = segment_idx + 15
             ElseIf m_segment_type = "7Segment" Then
@@ -13852,6 +13865,63 @@ Class FourteenSegments
             CharMapping = hexcode
         End If
     End Property
+
+    Public Property Get B2SLEDValue()						'to be used with dB2S 15-segments-LED used in Herweh's Designer
+        B2SLEDValue = 0									'default for unknown characters
+        select case char
+            Case "","":	B2SLEDValue = 0
+            Case "0":	B2SLEDValue = 63	
+            Case "1":	B2SLEDValue = 8704
+            Case "2":	B2SLEDValue = 2139
+            Case "3":	B2SLEDValue = 2127	
+            Case "4":	B2SLEDValue = 2150
+            Case "5":	B2SLEDValue = 2157
+            Case "6":	B2SLEDValue = 2172
+            Case "7":	B2SLEDValue = 7
+            Case "8":	B2SLEDValue = 2175
+            Case "9":	B2SLEDValue = 2159
+            Case "A":	B2SLEDValue = 2167
+            Case "B":	B2SLEDValue = 10767
+            Case "C":	B2SLEDValue = 57
+            Case "D":	B2SLEDValue = 8719
+            Case "E":	B2SLEDValue = 121
+            Case "F":	B2SLEDValue = 2161
+            Case "G":	B2SLEDValue = 2109
+            Case "H":	B2SLEDValue = 2166
+            Case "I":	B2SLEDValue = 8713
+            Case "J":	B2SLEDValue = 31
+            Case "K":	B2SLEDValue = 5232
+            Case "L":	B2SLEDValue = 56
+            Case "M":	B2SLEDValue = 1334
+            Case "N":	B2SLEDValue = 4406
+            Case "O":	B2SLEDValue = 63
+            Case "P":	B2SLEDValue = 2163
+            Case "Q":	B2SLEDValue = 4287
+            Case "R":	B2SLEDValue = 6259
+            Case "S":	B2SLEDValue = 2157
+            Case "T":	B2SLEDValue = 8705
+            Case "U":	B2SLEDValue = 62
+            Case "V":	B2SLEDValue = 17456
+            Case "W":	B2SLEDValue = 20534
+            Case "X":	B2SLEDValue = 21760
+            Case "Y":	B2SLEDValue = 9472
+            Case "Z":	B2SLEDValue = 17417
+            Case "<":	B2SLEDValue = 5120
+            Case ">":	B2SLEDValue = 16640
+            Case "^":	B2SLEDValue = 17414
+            Case ".":	B2SLEDValue = 8
+            Case "!":	B2SLEDValue = 0
+            Case ".":	B2SLEDValue = 128
+            Case "*":	B2SLEDValue = 32576
+            Case "/":	B2SLEDValue = 17408
+            Case "\":	B2SLEDValue = 4352
+            Case "|":	B2SLEDValue = 8704
+            Case "=":	B2SLEDValue = 2120
+            Case "+":	B2SLEDValue = 10816
+            Case "-":	B2SLEDValue = 2112
+        End Select			
+        B2SLEDValue = cint(B2SLEDValue)
+    End Function
 
     Public default Function init(dp, l, m, n, k, j, h, g2, g1, f, e, d, c, b, a, char)
         Me.dp = dp
