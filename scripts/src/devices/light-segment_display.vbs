@@ -690,7 +690,7 @@ Class FourteenSegments
             Case "-":	B2SLEDValue = 2112
         End Select			
         B2SLEDValue = cint(B2SLEDValue)
-    End Function
+    End Property
 
     Public default Function init(dp, l, m, n, k, j, h, g2, g1, f, e, d, c, b, a, char)
         Me.dp = dp
