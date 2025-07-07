@@ -2,7 +2,7 @@
 Class GlfMultiballLocks
 
     Private m_name
-    Private m_lock_device
+    Private m_lock_devices
     Private m_priority
     Private m_mode
     Private m_base_device
@@ -25,8 +25,8 @@ Class GlfMultiballLocks
                 GetValue = m_balls_locked
         End Select
     End Property
-    Public Property Get LockDevice() : LockDevice = m_lock_device : End Property
-    Public Property Let LockDevice(value) : m_lock_device = value : End Property
+    Public Property Get LockDevices() : LockDevices = m_lock_devices : End Property
+    Public Property Let LockDevices(value) : m_lock_devices = value : End Property
     Public Property Let EnableEvents(value) : m_base_device.EnableEvents = value : End Property
     Public Property Let DisableEvents(value) : m_base_device.DisableEvents = value : End Property
     Public Property Let BallsToLock(value) : m_balls_to_lock = value : End Property
@@ -47,7 +47,7 @@ Class GlfMultiballLocks
         m_priority = mode.Priority
         m_lock_events = Array()
         m_reset_events = Array()
-        m_lock_device = Empty
+        m_lock_devices = Array()
         m_balls_to_lock = 0
         m_balls_to_replace = -1
         m_enabled = False
@@ -70,9 +70,10 @@ Class GlfMultiballLocks
     Public Sub Enable()
         Log "Enabling"
         m_enabled = True
-        If Not IsEmpty(m_lock_device) Then
-            AddPinEventListener "balldevice_" & m_lock_device & "_ball_enter", m_mode & "_" & name & "_lock", "MultiballLocksHandler", m_priority, Array("lock", me, m_lock_device)
-        End If
+        Dim lock_device
+        For Each lock_device in m_lock_devices
+            AddPinEventListener "balldevice_" & lock_device & "_ball_enter", m_mode & "_" & name & "_lock", "MultiballLocksHandler", m_priority, Array("lock", me, lock_device)
+        Next
         Dim evt
         For Each evt in m_lock_events
             AddPinEventListener evt, m_name & "_ball_locked", "MultiballLocksHandler", m_priority, Array("virtual_lock", Me, Null)
@@ -85,9 +86,10 @@ Class GlfMultiballLocks
     Public Sub Disable()
         Log "Disabling"
         m_enabled = False
-        If Not IsEmpty(m_lock_device) Then
-            RemovePinEventListener "balldevice_" & m_lock_device & "_ball_enter", m_mode & "_" & name & "_lock"
-        End If
+        Dim lock_device
+        For Each lock_device in m_lock_devices
+            RemovePinEventListener "balldevice_" & lock_device & "_ball_enter", m_mode & "_" & name & "_lock"
+        Next
         Dim evt
         For Each evt in m_lock_events
             RemovePinEventListener evt, m_name & "_ball_locked"
