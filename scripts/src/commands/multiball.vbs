@@ -6,7 +6,7 @@ Class GlfMultiballs
     Private m_priority
     Private m_base_device
     Private m_ball_count
-    Private m_ball_lock
+    Private m_ball_locks
     Private m_add_a_ball_events
     Private m_add_a_ball_grace_period
     Private m_add_a_ball_hurry_up_time
@@ -51,7 +51,7 @@ Class GlfMultiballs
     Public Property Let AddABallHurryUpTime(value): Set m_add_a_ball_hurry_up_time = CreateGlfInput(value): End Property
     Public Property Let AddABallShootAgain(value): Set m_add_a_ball_shoot_again = CreateGlfInput(value): End Property
     Public Property Let BallCountType(value): m_ball_count_type = value: End Property
-    Public Property Let BallLock(value): m_ball_lock = value: End Property
+    Public Property Let BallLocks(value): m_ball_locks = value: End Property
     Public Property Let EnableEvents(value) : m_base_device.EnableEvents = value : End Property
     Public Property Let DisableEvents(value) : m_base_device.DisableEvents = value : End Property
     Public Property Let GracePeriod(value): Set m_grace_period = CreateGlfInput(value): End Property
@@ -99,7 +99,7 @@ Class GlfMultiballs
         Set m_add_a_ball_hurry_up_time = CreateGlfInput(0)
         Set m_add_a_ball_shoot_again = CreateGlfInput(5000)
         m_ball_count_type = "total"
-        m_ball_lock = Empty
+        m_ball_locks = Array()
         Set m_grace_period = CreateGlfInput(0)
         Set m_hurry_up = CreateGlfInput(0)
         m_replace_balls_in_play = False
@@ -225,13 +225,14 @@ Class GlfMultiballs
         Dim balls_added : balls_added = 0
 
         'eject balls from locks
-        If Not IsEmpty(m_ball_lock) Then
-            Dim available_balls : available_balls = glf_ball_devices(m_ball_lock).Balls()
+        Dim ball_lock
+        For Each ball_lock in m_ball_locks
+            Dim available_balls : available_balls = glf_ball_devices(ball_lock).Balls()
             If available_balls > 0 Then
-                glf_ball_devices(m_ball_lock).EjectAll()
+                glf_ball_devices(ball_lock).EjectAll()
             End If
             balls_added = available_balls
-        End If
+        Next
 
         glf_BIP = m_balls_live_target
 

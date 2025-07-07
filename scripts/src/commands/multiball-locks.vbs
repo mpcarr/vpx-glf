@@ -100,7 +100,7 @@ Class GlfMultiballLocks
     End Sub
 
     Public Function Lock(device, unclaimed_balls)
-        
+        Log "Locking for device: " & device & ". Unclaimed Balls: " & unclaimed_balls
         If unclaimed_balls <= 0 Then
             Lock = unclaimed_balls
             Exit Function
