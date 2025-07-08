@@ -639,6 +639,7 @@ Class Mode
 End Class
 
 Function ModeEventHandler(args)
+    
     Dim ownProps, kwargs : ownProps = args(0)
     If IsObject(args(1)) Then
         Set kwargs = args(1)
@@ -652,6 +653,11 @@ Function ModeEventHandler(args)
         Case "start"
             Set glfEvent = ownProps(2)
             If glfEvent.Evaluate() = False Then
+                If IsObject(args(1)) Then
+                    Set ModeEventHandler = kwargs
+                Else
+                    ModeEventHandler = kwargs
+                End If
                 Exit Function
             End If
             mode.StartMode
@@ -661,6 +667,11 @@ Function ModeEventHandler(args)
         Case "stop"
             Set glfEvent = ownProps(2)
             If glfEvent.Evaluate() = False Then
+                If IsObject(args(1)) Then
+                    Set ModeEventHandler = kwargs
+                Else
+                    ModeEventHandler = kwargs
+                End If
                 Exit Function
             End If
             mode.StopMode

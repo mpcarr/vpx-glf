@@ -284,7 +284,7 @@ Class GlfHighScore
                 i=1
                 'msgbox "Key Count" & ubound(m_highscores(key).Keys())
                 For Each s in m_highscores(key).Keys()
-                    Dim high_scores_item : high_scores_item = m_highscores(key)
+                    Dim high_scores_item : Set high_scores_item = m_highscores(key)
                     'msgbox s
                     tmp.Add key & "_" & i & "_label", m_categories(key)(i-1)
                     tmp.Add key & "_" & i &"_name", high_scores_item(s)("player_name")

@@ -5354,7 +5354,7 @@ Class GlfHighScore
                 i=1
                 'msgbox "Key Count" & ubound(m_highscores(key).Keys())
                 For Each s in m_highscores(key).Keys()
-                    Dim high_scores_item : high_scores_item = m_highscores(key)
+                    Dim high_scores_item : Set high_scores_item = m_highscores(key)
                     'msgbox s
                     tmp.Add key & "_" & i & "_label", m_categories(key)(i-1)
                     tmp.Add key & "_" & i &"_name", high_scores_item(s)("player_name")
@@ -6783,6 +6783,7 @@ Class Mode
 End Class
 
 Function ModeEventHandler(args)
+    
     Dim ownProps, kwargs : ownProps = args(0)
     If IsObject(args(1)) Then
         Set kwargs = args(1)
@@ -6796,6 +6797,11 @@ Function ModeEventHandler(args)
         Case "start"
             Set glfEvent = ownProps(2)
             If glfEvent.Evaluate() = False Then
+                If IsObject(args(1)) Then
+                    Set ModeEventHandler = kwargs
+                Else
+                    ModeEventHandler = kwargs
+                End If
                 Exit Function
             End If
             mode.StartMode
@@ -6805,6 +6811,11 @@ Function ModeEventHandler(args)
         Case "stop"
             Set glfEvent = ownProps(2)
             If glfEvent.Evaluate() = False Then
+                If IsObject(args(1)) Then
+                    Set ModeEventHandler = kwargs
+                Else
+                    ModeEventHandler = kwargs
+                End If
                 Exit Function
             End If
             mode.StopMode
