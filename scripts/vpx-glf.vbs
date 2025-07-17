@@ -2903,6 +2903,12 @@ Class GlfVpxBcpController
         End If
 	End Sub
 
+    Public Sub PlayWidget(widget, context, calling_context, priorty, expire)
+		If m_connected Then
+            m_bcpController.Send "trigger?json={""name"": ""widgets_play"", ""settings"": {""" & widget & """: {""action"": ""play"", ""expire"": " & expire & " , ""x"": 0, ""y"": 0}}, ""context"": """ & context & """, ""calling_context"": """ & calling_context & """, ""priority"": " & priorty & "}"
+        End If
+	End Sub
+
     Public Sub ModeList()
         If m_connected Then
             If m_mode_list <> glf_running_modes Then
@@ -6171,6 +6177,7 @@ Class Mode
     Private m_sound_player
     Private m_dof_player
     Private m_slide_player
+    Private m_widget_player
     Private m_shot_profiles
     Private m_sequence_shots
     Private m_state_machines
@@ -6227,6 +6234,7 @@ Class Mode
     Public Property Get SoundPlayer() : Set SoundPlayer = m_sound_player : End Property
     Public Property Get DOFPlayer() : Set DOFPlayer = m_dof_player : End Property
     Public Property Get SlidePlayer() : Set SlidePlayer = m_slide_player : End Property
+    Public Property Get WidgetPlayer() : Set WidgetPlayer = m_widget_player : End Property
 
     Public Property Get ShotProfiles(name)
         If m_shot_profiles.Exists(name) Then
@@ -6503,6 +6511,9 @@ Class Mode
         If Not IsNull(m_slide_player) Then
             m_slide_player.Debug = value
         End If
+        If Not IsNull(m_widget_player) Then
+            m_widget_player.Debug = value
+        End If
         If Not IsNull(m_showplayer) Then
             m_showplayer.Debug = value
         End If
@@ -6550,6 +6561,7 @@ Class Mode
         Set m_sound_player = (new GlfSoundPlayer)(Me)
         Set m_dof_player = (new GlfDofPlayer)(Me)
         Set m_slide_player = (new GlfSlidePlayer)(Me)
+        Set m_widget_player = (new GlfWidgetPlayer)(Me)
         Set m_variableplayer = (new GlfVariablePlayer)(Me)
         Glf_MonitorModeUpdate Me
         AddPinEventListener m_name & "_starting", m_name & "_starting_end", "ModeEventHandler", -99, Array("started", Me, "")
@@ -6707,6 +6719,14 @@ Class Mode
                 yaml = yaml & vbCrLf
                 yaml = yaml & "slide_player: " & vbCrLf
                 yaml = yaml & m_slide_player.ToYaml()
+            End If
+        End If
+
+        If Not IsNull(m_widget_player) Then
+            If UBound(m_widget_player.EventNames)>-1 Then
+                yaml = yaml & vbCrLf
+                yaml = yaml & "widget_player: " & vbCrLf
+                yaml = yaml & m_widget_player.ToYaml()
             End If
         End If
 
@@ -7265,7 +7285,7 @@ Class GlfMultiballs
             If available_balls > 0 Then
                 glf_ball_devices(ball_lock).EjectAll()
             End If
-            balls_added = available_balls
+            balls_added = balls_added + available_balls
         Next
 
         glf_BIP = m_balls_live_target
@@ -10270,6 +10290,13 @@ Function GlfShowStepHandler(args)
             
         Next
     End If
+    If UBound(nextStep.WidgetsInStep().Keys())>-1 Then
+        Dim widget_item
+        Dim widget_items : widget_items = nextStep.WidgetsInStep().Items()
+        For Each widget_item in widget_items
+            
+        Next
+    End If
 
     If nextStep.Duration = -1 Then
         'glf_debugLog.WriteToLog "Running Show", "HOLD"
@@ -10311,7 +10338,7 @@ End Function
 
 Class GlfShowStep
 
-    Private m_lights, m_shows, m_dofs, m_slides, m_time, m_duration, m_isLastStep, m_absTime, m_relTime
+    Private m_lights, m_shows, m_dofs, m_slides, m_widgets, m_time, m_duration, m_isLastStep, m_absTime, m_relTime
 
     Public Property Get Lights(): Lights = m_lights: End Property
     Public Property Let Lights(input) : m_lights = input: End Property
@@ -10333,12 +10360,20 @@ Class GlfShowStep
     End Property
 
     Public Property Get SlidesInStep(): Set SlidesInStep = m_slides: End Property
-        Public Property Get Slides(slide)
-            Dim new_slide : Set new_slide = (new GlfSlidePlayerItem)()
-            new_slide.Slide = slide
-            m_slides.Add slide & CStr(UBound(m_slides.Keys)), new_slide
-            Set Slides = new_slide
-        End Property
+    Public Property Get Slides(slide)
+        Dim new_slide : Set new_slide = (new GlfSlidePlayerItem)()
+        new_slide.Slide = slide
+        m_slides.Add slide & CStr(UBound(m_slides.Keys)), new_slide
+        Set Slides = new_slide
+    End Property
+
+    Public Property Get WidgetsInStep(): Set WidgetsInStep = m_widgets: End Property
+    Public Property Get Widgets(widget)
+        Dim new_widget : Set new_widget = (new GlfWidgetPlayerItem)()
+        new_widget.Widget = widget
+        m_widgets.Add widget & CStr(UBound(m_widgets.Keys)), new_widget
+        Set Widgets = new_widget
+    End Property
 
     Public Property Get Time()
         If IsNull(m_relTime) Then
@@ -10377,6 +10412,7 @@ Class GlfShowStep
         Set m_shows = CreateObject("Scripting.Dictionary")
         Set m_dofs = CreateObject("Scripting.Dictionary")
         Set m_slides = CreateObject("Scripting.Dictionary")
+        Set m_widgets = CreateObject("Scripting.Dictionary")
         Set Init = Me
 	End Function
 
@@ -12165,6 +12201,163 @@ Function VariablePlayerEventHandler(args)
     End If
     
 End Function
+
+
+Class GlfWidgetPlayer
+
+    Private m_name
+    Private m_priority
+    Private m_mode
+    Private m_debug
+    private m_base_device
+    Private m_events
+    Private m_eventValues
+
+    Public Property Get Name() : Name = "widget_player" : End Property
+
+    Public Property Get EventNames() : EventNames = m_events.Keys() : End Property   
+    Public Property Get EventName(name)
+        Dim newEvent : Set newEvent = (new GlfEvent)(name)
+        m_events.Add newEvent.Raw, newEvent
+        Dim new_slide : Set new_slide = (new GlfWidgetPlayerItem)()
+        m_eventValues.Add newEvent.Raw, new_slide
+        Set EventName = new_slide
+    End Property
+    
+    Public Property Let Debug(value)
+        m_debug = value
+        m_base_device.Debug = value
+    End Property
+    Public Property Get IsDebug()
+        If m_debug Then : IsDebug = 1 : Else : IsDebug = 0 : End If
+    End Property
+
+	Public default Function init(mode)
+        m_name = "widget_player_" & mode.name
+        m_mode = mode.ModeName
+        m_priority = mode.Priority
+        m_debug = False
+        Set m_events = CreateObject("Scripting.Dictionary")
+        Set m_eventValues = CreateObject("Scripting.Dictionary")
+        Set m_base_device = (new GlfBaseModeDevice)(mode, "widget_player", Me)
+        Set Init = Me
+	End Function
+
+    Public Sub Activate()
+        Dim evt
+        For Each evt In m_events.Keys()
+            AddPinEventListener m_events(evt).EventName, m_mode & "_" & evt & "_widget_player_play", "WidgetPlayerEventHandler", m_priority+m_events(evt).Priority, Array("play", Me, evt)
+        Next
+    End Sub
+
+    Public Sub Deactivate()
+        Dim evt
+        For Each evt In m_events.Keys()
+            RemovePinEventListener m_events(evt).EventName, m_mode & "_" & evt & "_widget_player_play"
+        Next
+    End Sub
+
+    Public Function Play(evt)
+        Play = Empty
+        If m_events(evt).Evaluate() Then
+            'Fire Widget
+            If useBcp = True Then
+                bcpController.PlayWidget m_eventValues(evt).Widget, m_mode, m_events(evt).EventName, m_priority+m_eventValues(evt).Priority, m_eventValues(evt).Expire
+            End If
+        End If
+    End Function
+
+    Private Sub Log(message)
+        If m_debug = True Then
+            glf_debugLog.WriteToLog m_mode & "_widget_player", message
+        End If
+    End Sub
+
+    Public Function ToYaml()
+        Dim yaml
+        Dim key
+        If UBound(m_events.Keys) > -1 Then
+            For Each key in m_events.keys
+                yaml = yaml & "  " & key & ": " & vbCrLf
+                yaml = yaml & m_eventValues(key).ToYaml
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        ToYaml = yaml
+    End Function
+
+End Class
+
+Function WidgetPlayerEventHandler(args)
+    Dim ownProps, kwargs : ownProps = args(0)
+    If IsObject(args(1)) Then
+        Set kwargs = args(1)
+    Else
+        kwargs = args(1) 
+    End If
+    Dim evt : evt = ownProps(0)
+    Dim widget_player : Set widget_player = ownProps(1)
+    Select Case evt
+        Case "activate"
+            widget_player.Activate
+        Case "deactivate"
+            widget_player.Deactivate
+        Case "play"
+            widget_player.Play(ownProps(2))
+    End Select
+    If IsObject(args(1)) Then
+        Set WidgetPlayerEventHandler = kwargs
+    Else
+        WidgetPlayerEventHandler = kwargs
+    End If
+End Function
+
+Class GlfWidgetPlayerItem
+	Private m_slide, m_action, m_expire, m_max_queue_time, m_method, m_priority, m_target, m_tokens
+    
+    Public Property Get Widget(): Widget = m_slide: End Property
+    Public Property Let Widget(input)
+        m_slide = input
+    End Property
+    
+    Public Property Get Action(): Action = m_action: End Property
+    Public Property Let Action(input)
+        m_action = input
+    End Property
+
+    Public Property Get Expire(): Expire = m_expire: End Property
+    Public Property Let Expire(input)
+        m_expire = input
+    End Property
+
+    Public Property Get Priority(): Priority = m_priority: End Property
+    Public Property Let Priority(input)
+        m_priority = input
+    End Property
+
+	Public default Function init()
+        m_action = "play"
+        m_slide = Empty
+        m_expire = Empty
+        m_priority = 0
+        Set Init = Me
+	End Function
+
+    Public Function ToYaml()
+        Dim yaml
+        yaml = yaml & "    "& m_slide & ":" & vbCrLf
+        yaml = yaml & "      action: " & m_action & vbCrLf
+        If Not IsEmpty(m_expire) Then
+            yaml = yaml & "      expire: " & m_expire & "ms" & vbCrLf
+        End If
+        If m_priority <> 0 Then
+            yaml = yaml & "      priority: " & m_priority & vbCrLf
+        End If
+        ToYaml = yaml
+    End Function
+
+End Class
+
 
 
 Class DelayObject

@@ -231,7 +231,7 @@ Class GlfMultiballs
             If available_balls > 0 Then
                 glf_ball_devices(ball_lock).EjectAll()
             End If
-            balls_added = available_balls
+            balls_added = balls_added + available_balls
         Next
 
         glf_BIP = m_balls_live_target

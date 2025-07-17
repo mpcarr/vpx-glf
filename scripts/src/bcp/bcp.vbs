@@ -47,6 +47,12 @@ Class GlfVpxBcpController
         End If
 	End Sub
 
+    Public Sub PlayWidget(widget, context, calling_context, priorty, expire)
+		If m_connected Then
+            m_bcpController.Send "trigger?json={""name"": ""widgets_play"", ""settings"": {""" & widget & """: {""action"": ""play"", ""expire"": " & expire & " , ""x"": 0, ""y"": 0}}, ""context"": """ & context & """, ""calling_context"": """ & calling_context & """, ""priority"": " & priorty & "}"
+        End If
+	End Sub
+
     Public Sub ModeList()
         If m_connected Then
             If m_mode_list <> glf_running_modes Then

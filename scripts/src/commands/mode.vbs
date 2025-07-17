@@ -27,6 +27,7 @@ Class Mode
     Private m_sound_player
     Private m_dof_player
     Private m_slide_player
+    Private m_widget_player
     Private m_shot_profiles
     Private m_sequence_shots
     Private m_state_machines
@@ -83,6 +84,7 @@ Class Mode
     Public Property Get SoundPlayer() : Set SoundPlayer = m_sound_player : End Property
     Public Property Get DOFPlayer() : Set DOFPlayer = m_dof_player : End Property
     Public Property Get SlidePlayer() : Set SlidePlayer = m_slide_player : End Property
+    Public Property Get WidgetPlayer() : Set WidgetPlayer = m_widget_player : End Property
 
     Public Property Get ShotProfiles(name)
         If m_shot_profiles.Exists(name) Then
@@ -359,6 +361,9 @@ Class Mode
         If Not IsNull(m_slide_player) Then
             m_slide_player.Debug = value
         End If
+        If Not IsNull(m_widget_player) Then
+            m_widget_player.Debug = value
+        End If
         If Not IsNull(m_showplayer) Then
             m_showplayer.Debug = value
         End If
@@ -406,6 +411,7 @@ Class Mode
         Set m_sound_player = (new GlfSoundPlayer)(Me)
         Set m_dof_player = (new GlfDofPlayer)(Me)
         Set m_slide_player = (new GlfSlidePlayer)(Me)
+        Set m_widget_player = (new GlfWidgetPlayer)(Me)
         Set m_variableplayer = (new GlfVariablePlayer)(Me)
         Glf_MonitorModeUpdate Me
         AddPinEventListener m_name & "_starting", m_name & "_starting_end", "ModeEventHandler", -99, Array("started", Me, "")
@@ -563,6 +569,14 @@ Class Mode
                 yaml = yaml & vbCrLf
                 yaml = yaml & "slide_player: " & vbCrLf
                 yaml = yaml & m_slide_player.ToYaml()
+            End If
+        End If
+
+        If Not IsNull(m_widget_player) Then
+            If UBound(m_widget_player.EventNames)>-1 Then
+                yaml = yaml & vbCrLf
+                yaml = yaml & "widget_player: " & vbCrLf
+                yaml = yaml & m_widget_player.ToYaml()
             End If
         End If
 

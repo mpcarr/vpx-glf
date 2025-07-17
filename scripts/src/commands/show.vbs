@@ -305,6 +305,13 @@ Function GlfShowStepHandler(args)
             
         Next
     End If
+    If UBound(nextStep.WidgetsInStep().Keys())>-1 Then
+        Dim widget_item
+        Dim widget_items : widget_items = nextStep.WidgetsInStep().Items()
+        For Each widget_item in widget_items
+            
+        Next
+    End If
 
     If nextStep.Duration = -1 Then
         'glf_debugLog.WriteToLog "Running Show", "HOLD"
@@ -346,7 +353,7 @@ End Function
 
 Class GlfShowStep
 
-    Private m_lights, m_shows, m_dofs, m_slides, m_time, m_duration, m_isLastStep, m_absTime, m_relTime
+    Private m_lights, m_shows, m_dofs, m_slides, m_widgets, m_time, m_duration, m_isLastStep, m_absTime, m_relTime
 
     Public Property Get Lights(): Lights = m_lights: End Property
     Public Property Let Lights(input) : m_lights = input: End Property
@@ -368,12 +375,20 @@ Class GlfShowStep
     End Property
 
     Public Property Get SlidesInStep(): Set SlidesInStep = m_slides: End Property
-        Public Property Get Slides(slide)
-            Dim new_slide : Set new_slide = (new GlfSlidePlayerItem)()
-            new_slide.Slide = slide
-            m_slides.Add slide & CStr(UBound(m_slides.Keys)), new_slide
-            Set Slides = new_slide
-        End Property
+    Public Property Get Slides(slide)
+        Dim new_slide : Set new_slide = (new GlfSlidePlayerItem)()
+        new_slide.Slide = slide
+        m_slides.Add slide & CStr(UBound(m_slides.Keys)), new_slide
+        Set Slides = new_slide
+    End Property
+
+    Public Property Get WidgetsInStep(): Set WidgetsInStep = m_widgets: End Property
+    Public Property Get Widgets(widget)
+        Dim new_widget : Set new_widget = (new GlfWidgetPlayerItem)()
+        new_widget.Widget = widget
+        m_widgets.Add widget & CStr(UBound(m_widgets.Keys)), new_widget
+        Set Widgets = new_widget
+    End Property
 
     Public Property Get Time()
         If IsNull(m_relTime) Then
@@ -412,6 +427,7 @@ Class GlfShowStep
         Set m_shows = CreateObject("Scripting.Dictionary")
         Set m_dofs = CreateObject("Scripting.Dictionary")
         Set m_slides = CreateObject("Scripting.Dictionary")
+        Set m_widgets = CreateObject("Scripting.Dictionary")
         Set Init = Me
 	End Function
 
