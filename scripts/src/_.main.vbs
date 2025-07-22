@@ -74,7 +74,7 @@ Dim glf_production_mode : glf_production_mode = False
 Dim useGlfBCPMonitor : useGlfBCPMonitor = False
 Dim useBCP : useBCP = False
 Dim bcpPort : bcpPort = 5050
-Dim bcpExeName : bcpExeName = ""
+Dim bcpExeName : bcpExeName = CGameName & "_gmc.exe"
 Dim glf_monitor_player_vars : glf_monitor_player_vars = false
 Dim glf_BIP : glf_BIP = 0
 Dim glf_FuncCount : glf_FuncCount = 0
@@ -90,9 +90,7 @@ Dim glf_master_volume : glf_master_volume = 0.8
 Dim glf_troughSize : glf_troughSize = tnob
 Dim glf_lastTroughSw : glf_lastTroughSw = Null
 Dim glf_game
-With GlfGameSettings()
-	.BallsPerGame = 3
-End With
+
 Dim glf_debugLog : Set glf_debugLog = (new GlfDebugLogFile)()
 Dim glf_debugEnabled : glf_debugEnabled = False
 Dim glf_debug_level : glf_debug_level = "Info"
@@ -101,7 +99,17 @@ Dim glf_debug_level : glf_debug_level = "Info"
 Dim glf_ball1, glf_ball2, glf_ball3, glf_ball4, glf_ball5, glf_ball6, glf_ball7, glf_ball8	
 
 Public Sub Glf_ConnectToBCPMediaController(args)
-    Set bcpController = (new GlfVpxBcpController)(bcpPort, bcpExeName)
+	If glf_production_mode = True Then
+		Dim fso
+		Set fso = CreateObject("Scripting.FileSystemObject")
+		If fso.FileExists(bcpExeName) Then
+			Set bcpController = (new GlfVpxBcpController)(bcpPort, bcpExeName)	
+		Else
+			MsgBox "Missing GMCDisplay file"
+		End If
+	Else
+		Set bcpController = (new GlfVpxBcpController)(bcpPort, "")
+	End If
 End Sub
 
 Public Sub Glf_ConnectToDebugBCPMediaController(args)
@@ -127,6 +135,9 @@ Public Function SwitchHandler(handler, args)
 End Function
 
 Public Sub Glf_Init()
+	With GlfGameSettings()
+		.BallsPerGame = 3
+	End With
 	Glf_Options Null 'Force Options Check
 	Glf_RegisterLights()
 	glf_debugLog.WriteToLog "Init", "Start"
@@ -520,7 +531,14 @@ Public Sub Glf_Init()
 	Glf_ReadMachineVars("MachineVars")
 	Glf_ReadMachineVars("HighScores")
 	glf_debugLog.WriteToLog "Init", "Finished Creating Machine Vars"
-	glf_debugLog.WriteToLog "Code String", glf_codestr
+	'glf_debugLog.WriteToLog "Code String", glf_codestr
+	If glf_production_mode = False Then
+		Dim fso1, TxtFileStream1
+		Set fso1 = CreateObject("Scripting.FileSystemObject")
+		Set TxtFileStream1 = fso1.OpenTextFile("cached-functions.vbs", 2, True)
+		TxtFileStream1.WriteLine glf_codestr
+		TxtFileStream1.Close
+	End If
 
 	SetDelay "reset", "Glf_Reset", Null, 1000
 End Sub

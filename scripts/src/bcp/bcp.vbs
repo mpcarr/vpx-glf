@@ -38,6 +38,7 @@ Class GlfVpxBcpController
     Public Sub Reset()
 		If m_connected Then
             m_bcpController.Send "reset"
+            m_bcpController.Send "trigger?name=windowtitle"
         End If
 	End Sub
     
@@ -135,9 +136,32 @@ Sub Glf_BcpSendPlayerVar(args)
     bcpController.SendPlayerVariable player_var, value, prevValue
 End Sub
 
+Sub Glf_BcpSendEvent(evt)
+    If useBcp=False Then
+        Exit Sub
+    End If
+    bcpController.Send "trigger?name=" & evt
+End Sub
+
 Sub Glf_BcpAddPlayer(playerNum)
     If useBcp Then
         bcpController.Send("player_added?player_num=int:"&playerNum)
+        dim p
+        Select Case playerNum
+            Case 1:
+                p = "PLAYER 1"
+            Case 2:
+                p = "PLAYER 2"
+            Case 3:
+                p = "PLAYER 3"
+            Case 4:
+                p = "PLAYER 4"
+        End Select
+        Dim key, player_state
+        Set player_state = glf_playerState(p)
+        For Each key in player_state.Keys()
+            Glf_BcpSendPlayerVar Array(Null, Array(key, player_state(key), Empty))
+        Next
     End If
 End Sub
 

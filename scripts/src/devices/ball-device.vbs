@@ -171,6 +171,7 @@ Class GlfBallDevice
         End If
         DispatchPinEvent m_name & "_ball_eject_success", Null
         Log "Ball successfully exited"
+        RemoveDelay m_name & "_eject_attempt"
         If m_ejecting_all = True Then
             If m_balls_to_eject = 0 Then
                 m_ejecting_all = False
