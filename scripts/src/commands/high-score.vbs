@@ -273,7 +273,7 @@ Class GlfHighScore
             Dim initials_needed_items : initials_needed_items = m_initials_needed.Items()
             AddPinEventListener "text_input_high_score_complete", "text_input_high_score_complete", "HighScoreEventHandler", m_priority, Array("initials_complete", Me, initials_needed_items(m_current_initials))
             DispatchPinEvent "high_score_enter_initials", initials_needed_items(m_current_initials)
-            SetDelay "enter_initials_timeout", "HighScoreEventHandler", Array(Array("initials_complete", Me, minitials_needed_items(m_current_initials)), Null), m_enter_initials_timeout.Value
+            SetDelay "enter_initials_timeout", "HighScoreEventHandler", Array(Array("initials_complete", Me, initials_needed_items(m_current_initials)), Null), m_enter_initials_timeout.Value
         Else
             Log "Writing High Scores"
             Dim keys, key
