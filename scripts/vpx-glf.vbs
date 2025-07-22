@@ -3058,7 +3058,6 @@ Sub Glf_BcpUpdate()
                     Dim category : category = message.GetValue("category")
                     If category = "player_vars" Then
                         glf_monitor_player_vars = True
-                        msgbox "here"
                         'AddPlayerStateEventListener "score", "bcp_player_var_score_0", 0, "Glf_BcpSendPlayerVar", 1000, Null
                         'AddPlayerStateEventListener "current_ball", "bcp_player_var_ball_0", 0, "Glf_BcpSendPlayerVar", 1000, Null
                     End If
