@@ -24,6 +24,7 @@ Class GlfBallDevice
     Private m_incoming_balls
     Private m_lost_balls
     Private m_exclude_from_ball_search
+    Private m_auto_fire_on_unexpected_ball
     Private m_debug
 
     Public Property Get Name(): Name = m_name : End Property
@@ -83,6 +84,7 @@ Class GlfBallDevice
     End Property
     Public Property Let MechanicalEject(value) : m_mechanical_eject = value : End Property
     Public Property Let ExcludeFromBallSearch(value) : m_exclude_from_ball_search = value : End Property
+    Public Property Let AutoFireOnUnexpectedBall(value) : m_auto_fire_on_unexpected_ball = value : End Property
 
     Public Property Let Debug(value) : m_debug = value : End Property
         
@@ -106,6 +108,7 @@ Class GlfBallDevice
         m_entrance_count_delay = 500
         m_incoming_balls = 0
         m_exclude_from_ball_search = False
+        m_auto_fire_on_unexpected_ball = True
         glf_ball_devices.Add name, Me
 	    Set Init = Me
 	End Function
@@ -142,7 +145,7 @@ Class GlfBallDevice
         End If        
         Log "Unclaimed Balls: " & unclaimed_balls
         DispatchPinEvent m_name & "_ball_entered", Null
-        If unclaimed_balls > 0 Then
+        If unclaimed_balls > 0 And m_auto_fire_on_unexpected_ball = True Then
             SetDelay m_name & "_eject_attempt", "BallDeviceEventHandler", Array(Array("ball_eject", Me), ball), 500
         End If
     End Sub
