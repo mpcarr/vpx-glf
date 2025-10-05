@@ -86,6 +86,7 @@ Dim glf_max_lights_test : glf_max_lights_test = 0
 
 Dim glf_master_volume : glf_master_volume = 0.8
 
+Dim glf_table
 
 Dim glf_troughSize : glf_troughSize = tnob
 Dim glf_lastTroughSw : glf_lastTroughSw = Null
@@ -134,7 +135,8 @@ Public Function SwitchHandler(handler, args)
 
 End Function
 
-Public Sub Glf_Init()
+Public Sub Glf_Init(ByRef table)
+    Set glf_table = table
 	With GlfGameSettings()
 		.BallsPerGame = 3
 	End With

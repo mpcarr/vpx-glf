@@ -14,6 +14,9 @@ Class GlfVpxBcpController
         m_bcpController.Connect port, backboxCommand
         m_connected = True
         useBcp = True
+        If backboxCommand = "" Then
+            m_bcpController.EnableLogging()
+        End If
         m_mode_list = ""
         AddPinEventListener "player_added", "bcp_player_added", "GlfVpxBcpControllerEventHandler", 50, Array("player_added")
         AddPinEventListener "next_player", "bcp_player_next_player", "GlfVpxBcpControllerEventHandler", 50, Array("next_player")

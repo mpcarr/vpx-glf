@@ -86,6 +86,7 @@ Dim glf_max_lights_test : glf_max_lights_test = 0
 
 Dim glf_master_volume : glf_master_volume = 0.8
 
+Dim glf_table
 
 Dim glf_troughSize : glf_troughSize = tnob
 Dim glf_lastTroughSw : glf_lastTroughSw = Null
@@ -134,7 +135,8 @@ Public Function SwitchHandler(handler, args)
 
 End Function
 
-Public Sub Glf_Init()
+Public Sub Glf_Init(ByRef table)
+    Set glf_table = table
 	With GlfGameSettings()
 		.BallsPerGame = 3
 	End With
@@ -2888,6 +2890,9 @@ Class GlfVpxBcpController
         m_bcpController.Connect port, backboxCommand
         m_connected = True
         useBcp = True
+        If backboxCommand = "" Then
+            m_bcpController.EnableLogging()
+        End If
         m_mode_list = ""
         AddPinEventListener "player_added", "bcp_player_added", "GlfVpxBcpControllerEventHandler", 50, Array("player_added")
         AddPinEventListener "next_player", "bcp_player_next_player", "GlfVpxBcpControllerEventHandler", 50, Array("next_player")
@@ -13660,11 +13665,13 @@ Class GlfLightSegmentDisplay
     End Sub
 
     Public Sub SetVirtualDMDLights(input)
-        If m_flex_dmd_index>-1 Then
-            Dim x
-            For x=0 to UBound(m_lights)
-                glf_lightNames(m_lights(x)).Visible = input
-            Next
+        If glf_table.ShowDT Then
+            If m_flex_dmd_index>-1 Then
+                Dim x
+                For x=0 to UBound(m_lights)
+                    glf_lightNames(m_lights(x)).Visible = input
+                Next
+            End If
         End If
     End Sub
 
