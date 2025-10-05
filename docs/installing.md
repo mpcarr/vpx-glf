@@ -59,13 +59,13 @@ You need to add these calls into to your table event subs.
 
 #### Table Init
 
-Inside ```Table1_Init``` add your ```ConfigureGlfDevices``` sub call and ```Glf_Init()```
+Inside ```Table1_Init``` add your ```ConfigureGlfDevices``` sub call and ```Glf_Init(Table1)```
 
 **Example**
 ```
 Sub Table1_Init()
     ConfigureGlfDevices()
-	Glf_Init()
+	Glf_Init(Table1)
 End Sub
 ```
 
