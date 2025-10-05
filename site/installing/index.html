@@ -1845,11 +1845,11 @@ End Sub
 <h2 id="adding-hooks-into-glf">Adding Hooks into GLF</h2>
 <p>You need to add these calls into to your table event subs.</p>
 <h4 id="table-init">Table Init</h4>
-<p>Inside <code>Table1_Init</code> add your <code>ConfigureGlfDevices</code> sub call and <code>Glf_Init()</code></p>
+<p>Inside <code>Table1_Init</code> add your <code>ConfigureGlfDevices</code> sub call and <code>Glf_Init(Table1)</code></p>
 <p><strong>Example</strong></p>
 <pre><code>Sub Table1_Init()
     ConfigureGlfDevices()
-    Glf_Init()
+    Glf_Init(Table1)
 End Sub
 </code></pre>
 <h4 id="table-exit">Table Exit</h4>

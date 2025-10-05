@@ -1468,6 +1468,17 @@
         
       
       
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Light Shows
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
       <a href="./" class="md-nav__link md-nav__link--active">
         
   
@@ -1477,6 +1488,72 @@
   
 
       </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-set-up-your-godot-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Set Up Your Godot Project
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-6-position-your-lights" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 6: Position Your Lights
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-7-animate-your-show" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 7: Animate Your Show
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-8-export-your-show" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 8: Export Your Show
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-9-use-the-show-in-vpx" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 9: Use the Show in VPX
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
       
     </li>
   
@@ -1524,6 +1601,59 @@
     
   
   
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#step-1-set-up-your-godot-project" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 1: Set Up Your Godot Project
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-6-position-your-lights" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 6: Position Your Lights
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-7-animate-your-show" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 7: Animate Your Show
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-8-export-your-show" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 8: Export Your Show
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#step-9-use-the-show-in-vpx" class="md-nav__link">
+    <span class="md-ellipsis">
+      Step 9: Use the Show in VPX
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
 </nav>
                   </div>
                 </div>
@@ -1541,6 +1671,62 @@
 
 
 <h1 id="light-shows-tutorial">Light Shows Tutorial</h1>
+<p>This tutorial will walk you through setting up a workflow for designing <strong>pinball light shows in Godot</strong> and exporting them for use in <strong>Visual Pinball X (VPX)</strong>.</p>
+<p>By using the <a href="https://github.com/missionpinball/mpf-gmc">GMC plugin</a> and <a href="https://github.com/missionpinball/gmc-toolkit">GMC Toolbox</a>, you’ll be able to visually lay out lights, animate shows in the Godot Editor, and export them as YAML files that can be used in your VPX table using.</p>
+<h2 id="step-1-set-up-your-godot-project">Step 1: Set Up Your Godot Project</h2>
+<p>Follow the excellent guides on installing the mpf-gmc and gmc-toolkit from the above repositories.</p>
+<h2 id="step-6-position-your-lights">Step 6: Position Your Lights</h2>
+<ol>
+<li>Open <code>playfield.tscn</code></li>
+<li>In the scene tree, you'll see a list of <code>GMCLight</code> nodes</li>
+<li>Use the <strong>Move Mode</strong> (crosshair icon at top) to drag and position each light over your playfield image</li>
+<li>The warning icons will disappear once each light is positioned</li>
+<li>Optionally, you can customize each light's:</li>
+<li>Shape</li>
+<li>Size (in inches)</li>
+<li>
+<p>Rotation</p>
+</li>
+<li>
+<p>Save the scene</p>
+</li>
+</ol>
+<hr />
+<h2 id="step-7-animate-your-show">Step 7: Animate Your Show</h2>
+<ol>
+<li>In the scene tree, add an <code>AnimationPlayer</code> node as a child of <code>GMCPlayfield</code></li>
+<li>Select the root <code>GMCPlayfield</code> node</li>
+<li>
+<p>In the Inspector, under <code>GMCPlayfield &gt; Animation Player</code>, assign your <code>AnimationPlayer</code></p>
+</li>
+<li>
+<p>Use shapes (<code>ColorRect</code>, <code>TextureRect</code>, gradients, etc.) to design your animation</p>
+</li>
+<li>Add keyframes for:</li>
+<li><code>Modulate</code> (color)</li>
+<li><code>Position</code>, <code>Rotation</code>, <code>Scale</code> (movement)</li>
+<li>Name your animation something meaningful (e.g., <code>intro_flash</code>, <code>sweep_left</code>)</li>
+</ol>
+<p>💡 Tip: Use the Animation panel at the bottom of Godot to set durations, create tracks, and preview your animation in real time.</p>
+<hr />
+<h2 id="step-8-export-your-show">Step 8: Export Your Show</h2>
+<ol>
+<li>Go back to the <em>GMC Toolbox</em> panel</li>
+<li>Click <strong>Refresh Animations</strong></li>
+<li>Select your animation from the dropdown list</li>
+<li>Set the FPS and strip options</li>
+<li>Click <strong>Generate Show</strong></li>
+</ol>
+<blockquote>
+<p>📝 The show will be saved to your project's <code>/shows/</code> folder as a <code>.yaml</code> file.</p>
+</blockquote>
+<p>This file can now be used as a light show in your VPX project using MPF!</p>
+<hr />
+<h2 id="step-9-use-the-show-in-vpx">Step 9: Use the Show in VPX</h2>
+<p>In your MPF config (e.g., mode or show YAML), reference the show file you created:</p>
+<p>```yaml
+- play_show:
+    show: intro_flash</p>
 
 
 
