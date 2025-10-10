@@ -10055,24 +10055,30 @@ Class GlfShow
 	End Function
 
     Public Function AddStep(absolute_time, relative_time, duration)
+        
         Dim new_step : Set new_step = (new GlfShowStep)()
         new_step.Duration = duration
         new_step.RelativeTime = relative_time
         new_step.AbsoluteTime = absolute_time
         new_step.IsLastStep = True
-        
+        If IsNull(duration) Then
+            new_step.Raw = "time"
+        Else
+            new_step.Raw = "duration"
+        End If
+
         'Add a empty first step if if show does not start right away
         If UBound(m_steps.Keys) = -1 Then
             If Not IsNull(new_step.Time) And new_step.Time <> 0 Then
                 Dim empty_step : Set empty_step = (new GlfShowStep)()
                 empty_step.Duration = new_step.Time
-                m_total_step_time = new_step.Time
+                'm_total_step_time = new_step.Time
                 m_steps.Add CStr(UBound(m_steps.Keys())+1), empty_step        
             End If
         End If
         
 
-        
+        glf_debugLog.WriteToLog "Show:" & m_name, "Adding Step. Abs: " & absolute_time & ". Rel: " & relative_time & ". Duration: " & duration
 
         If UBound(m_steps.Keys()) > -1 Then
             Dim steps_items : steps_items = m_steps.Items()
@@ -10086,21 +10092,25 @@ Class GlfShow
                     If new_step.IsRelativeTime Then
                         prevStep.Duration = new_step.Time
                     Else
-                        prevStep.Duration = new_step.Time - m_total_step_time
+                        prevStep.Duration = Round(new_step.Time - m_total_step_time, 2)
+                        glf_debugLog.WriteToLog "Show:" & m_name, new_step.Time
+                        glf_debugLog.WriteToLog "Show:" & m_name, m_total_step_time
+                        glf_debugLog.WriteToLog "Show:" & m_name, prevStep.Duration
                     End If
                 Else
+                    glf_debugLog.WriteToLog "Show:" & m_name, "Setting Duration to 1"
                     prevStep.Duration = 1
                 End If
             End If
             m_total_step_time = m_total_step_time + prevStep.Duration
         Else
             If IsNull(new_step.Duration) Then
-                m_total_step_time = m_total_step_time + 1
-            Else
                 m_total_step_time = m_total_step_time + new_step.Time
+            Else
+                m_total_step_time = m_total_step_time + new_step.Duration
             End If
         End If
-
+        glf_debugLog.WriteToLog "Show:" & m_name, "TOTAL STEP TIME: " & m_total_step_time
         m_steps.Add CStr(UBound(m_steps.Keys())+1), new_step
         Set AddStep = new_step
     End Function
@@ -10108,7 +10118,7 @@ Class GlfShow
     Public Function ToYaml()
         Dim yaml, show_step
         For Each show_step in m_steps.Items()
-            If Not IsNull(show_step.Duration) Then
+            If Not IsNull(show_step.Duration) And show_step.Raw = "duration" Then
                 yaml = yaml & "- duration: " & show_step.Duration & "s" & vbCrLf
             Else
                 If Not IsNull(show_step.AbsoluteTime) Then
@@ -10386,10 +10396,12 @@ End Function
 
 Class GlfShowStep
 
-    Private m_lights, m_shows, m_dofs, m_slides, m_widgets, m_time, m_duration, m_isLastStep, m_absTime, m_relTime
+    Private m_lights, m_shows, m_dofs, m_slides, m_widgets, m_time, m_duration, m_isLastStep, m_absTime, m_relTime, m_raw
 
     Public Property Get Lights(): Lights = m_lights: End Property
     Public Property Let Lights(input) : m_lights = input: End Property
+    Public Property Get Raw(): Raw = m_raw: End Property
+    Public Property Let Raw(input) : m_raw = input: End Property
 
     Public Property Get ShowsInStep(): Set ShowsInStep = m_shows: End Property
     Public Property Get Shows(name)
@@ -10477,6 +10489,13 @@ Class GlfShowStep
                 Else
                     yaml = yaml & "    " & light_parts(0) & ": " & light_parts(2) & "%" & light_parts(1) & vbCrLf
                 End If
+            Next
+        End If
+        If UBound(m_shows.Keys()) > -1 Then
+            yaml = yaml & "  shows:" & vbCrLf
+            Dim show
+            For Each show in m_shows.Items()
+                yaml = yaml & show.ToYaml()
             Next
         End If
         ToYaml = yaml
