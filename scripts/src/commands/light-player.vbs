@@ -284,7 +284,7 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed, co
                     If glf_cached_shows.Exists(cache_name & "__-1") Then
                         Set show_settings = (new GlfShowPlayerItem)()
                         show_settings.Show = cache_name
-                        show_settings.Loops = 1
+                        show_settings.Loops = 0
                         show_settings.Speed = speed
                         show_settings.ColorLookup = fade_seq
                         Set new_running_show = (new GlfRunningShow)(cache_name, show_settings.Key, show_settings, priority+1, Null, Null)
