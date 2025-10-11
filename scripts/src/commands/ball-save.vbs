@@ -171,7 +171,7 @@ Class BallSave
             yaml = yaml & "    grace_period: " & m_grace_period(1) & "ms" & vbCrLf        
         End If
         If Not IsNull(m_grace_period) Then
-            yaml = yaml & "    hurry_up_time: " & m_hurry_up_time(1) & "m   s" & vbCrLf
+            yaml = yaml & "    hurry_up_time: " & m_hurry_up_time(1) & "ms" & vbCrLf
         End If
         yaml = yaml & "    enable_events: "
         Dim evt,x : x = 0
