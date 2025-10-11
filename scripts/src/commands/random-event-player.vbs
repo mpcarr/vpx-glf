@@ -76,8 +76,8 @@ Class GlfRandomEventPlayer
     End Sub
 
     Public Function ToYaml()
-            Dim yaml
-        Dim evt
+        Dim yaml
+        Dim evt, key
         If UBound(m_eventValues.Keys) > -1 Then
             For Each key in m_eventValues.keys
                 yaml = yaml & "  " & key & ": " & vbCrLf

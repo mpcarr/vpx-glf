@@ -297,7 +297,7 @@ Class GlfShotGroup
     End Sub
  
     Public Function ToYaml
-        Dim yaml
+        Dim yaml, x, key
         yaml = "  " & m_name & ":" & vbCrLf
         yaml = yaml & "    shots: " & Join(m_shots, ",") & vbCrLf
  
@@ -396,7 +396,7 @@ Class GlfShotGroup
             yaml = yaml & "    enable_events: "
             x=0
             For Each key in m_base_device.EnableEvents.keys
-                yaml = yaml & m_base_device.EnableEvents(key).Raw
+                yaml = yaml & m_base_device.EnableEvents()(key).Raw
                 If x <> UBound(m_base_device.EnableEvents.Keys) Then
                     yaml = yaml & ", "
                 End If
@@ -409,7 +409,7 @@ Class GlfShotGroup
             yaml = yaml & "    disable_events: "
             x=0
             For Each key in m_base_device.DisableEvents.keys
-                yaml = yaml & m_base_device.DisableEvents(key).Raw
+                yaml = yaml & m_base_device.DisableEvents()(key).Raw
                 If x <> UBound(m_base_device.DisableEvents.Keys) Then
                     yaml = yaml & ", "
                 End If

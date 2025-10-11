@@ -338,8 +338,8 @@ Function GlfShowStepHandler(args)
     If running_show.CurrentStep > running_show.TotalSteps Then
         'End of Show
         'glf_debugLog.WriteToLog "Running Show", "END OF SHOW"
-        If running_show.Loops = -1 Or running_show.Loops > 1 Then
-            If running_show.Loops > 1 Then
+        If running_show.Loops = -1 Or running_show.Loops > 0 Then
+            If running_show.Loops > 0 Then
                 running_show.Loops = running_show.Loops - 1
             End If
             running_show.CurrentStep = 0

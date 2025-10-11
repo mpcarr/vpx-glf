@@ -97,7 +97,7 @@ Class GlfSegmentDisplayPlayer
 
     Public Function ToYaml()
         Dim yaml
-        Dim evt
+        Dim evt, key
         If UBound(m_events.Keys) > -1 Then
             For Each key in m_events.keys
                 yaml = yaml & "  " & key & ": " & vbCrLf
@@ -135,6 +135,12 @@ Class GlfSegmentDisplayPlayerEvent
         Set m_event = evt
         Set Init = Me
 	End Function
+
+    Public Function ToYaml()
+        Dim yaml : yaml = "" 
+        'TODO Yaml Export
+        ToYaml = yaml
+    End Function
 
 End Class
 

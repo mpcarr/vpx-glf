@@ -333,7 +333,7 @@ Class GlfShot
     End Sub
 
     Public Function ToYaml
-        Dim yaml
+        Dim yaml,x
         yaml = "  " & Replace(m_name, "shot_", "") & ":" & vbCrLf
         If UBound(m_switches) = 0 Then
             yaml = yaml & "    switch: " & m_switches(0) & vbCrLf
@@ -441,9 +441,9 @@ Class GlfShot
                 yaml = yaml & "      - events: "
                 Dim cEvt
                 x=0
-                For Each cEvt in m_control_events(key).Events
-                    yaml = yaml & cEvt
-                    If x <> UBound(m_control_events(key).Events) Then
+                For Each cEvt in m_control_events(key).Events.Items
+                    yaml = yaml & cEvt.Raw
+                    If x <> UBound(m_control_events(key).Events.Keys) Then
                         yaml = yaml & ", "
                     End If
                     x = x + 1

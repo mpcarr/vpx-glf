@@ -265,7 +265,7 @@ Class GlfBallHold
 
     Public Function ToYaml()
         Dim yaml
-        Dim evt, x
+        Dim evt, x, key
         yaml = "  " & Replace(m_name, "ball_hold_", "") & ":" & vbCrLf
         Dim enable_events_keys : enable_events_keys = m_base_device.EnableEvents().Keys
         Dim enable_events : Set enable_events = m_base_device.EnableEvents()

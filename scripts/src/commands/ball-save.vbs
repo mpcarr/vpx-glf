@@ -5,7 +5,6 @@ Class BallSave
     Private m_priority
     Private m_active_time
     Private m_grace_period
-    Private m_enable_events
     Private m_timer_start_events
     Private m_auto_launch
     Private m_balls_to_save
@@ -51,7 +50,6 @@ Class BallSave
         m_active_time = Null
 	    m_grace_period = Null
         m_hurry_up_time = Null
-        Set m_enable_events = CreateObject("Scripting.Dictionary")
         Set m_timer_start_events = CreateObject("Scripting.Dictionary")
 	    m_auto_launch = False
 	    m_balls_to_save = 1
@@ -169,13 +167,17 @@ Class BallSave
         Dim yaml
         yaml = "  " & Replace(m_name, "ball_save_", "") & ":" & vbCrLf
         yaml = yaml & "    active_time: " & m_active_time(1) & "s" & vbCrLf
-        yaml = yaml & "    grace_period: " & m_grace_period(1) & "s" & vbCrLf
-        yaml = yaml & "    hurry_up_time: " & m_hurry_up_time(1) & "s" & vbCrLf
+        If Not IsNull(m_grace_period) Then
+            yaml = yaml & "    grace_period: " & m_grace_period(1) & "s" & vbCrLf        
+        End If
+        If Not IsNull(m_grace_period) Then
+            yaml = yaml & "    hurry_up_time: " & m_hurry_up_time(1) & "s" & vbCrLf
+        End If
         yaml = yaml & "    enable_events: "
         Dim evt,x : x = 0
-        For Each evt in m_enable_events.Keys
-            yaml = yaml & m_enable_events(evt).Raw
-            If x <> UBound(m_enable_events.Keys) Then
+        For Each evt in m_base_device.EnableEvents.Keys
+            yaml = yaml & m_base_device.EnableEvents()(evt).Raw
+            If x <> UBound(m_base_device.EnableEvents.Keys) Then
                 yaml = yaml & ", "
             End If
             x = x +1
@@ -195,68 +197,12 @@ Class BallSave
         yaml = yaml & "    balls_to_save: " & m_balls_to_save & vbCrLf
         
         ' Add disable_events if any exist
-        If m_disable_events.Count > 0 Then
+        If m_base_device.DisableEvents.Count > 0 Then
             yaml = yaml & "    disable_events: "
             x = 0
-            For Each evt in m_disable_events.Keys
-                yaml = yaml & m_disable_events(evt).Raw
-                If x <> UBound(m_disable_events.Keys) Then
-                    yaml = yaml & ", "
-                End If
-                x = x + 1
-            Next
-            yaml = yaml & vbCrLf
-        End If
-        
-        ' Add timer_stop_events if any exist
-        If m_timer_stop_events.Count > 0 Then
-            yaml = yaml & "    timer_stop_events: "
-            x = 0
-            For Each evt in m_timer_stop_events.Keys
-                yaml = yaml & m_timer_stop_events(evt).Raw
-                If x <> UBound(m_timer_stop_events.Keys) Then
-                    yaml = yaml & ", "
-                End If
-                x = x + 1
-            Next
-            yaml = yaml & vbCrLf
-        End If
-        
-        ' Add timer_complete_events if any exist
-        If m_timer_complete_events.Count > 0 Then
-            yaml = yaml & "    timer_complete_events: "
-            x = 0
-            For Each evt in m_timer_complete_events.Keys
-                yaml = yaml & m_timer_complete_events(evt).Raw
-                If x <> UBound(m_timer_complete_events.Keys) Then
-                    yaml = yaml & ", "
-                End If
-                x = x + 1
-            Next
-            yaml = yaml & vbCrLf
-        End If
-        
-        ' Add ball_save_events if any exist
-        If m_ball_save_events.Count > 0 Then
-            yaml = yaml & "    ball_save_events: "
-            x = 0
-            For Each evt in m_ball_save_events.Keys
-                yaml = yaml & m_ball_save_events(evt).Raw
-                If x <> UBound(m_ball_save_events.Keys) Then
-                    yaml = yaml & ", "
-                End If
-                x = x + 1
-            Next
-            yaml = yaml & vbCrLf
-        End If
-        
-        ' Add ball_save_complete_events if any exist
-        If m_ball_save_complete_events.Count > 0 Then
-            yaml = yaml & "    ball_save_complete_events: "
-            x = 0
-            For Each evt in m_ball_save_complete_events.Keys
-                yaml = yaml & m_ball_save_complete_events(evt).Raw
-                If x <> UBound(m_ball_save_complete_events.Keys) Then
+            For Each evt in m_base_device.DisableEvents.Keys
+                yaml = yaml & m_base_device.DisableEvents()(evt).Raw
+                If x <> UBound(m_base_device.DisableEvents.Keys) Then
                     yaml = yaml & ", "
                 End If
                 x = x + 1

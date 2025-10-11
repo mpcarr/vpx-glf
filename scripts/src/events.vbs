@@ -224,7 +224,7 @@ Class GlfRandomEvent
     End Function
 
     Public Function ToYaml
-        Dim yaml
+        Dim yaml,evt
         yaml = yaml & "    events:" & vbCrLf
         For Each evt in m_events.Keys
             yaml = yaml & "      " & evt & ": " & m_weights(evt) & vbCrLf

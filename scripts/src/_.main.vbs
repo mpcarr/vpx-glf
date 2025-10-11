@@ -317,8 +317,6 @@ Public Sub Glf_Init(ByRef table)
 			configYaml = configYaml + "  - s_trough" & troughCount & vbCrLf
 		Next
 
-		
-
 		switchesYaml = switchesYaml + "  s_trough_jam" & ":"&vbCrLf
 		switchesYaml = switchesYaml + "    number: " & switchNumber & vbCrLf
 		switchesYaml = switchesYaml + "    tags: " & vbCrLf
@@ -406,6 +404,11 @@ Public Sub Glf_Init(ByRef table)
 			TxtFileStream.WriteLine showsYaml
 			TxtFileStream.Close
 		Next
+		
+		For Each device in glf_modes.Items()
+			device.ToYaml()
+		Next
+
 		glf_debugLog.WriteToLog "Init", "Finished MPF Config"
 
 		'***GLFMPF_EXPORT_END***
