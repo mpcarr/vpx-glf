@@ -166,12 +166,12 @@ Class BallSave
     Public Function ToYaml
         Dim yaml
         yaml = "  " & Replace(m_name, "ball_save_", "") & ":" & vbCrLf
-        yaml = yaml & "    active_time: " & m_active_time(1) & "s" & vbCrLf
+        yaml = yaml & "    active_time: " & m_active_time(1) & "ms" & vbCrLf
         If Not IsNull(m_grace_period) Then
-            yaml = yaml & "    grace_period: " & m_grace_period(1) & "s" & vbCrLf        
+            yaml = yaml & "    grace_period: " & m_grace_period(1) & "ms" & vbCrLf        
         End If
         If Not IsNull(m_grace_period) Then
-            yaml = yaml & "    hurry_up_time: " & m_hurry_up_time(1) & "s" & vbCrLf
+            yaml = yaml & "    hurry_up_time: " & m_hurry_up_time(1) & "m   s" & vbCrLf
         End If
         yaml = yaml & "    enable_events: "
         Dim evt,x : x = 0
@@ -183,16 +183,18 @@ Class BallSave
             x = x +1
         Next
         yaml = yaml & vbCrLf
-        yaml = yaml & "    timer_start_events: "
-        x=0
-        For Each evt in m_timer_start_events.Keys
-            yaml = yaml & m_timer_start_events(evt).Raw
-            If x <> UBound(m_timer_start_events.Keys) Then
-                yaml = yaml & ", "
-            End If
-            x = x +1
-        Next
-        yaml = yaml & vbCrLf
+        If UBound(m_timer_start_events.Keys) > -1 Then
+            yaml = yaml & "    timer_start_events: "
+            x=0
+            For Each evt in m_timer_start_events.Keys
+                yaml = yaml & m_timer_start_events(evt).Raw
+                If x <> UBound(m_timer_start_events.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x +1
+            Next
+            yaml = yaml & vbCrLf
+        End If
         yaml = yaml & "    auto_launch: " & LCase(m_auto_launch) & vbCrLf
         yaml = yaml & "    balls_to_save: " & m_balls_to_save & vbCrLf
         
