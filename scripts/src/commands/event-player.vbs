@@ -87,9 +87,9 @@ Class GlfEventPlayer
         Dim evt,key
         If UBound(m_events.Keys) > -1 Then
             For Each key in m_events.keys
-                yaml = yaml & "  " & m_events(key).Raw & ": " & vbCrLf
+                yaml = yaml & "  " & Replace(Replace(m_events(key).Raw, "&&", "and"), "||", "or") & ": " & vbCrLf
                 For Each evt in m_eventValues(key)
-                    yaml = yaml & "    - " & evt.Raw & vbCrLf
+                    yaml = yaml & "    - " & Replace(Replace(evt.Raw, "&&", "and"), "||", "or") & vbCrLf
                 Next
             Next
             yaml = yaml & vbCrLf

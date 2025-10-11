@@ -99,11 +99,10 @@ Class GlfSegmentDisplayPlayer
         Dim yaml
         Dim evt, key
         If UBound(m_events.Keys) > -1 Then
-            For Each key in m_events.keys
-                yaml = yaml & "  " & key & ": " & vbCrLf
+            For Each key in m_events.Keys()
+                yaml = yaml & "  " & Replace(key, "kwargs.", "") & ": " & vbCrLf
                 yaml = yaml & m_events(key).ToYaml()
             Next
-            yaml = yaml & vbCrLf
         End If
         ToYaml = yaml
     End Function
@@ -137,7 +136,15 @@ Class GlfSegmentDisplayPlayerEvent
 	End Function
 
     Public Function ToYaml()
-        Dim yaml : yaml = "" 
+        Dim yaml : yaml = ""
+        Dim evt, key
+        If UBound(m_items.Keys) > -1 Then
+            For Each key in m_items.Keys()
+                yaml = yaml & "    " & Replace(key, "kwargs", "") & ": " & vbCrLf
+                yaml = yaml & m_items(key).ToYaml()
+            Next
+            yaml = yaml & vbCrLf
+        End If
         'TODO Yaml Export
         ToYaml = yaml
     End Function
@@ -231,33 +238,33 @@ Class GlfSegmentPlayerEventItem
 
     Public Function ToYaml()
         Dim yaml
-        If Not IsEmpty(m_display) Then
-            yaml = yaml & "    " & m_display & ": " & vbCrLf
+        'If Not IsEmpty(m_display) Then
+        '    yaml = yaml & "      " & m_display & ": " & vbCrLf
+        'End If
+        If Not IsEmpty(m_key) Then
+            yaml = yaml & "      key: " & m_key & vbCrLf
         End If
         If Not IsNull(m_text) Then
-            yaml = yaml & "    " & m_text.Raw() & ": " & vbCrLf
+            yaml = yaml & "      text: " & m_text.Raw() & vbCrLf
         End If
         If m_priority > 0 Then
-            yaml = yaml & "    " & m_priority & ": " & vbCrLf
+            yaml = yaml & "      priority: " & m_priority & vbCrLf
         End If
         If m_action <> "add" Then
-            yaml = yaml & "    " & m_action & ": " & vbCrLf
+            yaml = yaml & "      action: " & m_action & vbCrLf
         End If
         If m_expire > 0 Then
-            yaml = yaml & "    " & m_expire & ": " & vbCrLf
+            yaml = yaml & "      expire: " & m_expire & "ms" & vbCrLf
         End If
         If Not IsEmpty(m_flash_mask) Then
-            yaml = yaml & "    " & m_flash_mask & ": " & vbCrLf
+            yaml = yaml & "      flash_mask: " & m_flash_mask & vbCrLf
         End If
         If m_flashing <> "not_set" Then
-            yaml = yaml & "    " & m_flashing & ": " & vbCrLf
+            yaml = yaml & "      flashing: " & m_flashing & vbCrLf
         End If
-        If Not IsEmpty(m_key) Then
-            yaml = yaml & "    " & m_key & ": " & vbCrLf
-        End If
-        If Not IsEmpty(m_color) Then
-            yaml = yaml & "    " & m_color & ": " & vbCrLf
-        End If
+        'If Not IsEmpty(m_color) Then
+        '    yaml = yaml & "      color: " & m_color & vbCrLf
+        'End If
         If Not IsNull(m_transition) Then
             yaml = yaml & m_transition.ToYaml()
         End If

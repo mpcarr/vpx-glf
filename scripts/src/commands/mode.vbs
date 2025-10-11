@@ -600,9 +600,7 @@ Class Mode
             If UBound(m_segment_display_player.EventNames)>-1 Then
                 yaml = yaml & vbCrLf
                 yaml = yaml & "segment_display_player: " & vbCrLf
-                For Each child in m_segment_display_player.EventNames
-                    yaml = yaml & m_segment_display_player.ToYaml()
-                Next
+                yaml = yaml & m_segment_display_player.ToYaml()
             End If
         End If
         
