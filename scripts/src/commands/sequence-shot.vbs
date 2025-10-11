@@ -307,7 +307,7 @@ Class GlfSequenceShots
             Next
         End If
         If m_sequence_timeout.Raw <> 0 Then
-            yaml = yaml & "    sequence_timeout: " & m_sequence_timeout.Raw & vbCrLf
+            yaml = yaml & "    sequence_timeout: " & m_sequence_timeout.Raw & "ms" & vbCrLf
         End If
 
         ToYaml = yaml

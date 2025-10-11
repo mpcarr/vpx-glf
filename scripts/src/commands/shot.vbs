@@ -340,6 +340,24 @@ Class GlfShot
         ElseIf UBound(m_switches) > 0 Then
             yaml = yaml & "    switches: " & Join(m_switches, ",") & vbCrLf
         End If
+
+        yaml = yaml & "    profile: " & m_profile & vbCrLf
+        If Not IsEmpty(m_start_enabled) Then
+            yaml = yaml & "    start_enabled: " & m_start_enabled & vbCrLf
+        End If
+        If UBound(m_restart_events.Keys) > -1 Then
+            yaml = yaml & "    restart_events: "
+            x=0
+            For Each key in m_restart_events.keys
+                yaml = yaml & m_restart_events(key).Raw
+                If x <> UBound(m_restart_events.Keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+
         yaml = yaml & "    show_tokens: " & vbCrLf
         dim key
         For Each key in m_tokens.keys
@@ -405,22 +423,7 @@ Class GlfShot
             yaml = yaml & vbCrLf
         End If
 
-        yaml = yaml & "    profile: " & m_profile & vbCrLf
-        If Not IsEmpty(m_start_enabled) Then
-            yaml = yaml & "    start_enabled: " & m_start_enabled & vbCrLf
-        End If
-        If UBound(m_restart_events.Keys) > -1 Then
-            yaml = yaml & "    restart_events: "
-            x=0
-            For Each key in m_restart_events.keys
-                yaml = yaml & m_restart_events(key).Raw
-                If x <> UBound(m_restart_events.Keys) Then
-                    yaml = yaml & ", "
-                End If
-                x = x + 1
-            Next
-            yaml = yaml & vbCrLf
-        End If
+        
 
         If UBound(m_reset_events.Keys) > -1 Then
             yaml = yaml & "    reset_events: "

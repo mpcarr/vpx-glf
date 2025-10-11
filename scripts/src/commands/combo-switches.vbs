@@ -312,20 +312,14 @@ Class GlfComboSwitches
                 yaml = yaml & "      - " & key & vbCrLf
             Next
         End If
-        If UBound(m_events_when_switch_2.Keys()) > -1 Then
-            yaml = yaml & "    events_when_switches_2: " & vbCrLf
-            For Each key in m_events_when_switch_2.Keys()
-                yaml = yaml & "      - " & key & vbCrLf
-            Next
-        End If
         If m_hold_time.Raw <> 0 Then
-            yaml = yaml & "    hold_time: " & m_hold_time.Raw & vbCrLf
+            yaml = yaml & "    hold_time: " & m_hold_time.Raw & "ms" & vbCrLf
         End If
-        If m_max_offset_time.Raw <> 0 Then
-            yaml = yaml & "    max_offset_time: " & m_max_offset_time.Raw & vbCrLf
+        If m_max_offset_time.Raw <> -1 Then
+            yaml = yaml & "    max_offset_time: " & m_max_offset_time.Raw & "ms"  & vbCrLf
         End If
         If m_release_time.Raw <> 0 Then
-            yaml = yaml & "    release_time: " & m_release_time.Raw & vbCrLf
+            yaml = yaml & "    release_time: " & m_release_time.Raw & "ms"  & vbCrLf
         End If
 
         ToYaml = yaml
