@@ -8187,10 +8187,12 @@ Class GlfSegmentPlayerTransition
 
     Public Function ToYaml()
         Dim yaml
-        yaml = yaml & "    transition:" & vbCrLf
-        yaml = yaml & "      " & m_type & ": " & vbCrLf
-        yaml = yaml & "      " & m_direction & ": " & vbCrLf
-        yaml = yaml & "      " & m_text & ": " & vbCrLf
+        yaml = yaml & "      transition:" & vbCrLf
+        yaml = yaml & "        type: " & m_type & vbCrLf
+        yaml = yaml & "        direction: " & m_direction & vbCrLf
+        If Not IsEmpty(m_text) Then
+            yaml = yaml & "        text: " & m_text & vbCrLf
+        End If
         ToYaml = yaml
     End Function
 
