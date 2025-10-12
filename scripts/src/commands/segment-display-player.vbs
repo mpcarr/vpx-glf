@@ -154,6 +154,7 @@ End Class
 Class GlfSegmentPlayerEventItem
 	
     private m_display
+    private m_raw_text
     private m_text
     private m_priority
     private m_action
@@ -168,6 +169,7 @@ Class GlfSegmentPlayerEventItem
     Public Property Get Display() : Display = m_display : End Property
     Public Property Let Display(input) : m_display = input : End Property
     
+    Public Property Get RawText() : RawText = m_raw_text : End Property
     Public Property Get Text()
         If Not IsNull(m_text) Then
             Set Text = m_text
@@ -176,7 +178,8 @@ Class GlfSegmentPlayerEventItem
         End If
     End Property
     Public Property Let Text(input) 
-        Set m_text = (new GlfInput)(input)
+        m_raw_text = input
+        Set m_text = (new GlfInput)(ConvertPythonFormatLine(input))
     End Property
 
     Public Property Get Priority() : Priority = m_priority : End Property
@@ -224,6 +227,7 @@ Class GlfSegmentPlayerEventItem
 	Public default Function init()
         m_display = Empty
         m_text = Null
+        m_raw_text = Null
         m_priority = 0
         m_action = "add"
         m_expire = 0
@@ -245,7 +249,7 @@ Class GlfSegmentPlayerEventItem
             yaml = yaml & "      key: " & m_key & vbCrLf
         End If
         If Not IsNull(m_text) Then
-            yaml = yaml & "      text: " & m_text.Raw() & vbCrLf
+            yaml = yaml & "      text: " & m_raw_text & vbCrLf
         End If
         If m_priority > 0 Then
             yaml = yaml & "      priority: " & m_priority & vbCrLf
@@ -273,6 +277,124 @@ Class GlfSegmentPlayerEventItem
         End If
         ToYaml = yaml
     End Function
+
+    Private Function ConvertPythonFormatLine(line)
+        Dim parts, lhs, rhs, content, result
+        Dim i, ch, inBrace, seg, segments, segTypes
+        Dim n, piece, outParts
+
+        ' Split only on the first "="
+        parts = Split(line, "=", 2)
+        If UBound(parts) < 1 Then
+            ConvertPythonFormatLine = line
+            Exit Function
+        End If
+
+        lhs = Trim(parts(0))
+        rhs = Trim(parts(1))
+
+        ' Expect the RHS to be a quoted Python-style string
+        If Len(rhs) >= 2 And Left(rhs,1) = """" And Right(rhs,1) = """" Then
+            ' Remove outer quotes
+            content = Mid(rhs, 2, Len(rhs) - 2)
+        Else
+            ' If not quoted, just return the line unchanged
+            ConvertPythonFormatLine = line
+            Exit Function
+        End If
+
+        ' Parse content into segments: placeholders vs literals
+        ReDim segments(0)
+        ReDim segTypes(0) ' "ph" for placeholder, "lit" for literal
+
+        inBrace = False
+        seg = ""
+
+        For i = 1 To Len(content)
+            ch = Mid(content, i, 1)
+
+            If inBrace Then
+                seg = seg & ch
+                If ch = "}" Then
+                    ' end placeholder
+                    AppendSeg segments, segTypes, seg, "ph"
+                    seg = ""
+                    inBrace = False
+                End If
+            Else
+                If ch = "{" Then
+                    ' flush literal so far
+                    If Len(seg) > 0 Then
+                        AppendSeg segments, segTypes, seg, "lit"
+                        seg = ""
+                    End If
+                    inBrace = True
+                    seg = "{"
+                Else
+                    seg = seg & ch
+                End If
+            End If
+        Next
+
+        ' Flush trailing segment
+        If Len(seg) > 0 Then
+            ' If we ended while still "inBrace", treat it as literal fallback
+            If inBrace Then
+                AppendSeg segments, segTypes, seg, "lit"
+            Else
+                AppendSeg segments, segTypes, seg, "lit"
+            End If
+        End If
+
+        ' Build VBScript RHS by concatenating pieces
+        n = UBound(segments)
+        ReDim outParts(n)
+
+        For i = 0 To n
+            piece = segments(i)
+            If segTypes(i) = "ph" Then
+                ' Placeholder inserted as-is
+                outParts(i) = piece
+            Else
+                ' Literal -> wrap in quotes and double any inner quotes for VBScript
+                If Len(piece) = 0 Then
+                    ' skip empty literals
+                    outParts(i) = ""
+                Else
+                    outParts(i) = """" & Replace(piece, """", """""") & """"
+                End If
+            End If
+        Next
+
+        ' Join with & while skipping empties
+        result = ""
+        For i = 0 To n
+            If Len(outParts(i)) > 0 Then
+                If Len(result) > 0 Then
+                    result = result & " & " & outParts(i)
+                Else
+                    result = outParts(i)
+                End If
+            End If
+        Next
+
+        ' If everything ended up empty, make it an empty string
+        If Len(result) = 0 Then result = """"""""
+
+        ConvertPythonFormatLine = lhs & " = " & result
+    End Function
+
+    Private Sub AppendSeg(ByRef arr, ByRef types, ByVal s, ByVal t)
+        Dim k
+        If IsArray(arr) Then
+            k = UBound(arr) + 1
+            ReDim Preserve arr(k)
+            ReDim Preserve types(k)
+            arr(k) = s
+            types(k) = t
+        End If
+    End Sub
+
 
 End Class
 
