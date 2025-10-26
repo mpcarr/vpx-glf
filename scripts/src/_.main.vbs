@@ -1079,7 +1079,7 @@ Public Function Glf_RegisterLights()
 					lmStr = lmStr & e & ","
 				End If
 				For Each tag in tags
-					tag = "T_" & Trim(tag)
+					'tag = "T_" & Trim(tag)
 					If InStr(e, LCase("_" & tag & "_")) Then
 						lmStr = lmStr & e & ","
 					End If
@@ -1155,6 +1155,8 @@ Public Function Glf_ParseInput(value)
 						parts = Split(isVariable, ":")
 						If UBound(parts) = 1 Then
 							tmp = "Glf_FormatValue(" & parts(0) & ", """ & parts(1) & """)"
+						Else
+							tmp = parts(0)
 						End If
 					End If
 					templateCode = "Function Glf_" & glf_FuncCount & "(args)" & vbCrLf
@@ -1174,7 +1176,7 @@ Public Function Glf_ParseInput(value)
 				templateCode = templateCode & vbTab & "Glf_" & glf_FuncCount & " = " & tmp & vbCrLf
 				templateCode = templateCode & "End Function"
 		End Select
-		'msgbox templateCode
+		msgbox templateCode
 		ExecuteGlobal templateCode
 		glf_codestr = glf_codestr & templateCode & vbCrLf
 		Dim funcRef : funcRef = "Glf_" & glf_FuncCount
