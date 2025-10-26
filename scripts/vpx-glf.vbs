@@ -1079,7 +1079,7 @@ Public Function Glf_RegisterLights()
 					lmStr = lmStr & e & ","
 				End If
 				For Each tag in tags
-					tag = "T_" & Trim(tag)
+					'tag = "T_" & Trim(tag)
 					If InStr(e, LCase("_" & tag & "_")) Then
 						lmStr = lmStr & e & ","
 					End If
@@ -1155,6 +1155,8 @@ Public Function Glf_ParseInput(value)
 						parts = Split(isVariable, ":")
 						If UBound(parts) = 1 Then
 							tmp = "Glf_FormatValue(" & parts(0) & ", """ & parts(1) & """)"
+						Else
+							tmp = parts(0)
 						End If
 					End If
 					templateCode = "Function Glf_" & glf_FuncCount & "(args)" & vbCrLf
@@ -8037,6 +8039,7 @@ End Class
 Class GlfSegmentPlayerEventItem
 	
     private m_display
+    private m_raw_text
     private m_text
     private m_priority
     private m_action
@@ -8051,6 +8054,7 @@ Class GlfSegmentPlayerEventItem
     Public Property Get Display() : Display = m_display : End Property
     Public Property Let Display(input) : m_display = input : End Property
     
+    Public Property Get RawText() : RawText = m_raw_text : End Property
     Public Property Get Text()
         If Not IsNull(m_text) Then
             Set Text = m_text
@@ -8059,7 +8063,9 @@ Class GlfSegmentPlayerEventItem
         End If
     End Property
     Public Property Let Text(input) 
-        Set m_text = (new GlfInput)(input)
+        m_raw_text = input
+        Dim convertedText : convertedText = ConvertPythonFormat(input)
+        Set m_text = (new GlfInput)(convertedText)
     End Property
 
     Public Property Get Priority() : Priority = m_priority : End Property
@@ -8107,6 +8113,7 @@ Class GlfSegmentPlayerEventItem
 	Public default Function init()
         m_display = Empty
         m_text = Null
+        m_raw_text = Null
         m_priority = 0
         m_action = "add"
         m_expire = 0
@@ -8128,7 +8135,7 @@ Class GlfSegmentPlayerEventItem
             yaml = yaml & "      key: " & m_key & vbCrLf
         End If
         If Not IsNull(m_text) Then
-            yaml = yaml & "      text: " & m_text.Raw() & vbCrLf
+            yaml = yaml & "      text: " & m_raw_text & vbCrLf
         End If
         If m_priority > 0 Then
             yaml = yaml & "      priority: " & m_priority & vbCrLf
@@ -8156,6 +8163,92 @@ Class GlfSegmentPlayerEventItem
         End If
         ToYaml = yaml
     End Function
+
+    Function ConvertPythonFormat(expr)
+        Dim i, posOpen, posClose, literal, field, colonPos
+        Dim varName, fmt, piece, result, first, literalEsc
+
+        If expr = "" Then
+            ConvertPythonFormat = """"""
+            Exit Function
+        End If
+
+        result = ""
+        first = True
+        i = 1
+
+        Do
+            posOpen = InStr(i, expr, "{")
+            If posOpen = 0 Then
+                ' trailing literal
+                literal = Mid(expr, i)
+                If literal <> "" Then
+                    literalEsc = Replace(literal, """", """""")
+                    If first Then
+                        result = """" & literalEsc & """"
+                        first = False
+                    Else
+                        result = result & " & """ & literalEsc & """"
+                    End If
+                End If
+                Exit Do
+            End If
+
+            ' literal before {
+            literal = Mid(expr, i, posOpen - i)
+            If literal <> "" Then
+                literalEsc = Replace(literal, """", """""")
+                If first Then
+                    result = """" & literalEsc & """"
+                    first = False
+                Else
+                    result = result & " & """ & literalEsc & """"
+                End If
+            End If
+
+            ' find closing }
+            posClose = InStr(posOpen + 1, expr, "}")
+            If posClose = 0 Then
+                ' no closing brace; treat the rest as literal
+                piece = Mid(expr, posOpen)
+                piece = Replace(piece, """", """""")
+                If first Then
+                    result = """" & piece & """"
+                    first = False
+                Else
+                    result = result & " & """ & piece & """"
+                End If
+                Exit Do
+            End If
+
+            ' parse field content between { and }
+            field = Mid(expr, posOpen + 1, posClose - posOpen - 1)
+            colonPos = InStr(field, ":")
+
+            If colonPos > 0 Then
+                varName = Trim(Left(field, colonPos - 1))
+                fmt = Mid(field, colonPos + 1)
+                piece = "Glf_FormatValue(" & varName & ",""" & fmt & """)"
+            Else
+                varName = Trim(field)
+                piece = varName
+            End If
+
+            If first Then
+                result = piece
+                first = False
+            Else
+                result = result & " & " & piece
+            End If
+
+            i = posClose + 1
+        Loop
+
+        If result = "" Then result = """"""
+        ConvertPythonFormat = result
+    End Function
+
+
 
 End Class
 

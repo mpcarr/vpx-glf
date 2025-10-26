@@ -179,7 +179,8 @@ Class GlfSegmentPlayerEventItem
     End Property
     Public Property Let Text(input) 
         m_raw_text = input
-        Set m_text = (new GlfInput)(ConvertPythonFormatLine(input))
+        Dim convertedText : convertedText = ConvertPythonFormat(input)
+        Set m_text = (new GlfInput)(convertedText)
     End Property
 
     Public Property Get Priority() : Priority = m_priority : End Property
@@ -278,122 +279,90 @@ Class GlfSegmentPlayerEventItem
         ToYaml = yaml
     End Function
 
-    Private Function ConvertPythonFormatLine(line)
-        Dim parts, lhs, rhs, content, result
-        Dim i, ch, inBrace, seg, segments, segTypes
-        Dim n, piece, outParts
+    Function ConvertPythonFormat(expr)
+        Dim i, posOpen, posClose, literal, field, colonPos
+        Dim varName, fmt, piece, result, first, literalEsc
 
-        ' Split only on the first "="
-        parts = Split(line, "=", 2)
-        If UBound(parts) < 1 Then
-            ConvertPythonFormatLine = line
+        If expr = "" Then
+            ConvertPythonFormat = """"""
             Exit Function
         End If
 
-        lhs = Trim(parts(0))
-        rhs = Trim(parts(1))
-
-        ' Expect the RHS to be a quoted Python-style string
-        If Len(rhs) >= 2 And Left(rhs,1) = """" And Right(rhs,1) = """" Then
-            ' Remove outer quotes
-            content = Mid(rhs, 2, Len(rhs) - 2)
-        Else
-            ' If not quoted, just return the line unchanged
-            ConvertPythonFormatLine = line
-            Exit Function
-        End If
-
-        ' Parse content into segments: placeholders vs literals
-        ReDim segments(0)
-        ReDim segTypes(0) ' "ph" for placeholder, "lit" for literal
-
-        inBrace = False
-        seg = ""
-
-        For i = 1 To Len(content)
-            ch = Mid(content, i, 1)
-
-            If inBrace Then
-                seg = seg & ch
-                If ch = "}" Then
-                    ' end placeholder
-                    AppendSeg segments, segTypes, seg, "ph"
-                    seg = ""
-                    inBrace = False
-                End If
-            Else
-                If ch = "{" Then
-                    ' flush literal so far
-                    If Len(seg) > 0 Then
-                        AppendSeg segments, segTypes, seg, "lit"
-                        seg = ""
-                    End If
-                    inBrace = True
-                    seg = "{"
-                Else
-                    seg = seg & ch
-                End If
-            End If
-        Next
-
-        ' Flush trailing segment
-        If Len(seg) > 0 Then
-            ' If we ended while still "inBrace", treat it as literal fallback
-            If inBrace Then
-                AppendSeg segments, segTypes, seg, "lit"
-            Else
-                AppendSeg segments, segTypes, seg, "lit"
-            End If
-        End If
-
-        ' Build VBScript RHS by concatenating pieces
-        n = UBound(segments)
-        ReDim outParts(n)
-
-        For i = 0 To n
-            piece = segments(i)
-            If segTypes(i) = "ph" Then
-                ' Placeholder inserted as-is
-                outParts(i) = piece
-            Else
-                ' Literal -> wrap in quotes and double any inner quotes for VBScript
-                If Len(piece) = 0 Then
-                    ' skip empty literals
-                    outParts(i) = ""
-                Else
-                    outParts(i) = """" & Replace(piece, """", """""") & """"
-                End If
-            End If
-        Next
-
-        ' Join with & while skipping empties
         result = ""
-        For i = 0 To n
-            If Len(outParts(i)) > 0 Then
-                If Len(result) > 0 Then
-                    result = result & " & " & outParts(i)
+        first = True
+        i = 1
+
+        Do
+            posOpen = InStr(i, expr, "{")
+            If posOpen = 0 Then
+                ' trailing literal
+                literal = Mid(expr, i)
+                If literal <> "" Then
+                    literalEsc = Replace(literal, """", """""")
+                    If first Then
+                        result = """" & literalEsc & """"
+                        first = False
+                    Else
+                        result = result & " & """ & literalEsc & """"
+                    End If
+                End If
+                Exit Do
+            End If
+
+            ' literal before {
+            literal = Mid(expr, i, posOpen - i)
+            If literal <> "" Then
+                literalEsc = Replace(literal, """", """""")
+                If first Then
+                    result = """" & literalEsc & """"
+                    first = False
                 Else
-                    result = outParts(i)
+                    result = result & " & """ & literalEsc & """"
                 End If
             End If
-        Next
 
-        ' If everything ended up empty, make it an empty string
-        If Len(result) = 0 Then result = """"""""
+            ' find closing }
+            posClose = InStr(posOpen + 1, expr, "}")
+            If posClose = 0 Then
+                ' no closing brace; treat the rest as literal
+                piece = Mid(expr, posOpen)
+                piece = Replace(piece, """", """""")
+                If first Then
+                    result = """" & piece & """"
+                    first = False
+                Else
+                    result = result & " & """ & piece & """"
+                End If
+                Exit Do
+            End If
 
-        ConvertPythonFormatLine = lhs & " = " & result
+            ' parse field content between { and }
+            field = Mid(expr, posOpen + 1, posClose - posOpen - 1)
+            colonPos = InStr(field, ":")
+
+            If colonPos > 0 Then
+                varName = Trim(Left(field, colonPos - 1))
+                fmt = Mid(field, colonPos + 1)
+                piece = "Glf_FormatValue(" & varName & ",""" & fmt & """)"
+            Else
+                varName = Trim(field)
+                piece = varName
+            End If
+
+            If first Then
+                result = piece
+                first = False
+            Else
+                result = result & " & " & piece
+            End If
+
+            i = posClose + 1
+        Loop
+
+        If result = "" Then result = """"""
+        ConvertPythonFormat = result
     End Function
 
-    Private Sub AppendSeg(ByRef arr, ByRef types, ByVal s, ByVal t)
-        Dim k
-        If IsArray(arr) Then
-            k = UBound(arr) + 1
-            ReDim Preserve arr(k)
-            ReDim Preserve types(k)
-            arr(k) = s
-            types(k) = t
-        End If
-    End Sub
 
 
 End Class

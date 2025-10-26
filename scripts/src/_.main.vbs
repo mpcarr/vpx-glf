@@ -1176,7 +1176,7 @@ Public Function Glf_ParseInput(value)
 				templateCode = templateCode & vbTab & "Glf_" & glf_FuncCount & " = " & tmp & vbCrLf
 				templateCode = templateCode & "End Function"
 		End Select
-		msgbox templateCode
+		'msgbox templateCode
 		ExecuteGlobal templateCode
 		glf_codestr = glf_codestr & templateCode & vbCrLf
 		Dim funcRef : funcRef = "Glf_" & glf_FuncCount
