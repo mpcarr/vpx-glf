@@ -398,11 +398,13 @@ Public Sub Glf_Init(ByRef table)
 		TxtFileStream.Close
 		Dim showsYaml
 		For Each device in glf_shows.Items()
-			showsYaml = "#show_version=6" & vbCrLf & vbCrLf
-			showsYaml = showsYaml + device.ToYaml()
-			Set TxtFileStream = fso.OpenTextFile(showsFolder & "\" & device.Name & ".yaml", 2, True)
-			TxtFileStream.WriteLine showsYaml
-			TxtFileStream.Close
+			If Not device.Name = "flash" And Not device.Name = "flash_color" And Not device.Name = "led_color" And Not device.Name = "off" And Not device.Name = "on" Then
+				showsYaml = "#show_version=6" & vbCrLf & vbCrLf
+				showsYaml = showsYaml + device.ToYaml()
+				Set TxtFileStream = fso.OpenTextFile(showsFolder & "\" & device.Name & ".yaml", 2, True)
+				TxtFileStream.WriteLine showsYaml
+				TxtFileStream.Close
+			End If
 		Next
 		
 		For Each device in glf_modes.Items()
@@ -1079,7 +1081,7 @@ Public Function Glf_RegisterLights()
 					lmStr = lmStr & e & ","
 				End If
 				For Each tag in tags
-					'tag = "T_" & Trim(tag)
+					tag = "T_" & Trim(tag)
 					If InStr(e, LCase("_" & tag & "_")) Then
 						lmStr = lmStr & e & ","
 					End If

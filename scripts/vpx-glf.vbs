@@ -398,11 +398,13 @@ Public Sub Glf_Init(ByRef table)
 		TxtFileStream.Close
 		Dim showsYaml
 		For Each device in glf_shows.Items()
-			showsYaml = "#show_version=6" & vbCrLf & vbCrLf
-			showsYaml = showsYaml + device.ToYaml()
-			Set TxtFileStream = fso.OpenTextFile(showsFolder & "\" & device.Name & ".yaml", 2, True)
-			TxtFileStream.WriteLine showsYaml
-			TxtFileStream.Close
+			If Not device.Name = "flash" And Not device.Name = "flash_color" And Not device.Name = "led_color" And Not device.Name = "off" And Not device.Name = "on" Then
+				showsYaml = "#show_version=6" & vbCrLf & vbCrLf
+				showsYaml = showsYaml + device.ToYaml()
+				Set TxtFileStream = fso.OpenTextFile(showsFolder & "\" & device.Name & ".yaml", 2, True)
+				TxtFileStream.WriteLine showsYaml
+				TxtFileStream.Close
+			End If
 		Next
 		
 		For Each device in glf_modes.Items()
@@ -1079,7 +1081,7 @@ Public Function Glf_RegisterLights()
 					lmStr = lmStr & e & ","
 				End If
 				For Each tag in tags
-					'tag = "T_" & Trim(tag)
+					tag = "T_" & Trim(tag)
 					If InStr(e, LCase("_" & tag & "_")) Then
 						lmStr = lmStr & e & ","
 					End If
@@ -8118,7 +8120,7 @@ Class GlfSegmentPlayerEventItem
         m_action = "add"
         m_expire = 0
         m_flash_mask = Empty
-        m_flashing = "no_flash"
+        m_flashing = "off"
         m_key = Empty
         m_transition = Null
         m_transition_out = Null
@@ -8135,7 +8137,7 @@ Class GlfSegmentPlayerEventItem
             yaml = yaml & "      key: " & m_key & vbCrLf
         End If
         If Not IsNull(m_text) Then
-            yaml = yaml & "      text: " & m_raw_text & vbCrLf
+            yaml = yaml & "      text: """ & m_raw_text & """" & vbCrLf
         End If
         If m_priority > 0 Then
             yaml = yaml & "      priority: " & m_priority & vbCrLf
@@ -8348,8 +8350,8 @@ Function SegmentPlayerCallbackHandler(evt, segment_item, mode, priority)
             display.SetFlashing "match"
         ElseIf segment_item.Action = "flash_mask" Then
             display.SetFlashingMask segment_item.FlashMask
-        ElseIf segment_item.Action = "no_flash" Then
-            display.SetFlashing "no_flash"
+        ElseIf segment_item.Action = "off" Then
+            display.SetFlashing "off"
         ElseIf segment_item.Action = "set_color" Then
             If Not IsNull(segment_item.Color) Then
                 display.SetColor segment_item.Color
@@ -13665,7 +13667,7 @@ Class GlfLightSegmentDisplay
     Public default Function init(name)
         m_name = name
         m_flash_on = True
-        m_flashing = "no_flash"
+        m_flashing = "off"
         m_flash_mask = Empty
         m_text = Empty
         m_size = 0
@@ -13753,13 +13755,13 @@ Class GlfLightSegmentDisplay
         Exit Sub
 
 
-        'If flashing = "no_flash" Then
+        'If flashing = "off" Then
         '    m_flash_on = True
         'ElseIf flashing = "flash_mask" Then
             'm_flash_mask = flash_mask.rjust(len(text))
         'End If
 
-        'If flashing = "no_flash" or m_flash_on = True or Not IsNull(text) Then
+        'If flashing = "off" or m_flash_on = True or Not IsNull(text) Then
         '    If text <> m_display_state Then
         '        m_display_state = text
                 'Set text to lights.
@@ -13787,7 +13789,7 @@ Class GlfLightSegmentDisplay
     Private Sub UpdateText()
         'iterate lights and chars
         Dim mapped_text, segment
-        If m_flash_on = True Or m_flashing = "no_flash" Then
+        If m_flash_on = True Or m_flashing = "off" Then
             mapped_text = MapSegmentTextToSegments(m_current_state, m_size, m_segmentmap)
         Else
             If m_flashing = "mask" Then
@@ -13889,7 +13891,7 @@ Class GlfLightSegmentDisplay
         top_is_current = False
         If m_text_stack.IsEmpty() Then
             Dim empty_text : Set empty_text = (new GlfInput)("""" & String(m_size, " ") & """")
-            Set top_text_stack_entry = (new GlfTextStackEntry)(empty_text,Null,"no_flash","",Null,Null,999999,"")
+            Set top_text_stack_entry = (new GlfTextStackEntry)(empty_text,Null,"off","",Null,Null,999999,"")
         Else
             Set top_text_stack_entry = m_text_stack.Peek()
         End If
@@ -14020,7 +14022,7 @@ Class GlfLightSegmentDisplay
     Public Sub SetSoftwareFlash(enabled)
         m_flash_on = enabled
 
-        If m_flashing = "no_flash" Then
+        If m_flashing = "off" Then
             Exit Sub
         End If
 

@@ -233,7 +233,7 @@ Class GlfSegmentPlayerEventItem
         m_action = "add"
         m_expire = 0
         m_flash_mask = Empty
-        m_flashing = "no_flash"
+        m_flashing = "off"
         m_key = Empty
         m_transition = Null
         m_transition_out = Null
@@ -250,7 +250,7 @@ Class GlfSegmentPlayerEventItem
             yaml = yaml & "      key: " & m_key & vbCrLf
         End If
         If Not IsNull(m_text) Then
-            yaml = yaml & "      text: " & m_raw_text & vbCrLf
+            yaml = yaml & "      text: """ & m_raw_text & """" & vbCrLf
         End If
         If m_priority > 0 Then
             yaml = yaml & "      priority: " & m_priority & vbCrLf
@@ -463,8 +463,8 @@ Function SegmentPlayerCallbackHandler(evt, segment_item, mode, priority)
             display.SetFlashing "match"
         ElseIf segment_item.Action = "flash_mask" Then
             display.SetFlashingMask segment_item.FlashMask
-        ElseIf segment_item.Action = "no_flash" Then
-            display.SetFlashing "no_flash"
+        ElseIf segment_item.Action = "off" Then
+            display.SetFlashing "off"
         ElseIf segment_item.Action = "set_color" Then
             If Not IsNull(segment_item.Color) Then
                 display.SetColor segment_item.Color

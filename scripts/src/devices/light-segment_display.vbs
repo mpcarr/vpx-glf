@@ -94,7 +94,7 @@ Class GlfLightSegmentDisplay
     Public default Function init(name)
         m_name = name
         m_flash_on = True
-        m_flashing = "no_flash"
+        m_flashing = "off"
         m_flash_mask = Empty
         m_text = Empty
         m_size = 0
@@ -182,13 +182,13 @@ Class GlfLightSegmentDisplay
         Exit Sub
 
 
-        'If flashing = "no_flash" Then
+        'If flashing = "off" Then
         '    m_flash_on = True
         'ElseIf flashing = "flash_mask" Then
             'm_flash_mask = flash_mask.rjust(len(text))
         'End If
 
-        'If flashing = "no_flash" or m_flash_on = True or Not IsNull(text) Then
+        'If flashing = "off" or m_flash_on = True or Not IsNull(text) Then
         '    If text <> m_display_state Then
         '        m_display_state = text
                 'Set text to lights.
@@ -216,7 +216,7 @@ Class GlfLightSegmentDisplay
     Private Sub UpdateText()
         'iterate lights and chars
         Dim mapped_text, segment
-        If m_flash_on = True Or m_flashing = "no_flash" Then
+        If m_flash_on = True Or m_flashing = "off" Then
             mapped_text = MapSegmentTextToSegments(m_current_state, m_size, m_segmentmap)
         Else
             If m_flashing = "mask" Then
@@ -318,7 +318,7 @@ Class GlfLightSegmentDisplay
         top_is_current = False
         If m_text_stack.IsEmpty() Then
             Dim empty_text : Set empty_text = (new GlfInput)("""" & String(m_size, " ") & """")
-            Set top_text_stack_entry = (new GlfTextStackEntry)(empty_text,Null,"no_flash","",Null,Null,999999,"")
+            Set top_text_stack_entry = (new GlfTextStackEntry)(empty_text,Null,"off","",Null,Null,999999,"")
         Else
             Set top_text_stack_entry = m_text_stack.Peek()
         End If
@@ -449,7 +449,7 @@ Class GlfLightSegmentDisplay
     Public Sub SetSoftwareFlash(enabled)
         m_flash_on = enabled
 
-        If m_flashing = "no_flash" Then
+        If m_flashing = "off" Then
             Exit Sub
         End If
 
