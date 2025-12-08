@@ -12,6 +12,7 @@ Class GlfShotProfile
 
     Public Property Get Name(): Name = m_name: End Property
     Public Property Get AdvanceOnHit(): AdvanceOnHit = m_advance_on_hit: End Property
+    Public Property Let AdvanceOnHit(input): m_advance_on_hit = input: End Property
     Public Property Get Block(): Block = m_block: End Property
     Public Property Let Block(input): m_block = input: End Property
     Public Property Get ProfileLoop(): ProfileLoop = m_loop: End Property
@@ -87,7 +88,7 @@ Class GlfShotProfile
             End If
 
             'yaml = yaml & "     block: " & m_block & vbCrLf
-            'yaml = yaml & "     advance_on_hit: " & m_advance_on_hit & vbCrLf
+            yaml = yaml & "     advance_on_hit: " & m_advance_on_hit & vbCrLf
             'yaml = yaml & "     loop: " & m_loop & vbCrLf
             'yaml = yaml & "     rotation_pattern: " & m_rotation_pattern & vbCrLf
             'yaml = yaml & "     state_names_to_not_rotate: " & m_states_not_to_rotate & vbCrLf

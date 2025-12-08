@@ -78,11 +78,11 @@ Class GlfSoundPlayer
 
     Public Function ToYaml()
         Dim yaml
-        Dim evt
-        If UBound(m_events.Keys) > -1 Then
-            For Each key in m_events.keys
+        Dim evt, key
+        If UBound(m_eventValues.Keys) > -1 Then
+            For Each key in m_eventValues.keys
                 yaml = yaml & "  " & key & ": " & vbCrLf
-                yaml = yaml & m_events(key).ToYaml
+                yaml = yaml & m_eventValues(key).ToYaml
             Next
             yaml = yaml & vbCrLf
         End If
@@ -156,5 +156,21 @@ Class GlfSoundPlayerItem
         m_loops = Empty
         Set Init = Me
 	End Function
+
+    Public Function ToYaml()
+        Dim yaml
+        yaml = yaml & "    " & Sound.NameRaw & ": " & vbCrLf
+        If Not IsEmpty(m_key) Then
+            yaml = yaml & "      key: " & m_key & vbCrLf
+        End If
+        yaml = yaml & "      action: " & m_action & vbCrLf
+        If Not IsEmpty(m_volume) Then
+            yaml = yaml & "      volume: " & m_volume & vbCrLf
+        End If
+        If Not IsEmpty(m_loops) Then
+            yaml = yaml & "      loops: " & m_loops & vbCrLf
+        End If
+        ToYaml = yaml
+    End Function
 
 End Class

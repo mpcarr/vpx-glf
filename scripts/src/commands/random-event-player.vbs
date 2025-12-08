@@ -32,7 +32,6 @@ Class GlfRandomEventPlayer
 	Public default Function init(mode)
         m_mode = mode.Name
         m_priority = mode.Priority
-
         Set m_events = CreateObject("Scripting.Dictionary")
         Set m_eventValues = CreateObject("Scripting.Dictionary")
         Set m_base_device = (new GlfBaseModeDevice)(mode, "random_event_player", Me)
@@ -62,10 +61,11 @@ Class GlfRandomEventPlayer
             event_to_fire = m_eventValues(evt).GetNextRandomEvent()
             If Not IsEmpty(event_to_fire) Then
                 Log "Dispatching Event: " & event_to_fire
+                Glf_BcpSendEvent event_to_fire
                 DispatchPinEvent event_to_fire, Null
             Else
                 Log "No event available to fire"
-            End If
+            End If 
         End If
     End Sub
 

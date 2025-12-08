@@ -83,20 +83,29 @@ Class GlfShow
     End Function
 
     Public Function ToYaml()
-        Dim yaml, show_step
+        Dim yaml, show_step, x
+        x=0
         For Each show_step in m_steps.Items()
-            If Not IsNull(show_step.Duration) And show_step.Raw = "duration" Then
-                yaml = yaml & "- duration: " & show_step.Duration & "s" & vbCrLf
-            Else
-                If Not IsNull(show_step.AbsoluteTime) Then
+            If Not IsNull(show_step.AbsoluteTime) Then
+                If x = 0 Then
+                    yaml = yaml & "- time: " & show_step.AbsoluteTime & vbCrLf
+                Else
                     yaml = yaml & "- time: " & show_step.AbsoluteTime & "s" & vbCrLf
                 End If
-                If Not IsNull(show_step.RelativeTime) Then
-                    yaml = yaml & "- time: +" & show_step.RelativeTime & "s" & vbCrLf
+                If Not IsNull(show_step.Duration) And show_step.Raw = "duration" Then
+                    yaml = yaml & "  duration: " & show_step.Duration & "s" & vbCrLf
+                End If
+            Else
+                If Not IsNull(show_step.Duration) And show_step.Raw = "duration" Then
+                    yaml = yaml & "- duration: " & show_step.Duration & "s" & vbCrLf
+                Else  
+                    If Not IsNull(show_step.RelativeTime) Then
+                        yaml = yaml & "- time: +" & show_step.RelativeTime & "s" & vbCrLf
+                    End If
                 End If
             End If
-            
             yaml = yaml & show_step.toYaml() & vbCrLf
+            x=x+1
         Next
         ToYaml = yaml
     End Function
@@ -454,7 +463,12 @@ Class GlfShowStep
                 If UBound(light_parts) = 1 Then
                     yaml = yaml & "    " & light_parts(0) & ": ffffff%" & light_parts(1) & vbCrLf
                 Else
-                    yaml = yaml & "    " & light_parts(0) & ": " & light_parts(2) & "%" & light_parts(1) & vbCrLf
+                    If light_parts(2) = "stop" Then
+                        yaml = yaml & "    " & light_parts(0) & ": stop" & vbCrLf    
+                    Else
+                        yaml = yaml & "    " & light_parts(0) & ": " & light_parts(2) & "%" & light_parts(1) & vbCrLf
+                    End If
+                    
                 End If
             Next
         End If

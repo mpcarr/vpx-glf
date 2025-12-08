@@ -210,6 +210,8 @@ Public Sub Glf_Init(ByRef table)
 		coilsYaml = coilsYaml + "coils:" & vbCrLf
 		Dim shotProfilesYaml : shotProfilesYaml = "#config_version=6" & vbCrLf & vbCrLf
 		shotProfilesYaml = shotProfilesYaml + "shot_profiles:" & vbCrLf
+		Dim playerVarsYaml : playerVarsYaml = "#config_version=6" & vbCrLf & vbCrLf
+		playerVarsYaml = playerVarsYaml + "player_vars:" & vbCrLf
 		Dim ballDevicesYaml : ballDevicesYaml = "#config_version=6" & vbCrLf & vbCrLf
 		ballDevicesYaml = ballDevicesYaml + "ball_devices:" & vbCrLf
 		Dim configYaml : configYaml = "#config_version=6" & vbCrLf & vbCrLf
@@ -237,6 +239,7 @@ Public Sub Glf_Init(ByRef table)
 			lightsYaml = lightsYaml + "  " & light.name & ":"&vbCrLf
 			lightsYaml = lightsYaml + "    number: " & lightsNumber & vbCrLf
 			lightsYaml = lightsYaml + "    subtype: led" & vbCrLf
+			lightsYaml = lightsYaml + "    size: 0.04" & vbCrLf
 			lightsYaml = lightsYaml + "    type: rgb" & vbCrLf
 			lightsYaml = lightsYaml + "    tags: " & light.BlinkPattern & vbCrLf
 			lightsYaml = lightsYaml + "    x: "& light.x/tablewidth & vbCrLf
@@ -276,6 +279,35 @@ Public Sub Glf_Init(ByRef table)
 			switchesYaml = switchesYaml + "    tags: " & vbCrLf
 			switchesYaml = switchesYaml + "    x: "& switch.x/tablewidth & vbCrLf
 			switchesYaml = switchesYaml + "    y: "& switch.y/tableheight & vbCrLf
+			switchNumber = switchNumber + 1
+		Next
+		Dim vpxSwitch
+		For Each switch in glf_standup_targets.Items()
+			Set vpxSwitch = Eval(switch.switch)
+			monitorYaml = monitorYaml + "  " & vpxSwitch.name & ":"&vbCrLf
+			monitorYaml = monitorYaml + "    shape: RECTANGLE" & vbCrLf
+			monitorYaml = monitorYaml + "    size: 0.06" & vbCrLf
+			monitorYaml = monitorYaml + "    x: "& vpxSwitch.x/tablewidth & vbCrLf
+			monitorYaml = monitorYaml + "    y: "& vpxSwitch.y/tableheight & vbCrLf
+			switchesYaml = switchesYaml + "  " & vpxSwitch.name & ":"&vbCrLf
+			switchesYaml = switchesYaml + "    number: " & switchNumber & vbCrLf
+			switchesYaml = switchesYaml + "    tags: " & vbCrLf
+			switchesYaml = switchesYaml + "    x: "& vpxSwitch.x/tablewidth & vbCrLf
+			switchesYaml = switchesYaml + "    y: "& vpxSwitch.y/tableheight & vbCrLf
+			switchNumber = switchNumber + 1
+		Next
+		For Each switch in glf_drop_targets.Items()
+			Set vpxSwitch = Eval(switch.switch)
+			monitorYaml = monitorYaml + "  " & vpxSwitch.name & ":"&vbCrLf
+			monitorYaml = monitorYaml + "    shape: RECTANGLE" & vbCrLf
+			monitorYaml = monitorYaml + "    size: 0.06" & vbCrLf
+			monitorYaml = monitorYaml + "    x: -1" & vbCrLf
+			monitorYaml = monitorYaml + "    y: -1" & vbCrLf
+			switchesYaml = switchesYaml + "  " & vpxSwitch.name & ":"&vbCrLf
+			switchesYaml = switchesYaml + "    number: " & switchNumber & vbCrLf
+			switchesYaml = switchesYaml + "    tags: " & vbCrLf
+			switchesYaml = switchesYaml + "    x: -1" & vbCrLf
+			switchesYaml = switchesYaml + "    y: -1" & vbCrLf
 			switchNumber = switchNumber + 1
 		Next
 		For Each switch in glf_spinners
@@ -355,6 +387,22 @@ Public Sub Glf_Init(ByRef table)
 			shotProfilesYaml = shotProfilesYaml + device.ToYaml()
 		Next
 
+		Dim init_index
+    	Dim init_var_keys : init_var_keys = glf_initialVars.Keys()
+    	Dim init_var_items : init_var_items = glf_initialVars.Items()
+    	For init_index=0 To UBound(init_var_keys)
+			playerVarsYaml = playerVarsYaml + "  " & init_var_keys(init_index) & ":" & vbCrLf
+			playerVarsYaml = playerVarsYaml + "    initial_value: " & init_var_items(init_index) & vbCrLf
+			Select Case VarType(init_var_items(init_index))
+				Case vbInteger, vbLong
+					playerVarsYaml = playerVarsYaml + "    value_type: int" & vbCrLf
+				Case vbSingle, vbDouble
+					playerVarsYaml = playerVarsYaml + "    value_type: float" & vbCrLf
+				Case vbString
+					playerVarsYaml = playerVarsYaml + "    value_type: str" & vbCrLf
+        	End Select
+    	Next
+
 		Dim fso, modesFolder, TxtFileStream, monitorFolder, configFolder, showsFolder
 		Set fso = CreateObject("Scripting.FileSystemObject")
 		monitorFolder = "glf_mpf\monitor\"
@@ -386,6 +434,9 @@ Public Sub Glf_Init(ByRef table)
 		TxtFileStream.Close
 		Set TxtFileStream = fso.OpenTextFile(configFolder & "\shot_profiles.yaml", 2, True)
 		TxtFileStream.WriteLine shotProfilesYaml
+		TxtFileStream.Close
+		Set TxtFileStream = fso.OpenTextFile(configFolder & "\player_vars.yaml", 2, True)
+		TxtFileStream.WriteLine playerVarsYaml
 		TxtFileStream.Close
 		Set TxtFileStream = fso.OpenTextFile(configFolder & "\switches.yaml", 2, True)
 		TxtFileStream.WriteLine switchesYaml
@@ -813,7 +864,6 @@ Public Sub Glf_KeyDown(ByVal keycode)
 		End If
 	Else
 		If keycode = StartGameKey Then
-			DispatchRelayPinEvent "request_to_start_game", True
 			DispatchPinEvent "s_start_active", True
 		End If
 	End If
@@ -880,6 +930,7 @@ Public Sub Glf_KeyUp(ByVal keycode)
 	
 
 	If keycode = StartGameKey Then
+		DispatchRelayPinEvent "request_to_start_game", True
 		DispatchPinEvent "s_start_inactive", True
 	End If
 
@@ -1409,7 +1460,7 @@ End Function
 
 ' Function Glf_ReplaceDeviceAttributes(inputString)
 '     Dim pattern, replacement, regex, outputString
-'     pattern = "devices\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)"
+'     pattern = "device\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)\.([a-zA-Z0-9_]+)"
 '     Set regex = New RegExp
 '     regex.Pattern = pattern
 '     regex.IgnoreCase = True
@@ -1425,10 +1476,10 @@ Function Glf_ReplaceDeviceAttributes(inputString)
     Dim fullMatch, parts, deviceType, deviceId, attribute
 
     outputString = inputString
-    startPos = InStr(outputString, "devices.")
+    startPos = InStr(outputString, "device.")
 
     Do While startPos > 0
-        ' Find the end of the match by looking for three dots after "devices."
+        ' Find the end of the match by looking for three dots after "device."
         Dim firstDot, secondDot, thirdDot
 
         firstDot = InStr(startPos + 8, outputString, ".")
@@ -1467,7 +1518,7 @@ Function Glf_ReplaceDeviceAttributes(inputString)
             outputString = beforeMatch & replacement & afterMatch
 
             ' Move startPos forward
-            startPos = InStr(startPos + Len(replacement), outputString, "devices.")
+            startPos = InStr(startPos + Len(replacement), outputString, "device.")
         Else
             Exit Do
         End If
@@ -1843,9 +1894,9 @@ Function Glf_CheckForDeviceState(inputString)
     deviceName = Empty
     attribute = Empty
 
-    pos = InStr(inputString, "devices.")
+    pos = InStr(inputString, "device.")
     If pos > 0 Then
-        segStart = pos + Len("devices.")
+        segStart = pos + Len("device.")
         
         ' Get first segment (deviceType)
         segEnd = InStr(segStart, inputString, ".")
@@ -2657,6 +2708,10 @@ With GlfShotProfiles("flash_color")
 End With
 
 Function AdjustHexColor(hexColor, percentage)
+	If hexColor = "stop" Then
+		AdjustHexColor = "stop"
+		Exit Function
+	End If
     ' Ensure percentage is between 0 and 100
     If percentage < 0 Then percentage = 0
     If percentage > 100 Then percentage = 100

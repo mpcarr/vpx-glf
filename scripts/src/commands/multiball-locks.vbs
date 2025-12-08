@@ -2,6 +2,7 @@
 Class GlfMultiballLocks
 
     Private m_name
+    Private m_local_name
     Private m_lock_devices
     Private m_priority
     Private m_mode
@@ -43,6 +44,7 @@ Class GlfMultiballLocks
 
 	Public default Function init(name, mode)
         m_name = "multiball_lock_" & name
+        m_local_name = name
         m_mode = mode.Name
         m_priority = mode.Priority
         m_lock_events = Array()
@@ -107,10 +109,10 @@ Class GlfMultiballLocks
         End If
         
         Dim balls_locked
-        If GetPlayerState(m_name & "_balls_locked") = False Then
+        If GetPlayerState(m_local_name & "_locked_balls") = False Then
             balls_locked = 1
         Else
-            balls_locked = GetPlayerState(m_name & "_balls_locked") + 1
+            balls_locked = GetPlayerState(m_local_name & "_locked_balls") + 1
         End If
         If balls_locked > m_balls_to_lock Then
             Log "Cannot lock balls. Lock is full."
@@ -118,7 +120,7 @@ Class GlfMultiballLocks
             Exit Function
         End If
 
-        SetPlayerState m_name & "_balls_locked", balls_locked
+        SetPlayerState m_local_name & "_locked_balls", balls_locked
         
 
         If Not IsNull(device) Then
@@ -144,8 +146,55 @@ Class GlfMultiballLocks
 
     Public Sub Reset
         Log "Resetting multiball lock count"
-        SetPlayerState m_name & "_balls_locked", 0
+        SetPlayerState m_local_name & "_locked_balls", 0
     End Sub
+
+    Public Function ToYaml
+        Dim yaml, x, key
+        yaml = "  " & Replace(m_name, "multiball_lock_", "") & ":" & vbCrLf
+        yaml = yaml & "    balls_to_lock: " & m_balls_to_lock & vbCrLf
+        yaml = yaml & "    lock_devices: " & Join(m_lock_devices, ",") & vbCrLf
+        If m_balls_to_replace <> -1 Then
+            yaml = yaml & "    balls_to_replace: " & m_balls_to_replace & vbCrLf
+        End If
+
+        Dim enable_events_keys : enable_events_keys = m_base_device.EnableEvents().Keys
+        Dim enable_events : Set enable_events = m_base_device.EnableEvents()
+        If UBound(enable_events_keys) > -1 Then
+            yaml = yaml & "    enable_events: "
+            x=0
+            For Each key in enable_events_keys
+                yaml = yaml & enable_events(key).Raw
+                If x <> UBound(enable_events_keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        Dim disable_events_keys : disable_events_keys = m_base_device.DisableEvents().Keys
+        Dim disable_events : Set disable_events = m_base_device.DisableEvents()
+        If UBound(disable_events_keys) > -1 Then
+            yaml = yaml & "    disable_events: "
+            x=0
+            For Each key in disable_events_keys
+                yaml = yaml & disable_events(key).Raw
+                If x <> UBound(disable_events_keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+
+        If UBound(m_reset_events) > -1 Then
+            yaml = yaml & "    reset_count_for_current_player_events: " & Join(m_reset_events, ",") & vbCrLf
+        End If
+        
+
+        ToYaml = yaml
+    End Function
+
 
     Private Sub Log(message)
         If m_debug = True Then

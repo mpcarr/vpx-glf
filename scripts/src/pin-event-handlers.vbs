@@ -11,6 +11,9 @@ Dim glf_frame_handler_count : glf_frame_handler_count = 0
 Dim glf_dispatch_queue_int : glf_dispatch_queue_int = 0
 
 Sub DispatchPinEvent(e, kwargs)
+    If e = glf_last_switch_hit & "_active" and (gametime - glf_last_switch_hit_time) < 50 Then
+        Exit Sub
+    End If
     AddToDispatchEvents e, kwargs, 1
 End Sub
 

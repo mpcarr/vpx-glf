@@ -59,7 +59,7 @@ Class GlfSlidePlayer
         If m_events(evt).Evaluate() Then
             'Fire Slide
             If useBcp = True Then
-                bcpController.PlaySlide m_eventValues(evt).Slide, m_mode, m_events(evt).EventName, m_priority+m_eventValues(evt).Priority
+                bcpController.PlaySlide m_eventValues(evt).Slide, m_mode, m_events(evt).EventName, m_eventValues(evt).Action, m_eventValues(evt).Expire, m_priority+m_eventValues(evt).Priority
             End If
         End If
     End Function
@@ -135,7 +135,7 @@ Class GlfSlidePlayerItem
 	Public default Function init()
         m_action = "play"
         m_slide = Empty
-        m_expire = Empty
+        m_expire = 0
         m_priority = 0
         Set Init = Me
 	End Function
@@ -145,7 +145,7 @@ Class GlfSlidePlayerItem
         yaml = yaml & "    "& m_slide & ":" & vbCrLf
         yaml = yaml & "      action: " & m_action & vbCrLf
         If Not IsEmpty(m_expire) Then
-            yaml = yaml & "      expire: " & m_expire & "ms" & vbCrLf
+            yaml = yaml & "      expire: " & m_expire & "s" & vbCrLf
         End If
         If m_priority <> 0 Then
             yaml = yaml & "      priority: " & m_priority & vbCrLf

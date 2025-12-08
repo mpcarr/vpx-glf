@@ -71,6 +71,9 @@ Class GlfRandomEvent
     Private m_force_different
     Private m_disable_random
     Private m_total_weights
+    Private m_scope
+
+    Public Property Let Scope(value) : m_scope = value : End Property
 
     Public Property Let FallbackEvent(value) : m_fallback_event = value : End Property
     Public Property Let ForceAll(value) : m_force_all = value : End Property
@@ -84,6 +87,7 @@ Class GlfRandomEvent
         m_fallback_event = Empty
         m_force_all = True
         m_force_different = True
+        m_scope = "player"
         m_disable_random = False
         m_total_weights = 0
         Set m_events = CreateObject("Scripting.Dictionary")
@@ -229,6 +233,7 @@ Class GlfRandomEvent
         For Each evt in m_events.Keys
             yaml = yaml & "      " & evt & ": " & m_weights(evt) & vbCrLf
         Next
+        yaml = yaml & "    scope: " & m_scope & vbCrLf
         ToYaml = yaml
 
     End Function

@@ -145,7 +145,7 @@ Class GlfWidgetPlayerItem
         yaml = yaml & "    "& m_slide & ":" & vbCrLf
         yaml = yaml & "      action: " & m_action & vbCrLf
         If Not IsEmpty(m_expire) Then
-            yaml = yaml & "      expire: " & m_expire & "ms" & vbCrLf
+            yaml = yaml & "      expire: " & m_expire & "s" & vbCrLf
         End If
         If m_priority <> 0 Then
             yaml = yaml & "      priority: " & m_priority & vbCrLf

@@ -493,7 +493,19 @@ Class Mode
             yaml = yaml & vbCrLf
         End If
         yaml = yaml & "  priority: " & m_priority & vbCrLf
+
+        If m_use_wait_queue Then
+            yaml = yaml & "  use_wait_queue: true" & vbCrLf
+        End If
         
+        If UBound(m_ballholds.Keys)>-1 Then
+            yaml = yaml & vbCrLf
+            yaml = yaml & "ball_holds: " & vbCrLf
+            For Each child in m_ballholds.Keys
+                yaml = yaml & m_ballholds(child).ToYaml
+            Next
+        End If
+
         If UBound(m_ballsaves.Keys)>-1 Then
             yaml = yaml & vbCrLf
             yaml = yaml & "ball_saves: " & vbCrLf
@@ -510,52 +522,12 @@ Class Mode
             Next
         End If
 
-        If UBound(m_sequence_shots.Keys)>-1 Then
-            yaml = yaml & vbCrLf
-            yaml = yaml & "sequence_shots: " & vbCrLf
-            For Each child in m_sequence_shots.Keys
-                yaml = yaml & m_sequence_shots(child).ToYaml
-            Next
-        End If
-        
-        If UBound(m_shot_profiles.Keys)>-1 Then
-            yaml = yaml & vbCrLf
-            yaml = yaml & "shot_profiles: " & vbCrLf
-            For Each child in m_shot_profiles.Keys
-                yaml = yaml & m_shot_profiles(child).ToYaml
-            Next
-        End If
-        
-        If UBound(m_shots.Keys)>-1 Then
-            yaml = yaml & vbCrLf
-            yaml = yaml & "shots: " & vbCrLf
-            For Each child in m_shots.Keys
-                yaml = yaml & m_shots(child).ToYaml
-            Next
-        End If
-        
-        If UBound(m_shot_groups.Keys)>-1 Then
-            yaml = yaml & vbCrLf
-            yaml = yaml & "shot_groups: " & vbCrLf
-            For Each child in m_shot_groups.Keys
-                yaml = yaml & m_shot_groups(child).ToYaml
-            Next
-        End If
-        
         If UBound(m_eventplayer.Events.Keys)>-1 Then
             yaml = yaml & vbCrLf
             yaml = yaml & "event_player: " & vbCrLf
             yaml = yaml & m_eventplayer.ToYaml()
         End If
-        
-        If Not IsNull(m_showPlayer) Then
-            If UBound(m_showplayer.EventShows)>-1 Then
-                yaml = yaml & vbCrLf
-                yaml = yaml & "show_player: " & vbCrLf
-                yaml = yaml & m_showplayer.ToYaml()
-            End If
-        End If
-        
+
         If Not IsNull(m_lightplayer) Then
             If UBound(m_lightplayer.EventNames)>-1 Then
                 yaml = yaml & vbCrLf
@@ -563,29 +535,13 @@ Class Mode
                 yaml = yaml & m_lightplayer.ToYaml()
             End If
         End If
-
-        If Not IsNull(m_slide_player) Then
-            If UBound(m_slide_player.EventNames)>-1 Then
-                yaml = yaml & vbCrLf
-                yaml = yaml & "slide_player: " & vbCrLf
-                yaml = yaml & m_slide_player.ToYaml()
-            End If
-        End If
-
-        If Not IsNull(m_widget_player) Then
-            If UBound(m_widget_player.EventNames)>-1 Then
-                yaml = yaml & vbCrLf
-                yaml = yaml & "widget_player: " & vbCrLf
-                yaml = yaml & m_widget_player.ToYaml()
-            End If
-        End If
-
-        If Not IsNull(m_variableplayer) Then
-            If UBound(m_variableplayer.EventNames)>-1 Then
-                yaml = yaml & vbCrLf
-                yaml = yaml & "variable_player: " & vbCrLf
-                yaml = yaml & m_variableplayer.ToYaml()
-            End If
+        
+        If UBound(m_multiball_locks.Keys)>-1 Then
+            yaml = yaml & vbCrLf
+            yaml = yaml & "multiball_locks: " & vbCrLf
+            For Each child in m_multiball_locks.Keys
+                yaml = yaml & m_multiball_locks(child).ToYaml
+            Next
         End If
 
         If Not IsNull(m_random_event_player) Then
@@ -603,14 +559,95 @@ Class Mode
                 yaml = yaml & m_segment_display_player.ToYaml()
             End If
         End If
-        
-        If UBound(m_ballholds.Keys)>-1 Then
+
+        If UBound(m_sequence_shots.Keys)>-1 Then
             yaml = yaml & vbCrLf
-            yaml = yaml & "ball_holds: " & vbCrLf
-            For Each child in m_ballholds.Keys
-                yaml = yaml & m_ballholds(child).ToYaml
+            yaml = yaml & "sequence_shots: " & vbCrLf
+            For Each child in m_sequence_shots.Keys
+                yaml = yaml & m_sequence_shots(child).ToYaml
             Next
         End If
+        
+        'If UBound(m_shot_profiles.Keys)>-1 Then
+        '    yaml = yaml & vbCrLf
+        '    yaml = yaml & "shot_profiles: " & vbCrLf
+        '    For Each child in m_shot_profiles.Keys
+        '        yaml = yaml & m_shot_profiles(child).ToYaml
+        '    Next
+        'End If
+        
+        If UBound(m_shot_groups.Keys)>-1 Then
+            yaml = yaml & vbCrLf
+            yaml = yaml & "shot_groups: " & vbCrLf
+            For Each child in m_shot_groups.Keys
+                yaml = yaml & m_shot_groups(child).ToYaml
+            Next
+        End If
+
+        If UBound(m_shots.Keys)>-1 Then
+            yaml = yaml & vbCrLf
+            yaml = yaml & "shots: " & vbCrLf
+            For Each child in m_shots.Keys
+                yaml = yaml & m_shots(child).ToYaml
+            Next
+        End If
+
+        If Not IsNull(m_showPlayer) Then
+            If UBound(m_showplayer.EventShows)>-1 Then
+                yaml = yaml & vbCrLf
+                yaml = yaml & "show_player: " & vbCrLf
+                yaml = yaml & m_showplayer.ToYaml()
+            End If
+        End If
+
+        If Not IsNull(m_slide_player) Then
+            If UBound(m_slide_player.EventNames)>-1 Then
+                yaml = yaml & vbCrLf
+                yaml = yaml & "slide_player: " & vbCrLf
+                yaml = yaml & m_slide_player.ToYaml()
+            End If
+        End If
+
+        If Not IsNull(m_sound_player) Then
+            If UBound(m_sound_player.EventSounds)>-1 Then
+                yaml = yaml & vbCrLf
+                yaml = yaml & "sound_player: " & vbCrLf
+                yaml = yaml & m_sound_player.ToYaml()
+            End If
+        End If       
+        
+        If UBound(m_state_machines.Keys)>-1 Then
+            yaml = yaml & vbCrLf
+            yaml = yaml & "state_machines: " & vbCrLf
+            For Each child in m_state_machines.Keys
+                yaml = yaml & m_state_machines(child).ToYaml
+            Next
+        End If
+
+        If UBound(m_timers.Keys)>-1 Then
+            yaml = yaml & vbCrLf
+            yaml = yaml & "timers: " & vbCrLf
+            For Each child in m_timers.Keys
+                yaml = yaml & m_timers(child).ToYaml
+            Next
+        End If
+
+        If Not IsNull(m_variableplayer) Then
+            If UBound(m_variableplayer.EventNames)>-1 Then
+                yaml = yaml & vbCrLf
+                yaml = yaml & "variable_player: " & vbCrLf
+                yaml = yaml & m_variableplayer.ToYaml()
+            End If
+        End If
+    
+        If Not IsNull(m_widget_player) Then
+            If UBound(m_widget_player.EventNames)>-1 Then
+                yaml = yaml & vbCrLf
+                yaml = yaml & "widget_player: " & vbCrLf
+                yaml = yaml & m_widget_player.ToYaml()
+            End If
+        End If
+
         yaml = yaml & vbCrLf
         
         

@@ -61,10 +61,11 @@ Class GlfEventPlayer
     End Sub
 
     Public Sub FireEvent(evt)
-        Log "Dispatching Event: " & evt
+        Log "Firing Event Raw Value: " & evt
         If Not IsNull(m_events(evt).Condition) Then
             'msgbox m_events(evt).Condition
             If GetRef(m_events(evt).Condition)(Null) = False Then
+                Log "Event Condition not met for event: " & evt
                 Exit Sub
             End If
         End If

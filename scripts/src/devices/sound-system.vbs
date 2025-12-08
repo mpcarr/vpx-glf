@@ -10,6 +10,7 @@ Class GlfSoundBus
     Private m_simultaneous_sounds
     Private m_current_sounds
     Private m_volume
+    Private m_type
     Private m_debug
 
     Public Property Get Name(): Name = m_name: End Property
@@ -25,6 +26,9 @@ Class GlfSoundBus
     Public Property Get SimultaneousSounds(): SimultaneousSounds = m_simultaneous_sounds: End Property
     Public Property Let SimultaneousSounds(input): m_simultaneous_sounds = input: End Property
 
+    Public Property Get SystemType(): SystemType = m_type: End Property
+    Public Property Let SystemType(input): m_type = input: End Property
+
     Public Property Get Volume(): Volume = m_volume: End Property
     Public Property Let Volume(input): m_volume = input: End Property
 
@@ -36,55 +40,71 @@ Class GlfSoundBus
         m_name = "sound_bus_" & name
         m_simultaneous_sounds = 8
         m_volume = 0.5
+        m_type = Empty
         Set m_current_sounds = CreateObject("Scripting.Dictionary")
         glf_sound_buses.Add name, Me
         Set Init = Me
     End Function
 
     Public Sub Play(sound_settings)
-        If (UBound(m_current_sounds.Keys)-1) > m_simultaneous_sounds Then
-            'TODO: Queue Sound
-        Else
-            If m_current_sounds.Exists(sound_settings.Sound.File) Then
-                m_current_sounds.Remove sound_settings.Sound.File
-                RemoveDelay m_name & "_stop_sound_" & sound_settings.Sound.File       
-            End If
-            m_current_sounds.Add sound_settings.Sound.File, sound_settings
-            Dim volume : volume = m_volume
-            If Not IsEmpty(sound_settings.Sound.Volume) Then
-                volume = sound_settings.Sound.Volume
-            End If
-            If Not IsEmpty(sound_settings.Volume) Then
-                volume = sound_settings.Volume
-            End If
-            Dim loops : loops = 0
-            If Not IsEmpty(sound_settings.Sound.Loops) Then
-                loops = sound_settings.Sound.Loops
-            End If
-            If Not IsEmpty(sound_settings.Loops) Then
-                loops = sound_settings.Loops
-            End If
 
-            PlaySound sound_settings.Sound.File, loops, volume, 0,0,0,0,0,0
-            If loops = 0 Then
-                SetDelay m_name & "_stop_sound_" & sound_settings.Sound.File, "Glf_SoundBusStopSoundHandler", Array(sound_settings.Sound.File, Me), sound_settings.Sound.Duration
-            ElseIf loops>0 Then
-                SetDelay m_name & "_stop_sound_" & sound_settings.Sound.File, "Glf_SoundBusStopSoundHandler", Array(sound_settings.Sound.File, Me), sound_settings.Sound.Duration*loops
+        If Not IsEmpty(m_type) Then
+            If m_type = "bcp" Then
+                If useBcp=False Then
+                    Exit Sub
+                End If
+                bcpController.PlaySound sound_settings.Sound.NameRaw, "mode", "loobeeloo", 100
+            End If
+        Else
+            If (UBound(m_current_sounds.Keys)-1) > m_simultaneous_sounds Then
+                'TODO: Queue Sound
+            Else
+                If m_current_sounds.Exists(sound_settings.Sound.File) Then
+                    m_current_sounds.Remove sound_settings.Sound.File
+                    RemoveDelay m_name & "_stop_sound_" & sound_settings.Sound.File       
+                End If
+                m_current_sounds.Add sound_settings.Sound.File, sound_settings
+                Dim volume : volume = m_volume
+                If Not IsEmpty(sound_settings.Sound.Volume) Then
+                    volume = sound_settings.Sound.Volume
+                End If
+                If Not IsEmpty(sound_settings.Volume) Then
+                    volume = sound_settings.Volume
+                End If
+                Dim loops : loops = 0
+                If Not IsEmpty(sound_settings.Sound.Loops) Then
+                    loops = sound_settings.Sound.Loops
+                End If
+                If Not IsEmpty(sound_settings.Loops) Then
+                    loops = sound_settings.Loops
+                End If
+
+                PlaySound sound_settings.Sound.File, loops, volume, 0,0,0,0,0,0
+                If loops = 0 Then
+                    SetDelay m_name & "_stop_sound_" & sound_settings.Sound.File, "Glf_SoundBusStopSoundHandler", Array(sound_settings.Sound.File, Me), sound_settings.Sound.Duration
+                ElseIf loops>0 Then
+                    SetDelay m_name & "_stop_sound_" & sound_settings.Sound.File, "Glf_SoundBusStopSoundHandler", Array(sound_settings.Sound.File, Me), sound_settings.Sound.Duration*loops
+                End If
             End If
         End If
     End Sub
 
     Public Sub StopSoundWithKey(sound_key)
-        If m_current_sounds.Exists(sound_key) Then
-            Dim sound_settings : Set sound_settings = m_current_sounds(sound_key)
-            StopSound(sound_key)
-            Dim evt
-            For Each evt in sound_settings.Sound.EventsWhenStopped.Items()
-                If evt.Evaluate() Then
-                    DispatchPinEvent evt.EventName, Null
-                End If
-            Next
-            m_current_sounds.Remove sound_key
+        If Not IsEmpty(m_type) Then
+
+        Else
+
+            If m_current_sounds.Exists(sound_key) Then
+                Dim sound_settings : Set sound_settings = m_current_sounds(sound_key)
+                StopSound(sound_key)
+                Dim evt
+                For Each evt in sound_settings.Sound.EventsWhenStopped.Items()
+                    If evt.Evaluate() Then
+                        DispatchPinEvent evt.EventName, Null
+                    End If
+                Next
+                m_current_sounds.Remove sound_key
+            End If
         End If
     End Sub
 
@@ -110,6 +130,7 @@ End Function
 Class GlfSound
 
     Private m_name
+    Private m_name_raw
     Private m_file
     Private m_events_when_stopped
     Private m_bus
@@ -121,6 +142,7 @@ Class GlfSound
     Private m_debug
 
     Public Property Get Name(): Name = m_name: End Property
+    Public Property Get NameRaw(): NameRaw = m_name_raw: End Property
     Public Property Get GetValue(value)
         Select Case value
             Case "file":
@@ -176,6 +198,7 @@ Class GlfSound
 
     Public default Function Init(name)
         m_name = "sound_bus_" & name
+        m_name_raw = name
         m_file = Empty
         m_bus = Empty
         m_volume = Empty

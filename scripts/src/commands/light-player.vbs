@@ -121,7 +121,6 @@ Class GlfLightPlayer
                 yaml = yaml & "  " & key & ": " & vbCrLf
                 yaml = yaml & m_events(key).ToYaml()
             Next
-            yaml = yaml & vbCrLf
         End If
         ToYaml = yaml
     End Function
@@ -203,7 +202,7 @@ End Class
 Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed, color_replacement)
     Dim shows_added
     Dim lightStack
-    Dim lightParts, light
+    Dim lightParts, light, show_key, nextColor
     If play = False Then
         For Each light in lights(0)
             lightParts = Split(light,"|")
@@ -211,7 +210,6 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed, co
             If Not lightStack.IsEmpty() Then
                 'glf_debugLog.WriteToLog "LightPlayer", "Removing Light " & lightParts(0)
                 lightStack.PopByKey(mode & "_" & key)
-                Dim show_key
                 For Each show_key in glf_running_shows.Keys
                     If Left(show_key, Len("fade_" & mode & "_" & key & "_" & lightParts(0))) = "fade_" & mode & "_" & key & "_" & lightParts(0) Then
                         glf_running_shows(show_key).StopRunningShow()
@@ -219,7 +217,6 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed, co
                 Next
                 If Not lightStack.IsEmpty() Then
                     ' Set the light to the next color on the stack
-                    Dim nextColor
                     Set nextColor = lightStack.Peek()
                     Glf_SetLight lightParts(0), nextColor("Color")
                 Else
@@ -253,41 +250,72 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed, co
                 newColor = color_replacement
             End If
 
-            If lightStack.IsEmpty() Then
-                oldColor = "000000"
-                ' If stack is empty, push the color onto the stack and set the light color
-                lightStack.Push mode & "_" & key, newColor, priority
-                Glf_SetLight lightParts(0), newColor
+            If newColor = "stop" Then
+                If Not lightStack.IsEmpty() Then
+                    'glf_debugLog.WriteToLog "LightPlayer", "Removing Light " & lightParts(0)
+                    lightStack.PopByKey(mode & "_" & key)
+                    
+                    For Each show_key in glf_running_shows.Keys
+                        If Left(show_key, Len("fade_" & mode & "_" & key & "_" & lightParts(0))) = "fade_" & mode & "_" & key & "_" & lightParts(0) Then
+                            glf_running_shows(show_key).StopRunningShow()
+                        End If
+                    Next
+                    If Not lightStack.IsEmpty() Then
+                        ' Set the light to the next color on the stack
+                        Set nextColor = lightStack.Peek()
+                        Glf_SetLight lightParts(0), nextColor("Color")
+                    Else
+                        ' Turn off the light since there's nothing on the stack
+                        Glf_SetLight lightParts(0), "000000"
+                    End If
+                End If
             Else
-                Dim current
-                Set current = lightStack.Peek()                
-                If priority >= current("Priority") Then
-                    oldColor = current("Color")
-                    ' If the new priority is higher, push it onto the stack and change the light color
+                If lightStack.IsEmpty() Then
+                    oldColor = "000000"
+                    ' If stack is empty, push the color onto the stack and set the light color
                     lightStack.Push mode & "_" & key, newColor, priority
                     Glf_SetLight lightParts(0), newColor
                 Else
-                    ' Otherwise, just push it onto the stack without changing the light color
-                    lightStack.Push mode & "_" & key, newColor, priority
-                End If
-            End If
-            
-            If Not IsEmpty(oldColor) And Ubound(lightParts)=4 Then
-                If lightParts(4) <> "" Then
-                    'FadeMs
-                    Dim cache_name, new_running_show,cached_show,show_settings, fade_seq
-                    cache_name = lightParts(3)
-                    fade_seq = Glf_FadeRGB(oldColor, newColor, lightParts(4))
-                    'MsgBox cache_name
-                    shows_added.Add cache_name, True
+                    Dim current, currentColor
+                    Set current = lightStack.Peek()
+                    currentColor = CStr(current("Color"))
                     
-                    If glf_cached_shows.Exists(cache_name & "__-1") Then
-                        Set show_settings = (new GlfShowPlayerItem)()
-                        show_settings.Show = cache_name
-                        show_settings.Loops = 0
-                        show_settings.Speed = speed
-                        show_settings.ColorLookup = fade_seq
-                        Set new_running_show = (new GlfRunningShow)(cache_name, show_settings.Key, show_settings, priority+1, Null, Null)
+                    lightStack.Push mode & "_" & key, newColor, priority
+                    Set current = lightStack.Peek()
+                    
+                    If Not currentColor = current("Color") Then
+                        oldColor = currentColor
+                        Glf_SetLight lightParts(0), newColor
+                    End IF
+                    
+                    'If priority > current("Priority") or current("Key") = mode & "_" & key  Then
+                    '    oldColor = current("Color")
+                        ' If the new priority is higher, push it onto the stack and change the light color
+                        
+                    '    Glf_SetLight lightParts(0), newColor
+                    'Else
+                    '    ' Otherwise, just push it onto the stack without changing the light color
+                    '    lightStack.Push mode & "_" & key, newColor, priority
+                    'End If
+                End If
+
+                If Not IsEmpty(oldColor) And Ubound(lightParts)=4 Then
+                    If lightParts(4) <> "" Then
+                        'FadeMs
+                        Dim cache_name, new_running_show,cached_show,show_settings, fade_seq
+                        cache_name = lightParts(3)
+                        fade_seq = Glf_FadeRGB(oldColor, newColor, lightParts(4))
+                        'MsgBox cache_name
+                        shows_added.Add cache_name, True
+                        
+                        If glf_cached_shows.Exists(cache_name & "__-1") Then
+                            Set show_settings = (new GlfShowPlayerItem)()
+                            show_settings.Show = cache_name
+                            show_settings.Loops = 0
+                            show_settings.Speed = speed
+                            show_settings.ColorLookup = fade_seq
+                            Set new_running_show = (new GlfRunningShow)(cache_name, show_settings.Key, show_settings, priority+1, Null, Null)
+                        End If
                     End If
                 End If
             End If
@@ -400,17 +428,29 @@ Class GlfLightStack
 
     ' Sort the stack by priority (descending)
     Private Sub SortStackByPriority()
-        Dim i, j
-        Dim temp
-        For i = LBound(stack) To UBound(stack) - 1
-            For j = i + 1 To UBound(stack)
-                If stack(i)("Priority") < stack(j)("Priority") Then
-                    ' Swap the elements
-                    Set temp = stack(i)
-                    Set stack(i) = stack(j)
-                    Set stack(j) = temp
+        Dim i, j, key, lb, ub
+        ' Guard for empty or single-element arrays
+        On Error Resume Next
+        lb = LBound(stack) : ub = UBound(stack)
+        If Err.Number <> 0 Then Exit Sub  ' stack not initialized
+        On Error GoTo 0
+        If ub - lb < 1 Then Exit Sub
+
+        For i = lb + 1 To ub
+            Set key = stack(i)
+            j = i - 1
+
+            Do While j >= lb
+                ' Only access stack(j) after the bound check
+                If stack(j)("Priority") <= key("Priority") Then
+                    Set stack(j + 1) = stack(j)
+                    j = j - 1
+                Else
+                    Exit Do
                 End If
-            Next
+            Loop
+
+            Set stack(j + 1) = key
         Next
     End Sub
 

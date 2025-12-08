@@ -227,6 +227,75 @@ Class GlfStateMachine
 
     End Sub
 
+    Public Function ToYaml
+        Dim yaml,x,key,y,cEvt
+        yaml = "  " & m_name & ":" & vbCrLf
+        yaml = yaml & "    starting_state: " & m_starting_state & vbCrLf
+        If m_persist_state Then
+            yaml = yaml & "    persist_state: " & m_persist_state & vbCrLf
+        End If
+        If UBound(m_states.Keys) > -1 Then
+            yaml = yaml & "    states: " & vbCrLf
+            x=0
+            For Each key in m_states.keys
+                yaml = yaml & "      " & m_states(key).Name & ": " & vbCrLf
+                If Not IsEmpty(m_states(key).Label) Then
+                    yaml = yaml & "        label: " & m_states(key).Label & vbCrLf
+                End If
+                
+                If UBound(m_states(key).EventsWhenStarted.Keys) > -1 Then
+                    yaml = yaml & "        events_when_started: "
+                    y=0
+                    For Each cEvt in m_states(key).EventsWhenStarted.Items
+                        yaml = yaml & cEvt.Raw
+                        If y <> UBound(m_states(key).EventsWhenStarted.Keys) Then
+                            yaml = yaml & ", "
+                        End If
+                        y = y + 1
+                    Next
+                    yaml = yaml & vbCrLf
+                End If
+
+                If UBound(m_states(key).EventsWhenStopped.Keys) > -1 Then
+                    yaml = yaml & "        events_when_stopped: "
+                    y=0
+                    For Each cEvt in m_states(key).EventsWhenStopped.Items
+                        yaml = yaml & cEvt.Raw
+                        If y <> UBound(m_states(key).EventsWhenStopped.Keys) Then
+                            yaml = yaml & ", "
+                        End If
+                        y = y + 1
+                    Next
+                    yaml = yaml & vbCrLf
+                End If
+                
+            Next
+            yaml = yaml & "    transitions: " & vbCrLf
+            For Each key in m_transitions.keys
+                yaml = yaml & "      - source: "
+                y=0
+                For Each cEvt in m_transitions(key).Source.Keys
+                    yaml = yaml & cEvt
+                    If y <> UBound(m_transitions(key).Source.Keys) Then
+                        yaml = yaml & ", "
+                    End If
+                    y = y + 1
+                Next
+                yaml = yaml & vbCrLf
+                yaml = yaml & "        target: " & m_transitions(key).Target & vbCrLf
+                yaml = yaml & "        events: " & vbCrLf
+                
+                If UBound(m_transitions(key).Events().Keys) > -1 Then
+                    For Each cEvt in m_transitions(key).Events().keys()
+                        yaml = yaml & "          - " & Replace(Replace(cEvt, "&&", "and"), "||", "or") & vbCrLf
+                    Next
+                End If
+            Next
+        End If
+
+        ToYaml = yaml
+    End Function
+
     
     Private Sub Log(message)
         If m_debug = True Then

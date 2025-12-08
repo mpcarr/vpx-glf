@@ -75,7 +75,7 @@ Class GlfVariablePlayer
                 Case "set_machine"
                     Log "Setting Machine Variable " & vKey & ". New Value: " & CStr(varValue)
                     glf_machine_vars(vkey).Value = varValue
-        End Select
+            End Select
         Next
     End Sub
 

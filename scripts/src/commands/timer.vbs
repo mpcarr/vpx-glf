@@ -336,6 +336,26 @@ Class GlfTimer
         CheckForDone()
     End Sub
 
+    Public Function ToYaml
+        Dim yaml,x, key
+        yaml = "  " & Replace(m_name, "timer_", "") & ":" & vbCrLf
+        yaml = yaml & "    start_value: " & m_start_value.Raw & vbCrLf
+        yaml = yaml & "    end_value: " & m_end_value.Raw & vbCrLf
+        yaml = yaml & "    direction: " & m_direction & vbCrLf
+        If UBound(m_control_events.Keys) > -1 Then
+            yaml = yaml & "    control_events: " & vbCrLf
+            x=0
+            For Each key in m_control_events.keys
+                yaml = yaml & m_control_events(key).ToYaml()
+            Next
+        End If
+        yaml = yaml & "    restart_on_complete: " & m_restart_on_complete & vbCrLf
+        yaml = yaml & "    start_running: " & m_start_running & vbCrLf
+        yaml = yaml & "    tick_interval: " & m_tick_interval & "ms" & vbCrLf
+        
+        ToYaml = yaml
+    End Function
+
     Private Sub Log(message)
         If m_debug = True Then
             glf_debugLog.WriteToLog m_name, message
@@ -398,5 +418,15 @@ Class GlfTimerControlEvent
         m_value = Null
 	    Set Init = Me
 	End Function
+
+    Public Function ToYaml
+        Dim yaml,x
+        yaml = yaml & "      - event: " & m_event.Raw & vbCrLf
+        yaml = yaml & "        action: " & m_action & vbCrLf
+        If Not IsNull(m_value) Then
+            yaml = yaml & "        value: " & m_value.Raw & vbCrLf
+        End If
+        ToYaml = yaml
+    End Function
 
 End Class
