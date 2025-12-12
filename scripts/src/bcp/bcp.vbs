@@ -101,6 +101,12 @@ Class GlfVpxBcpController
         End If
 	End Sub
 
+    Public Sub SendMachineVariable(name, value, prevValue)
+		If m_connected Then
+            m_bcpController.Send "machine_variable?name=" & name & "&value=" & EncodeVariable(value) & "&prev_value=" & EncodeVariable(prevValue) & "&change=" & EncodeVariable(VariableVariance(value, prevValue))
+        End If
+	End Sub
+
     Private Function EncodeVariable(value)
         Dim retValue
         Select Case VarType(value)
@@ -147,6 +153,13 @@ Sub Glf_BcpSendPlayerVar(args)
     Dim value : value = kwargs(1)
     Dim prevValue : prevValue = kwargs(2)
     bcpController.SendPlayerVariable player_var, value, prevValue
+End Sub
+
+Sub Glf_BcpSendMachineVar(key, value, prevValue)
+    If useBcp=False Then
+        Exit Sub
+    End If
+    bcpController.SendMachineVariable key, value, prevValue
 End Sub
 
 Sub Glf_BcpSendEvent(evt)

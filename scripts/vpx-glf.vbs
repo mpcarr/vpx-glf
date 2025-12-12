@@ -3039,6 +3039,12 @@ Class GlfVpxBcpController
         End If
 	End Sub
 
+    Public Sub SendMachineVariable(name, value, prevValue)
+		If m_connected Then
+            m_bcpController.Send "machine_variable?name=" & name & "&value=" & EncodeVariable(value) & "&prev_value=" & EncodeVariable(prevValue) & "&change=" & EncodeVariable(VariableVariance(value, prevValue))
+        End If
+	End Sub
+
     Private Function EncodeVariable(value)
         Dim retValue
         Select Case VarType(value)
@@ -3085,6 +3091,13 @@ Sub Glf_BcpSendPlayerVar(args)
     Dim value : value = kwargs(1)
     Dim prevValue : prevValue = kwargs(2)
     bcpController.SendPlayerVariable player_var, value, prevValue
+End Sub
+
+Sub Glf_BcpSendMachineVar(key, value, prevValue)
+    If useBcp=False Then
+        Exit Sub
+    End If
+    bcpController.SendMachineVariable key, value, prevValue
 End Sub
 
 Sub Glf_BcpSendEvent(evt)
@@ -12438,19 +12451,22 @@ Class GlfVariablePlayer
         For Each vKey in m_events(evt).Variables.Keys
             Set v = m_events(evt).Variable(vKey)
             Dim varValue : varValue = v.VariableValue
+            Dim prevValue
             Select Case v.Action
                 Case "add"
                     Log "Add Variable " & vKey & ". New Value: " & CStr(GetPlayerState(vKey) + varValue) & " Old Value: " & CStr(GetPlayerState(vKey))
                     SetPlayerState vKey, GetPlayerState(vKey) + varValue
                 Case "add_machine"
                     Log "Add Machine Variable " & vKey & ". New Value: " & CStr(GetPlayerState(vKey) + varValue) & " Old Value: " & CStr(GetPlayerState(vKey))
-                    'SetPlayerState vKey, GetPlayerState(vKey) + varValue
+                    prevValue = glf_machine_vars(vkey).Value
                     glf_machine_vars(vkey).Value = glf_machine_vars(vkey).Value + varValue
+                    Glf_BcpSendMachineVar vKey, glf_machine_vars(vkey).Value, prevValue
                 Case "set"
                     Log "Setting Variable " & vKey & ". New Value: " & CStr(varValue)
                     SetPlayerState vKey, varValue
                 Case "set_machine"
                     Log "Setting Machine Variable " & vKey & ". New Value: " & CStr(varValue)
+                    Glf_BcpSendMachineVar vKey, varValue, glf_machine_vars(vkey).Value
                     glf_machine_vars(vkey).Value = varValue
             End Select
         Next

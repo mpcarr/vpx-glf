@@ -61,19 +61,22 @@ Class GlfVariablePlayer
         For Each vKey in m_events(evt).Variables.Keys
             Set v = m_events(evt).Variable(vKey)
             Dim varValue : varValue = v.VariableValue
+            Dim prevValue
             Select Case v.Action
                 Case "add"
                     Log "Add Variable " & vKey & ". New Value: " & CStr(GetPlayerState(vKey) + varValue) & " Old Value: " & CStr(GetPlayerState(vKey))
                     SetPlayerState vKey, GetPlayerState(vKey) + varValue
                 Case "add_machine"
                     Log "Add Machine Variable " & vKey & ". New Value: " & CStr(GetPlayerState(vKey) + varValue) & " Old Value: " & CStr(GetPlayerState(vKey))
-                    'SetPlayerState vKey, GetPlayerState(vKey) + varValue
+                    prevValue = glf_machine_vars(vkey).Value
                     glf_machine_vars(vkey).Value = glf_machine_vars(vkey).Value + varValue
+                    Glf_BcpSendMachineVar vKey, glf_machine_vars(vkey).Value, prevValue
                 Case "set"
                     Log "Setting Variable " & vKey & ". New Value: " & CStr(varValue)
                     SetPlayerState vKey, varValue
                 Case "set_machine"
                     Log "Setting Machine Variable " & vKey & ". New Value: " & CStr(varValue)
+                    Glf_BcpSendMachineVar vKey, varValue, glf_machine_vars(vkey).Value
                     glf_machine_vars(vkey).Value = varValue
             End Select
         Next
