@@ -202,7 +202,7 @@ Sub Glf_BcpUpdate()
     If IsArray(messages) and UBound(messages)>-1 Then
         Dim message, parameters, parameter, eventName
         For Each message in messages
-            'debug.print(message.Command)
+            glf_debugLog.WriteToLog "BCP Update", message.GetValue("RawMessage")
             Select Case message.Command
                 case "hello"
                     bcpController.Reset
@@ -215,6 +215,11 @@ Sub Glf_BcpUpdate()
                     End If
                 case "register_trigger"
                     eventName = message.GetValue("event")
+                    glf_debugLog.WriteToLog "BCP Update: Register Trigger", eventName
+                case "trigger"
+                    eventName = message.GetValue("name")
+                    glf_debugLog.WriteToLog "BCP Update: Trigger", eventName
+                    DispatchPinEvent eventName, Null
             End Select
         Next
     End If
