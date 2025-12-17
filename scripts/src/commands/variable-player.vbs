@@ -67,7 +67,7 @@ Class GlfVariablePlayer
                     Log "Add Variable " & vKey & ". New Value: " & CStr(GetPlayerState(vKey) + varValue) & " Old Value: " & CStr(GetPlayerState(vKey))
                     SetPlayerState vKey, GetPlayerState(vKey) + varValue
                 Case "add_machine"
-                    Log "Add Machine Variable " & vKey & ". New Value: " & CStr(GetPlayerState(vKey) + varValue) & " Old Value: " & CStr(GetPlayerState(vKey))
+                    Log "Add Machine Variable " & vKey & ". New Value: " & CStr(glf_machine_vars(vkey).Value + varValue) & " Old Value: " & CStr(glf_machine_vars(vkey).Value)
                     prevValue = glf_machine_vars(vkey).Value
                     glf_machine_vars(vkey).Value = glf_machine_vars(vkey).Value + varValue
                     Glf_BcpSendMachineVar vKey, glf_machine_vars(vkey).Value, prevValue

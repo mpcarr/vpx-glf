@@ -85,6 +85,7 @@ Class GlfBallDevice
     Public Property Let MechanicalEject(value) : m_mechanical_eject = value : End Property
     Public Property Let ExcludeFromBallSearch(value) : m_exclude_from_ball_search = value : End Property
     Public Property Let AutoFireOnUnexpectedBall(value) : m_auto_fire_on_unexpected_ball = value : End Property
+    Public Property Get AutoFireOnUnexpectedBall(): AutoFireOnUnexpectedBall = m_auto_fire_on_unexpected_ball : End Property
 
     Public Property Let Debug(value) : m_debug = value : End Property
         

@@ -11250,6 +11250,7 @@ Class GlfStateMachine
             Dim evt
             For Each evt in state_config.EventsWhenStarted().Items()
                 If evt.Evaluate() = True Then
+                    Glf_BcpSendEvent evt.EventName
                     DispatchPinEvent evt.EventName, Null
                 End If
             Next
@@ -11271,6 +11272,7 @@ Class GlfStateMachine
             Dim evt
             For Each evt in state_config.EventsWhenStopped().Items()
                 If evt.Evaluate() = True Then
+                    Glf_BcpSendEvent evt.EventName
                     DispatchPinEvent evt.EventName, Null
                 End If
             Next
@@ -11337,6 +11339,7 @@ Class GlfStateMachine
             Dim evt
             For Each evt in transition.EventsWhenTransitioning().Items()
                 If evt.Evaluate() = True Then
+                    Glf_BcpSendEvent evt.EventName
                     DispatchPinEvent evt.EventName, Null
                 End If
             Next
@@ -12462,7 +12465,7 @@ Class GlfVariablePlayer
                     Log "Add Variable " & vKey & ". New Value: " & CStr(GetPlayerState(vKey) + varValue) & " Old Value: " & CStr(GetPlayerState(vKey))
                     SetPlayerState vKey, GetPlayerState(vKey) + varValue
                 Case "add_machine"
-                    Log "Add Machine Variable " & vKey & ". New Value: " & CStr(GetPlayerState(vKey) + varValue) & " Old Value: " & CStr(GetPlayerState(vKey))
+                    Log "Add Machine Variable " & vKey & ". New Value: " & CStr(glf_machine_vars(vkey).Value + varValue) & " Old Value: " & CStr(glf_machine_vars(vkey).Value)
                     prevValue = glf_machine_vars(vkey).Value
                     glf_machine_vars(vkey).Value = glf_machine_vars(vkey).Value + varValue
                     Glf_BcpSendMachineVar vKey, glf_machine_vars(vkey).Value, prevValue
@@ -13151,6 +13154,7 @@ Class GlfBallDevice
     Public Property Let MechanicalEject(value) : m_mechanical_eject = value : End Property
     Public Property Let ExcludeFromBallSearch(value) : m_exclude_from_ball_search = value : End Property
     Public Property Let AutoFireOnUnexpectedBall(value) : m_auto_fire_on_unexpected_ball = value : End Property
+    Public Property Get AutoFireOnUnexpectedBall(): AutoFireOnUnexpectedBall = m_auto_fire_on_unexpected_ball : End Property
 
     Public Property Let Debug(value) : m_debug = value : End Property
         
