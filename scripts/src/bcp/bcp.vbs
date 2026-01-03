@@ -10,13 +10,20 @@ Class GlfVpxBcpController
 
     Public default Function init(port, backboxCommand)
         On Error Resume Next
+
         Set m_bcpController = CreateObject("vpx_bcp_controller.VpxBcpController")
-        m_bcpController.Connect port, backboxCommand
-        m_connected = True
-        useBcp = True
         If backboxCommand = "" Then
             m_bcpController.EnableLogging()
         End If
+
+		If backboxCommand = "" And bcpDebug = False Then
+			m_bcpController.Connect port, bcpLocalPathToGodot, bcpLocalPathToProject            
+		Else
+			m_bcpController.ConnectToDebug port
+        End If
+    
+        m_connected = True
+        useBcp = True    
         m_mode_list = ""
         AddPinEventListener "player_added", "bcp_player_added", "GlfVpxBcpControllerEventHandler", 50, Array("player_added")
         AddPinEventListener "next_player", "bcp_player_next_player", "GlfVpxBcpControllerEventHandler", 50, Array("next_player")
@@ -48,6 +55,12 @@ Class GlfVpxBcpController
     Public Sub PlaySlide(slide, context, calling_context, action, expire, priorty)
 		If m_connected Then
             m_bcpController.Send "trigger?json={""name"": ""slides_play"", ""settings"": {""" & slide & """: {""action"": """ & action & """, ""expire"": " & expire & "}}, ""context"": """ & context & """, ""calling_context"": """ & calling_context & """, ""priority"": " & priorty & "}"
+        End If
+	End Sub
+
+    Public Sub RemoveSlide(slide)
+		If m_connected Then
+            m_bcpController.Send "trigger?json={""name"": ""slides_play"", ""settings"": {""" & slide & """: {""action"": ""remove""}}}"
         End If
 	End Sub
 
@@ -90,6 +103,7 @@ Class GlfVpxBcpController
 
     Public Sub ModeStop(name)
         If m_connected Then
+            SlidesClear name
             m_bcpController.Send "mode_stop?name=" & name
         End If
     End Sub
@@ -256,5 +270,5 @@ Function GlfVpxBcpControllerEventHandler(args)
 End Function
 
 '*****************************************************************************************************************************************
-'  Vpx Glf Bcp Controller
+'  END Vpx Glf Bcp Controller
 '*****************************************************************************************************************************************

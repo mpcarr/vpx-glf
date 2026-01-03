@@ -107,18 +107,12 @@ Sub RunAutoFireDispatchPinEvent(e, kwargs)
         If handlers.Exists(k(1)) Then
             handler = handlers(k(1))
             glf_frame_dispatch_count = glf_frame_dispatch_count + 1
-            'debug.print "Adding Handler for: " & e&"_"&k(1)
-            'glf_dispatch_handlers_await.Add e&"_"&k(1), Array(handler, kwargs, e)
-            'If SwitchHandler(handler(0), Array(handler(2), kwargs, e)) = False Then
-                'debug.print e&"_"&k(1)
-                GetRef(handler(0))(Array(handler(2), kwargs, e))
-            'End If
+            GetRef(handler(0))(Array(handler(2), kwargs, e))
         Else
             Glf_WriteDebugLog "DispatchPinEvent_"&e, "Handler does not exist: " & k(1)
         End If
     Next
     Glf_EventBlocks(e).RemoveAll
-
 End Sub
 
 Function DispatchRelayPinEvent(e, kwargs)

@@ -75,6 +75,9 @@ Dim useGlfBCPMonitor : useGlfBCPMonitor = False
 Dim useBCP : useBCP = False
 Dim bcpPort : bcpPort = 5050
 Dim bcpExeName : bcpExeName = CGameName & "_gmc.exe"
+Dim bcpLocalPathToGodot = ""
+Dim bcpLocalPathToProject = ""
+Dim bcpDebug = False
 Dim glf_monitor_player_vars : glf_monitor_player_vars = false
 Dim glf_BIP : glf_BIP = 0
 Dim glf_FuncCount : glf_FuncCount = 0
@@ -2285,7 +2288,7 @@ Function Glf_ConvertShow(show, tokens)
 				token = Glf_IsToken(lightParts(0))
 				If IsNull(token) And Not glf_lightNames.Exists(lightParts(0)) Then
 					tagLights = glf_lightTags("T_"&lightParts(0)).Keys()
-					lightsCount = UBound(tagLights)+1
+					lightsCount = lightsCount + UBound(tagLights)+1
 				Else
 					If IsNull(token) Then
 						lightsCount = lightsCount + 1
@@ -2294,7 +2297,7 @@ Function Glf_ConvertShow(show, tokens)
 						If Not glf_lightNames.Exists(tokens(token)) Then
 							'token is a tag
 							tagLights = glf_lightTags("T_"&tokens(token)).Keys()
-							lightsCount = UBound(tagLights)+1
+							lightsCount = lightsCount + UBound(tagLights)+1
 						Else
 							lightsCount = lightsCount + 1
 						End If

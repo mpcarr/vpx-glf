@@ -75,6 +75,9 @@ Dim useGlfBCPMonitor : useGlfBCPMonitor = False
 Dim useBCP : useBCP = False
 Dim bcpPort : bcpPort = 5050
 Dim bcpExeName : bcpExeName = CGameName & "_gmc.exe"
+Dim bcpLocalPathToGodot = ""
+Dim bcpLocalPathToProject = ""
+Dim bcpDebug = False
 Dim glf_monitor_player_vars : glf_monitor_player_vars = false
 Dim glf_BIP : glf_BIP = 0
 Dim glf_FuncCount : glf_FuncCount = 0
@@ -2285,7 +2288,7 @@ Function Glf_ConvertShow(show, tokens)
 				token = Glf_IsToken(lightParts(0))
 				If IsNull(token) And Not glf_lightNames.Exists(lightParts(0)) Then
 					tagLights = glf_lightTags("T_"&lightParts(0)).Keys()
-					lightsCount = UBound(tagLights)+1
+					lightsCount = lightsCount + UBound(tagLights)+1
 				Else
 					If IsNull(token) Then
 						lightsCount = lightsCount + 1
@@ -2294,7 +2297,7 @@ Function Glf_ConvertShow(show, tokens)
 						If Not glf_lightNames.Exists(tokens(token)) Then
 							'token is a tag
 							tagLights = glf_lightTags("T_"&tokens(token)).Keys()
-							lightsCount = UBound(tagLights)+1
+							lightsCount = lightsCount + UBound(tagLights)+1
 						Else
 							lightsCount = lightsCount + 1
 						End If
@@ -2948,13 +2951,20 @@ Class GlfVpxBcpController
 
     Public default Function init(port, backboxCommand)
         On Error Resume Next
+
         Set m_bcpController = CreateObject("vpx_bcp_controller.VpxBcpController")
-        m_bcpController.Connect port, backboxCommand
-        m_connected = True
-        useBcp = True
         If backboxCommand = "" Then
             m_bcpController.EnableLogging()
         End If
+
+		If backboxCommand = "" And bcpDebug = False Then
+			m_bcpController.Connect port, bcpLocalPathToGodot, bcpLocalPathToProject            
+		Else
+			m_bcpController.ConnectToDebug port
+        End If
+    
+        m_connected = True
+        useBcp = True    
         m_mode_list = ""
         AddPinEventListener "player_added", "bcp_player_added", "GlfVpxBcpControllerEventHandler", 50, Array("player_added")
         AddPinEventListener "next_player", "bcp_player_next_player", "GlfVpxBcpControllerEventHandler", 50, Array("next_player")
@@ -2986,6 +2996,12 @@ Class GlfVpxBcpController
     Public Sub PlaySlide(slide, context, calling_context, action, expire, priorty)
 		If m_connected Then
             m_bcpController.Send "trigger?json={""name"": ""slides_play"", ""settings"": {""" & slide & """: {""action"": """ & action & """, ""expire"": " & expire & "}}, ""context"": """ & context & """, ""calling_context"": """ & calling_context & """, ""priority"": " & priorty & "}"
+        End If
+	End Sub
+
+    Public Sub RemoveSlide(slide)
+		If m_connected Then
+            m_bcpController.Send "trigger?json={""name"": ""slides_play"", ""settings"": {""" & slide & """: {""action"": ""remove""}}}"
         End If
 	End Sub
 
@@ -3028,6 +3044,7 @@ Class GlfVpxBcpController
 
     Public Sub ModeStop(name)
         If m_connected Then
+            SlidesClear name
             m_bcpController.Send "mode_stop?name=" & name
         End If
     End Sub
@@ -3194,7 +3211,7 @@ Function GlfVpxBcpControllerEventHandler(args)
 End Function
 
 '*****************************************************************************************************************************************
-'  Vpx Glf Bcp Controller
+'  END Vpx Glf Bcp Controller
 '*****************************************************************************************************************************************
 
 
@@ -6704,7 +6721,6 @@ Class Mode
             m_started = False
             Log "Stopping"
             If useBcp Then
-                bcpController.SlidesClear(m_modename)
                 bcpController.ModeStop(m_modename)
             End If
             DispatchQueuePinEvent m_name & "_stopping", Null
@@ -16738,18 +16754,12 @@ Sub RunAutoFireDispatchPinEvent(e, kwargs)
         If handlers.Exists(k(1)) Then
             handler = handlers(k(1))
             glf_frame_dispatch_count = glf_frame_dispatch_count + 1
-            'debug.print "Adding Handler for: " & e&"_"&k(1)
-            'glf_dispatch_handlers_await.Add e&"_"&k(1), Array(handler, kwargs, e)
-            'If SwitchHandler(handler(0), Array(handler(2), kwargs, e)) = False Then
-                'debug.print e&"_"&k(1)
-                GetRef(handler(0))(Array(handler(2), kwargs, e))
-            'End If
+            GetRef(handler(0))(Array(handler(2), kwargs, e))
         Else
             Glf_WriteDebugLog "DispatchPinEvent_"&e, "Handler does not exist: " & k(1)
         End If
     Next
     Glf_EventBlocks(e).RemoveAll
-
 End Sub
 
 Function DispatchRelayPinEvent(e, kwargs)

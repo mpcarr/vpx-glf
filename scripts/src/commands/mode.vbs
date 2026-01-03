@@ -433,7 +433,6 @@ Class Mode
             m_started = False
             Log "Stopping"
             If useBcp Then
-                bcpController.SlidesClear(m_modename)
                 bcpController.ModeStop(m_modename)
             End If
             DispatchQueuePinEvent m_name & "_stopping", Null
