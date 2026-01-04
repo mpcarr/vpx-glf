@@ -2959,8 +2959,10 @@ Class GlfVpxBcpController
 
 		If backboxCommand = "" And bcpDebug = False Then
 			m_bcpController.Connect port, bcpLocalPathToGodot, bcpLocalPathToProject            
-		Else
+		ElseIf backboxCommand = "" Then
 			m_bcpController.ConnectToDebug port
+		Else
+			m_bcpController.ConnectToBuild port, backboxCommand
         End If
     
         m_connected = True
