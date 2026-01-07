@@ -17,22 +17,17 @@ One of the key goals of this project is to provide a standalone set of game logi
 - **Event System**: Powerful event-driven architecture for game logic
 - **Player Management**: Track player scores, achievements, and high scores
 - **Light Control**: Advanced lighting effects and animations
-- **Sound Management**: Integrated sound player for game audio
-- **Shot Management**: Configure shots, shot groups, and shot profiles
-- **Multiball Handling**: Create and manage multiball modes
-- **Timer System**: Precise timing control for game events
-- **Tilt Management**: Configurable tilt behavior
+- **Backbox Displays**: Options for segment displays to full LCD Displays
 
 ## Quick Start
 
 1. **Installation**: Follow the [Installation Guide](installing.md) to set up GLF
 2. **Tutorials**: Start with our [tutorial series](tutorial/tutorial-trough.md) to learn the basics
 3. **Configuration**: Explore the [Game Logic](shot.md) documentation to understand available components
-4. **Examples**: Check out example configurations in the documentation
 
 ## Getting Help
 
-- **Community**: Join our community discord for support and discussion
+- **Community**: Reach out to Flux or Apophis on discord and ask for a link to join our community discord for support and discussion.
 
 ## License
 
