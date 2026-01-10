@@ -10639,14 +10639,18 @@ Function GlfShowStepHandler(args)
         Dim slide_item
         Dim slide_items : slide_items = nextStep.SlidesInStep().Items()
         For Each slide_item in slide_items
-            
+            If useBcp = True Then
+                bcpController.PlaySlide slide_item.Slide, "", "", slide_item.Action, slide_item.Expire, slide_item.Priority
+            End If
         Next
     End If
     If UBound(nextStep.WidgetsInStep().Keys())>-1 Then
         Dim widget_item
         Dim widget_items : widget_items = nextStep.WidgetsInStep().Items()
         For Each widget_item in widget_items
-            
+            If useBcp = True Then
+                bcpController.PlayWidget widget_item.Widget, "", "", widget_item.Priority, widget_item.Expire
+            End If
         Next
     End If
 
@@ -10795,6 +10799,20 @@ Class GlfShowStep
             Dim show
             For Each show in m_shows.Items()
                 yaml = yaml & show.ToYaml()
+            Next
+        End If
+        If UBound(m_slides.Keys()) > -1 Then
+            yaml = yaml & "  slides:" & vbCrLf
+            Dim slide
+            For Each slide in m_slides.Items()
+                yaml = yaml & slide.ToYaml()
+            Next
+        End If
+        If UBound(m_widgets.Keys()) > -1 Then
+            yaml = yaml & "  widgets:" & vbCrLf
+            Dim widget
+            For Each widget in m_widgets.Items()
+                yaml = yaml & widget.ToYaml()
             Next
         End If
         ToYaml = yaml

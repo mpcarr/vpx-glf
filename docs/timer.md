@@ -32,7 +32,7 @@ With .Timer("timer_name")
     With .ControlEvents
         .EventName = "add_time"
         .Action = "add"
-        .Value = 5000   ' Add 5000 ticks (or ms, depending on your logic)
+        .Value = 5   ' Add 5 ticks
     End With
     With .ControlEvents
         .EventName = "pause_timer"
@@ -52,7 +52,7 @@ End With
 - `TickInterval`: Interval between timer ticks in milliseconds (Default: 1000)
 
 ### Control Events
-- `ControlEvents`: Configure actions (add, subtract, pause, etc.) that can be triggered by events
+- `ControlEvents`: Configure actions (add, subtract, jump, start, stop, reset, restart,pause, set_tick_internal, change_tick_interval, reset_tick_interval) that can be triggered by events
 
 ### Debug Settings
 - `Debug`: Boolean to enable debug logging for this timer (Default: False)
@@ -81,11 +81,12 @@ End With
 - Timers are managed within the context of a mode
 
 ## Timer Events
-The timer system generates the following events:
-- `timer_name_started`: Fired when the timer starts
-- `timer_name_stopped`: Fired when the timer stops
-- `timer_name_complete`: Fired when the timer reaches its end value
-- `timer_name_tick`: Fired on each timer tick
+The timer system generates the following events
+
+- `timer_NAME_started`: Fired when the timer starts
+- `timer_NAME_stopped`: Fired when the timer stops
+- `timer_NAME_complete`: Fired when the timer reaches its end value
+- `timer_NAME_tick`: Fired on each timer tick
 
 ## Default Behavior
 By default, timers are configured with:

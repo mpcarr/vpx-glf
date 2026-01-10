@@ -39,7 +39,7 @@ End Sub
 
 ### Ejection Control
 - `EjectTimeout`: Integer specifying the timeout in milliseconds for ejection (Default: 1000)
-- `EjectEnableTime`: Integer specifying the enable time in milliseconds for ejection (Default: 0)
+- `EjectEnableTime`: Integer specifying the enable time in milliseconds for ejection (Default: 0).
 - `MechanicalEject`: Boolean indicating whether the device uses mechanical ejection (Default: False)
 - `DefaultDevice`: Boolean indicating whether this is the default ball device (Default: False)
 - `PlayerControlledEjectEvent`: String name of the event that triggers player-controlled ejection (Default: Empty)

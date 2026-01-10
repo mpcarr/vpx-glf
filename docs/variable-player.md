@@ -22,48 +22,6 @@ With CreateGlfMode("mode_name", priority)
 End With
 ```
 
-### Advanced Configuration
-```vbscript
-' Advanced variable player configuration within a mode
-With CreateGlfMode("mode_name", priority)
-    .StartEvents = Array("ball_started")
-    .StopEvents = Array("ball_ended")
-    
-    With .VariablePlayer
-        ' Configure debug
-        .Debug = True
-        
-        ' Configure player variable events
-        With .EventName("ramp_complete")
-            With .Variable("score")
-                .Action = "add"
-                .Int = 1000
-            End With
-            With .Variable("ramps_completed")
-                .Action = "add"
-                .Int = 1
-            End With
-        End With
-        
-        ' Configure machine variable events
-        With .EventName("multiball_start")
-            With .Variable("multiball_count")
-                .Action = "add_machine"
-                .Int = 1
-            End With
-        End With
-        
-        ' Configure variable setting events
-        With .EventName("game_over")
-            With .Variable("high_score")
-                .Action = "set"
-                .Int = 50000
-            End With
-        End With
-    End With
-End With
-```
-
 ## Property Descriptions
 
 ### Variable Actions
@@ -80,67 +38,6 @@ End With
 
 ### Debug Settings
 - `Debug`: Boolean to enable debug logging for this variable player (Default: False)
-
-## Example Configurations
-
-### Basic Variable Player Example
-```vbscript
-' Basic variable player configuration within a mode
-With CreateGlfMode("base", 10)
-    .StartEvents = Array("ball_started")
-    .StopEvents = Array("ball_ended")
-    
-    With .VariablePlayer
-        With .EventName("target_hit")
-            With .Variable("score")
-                .Action = "add"
-                .Int = 100
-            End With
-        End With
-    End With
-End With
-```
-
-### Advanced Variable Player Example
-```vbscript
-' Advanced variable player configuration within a mode
-With CreateGlfMode("multiball", 20)
-    .StartEvents = Array("ball_started")
-    .StopEvents = Array("ball_ended")
-    
-    With .VariablePlayer
-        ' Configure debug
-        .Debug = True
-        
-        ' Configure player variable events
-        With .EventName("jackpot_hit")
-            With .Variable("score")
-                .Action = "add"
-                .Int = 5000
-            End With
-            With .Variable("jackpots_collected")
-                .Action = "add"
-                .Int = 1
-            End With
-        End With
-        
-        ' Configure machine variable events
-        With .EventName("multiball_start")
-            With .Variable("multiball_active")
-                .Action = "set_machine"
-                .Int = 1
-            End With
-        End With
-        
-        With .EventName("multiball_end")
-            With .Variable("multiball_active")
-                .Action = "set_machine"
-                .Int = 0
-            End With
-        End With
-    End With
-End With
-```
 
 ## Machine Variables
 
