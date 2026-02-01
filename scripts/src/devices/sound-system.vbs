@@ -53,7 +53,11 @@ Class GlfSoundBus
                 If useBcp=False Then
                     Exit Sub
                 End If
-                bcpController.PlaySound sound_settings.Sound.NameRaw, "mode", "loobeeloo", 100
+                bcpController.PlaySound sound_settings.Sound.NameRaw, sound_settings.Mode, "", 100
+                If m_current_sounds.Exists(sound_settings.Sound.File) Then
+                    m_current_sounds.Remove sound_settings.Sound.File
+                End If
+                m_current_sounds.Add sound_settings.Sound.File, sound_settings
             End If
         Else
             If (UBound(m_current_sounds.Keys)-1) > m_simultaneous_sounds Then
@@ -90,21 +94,25 @@ Class GlfSoundBus
     End Sub
 
     Public Sub StopSoundWithKey(sound_key)
-        If Not IsEmpty(m_type) Then
-
-        Else
-
-            If m_current_sounds.Exists(sound_key) Then
-                Dim sound_settings : Set sound_settings = m_current_sounds(sound_key)
-                StopSound(sound_key)
-                Dim evt
-                For Each evt in sound_settings.Sound.EventsWhenStopped.Items()
-                    If evt.Evaluate() Then
-                        DispatchPinEvent evt.EventName, Null
+        If m_current_sounds.Exists(sound_key) Then
+            Dim sound_settings : Set sound_settings = m_current_sounds(sound_key)
+            If Not IsEmpty(m_type) Then
+                If m_type = "bcp" Then
+                    If useBcp=False Then
+                        Exit Sub
                     End If
-                Next
-                m_current_sounds.Remove sound_key
+                    bcpController.StopSound sound_settings.Sound.NameRaw
+                End If
+            Else
+                StopSound(sound_key)
             End If
+            Dim evt
+            For Each evt in sound_settings.Sound.EventsWhenStopped.Items()
+                If evt.Evaluate() Then
+                    DispatchPinEvent evt.EventName, Null
+                End If
+            Next
+            m_current_sounds.Remove sound_key
         End If
     End Sub
 

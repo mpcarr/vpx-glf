@@ -314,7 +314,7 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed, co
                             show_settings.Loops = 0
                             show_settings.Speed = speed
                             show_settings.ColorLookup = fade_seq
-                            Set new_running_show = (new GlfRunningShow)(cache_name, show_settings.Key, show_settings, priority+1, Null, Null)
+                            Set new_running_show = (new GlfRunningShow)(cache_name, show_settings.Key, show_settings, priority+1, Null, Null, mode)
                         End If
                     End If
                 End If

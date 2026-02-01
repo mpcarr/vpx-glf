@@ -174,7 +174,7 @@ Class GlfStateMachine
             Dim show : Set show = state_config.ShowWhenActive
             Log "Starting show %s" & m_name & "_" & show.Key
             Dim new_running_show
-            Set new_running_show = (new GlfRunningShow)(m_mode & "_" & m_name & "_" & state_config.Name & "_" & show.Key, show.Key, show, m_priority, Null, state_config.InternalCacheId)
+            Set new_running_show = (new GlfRunningShow)(m_mode & "_" & m_name & "_" & state_config.Name & "_" & show.Key, show.Key, show, m_priority, Null, state_config.InternalCacheId, m_mode)
         End If
     End Sub
 

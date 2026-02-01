@@ -97,6 +97,13 @@ Class GlfShotGroup
     End Property
     Public Property Let EnableEvents(value) : m_base_device.EnableEvents = value : End Property
     Public Property Let DisableEvents(value) : m_base_device.DisableEvents = value : End Property
+
+    Public Property Get GetValue(value)
+        Select Case value
+            Case "common_state"
+                GetValue = CommonState
+        End Select
+    End Property
  
 	Public default Function init(name, mode)
         m_name = name
@@ -118,6 +125,8 @@ Class GlfShotGroup
  
         Set m_base_device = (new GlfBaseModeDevice)(mode, "shot_group", Me)
  
+        glf_shot_groups.Add name, Me
+
         Set Init = Me
 	End Function
  

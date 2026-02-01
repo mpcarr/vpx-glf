@@ -56,7 +56,8 @@ Class GlfVpxBcpController
     
     Public Sub PlaySlide(slide, context, calling_context, action, expire, priorty)
 		If m_connected Then
-            m_bcpController.Send "trigger?json={""name"": ""slides_play"", ""settings"": {""" & slide & """: {""action"": """ & action & """, ""expire"": " & expire & "}}, ""context"": """ & context & """, ""calling_context"": """ & calling_context & """, ""priority"": " & priorty & "}"
+            
+            m_bcpController.Send "trigger?json={""name"": ""slides_play"", ""settings"": {""" & slide & """: {""action"": """ & action & """, ""expire"": " & expire & "}}, ""context"": """ & Replace(context, "mode_", "") & """, ""calling_context"": """ & calling_context & """, ""priority"": " & priorty & "}"
         End If
 	End Sub
 
@@ -68,16 +69,22 @@ Class GlfVpxBcpController
 
     Public Sub PlaySound(sound, context, calling_context, priorty)
 		If m_connected Then
-            m_bcpController.Send "trigger?json={""name"": ""sounds_play"", ""settings"": {""" & sound & """: {""action"": ""play"", ""expire"": 0}}, ""context"": """ & context & """, ""calling_context"": """ & calling_context & """, ""priority"": " & priorty & "}"
+            m_bcpController.Send "trigger?json={""name"": ""sounds_play"", ""settings"": {""" & sound & """: {""action"": ""play"", ""expire"": 0}}, ""context"": """ & Replace(context, "mode_", "") & """, ""calling_context"": """ & calling_context & """, ""priority"": " & priorty & "}"
+        End If
+	End Sub
+
+    Public Sub StopSound(sound)
+		If m_connected Then
+            m_bcpController.Send "trigger?json={""name"": ""sounds_play"", ""settings"": {""" & sound & """: {""action"": ""stop""}}}"
         End If
 	End Sub
 
     Public Sub PlayWidget(widget, context, calling_context, priorty, expire)
 		If m_connected Then
             If IsEmpty(expire) Then
-                m_bcpController.Send "trigger?json={""name"": ""widgets_play"", ""settings"": {""" & widget & """: {""action"": ""play"", ""expire"": null, ""x"": 0, ""y"": 0}}, ""context"": """ & context & """, ""calling_context"": """ & calling_context & """, ""priority"": " & priorty & "}"
+                m_bcpController.Send "trigger?json={""name"": ""widgets_play"", ""settings"": {""" & widget & """: {""action"": ""play"", ""expire"": null, ""x"": 0, ""y"": 0}}, ""context"": """ & Replace(context, "mode_", "") & """, ""calling_context"": """ & calling_context & """, ""priority"": " & priorty & "}"
             Else
-                m_bcpController.Send "trigger?json={""name"": ""widgets_play"", ""settings"": {""" & widget & """: {""action"": ""play"", ""expire"": " & expire & " , ""x"": 0, ""y"": 0}}, ""context"": """ & context & """, ""calling_context"": """ & calling_context & """, ""priority"": " & priorty & "}"
+                m_bcpController.Send "trigger?json={""name"": ""widgets_play"", ""settings"": {""" & widget & """: {""action"": ""play"", ""expire"": " & expire & " , ""x"": 0, ""y"": 0}}, ""context"": """ & Replace(context, "mode_", "") & """, ""calling_context"": """ & calling_context & """, ""priority"": " & priorty & "}"
             End If
         End If
 	End Sub
@@ -93,7 +100,7 @@ Class GlfVpxBcpController
 
     Public Sub SlidesClear(context)
         If m_connected Then
-            m_bcpController.Send "trigger?name=slides_clear&context=" & context
+            m_bcpController.Send "trigger?name=slides_clear&context=" & Replace(context, "mode_", "")
         End If
     End Sub
 

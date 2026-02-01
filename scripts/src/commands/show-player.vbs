@@ -62,7 +62,7 @@ Class GlfShowPlayer
                 PlayOff m_eventValues(evt).Key
             Else
                 Dim new_running_show
-                Set new_running_show = (new GlfRunningShow)(m_name & "_" & m_eventValues(evt).Key, m_eventValues(evt).Key, m_eventValues(evt), m_priority, Null, Null)
+                Set new_running_show = (new GlfRunningShow)(m_name & "_" & m_eventValues(evt).Key, m_eventValues(evt).Key, m_eventValues(evt), m_priority, Null, Null, m_mode)
                 If m_eventValues(evt).BlockQueue = True Then
                     Play = m_name & "_" & m_eventValues(evt).Key & "_" & m_eventValues(evt).Key  & "_unblock_queue"
                 End If

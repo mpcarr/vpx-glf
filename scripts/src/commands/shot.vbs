@@ -217,7 +217,7 @@ Class GlfShot
         If IsObject(profileState) Then
             If Not IsNull(profileState.Show) Then
                 Dim new_running_show
-                Set new_running_show = (new GlfRunningShow)(m_mode & "_" & CStr(m_state) & "_" & m_name & "_" & profileState.Key, profileState.Key, profileState, m_priority + profileState.Priority, m_tokens, m_internal_cache_id)
+                Set new_running_show = (new GlfRunningShow)(m_mode & "_" & CStr(m_state) & "_" & m_name & "_" & profileState.Key, profileState.Key, profileState, m_priority + profileState.Priority, m_tokens, m_internal_cache_id, m_mode)
             End If
         End If
     End Sub

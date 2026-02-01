@@ -16,7 +16,7 @@ Class GlfSoundPlayer
 
         Dim newEvent : Set newEvent = (new GlfEvent)(name)
         m_events.Add newEvent.Raw, newEvent
-        Dim new_sound : Set new_sound = (new GlfSoundPlayerItem)()
+        Dim new_sound : Set new_sound = (new GlfSoundPlayerItem)(m_mode)
         m_eventValues.Add newEvent.Raw, new_sound
         Set EventName = new_sound
         
@@ -121,7 +121,7 @@ End Function
 
 
 Class GlfSoundPlayerItem
-	Private m_sound, m_action, m_key, m_volume, m_loops
+	Private m_sound, m_action, m_key, m_volume, m_loops, m_mode
     
     Public Property Get Action(): Action = m_action: End Property
     Public Property Let Action(input): m_action = input: End Property
@@ -134,6 +134,9 @@ Class GlfSoundPlayerItem
 
     Public Property Get Key(): Key = m_key: End Property
     Public Property Let Key(input): m_key = input: End Property
+
+    Public Property Get Mode(): Mode = m_mode: End Property
+    Public Property Let Mode(input): m_mode = input: End Property
 
     Public Property Get Sound()
         If IsNull(m_sound) Then
@@ -148,12 +151,13 @@ Class GlfSoundPlayerItem
         End If
     End Property
   
-	Public default Function init()
+	Public default Function init(mode)
         m_action = "play"
         m_sound = Null
         m_key = Empty
         m_volume = Empty
         m_loops = Empty
+        m_mode = mode
         Set Init = Me
 	End Function
 

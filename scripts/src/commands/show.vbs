@@ -124,6 +124,7 @@ Class GlfRunningShow
     Private m_internal_cache_id
     Private m_loops
     Private m_shows_added
+    Private m_mode
 
     Public Property Get CacheName(): CacheName = m_show_name & "_" & m_internal_cache_id & "_" & ShowSettings.InternalCacheId: End Property
     Public Property Get Tokens(): Set Tokens = m_tokens : End Property
@@ -133,6 +134,9 @@ Class GlfRunningShow
 
     Public Property Get Priority(): Priority = m_priority End Property
     Public Property Let Priority(input): m_priority = input End Property        
+    
+    Public Property Get Mode(): Mode = m_mode End Property
+    Public Property Let Mode(input): m_mode = input End Property
 
     Public Property Get CurrentStep(): CurrentStep = m_current_step End Property
     Public Property Let CurrentStep(input): m_current_step = input End Property        
@@ -168,11 +172,12 @@ Class GlfRunningShow
         m_shows_added = Null
     End Sub
     
-    Public default Function init(rname, rkey, show_settings, priority, tokens, cache_id)
+    Public default Function init(rname, rkey, show_settings, priority, tokens, cache_id, mode)
         m_show_name = rname
         m_key = rkey
         m_current_step = 0
         m_priority = priority
+        m_mode = mode
         m_internal_cache_id = cache_id
         m_loops=show_settings.Loops
         Set m_show_settings = show_settings
@@ -306,7 +311,7 @@ Function GlfShowStepHandler(args)
                 Dim new_running_show
                 'MsgBox running_show.Priority + running_show.ShowSettings.Priority
                 'msgbox running_show.Key & "_" & show_item.Key
-                Set new_running_show = (new GlfRunningShow)(show_item.Key, show_item.Key, show_item, running_show.Priority + running_show.ShowSettings.Priority, Null, Null)
+                Set new_running_show = (new GlfRunningShow)(show_item.Key, show_item.Key, show_item, running_show.Priority + running_show.ShowSettings.Priority, Null, Null, running_show.Mode)
             End If
         Next
     End If
@@ -322,7 +327,7 @@ Function GlfShowStepHandler(args)
         Dim slide_items : slide_items = nextStep.SlidesInStep().Items()
         For Each slide_item in slide_items
             If useBcp = True Then
-                bcpController.PlaySlide slide_item.Slide, "", "", slide_item.Action, slide_item.Expire, slide_item.Priority
+                bcpController.PlaySlide slide_item.Slide, running_show.Mode, "", slide_item.Action, slide_item.Expire, running_show.Priority + running_show.ShowSettings.Priority
             End If
         Next
     End If
@@ -331,7 +336,19 @@ Function GlfShowStepHandler(args)
         Dim widget_items : widget_items = nextStep.WidgetsInStep().Items()
         For Each widget_item in widget_items
             If useBcp = True Then
-                bcpController.PlayWidget widget_item.Widget, "", "", widget_item.Priority, widget_item.Expire
+                bcpController.PlayWidget widget_item.Widget, running_show.Mode, "", running_show.Priority + running_show.ShowSettings.Priority, widget_item.Expire
+            End If
+        Next
+    End If
+    If UBound(nextStep.SoundsInStep().Keys())>-1 Then
+        Dim sound_item
+        Dim sound_items : sound_items = nextStep.SoundsInStep().Items()
+        For Each sound_item in sound_items
+            sound_item.Mode = running_show.Mode
+            If sound_item.Action = "stop" Then
+                glf_sound_buses(sound_item.Sound.Bus).StopSoundWithKey sound_item.Sound.File
+            Else
+                glf_sound_buses(sound_item.Sound.Bus).Play sound_item
             End If
         Next
     End If
@@ -376,7 +393,7 @@ End Function
 
 Class GlfShowStep
 
-    Private m_lights, m_shows, m_dofs, m_slides, m_widgets, m_time, m_duration, m_isLastStep, m_absTime, m_relTime, m_raw
+    Private m_lights, m_shows, m_dofs, m_slides, m_widgets, m_sounds, m_time, m_duration, m_isLastStep, m_absTime, m_relTime, m_raw
 
     Public Property Get Lights(): Lights = m_lights: End Property
     Public Property Let Lights(input) : m_lights = input: End Property
@@ -413,6 +430,14 @@ Class GlfShowStep
         new_widget.Widget = widget
         m_widgets.Add widget & CStr(UBound(m_widgets.Keys)), new_widget
         Set Widgets = new_widget
+    End Property
+
+    Public Property Get SoundsInStep(): Set SoundsInStep = m_sounds: End Property
+    Public Property Get Sounds(sound)
+        Dim new_sound : Set new_sound = (new GlfSoundPlayerItem)(Empty)
+        new_sound.Sound = sound
+        m_sounds.Add sound & CStr(UBound(m_sounds.Keys)), new_sound
+        Set Sounds = new_sound
     End Property
 
     Public Property Get Time()
@@ -453,6 +478,7 @@ Class GlfShowStep
         Set m_dofs = CreateObject("Scripting.Dictionary")
         Set m_slides = CreateObject("Scripting.Dictionary")
         Set m_widgets = CreateObject("Scripting.Dictionary")
+        Set m_sounds = CreateObject("Scripting.Dictionary")
         Set Init = Me
 	End Function
 
@@ -495,6 +521,13 @@ Class GlfShowStep
             Dim widget
             For Each widget in m_widgets.Items()
                 yaml = yaml & widget.ToYaml()
+            Next
+        End If
+        If UBound(m_sounds.Keys()) > -1 Then
+            yaml = yaml & "  sounds:" & vbCrLf
+            Dim sound
+            For Each sound in m_sounds.Items()
+                yaml = yaml & sound.ToYaml()
             Next
         End If
         ToYaml = yaml
