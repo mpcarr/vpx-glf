@@ -5187,6 +5187,24 @@ Function EnableGlfHighScores()
     high_score_mode.StartEvents = Array("game_ending")
     high_score_mode.StopEvents = Array("high_score_complete")
     high_score_mode.UseWaitQueue = True
+
+    
+    With high_score_mode
+        With .EventPlayer()
+            .Add "s_left_flipper_active", Array("text_input_left")
+            .Add "s_right_flipper_active", Array("text_input_right")
+            .Add "s_start_active", Array("text_input_select")
+        End With
+
+        With .SlidePlayer()
+            With .EventName("high_score_enter_initials")
+                .Slide = "high_score"
+                .Action = "play"
+            End With
+        End With
+        
+    End With
+
     Dim high_score : Set high_score = (new GlfHighScore)(high_score_mode)
     high_score.Debug = True
     Set high_score_mode.HighScore = high_score
@@ -5625,7 +5643,30 @@ Class GlfHighScore
     End Sub
 
     Public Function ToYaml()
-        Dim yaml : yaml = ""
+        Dim yaml,i, key, cat_a1, defaultsKey
+        yaml = "  high_score:" & vbCrLf
+        yaml = yaml & "    _overwrite: true" & vbCrLf
+        yaml = yaml & "    categories: " & vbCrLf
+        If UBound(m_categories.Keys) > -1 Then
+            For Each key in m_categories.keys
+                yaml = yaml &  "      - " & key & ":" & vbCrLf
+                cat_a1 = m_categories(key)
+                
+                For i=0 to UBound(cat_a1)
+                    yaml = yaml & "        - " & cat_a1(i) & vbCrLf
+                Next
+            Next
+        End If
+        yaml = yaml & "    defaults:" & vbCrLf
+        If UBound(m_defaults.Keys) > -1 Then
+            For Each key in m_defaults.keys
+                yaml = yaml &  "      " & key & ":" & vbCrLf
+                Set cat_a1 = m_defaults(key)
+                For Each defaultsKey in cat_a1.Keys
+                    yaml = yaml & "        - " & defaultsKey & ": " & cat_a1(defaultsKey) & vbCrLf
+                Next
+            Next
+        End If
         ToYaml = yaml
     End Function
 
@@ -5956,6 +5997,7 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed, co
         End If
         'glf_debugLog.WriteToLog "LightPlayer", "Adding Light Seq" & Join(lights) & ". Key:" & mode & "_" & key
         Set shows_added = CreateObject("Scripting.Dictionary")
+        
         For Each light in lights(0)
             lightParts = Split(light,"|")
             
@@ -6823,6 +6865,11 @@ Class Mode
             yaml = yaml & vbCrLf
             yaml = yaml & "event_player: " & vbCrLf
             yaml = yaml & m_eventplayer.ToYaml()
+        End If
+
+        If Not IsNull(m_high_score) Then
+            yaml = yaml & vbCrLf
+            yaml = yaml & m_high_score.ToYaml()
         End If
 
         If Not IsNull(m_lightplayer) Then

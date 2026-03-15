@@ -527,6 +527,11 @@ Class Mode
             yaml = yaml & m_eventplayer.ToYaml()
         End If
 
+        If Not IsNull(m_high_score) Then
+            yaml = yaml & vbCrLf
+            yaml = yaml & m_high_score.ToYaml()
+        End If
+
         If Not IsNull(m_lightplayer) Then
             If UBound(m_lightplayer.EventNames)>-1 Then
                 yaml = yaml & vbCrLf
