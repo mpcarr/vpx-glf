@@ -5997,7 +5997,6 @@ Function LightPlayerCallbackHandler(key, lights, mode, priority, play, speed, co
         End If
         'glf_debugLog.WriteToLog "LightPlayer", "Adding Light Seq" & Join(lights) & ". Key:" & mode & "_" & key
         Set shows_added = CreateObject("Scripting.Dictionary")
-        
         For Each light in lights(0)
             lightParts = Split(light,"|")
             
