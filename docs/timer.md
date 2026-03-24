@@ -1,6 +1,6 @@
 # Timer Configuration
 
-The timer configuration allows you to set up and customize countdown or count-up timers in your pinball machine. Timers are useful for creating time-limited modes, bonus rounds, and other time-based events.
+The timer configuration allows you to set up and customize countdown or count-up timers. Timers are useful for creating time-limited modes, bonus rounds, and other time-based events.
 
 ## Configuration Overview
 
@@ -14,7 +14,7 @@ With CreateGlfMode("mode_name", priority)
     .StopEvents = Array("ball_ended")
     
     With .Timer("timer_name")
-        .StartRunning = True         ' Start timer automatically when mode starts
+        .StartRunning = True        ' Start timer automatically when mode starts
         .Direction = "down"         ' Count down
         .StartValue = 10            ' Start at 10
         .EndValue = 0               ' End at 0
@@ -27,15 +27,21 @@ End With
 You can control the timer dynamically using control events. For example, you can add time, pause, or change the tick interval:
 
 ```vbscript
+
+' Example event player to dispatch custom events.
+With .EventPlayer
+    .Add("s_switch01_active", Array("add_ticks_to_my_timer")
+    .Add("s_switch02_active", Array("pause_my_timer")
+End With
+
 With .Timer("timer_name")
-    ' ... basic config ...
     With .ControlEvents
-        .EventName = "add_time"
+        .EventName = "add_ticks_to_my_timer"
         .Action = "add"
-        .Value = 5   ' Add 5 ticks
+        .Value = 5   ' Add 5 ticks,
     End With
     With .ControlEvents
-        .EventName = "pause_timer"
+        .EventName = "pause_my_timer"
         .Action = "pause"
         .Value = 2000   ' Pause for 2 seconds
     End With
@@ -44,41 +50,47 @@ End With
 
 ## Property Descriptions
 
-### Timer Settings
-- `StartRunning`: Boolean, if true, timer starts automatically when the mode starts
-- `Direction`: Direction of the timer ("up" or "down") (Default: "down")
-- `StartValue`: Initial value of the timer (Default: 10)
-- `EndValue`: Final value of the timer (Default: 0)
-- `TickInterval`: Interval between timer ticks in milliseconds (Default: 1000)
+### StartRunning:
+
+type: `boolean` (`True`/`False`). Default: `False`
+
+Controls whether this timer starts running, or whether it
+needs to be started with one of the start control events.
+
+### Direction:
+
+type: `string` (`up`/`down`). Default: `up`
+
+Controls which direction this timer runs in. Options are `up` or `down`.
+
+### start_value:
+
+Single value, type: `integer`
+
+The initial value of the timer. When a timer is restarted, this is the
+value it will always start from. If you ever need to change the value,
+you can use a jump control action to set it to whatever value you want.
+
+### end_value:
+
+Single value, type: `integer`
+
+Specifies what the final value for this timer will be. When the timer
+value equals or exceeds this (for timers counting up), or when it equals
+or is lower than this (for timers counting down), the
+*timer_\(name\)_complete* event is posted and the timer is stopped.
+(If the `restart_on_complete:` setting is true, then the timer is also
+reset back to its `start_value:` and started again.)
+
+### tick_interval:
+
+Single value, type: `integer (milliseconds)`
 
 ### Control Events
 - `ControlEvents`: Configure actions (add, subtract, jump, start, stop, reset, restart,pause, set_tick_internal, change_tick_interval, reset_tick_interval) that can be triggered by events
 
 ### Debug Settings
 - `Debug`: Boolean to enable debug logging for this timer (Default: False)
-
-## Example Configuration
-```vbscript
-With CreateGlfMode("hurry_up", 10)
-    .StartEvents = Array("hurry_up_start")
-    .StopEvents = Array("timer_hurry_up_complete")
-
-    With .Timer("hurry_up_timer")
-        .StartRunning = True
-        .Direction = "down"
-        .StartValue = 15
-        .EndValue = 0
-        .TickInterval = 1000
-    End With
-End With
-```
-
-## Timer System Features
-- Timers can count up or down
-- Timers can be started automatically or controlled by events/actions
-- Timers can have configurable tick intervals
-- Timers can trigger events when they complete
-- Timers are managed within the context of a mode
 
 ## Timer Events
 The timer system generates the following events
@@ -87,23 +99,3 @@ The timer system generates the following events
 - `timer_NAME_stopped`: Fired when the timer stops
 - `timer_NAME_complete`: Fired when the timer reaches its end value
 - `timer_NAME_tick`: Fired on each timer tick
-
-## Default Behavior
-By default, timers are configured with:
-- Not running until started by the mode or a control event
-- Down direction
-- Start value of 10
-- End value of 0
-- Tick interval of 1000 milliseconds (1 second)
-- Debug logging disabled
-
-## Notes
-- Timers are managed within the context of a mode
-- The timer system automatically handles timer ticks and completion
-- Debug logging can be enabled to track timer operations
-- Timers can be configured to work with specific game modes or features
-- The timer system prevents timers from conflicting with each other
-- Countdown timers are useful for creating urgency in game modes
-- Count-up timers are useful for tracking elapsed time
-- Tick events can be used to update displays or trigger other events
-- Timer completion events can be used to end modes or trigger rewards
