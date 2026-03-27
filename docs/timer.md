@@ -65,7 +65,8 @@ Controls which direction this timer runs in. Options are `up` or `down`.
 
 ### start_value:
 
-Single value, type: `integer`
+Single value, type: `integer` or `template`
+([Instructions for entering templates](dynamic_values.md)). Defaults to `0`.
 
 The initial value of the timer. When a timer is restarted, this is the
 value it will always start from. If you ever need to change the value,
@@ -73,7 +74,8 @@ you can use a jump control action to set it to whatever value you want.
 
 ### end_value:
 
-Single value, type: `integer`
+Single value, type: `integer` or `template`
+([Instructions for entering templates](dynamic_values.md)). Defaults to empty.
 
 Specifies what the final value for this timer will be. When the timer
 value equals or exceeds this (for timers counting up), or when it equals
