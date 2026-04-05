@@ -615,6 +615,7 @@ Public Sub Glf_Init(ByRef table)
 	Glf_ReadMachineVars("HighScores")
 	glf_debugLog.WriteToLog "Init", "Finished Creating Machine Vars"
 	'glf_debugLog.WriteToLog "Code String", glf_codestr
+
 	If glf_production_mode = False Then
 		Dim fso1, TxtFileStream1
 		Set fso1 = CreateObject("Scripting.FileSystemObject")
@@ -623,7 +624,9 @@ Public Sub Glf_Init(ByRef table)
 		TxtFileStream1.WriteLine glf_codeFuncRefStr
 		TxtFileStream1.Close
 		ExecuteGlobal glf_codestr
+		'ExecuteGlobal glf_codeFuncRefStr
 	End If
+
 
 	For Each light In Glf_Lights
 		Glf_SetLight light.Name, "000000"
@@ -1399,13 +1402,15 @@ Public Function Glf_ParseDispatchEventInput(value)
 		templateCode = templateCode & vbTab & Glf_ConvertDynamicKwargs(kwargsReplaced, "Glf_" & glf_FuncCount) & vbCrLf
 		templateCode = templateCode & vbTab & "If Err Then Glf_" & glf_FuncCount & " = Null" & vbCrLf
 		templateCode = templateCode & "End Function"
-		If value = "text_input:{action: left}" Then
-			MsgBox templateCode
-		End If
+
 		'msgbox templateCode
 		'ExecuteGlobal templateCode
 		glf_codestr = glf_codestr & templateCode & vbCrLf
 		Dim funcRef : funcRef = "Glf_" & glf_FuncCount
+		If Not glf_funcRefMap.Exists(value) Then
+			glf_codeFuncRefStr = glf_codeFuncRefStr & "glf_funcRefMap.Add """ & Replace(value, """", """""") & """, """ & funcRef & """" & vbCrLf
+			glf_funcRefMap.Add value, funcRef
+		End If
 		glf_FuncCount = glf_FuncCount + 1
 
 		Glf_ParseDispatchEventInput = Array(eventKey, funcRef)

@@ -33,6 +33,7 @@ Class GlfLightSegmentDisplay
     private m_color
     private m_flex_dmd_index
     private m_b2s_dmd_index
+    private m_empty_segment_text
 
     Public Property Get Name() : Name = m_name : End Property
 
@@ -65,6 +66,7 @@ Class GlfLightSegmentDisplay
     Public Property Get SegmentSize() : SegmentSize = m_size : End Property
     Public Property Let SegmentSize(input)
         m_size = input
+        Set m_empty_segment_text =(new GlfInput)("""" & String(m_size, " ") & """")
         CalculateLights()
     End Property
 
@@ -317,8 +319,7 @@ Class GlfLightSegmentDisplay
         Dim top_text_stack_entry, top_is_current
         top_is_current = False
         If m_text_stack.IsEmpty() Then
-            Dim empty_text : Set empty_text = (new GlfInput)("""" & String(m_size, " ") & """")
-            Set top_text_stack_entry = (new GlfTextStackEntry)(empty_text,Null,"off","",Null,Null,999999,"")
+            Set top_text_stack_entry = (new GlfTextStackEntry)(m_empty_segment_text,Null,"off","",Null,Null,999999,"")
         Else
             Set top_text_stack_entry = m_text_stack.Peek()
         End If

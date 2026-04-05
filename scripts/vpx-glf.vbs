@@ -615,6 +615,7 @@ Public Sub Glf_Init(ByRef table)
 	Glf_ReadMachineVars("HighScores")
 	glf_debugLog.WriteToLog "Init", "Finished Creating Machine Vars"
 	'glf_debugLog.WriteToLog "Code String", glf_codestr
+
 	If glf_production_mode = False Then
 		Dim fso1, TxtFileStream1
 		Set fso1 = CreateObject("Scripting.FileSystemObject")
@@ -623,7 +624,9 @@ Public Sub Glf_Init(ByRef table)
 		TxtFileStream1.WriteLine glf_codeFuncRefStr
 		TxtFileStream1.Close
 		ExecuteGlobal glf_codestr
+		'ExecuteGlobal glf_codeFuncRefStr
 	End If
+
 
 	For Each light In Glf_Lights
 		Glf_SetLight light.Name, "000000"
@@ -1399,13 +1402,15 @@ Public Function Glf_ParseDispatchEventInput(value)
 		templateCode = templateCode & vbTab & Glf_ConvertDynamicKwargs(kwargsReplaced, "Glf_" & glf_FuncCount) & vbCrLf
 		templateCode = templateCode & vbTab & "If Err Then Glf_" & glf_FuncCount & " = Null" & vbCrLf
 		templateCode = templateCode & "End Function"
-		If value = "text_input:{action: left}" Then
-			MsgBox templateCode
-		End If
+
 		'msgbox templateCode
 		'ExecuteGlobal templateCode
 		glf_codestr = glf_codestr & templateCode & vbCrLf
 		Dim funcRef : funcRef = "Glf_" & glf_FuncCount
+		If Not glf_funcRefMap.Exists(value) Then
+			glf_codeFuncRefStr = glf_codeFuncRefStr & "glf_funcRefMap.Add """ & Replace(value, """", """""") & """, """ & funcRef & """" & vbCrLf
+			glf_funcRefMap.Add value, funcRef
+		End If
 		glf_FuncCount = glf_FuncCount + 1
 
 		Glf_ParseDispatchEventInput = Array(eventKey, funcRef)
@@ -2903,7 +2908,7 @@ Class GlfBallSearch
         m_devices = Array()
         m_current_device_type = Empty
         Set glf_ballsearch = Me
-        SetDelay "ball_search" , "BallSearchHandler", Array(Array("start", Me), Null), m_timeout.Value
+        SetDelay "ball_search" , "BallSearchHandler", Array(Array("start", Me), Null), 15000
         AddPinEventListener "flipper_cradle", "ball_search_flipper_cradle", "BallSearchHandler", 30, Array("stop", Me)
         AddPinEventListener "flipper_release", "ball_search_flipper_cradle", "BallSearchHandler", 30, Array("reset", Me)
         Set Init = Me
@@ -14261,6 +14266,7 @@ Class GlfLightSegmentDisplay
     private m_color
     private m_flex_dmd_index
     private m_b2s_dmd_index
+    private m_empty_segment_text
 
     Public Property Get Name() : Name = m_name : End Property
 
@@ -14293,6 +14299,7 @@ Class GlfLightSegmentDisplay
     Public Property Get SegmentSize() : SegmentSize = m_size : End Property
     Public Property Let SegmentSize(input)
         m_size = input
+        Set m_empty_segment_text =(new GlfInput)("""" & String(m_size, " ") & """")
         CalculateLights()
     End Property
 
@@ -14545,8 +14552,7 @@ Class GlfLightSegmentDisplay
         Dim top_text_stack_entry, top_is_current
         top_is_current = False
         If m_text_stack.IsEmpty() Then
-            Dim empty_text : Set empty_text = (new GlfInput)("""" & String(m_size, " ") & """")
-            Set top_text_stack_entry = (new GlfTextStackEntry)(empty_text,Null,"off","",Null,Null,999999,"")
+            Set top_text_stack_entry = (new GlfTextStackEntry)(m_empty_segment_text,Null,"off","",Null,Null,999999,"")
         Else
             Set top_text_stack_entry = m_text_stack.Peek()
         End If
