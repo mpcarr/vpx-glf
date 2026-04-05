@@ -40,6 +40,7 @@ Dim glf_modes : Set glf_modes = CreateObject("Scripting.Dictionary")
 Dim glf_timers : Set glf_timers = CreateObject("Scripting.Dictionary")
 Dim glf_shot_groups : Set glf_shot_groups = CreateObject("Scripting.Dictionary")
 Dim glf_codestr : glf_codestr = ""
+Dim glf_codeFuncRefStr : glf_codeFuncRefStr = ""
 Dim glf_state_machines : Set glf_state_machines = CreateObject("Scripting.Dictionary")
 Dim glf_ball_devices : Set glf_ball_devices = CreateObject("Scripting.Dictionary")
 Dim glf_diverters : Set glf_diverters = CreateObject("Scripting.Dictionary")
@@ -196,7 +197,7 @@ Public Sub Glf_Init(ByRef table)
     codestr = codestr & vbCrLf
 
 	ExecuteGlobal codestr
-	
+	Dim light
 	If glf_debugEnabled = True Then
 
 		'***GLFMPF_EXPORT_START***
@@ -205,7 +206,7 @@ Public Sub Glf_Init(ByRef table)
 		Dim scaleFactor
 		scaleFactor = 1080 / tableheight
 
-		Dim light
+		
 		Dim switchNumber : switchNumber = 0
 		Dim lightsNumber : lightsNumber = 0
 		Dim coilsNumber : coilsNumber = 0
@@ -599,9 +600,15 @@ Public Sub Glf_Init(ByRef table)
 		Set fso1 = CreateObject("Scripting.FileSystemObject")
 		Set TxtFileStream1 = fso1.OpenTextFile("cached-functions.vbs", 2, True)
 		TxtFileStream1.WriteLine glf_codestr
+		TxtFileStream1.WriteLine glf_codeFuncRefStr
 		TxtFileStream1.Close
+		ExecuteGlobal glf_codestr
 	End If
 
+	For Each light In Glf_Lights
+		Glf_SetLight light.Name, "000000"
+	Next
+	
 	SetDelay "reset", "Glf_Reset", Null, 1000
 End Sub
 
@@ -1107,10 +1114,27 @@ Public Function Glf_RegisterLights()
 
 	If glf_production_mode = False Then
 		Dim elementDict : Set elementDict = CreateObject("Scripting.Dictionary")
+		Dim tokenIndex : Set tokenIndex = CreateObject("Scripting.Dictionary")
+		Dim e, elName, parts, part, i
 
-		For Each e in GetElements()
-			If typename(e) = "Primitive" or typename(e) = "Flasher"  Then
-				elementDict.Add LCase(e.Name), True
+		For Each e In GetElements()
+			If TypeName(e) = "Primitive" Or TypeName(e) = "Flasher" Then
+				elName = LCase(e.Name)
+				elementDict.Add elName, True
+
+				' Build reverse index from underscore-delimited name tokens
+				parts = Split(elName, "_")
+				For i = 0 To UBound(parts)
+					part = parts(i)
+					If Len(part) > 0 Then
+						If Not tokenIndex.Exists(part) Then
+							Set tokenIndex(part) = CreateObject("Scripting.Dictionary")
+						End If
+						If Not tokenIndex(part).Exists(elName) Then
+							tokenIndex(part).Add elName, True
+						End If
+					End If
+				Next
 			End If
 		Next
 	End If
@@ -1118,8 +1142,8 @@ Public Function Glf_RegisterLights()
 	Dim light, tags, tag
 	For Each light In Glf_Lights
 		tags = Split(light.BlinkPattern, ",")
-		For Each tag in tags
-			
+
+		For Each tag In tags
 			tag = "T_" & Trim(tag)
 			If Not glf_lightTags.Exists(tag) Then
 				Set glf_lightTags(tag) = CreateObject("Scripting.Dictionary")
@@ -1128,34 +1152,53 @@ Public Function Glf_RegisterLights()
 				glf_lightTags(tag).Add light.Name, True
 			End If
 		Next
+
 		glf_lightPriority.Add light.Name, 0
+
 		If glf_production_mode = False Then
-			Dim e, lmStr: lmStr = "Dim glf_" & light.name & "_lmarr : glf_" & light.name & "_lmarr = Array("    
-			For Each e in elementDict.Keys
-				If InStr(e, LCase("_" & light.Name & "_")) Then
-					lmStr = lmStr & e & ","
-				End If
-				For Each tag in tags
-					tag = "T_" & Trim(tag)
-					If InStr(e, LCase("_" & tag & "_")) Then
-						lmStr = lmStr & e & ","
+			Dim lmDict : Set lmDict = CreateObject("Scripting.Dictionary")
+			Dim lmStr : lmStr = "Dim glf_" & light.Name & "_lmarr : glf_" & light.Name & "_lmarr = Array("
+			Dim key
+
+			' Match direct light token
+			key = LCase(light.Name)
+			If tokenIndex.Exists(key) Then
+				For Each e In tokenIndex(key).Keys
+					If Not lmDict.Exists(e) Then 
+						lmDict.Add e, True
 					End If
 				Next
+			End If
+
+			' Match tag tokens
+			For Each tag In tags
+				key = LCase("T_" & Trim(tag))
+				If tokenIndex.Exists(key) Then
+					For Each e In tokenIndex(key).Keys
+						If Not lmDict.Exists(e) Then 
+							lmDict.Add e, True
+						End If
+					Next
+				End If
 			Next
+
+			For Each e In lmDict.Keys
+				lmStr = lmStr & e & ","
+			Next
+
 			lmStr = lmStr & "Null)"
 			lmStr = Replace(lmStr, ",Null)", ")")
 			lmStr = Replace(lmStr, "Null)", ")")
-			ExecuteGlobal lmStr
-			glf_lightMaps.Add light.Name, Eval("glf_" & light.name & "_lmarr")
+
 			glf_codestr = glf_codestr & lmStr & vbCrLf
-			glf_codestr = glf_codestr & "glf_lightMaps.Add """ & light.name & """, glf_" & light.Name & "_lmarr" & vbCrLf
+			glf_codestr = glf_codestr & "glf_lightMaps.Add """ & light.Name & """, glf_" & light.Name & "_lmarr" & vbCrLf
 		End If
 
 		glf_lightNames.Add light.Name, light
-		Dim lightStack : Set lightStack = (new GlfLightStack)()
+		Dim lightStack : Set lightStack = (New GlfLightStack)()
 		glf_lightStacks.Add light.Name, lightStack
 		light.State = 1
-		Glf_SetLight light.Name, "000000"
+		
 	Next
 End Function
 
@@ -1234,11 +1277,11 @@ Public Function Glf_ParseInput(value)
 				templateCode = templateCode & "End Function"
 		End Select
 		'msgbox templateCode
-		ExecuteGlobal templateCode
+		'ExecuteGlobal templateCode
 		glf_codestr = glf_codestr & templateCode & vbCrLf
 		Dim funcRef : funcRef = "Glf_" & glf_FuncCount
 		If Not glf_funcRefMap.Exists(CStr(value)) Then
-			glf_codestr = glf_codestr & "glf_funcRefMap.Add """ & Replace(value, """", """""") & """, """ & funcRef & """" & vbCrLf
+			glf_codeFuncRefStr = glf_codeFuncRefStr & "glf_funcRefMap.Add """ & Replace(value, """", """""") & """, """ & funcRef & """" & vbCrLf
 			glf_funcRefMap.Add CStr(value), funcRef
 		End If
 		glf_FuncCount = glf_FuncCount + 1
@@ -1291,12 +1334,12 @@ Public Function Glf_ParseEventInput(value)
 		templateCode = templateCode & vbTab & Glf_ConvertCondition(conditionReplaced, "Glf_" & glf_FuncCount) & vbCrLf
 		templateCode = templateCode & vbTab & "If Err Then Glf_" & glf_FuncCount & " = False" & vbCrLf
 		templateCode = templateCode & "End Function"
-		ExecuteGlobal templateCode
+		'ExecuteGlobal templateCode
 		glf_codestr = glf_codestr & templateCode & vbCrLf
 		Dim funcRef : funcRef = "Glf_" & glf_FuncCount
 		glf_FuncCount = glf_FuncCount + 1
 		If Not glf_funcRefMap.Exists(value) Then
-			glf_codestr = glf_codestr & "glf_funcRefMap.Add """ & Replace(value, """", """""") & """, """ & funcRef & """" & vbCrLf
+			glf_codeFuncRefStr = glf_codeFuncRefStr & "glf_funcRefMap.Add """ & Replace(value, """", """""") & """, """ & funcRef & """" & vbCrLf
 			glf_funcRefMap.Add value, funcRef
 		End If
 		value = Replace(value, "{"&condition&"}", "")
@@ -1336,9 +1379,12 @@ Public Function Glf_ParseDispatchEventInput(value)
 		templateCode = templateCode & vbTab & Glf_ConvertDynamicKwargs(kwargsReplaced, "Glf_" & glf_FuncCount) & vbCrLf
 		templateCode = templateCode & vbTab & "If Err Then Glf_" & glf_FuncCount & " = Null" & vbCrLf
 		templateCode = templateCode & "End Function"
+		If value = "text_input:{action: left}" Then
+			MsgBox templateCode
+		End If
 		'msgbox templateCode
-		ExecuteGlobal templateCode
-		'glf_codestr = glf_codestr & templateCode & vbCrLf
+		'ExecuteGlobal templateCode
+		glf_codestr = glf_codestr & templateCode & vbCrLf
 		Dim funcRef : funcRef = "Glf_" & glf_FuncCount
 		glf_FuncCount = glf_FuncCount + 1
 
@@ -2244,6 +2290,8 @@ Function CreateGlfMode(name, priority)
 		Dim mode : Set mode = (new Mode)(name, priority)
 		glf_modes.Add name, mode
 		Set CreateGlfMode = mode
+	Else
+		Set CreateGlfMode = glf_modes(name)
 	End If
 End Function
 

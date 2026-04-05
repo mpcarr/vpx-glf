@@ -40,6 +40,7 @@ Dim glf_modes : Set glf_modes = CreateObject("Scripting.Dictionary")
 Dim glf_timers : Set glf_timers = CreateObject("Scripting.Dictionary")
 Dim glf_shot_groups : Set glf_shot_groups = CreateObject("Scripting.Dictionary")
 Dim glf_codestr : glf_codestr = ""
+Dim glf_codeFuncRefStr : glf_codeFuncRefStr = ""
 Dim glf_state_machines : Set glf_state_machines = CreateObject("Scripting.Dictionary")
 Dim glf_ball_devices : Set glf_ball_devices = CreateObject("Scripting.Dictionary")
 Dim glf_diverters : Set glf_diverters = CreateObject("Scripting.Dictionary")
@@ -196,7 +197,7 @@ Public Sub Glf_Init(ByRef table)
     codestr = codestr & vbCrLf
 
 	ExecuteGlobal codestr
-	
+	Dim light
 	If glf_debugEnabled = True Then
 
 		'***GLFMPF_EXPORT_START***
@@ -205,7 +206,7 @@ Public Sub Glf_Init(ByRef table)
 		Dim scaleFactor
 		scaleFactor = 1080 / tableheight
 
-		Dim light
+		
 		Dim switchNumber : switchNumber = 0
 		Dim lightsNumber : lightsNumber = 0
 		Dim coilsNumber : coilsNumber = 0
@@ -599,9 +600,15 @@ Public Sub Glf_Init(ByRef table)
 		Set fso1 = CreateObject("Scripting.FileSystemObject")
 		Set TxtFileStream1 = fso1.OpenTextFile("cached-functions.vbs", 2, True)
 		TxtFileStream1.WriteLine glf_codestr
+		TxtFileStream1.WriteLine glf_codeFuncRefStr
 		TxtFileStream1.Close
+		ExecuteGlobal glf_codestr
 	End If
 
+	For Each light In Glf_Lights
+		Glf_SetLight light.Name, "000000"
+	Next
+	
 	SetDelay "reset", "Glf_Reset", Null, 1000
 End Sub
 
@@ -1107,10 +1114,27 @@ Public Function Glf_RegisterLights()
 
 	If glf_production_mode = False Then
 		Dim elementDict : Set elementDict = CreateObject("Scripting.Dictionary")
+		Dim tokenIndex : Set tokenIndex = CreateObject("Scripting.Dictionary")
+		Dim e, elName, parts, part, i
 
-		For Each e in GetElements()
-			If typename(e) = "Primitive" or typename(e) = "Flasher"  Then
-				elementDict.Add LCase(e.Name), True
+		For Each e In GetElements()
+			If TypeName(e) = "Primitive" Or TypeName(e) = "Flasher" Then
+				elName = LCase(e.Name)
+				elementDict.Add elName, True
+
+				' Build reverse index from underscore-delimited name tokens
+				parts = Split(elName, "_")
+				For i = 0 To UBound(parts)
+					part = parts(i)
+					If Len(part) > 0 Then
+						If Not tokenIndex.Exists(part) Then
+							Set tokenIndex(part) = CreateObject("Scripting.Dictionary")
+						End If
+						If Not tokenIndex(part).Exists(elName) Then
+							tokenIndex(part).Add elName, True
+						End If
+					End If
+				Next
 			End If
 		Next
 	End If
@@ -1118,8 +1142,8 @@ Public Function Glf_RegisterLights()
 	Dim light, tags, tag
 	For Each light In Glf_Lights
 		tags = Split(light.BlinkPattern, ",")
-		For Each tag in tags
-			
+
+		For Each tag In tags
 			tag = "T_" & Trim(tag)
 			If Not glf_lightTags.Exists(tag) Then
 				Set glf_lightTags(tag) = CreateObject("Scripting.Dictionary")
@@ -1128,34 +1152,53 @@ Public Function Glf_RegisterLights()
 				glf_lightTags(tag).Add light.Name, True
 			End If
 		Next
+
 		glf_lightPriority.Add light.Name, 0
+
 		If glf_production_mode = False Then
-			Dim e, lmStr: lmStr = "Dim glf_" & light.name & "_lmarr : glf_" & light.name & "_lmarr = Array("    
-			For Each e in elementDict.Keys
-				If InStr(e, LCase("_" & light.Name & "_")) Then
-					lmStr = lmStr & e & ","
-				End If
-				For Each tag in tags
-					tag = "T_" & Trim(tag)
-					If InStr(e, LCase("_" & tag & "_")) Then
-						lmStr = lmStr & e & ","
+			Dim lmDict : Set lmDict = CreateObject("Scripting.Dictionary")
+			Dim lmStr : lmStr = "Dim glf_" & light.Name & "_lmarr : glf_" & light.Name & "_lmarr = Array("
+			Dim key
+
+			' Match direct light token
+			key = LCase(light.Name)
+			If tokenIndex.Exists(key) Then
+				For Each e In tokenIndex(key).Keys
+					If Not lmDict.Exists(e) Then 
+						lmDict.Add e, True
 					End If
 				Next
+			End If
+
+			' Match tag tokens
+			For Each tag In tags
+				key = LCase("T_" & Trim(tag))
+				If tokenIndex.Exists(key) Then
+					For Each e In tokenIndex(key).Keys
+						If Not lmDict.Exists(e) Then 
+							lmDict.Add e, True
+						End If
+					Next
+				End If
 			Next
+
+			For Each e In lmDict.Keys
+				lmStr = lmStr & e & ","
+			Next
+
 			lmStr = lmStr & "Null)"
 			lmStr = Replace(lmStr, ",Null)", ")")
 			lmStr = Replace(lmStr, "Null)", ")")
-			ExecuteGlobal lmStr
-			glf_lightMaps.Add light.Name, Eval("glf_" & light.name & "_lmarr")
+
 			glf_codestr = glf_codestr & lmStr & vbCrLf
-			glf_codestr = glf_codestr & "glf_lightMaps.Add """ & light.name & """, glf_" & light.Name & "_lmarr" & vbCrLf
+			glf_codestr = glf_codestr & "glf_lightMaps.Add """ & light.Name & """, glf_" & light.Name & "_lmarr" & vbCrLf
 		End If
 
 		glf_lightNames.Add light.Name, light
-		Dim lightStack : Set lightStack = (new GlfLightStack)()
+		Dim lightStack : Set lightStack = (New GlfLightStack)()
 		glf_lightStacks.Add light.Name, lightStack
 		light.State = 1
-		Glf_SetLight light.Name, "000000"
+		
 	Next
 End Function
 
@@ -1234,11 +1277,11 @@ Public Function Glf_ParseInput(value)
 				templateCode = templateCode & "End Function"
 		End Select
 		'msgbox templateCode
-		ExecuteGlobal templateCode
+		'ExecuteGlobal templateCode
 		glf_codestr = glf_codestr & templateCode & vbCrLf
 		Dim funcRef : funcRef = "Glf_" & glf_FuncCount
 		If Not glf_funcRefMap.Exists(CStr(value)) Then
-			glf_codestr = glf_codestr & "glf_funcRefMap.Add """ & Replace(value, """", """""") & """, """ & funcRef & """" & vbCrLf
+			glf_codeFuncRefStr = glf_codeFuncRefStr & "glf_funcRefMap.Add """ & Replace(value, """", """""") & """, """ & funcRef & """" & vbCrLf
 			glf_funcRefMap.Add CStr(value), funcRef
 		End If
 		glf_FuncCount = glf_FuncCount + 1
@@ -1291,12 +1334,12 @@ Public Function Glf_ParseEventInput(value)
 		templateCode = templateCode & vbTab & Glf_ConvertCondition(conditionReplaced, "Glf_" & glf_FuncCount) & vbCrLf
 		templateCode = templateCode & vbTab & "If Err Then Glf_" & glf_FuncCount & " = False" & vbCrLf
 		templateCode = templateCode & "End Function"
-		ExecuteGlobal templateCode
+		'ExecuteGlobal templateCode
 		glf_codestr = glf_codestr & templateCode & vbCrLf
 		Dim funcRef : funcRef = "Glf_" & glf_FuncCount
 		glf_FuncCount = glf_FuncCount + 1
 		If Not glf_funcRefMap.Exists(value) Then
-			glf_codestr = glf_codestr & "glf_funcRefMap.Add """ & Replace(value, """", """""") & """, """ & funcRef & """" & vbCrLf
+			glf_codeFuncRefStr = glf_codeFuncRefStr & "glf_funcRefMap.Add """ & Replace(value, """", """""") & """, """ & funcRef & """" & vbCrLf
 			glf_funcRefMap.Add value, funcRef
 		End If
 		value = Replace(value, "{"&condition&"}", "")
@@ -1336,9 +1379,12 @@ Public Function Glf_ParseDispatchEventInput(value)
 		templateCode = templateCode & vbTab & Glf_ConvertDynamicKwargs(kwargsReplaced, "Glf_" & glf_FuncCount) & vbCrLf
 		templateCode = templateCode & vbTab & "If Err Then Glf_" & glf_FuncCount & " = Null" & vbCrLf
 		templateCode = templateCode & "End Function"
+		If value = "text_input:{action: left}" Then
+			MsgBox templateCode
+		End If
 		'msgbox templateCode
-		ExecuteGlobal templateCode
-		'glf_codestr = glf_codestr & templateCode & vbCrLf
+		'ExecuteGlobal templateCode
+		glf_codestr = glf_codestr & templateCode & vbCrLf
 		Dim funcRef : funcRef = "Glf_" & glf_FuncCount
 		glf_FuncCount = glf_FuncCount + 1
 
@@ -2244,6 +2290,8 @@ Function CreateGlfMode(name, priority)
 		Dim mode : Set mode = (new Mode)(name, priority)
 		glf_modes.Add name, mode
 		Set CreateGlfMode = mode
+	Else
+		Set CreateGlfMode = glf_modes(name)
 	End If
 End Function
 
@@ -2996,10 +3044,28 @@ Class GlfVpxBcpController
         End If
 	End Sub
     
-    Public Sub PlaySlide(slide, context, calling_context, action, expire, priorty)
+    Public Sub PlaySlide(slide, context, calling_context, action, expire, priorty, kwargs)
 		If m_connected Then
-            
-            m_bcpController.Send "trigger?json={""name"": ""slides_play"", ""settings"": {""" & slide & """: {""action"": """ & action & """, ""expire"": " & expire & "}}, ""context"": """ & Replace(context, "mode_", "") & """, ""calling_context"": """ & calling_context & """, ""priority"": " & priorty & "}"
+            Dim kwargsString : kwargsString = ""
+            If Not IsNull(kwargs) Then
+                For Each key In kwargs.Keys
+                    Dim value : value = kwargs(key)
+                    Select Case VarType(value)
+                        Case vbInteger, vbLong
+                            value = value
+                        Case vbSingle, vbDouble
+                            value = value
+                        Case vbString
+                            value = """" & value & """"
+                        Case vbBoolean
+                            value = CStr(value)
+                        Case Else
+                            value = ""
+                    End Select
+                    kwargsString = kwargsString & " ," & """" & key & """: " & value
+                Next
+            End If
+            m_bcpController.Send "trigger?json={""name"": ""slides_play"", ""settings"": {""" & slide & """: {""action"": """ & action & """, ""expire"": " & expire & "}}, ""context"": """ & Replace(context, "mode_", "") & """, ""calling_context"": """ & calling_context & """, ""priority"": " & priorty & kwargsString &"}"
         End If
 	End Sub
 
@@ -3127,11 +3193,38 @@ Sub Glf_BcpSendMachineVar(key, value, prevValue)
     bcpController.SendMachineVariable key, value, prevValue
 End Sub
 
-Sub Glf_BcpSendEvent(evt)
+Sub Glf_BcpSendEvent(evt, kwargs)
     If useBcp=False Then
         Exit Sub
     End If
-    bcpController.Send "trigger?name=" & evt
+
+    Dim kwargsString : kwargsString = ""
+    If Not IsNull(kwargs) Then
+        Dim first : first = True
+        For Each key In kwargs.Keys
+            'If Not first Then
+            '    kwargsString = kwargsString & "&"
+            'End If
+            'msgbox key & ": " & kwargs(key)
+            Dim value : value = kwargs(key)
+            Select Case VarType(value)
+                Case vbInteger, vbLong
+                    value = "int:" & value
+                Case vbSingle, vbDouble
+                    value = "float:" & value
+                Case vbString
+                    value = value
+                Case vbBoolean
+                    value = "bool:" & CStr(value)
+                Case Else
+                    value = "NoneType:"
+            End Select
+            kwargsString = kwargsString & "&" & key & "=" & value
+            first = False
+        Next
+    End If
+
+    bcpController.Send "trigger?name=" & evt & kwargsString
 End Sub
 
 Sub Glf_BcpAddPlayer(playerNum)
@@ -3177,6 +3270,12 @@ Sub Glf_BcpUpdate()
                         glf_monitor_player_vars = True
                         'AddPlayerStateEventListener "score", "bcp_player_var_score_0", 0, "Glf_BcpSendPlayerVar", 1000, Null
                         'AddPlayerStateEventListener "current_ball", "bcp_player_var_ball_0", 0, "Glf_BcpSendPlayerVar", 1000, Null
+                    End If
+                    If category = "machine_vars" Then
+                        Dim key
+                        For Each key In glf_machine_vars.Keys
+                            Glf_BcpSendMachineVar key, glf_machine_vars(key).Value, Null
+                        Next
                     End If
                 case "register_trigger"
                     eventName = message.GetValue("event")
@@ -3759,6 +3858,7 @@ Class GlfBallHold
 
     Public Function HoldBall(device, unclaimed_balls)        
         ' Handle result of _ball_enter event of hold_devices.
+        Log "HoldBall called with " & unclaimed_balls & " unclaimed balls from device " & device
         If IsFull() Then
             Log "Cannot hold balls. Hold is full."
             HoldBall = unclaimed_balls
@@ -4987,7 +5087,7 @@ Class GlfEventPlayer
         Dim evtValue
         For Each evtValue In m_eventValues(evt)
             Log "Dispatching Event: " & evtValue.EventName
-            Glf_BcpSendEvent evtValue.EventName
+            Glf_BcpSendEvent evtValue.EventName, evtValue.Kwargs
             DispatchPinEvent evtValue.EventName, evtValue.Kwargs
         Next
     End Sub
@@ -5183,22 +5283,27 @@ Class GlfGame
 
 End Class
 Function EnableGlfHighScores()
-    Dim high_score_mode : Set high_score_mode = CreateGlfMode("glf_high_scores", 80)
+    Dim high_score_mode : Set high_score_mode = CreateGlfMode("high_scores", 1500)
     high_score_mode.StartEvents = Array("game_ending")
     high_score_mode.StopEvents = Array("high_score_complete")
+    high_score_mode.GameMode = False
     high_score_mode.UseWaitQueue = True
 
     
     With high_score_mode
         With .EventPlayer()
-            .Add "s_left_flipper_active", Array("text_input_left")
-            .Add "s_right_flipper_active", Array("text_input_right")
-            .Add "s_start_active", Array("text_input_select")
+            .Add "s_left_flipper_active", Array("text_input: {action: ""left""}")
+            .Add "s_right_flipper_active", Array("text_input: {action: ""right""}")
+            .Add "s_start_active", Array("text_input: {action: ""select""}")
         End With
 
         With .SlidePlayer()
             With .EventName("high_score_enter_initials")
                 .Slide = "high_score"
+                .Action = "play"
+            End With
+            With .EventName("high_score_award_display")
+                .Slide = "high_score_award"
                 .Action = "play"
             End With
         End With
@@ -5230,6 +5335,8 @@ Class GlfHighScore
     Private m_current_initials
 
     Public Property Get Name() : Name = "high_score" : End Property
+
+    Public Property Get Mode() : Set Mode = m_base_device.Mode : End Property
 
     Public Property Get Categories()
         Set Categories = m_categories
@@ -5630,6 +5737,9 @@ Class GlfHighScore
                             End With
                             'msgbox category & "," & position & ", " & current_label & ", " & current_name & ", " & parts(1)
                             m_highscores(category).Add CStr(position), kwargs
+                            Glf_BcpSendMachineVar category & position & "_label", current_label, ""
+                            Glf_BcpSendMachineVar category & position & "_name", current_name, ""
+                            Glf_BcpSendMachineVar category & position & "_value", parts(1), 0
                     End Select
                 End If
             End If
@@ -5644,29 +5754,32 @@ Class GlfHighScore
 
     Public Function ToYaml()
         Dim yaml,i, key, cat_a1, defaultsKey
-        yaml = "  high_score:" & vbCrLf
-        yaml = yaml & "    _overwrite: true" & vbCrLf
-        yaml = yaml & "    categories: " & vbCrLf
+        yaml = "high_score:" & vbCrLf
+        yaml = yaml & "  _overwrite: true" & vbCrLf
+        yaml = yaml & "  categories: " & vbCrLf
         If UBound(m_categories.Keys) > -1 Then
             For Each key in m_categories.keys
-                yaml = yaml &  "      - " & key & ":" & vbCrLf
+                yaml = yaml & "    " & key & ":" & vbCrLf
                 cat_a1 = m_categories(key)
                 
                 For i=0 to UBound(cat_a1)
-                    yaml = yaml & "        - " & cat_a1(i) & vbCrLf
+                    yaml = yaml & "      - " & cat_a1(i) & vbCrLf
                 Next
             Next
         End If
-        yaml = yaml & "    defaults:" & vbCrLf
+        yaml = yaml & "  defaults:" & vbCrLf
         If UBound(m_defaults.Keys) > -1 Then
             For Each key in m_defaults.keys
-                yaml = yaml &  "      " & key & ":" & vbCrLf
+                yaml = yaml &  "    " & key & ":" & vbCrLf
                 Set cat_a1 = m_defaults(key)
                 For Each defaultsKey in cat_a1.Keys
-                    yaml = yaml & "        - " & defaultsKey & ": " & cat_a1(defaultsKey) & vbCrLf
+                    yaml = yaml & "      - " & defaultsKey & ": " & cat_a1(defaultsKey) & vbCrLf
                 Next
             Next
         End If
+        yaml = yaml & "  enter_initials_timeout: " & m_enter_initials_timeout.Raw & "ms" & vbCrLf
+        yaml = yaml & "  award_slide_display_time: " & m_award_slide_display_time.Raw & "ms" & vbCrLf
+        
         ToYaml = yaml
     End Function
 
@@ -6376,6 +6489,7 @@ Class Mode
     Private m_tilt
     Private m_high_score
     Private m_use_wait_queue
+    Private m_game_mode
 
     Public Property Get Name(): Name = m_name : End Property
     Public Property Get ModeName(): ModeName = m_modename : End Property
@@ -6624,6 +6738,9 @@ Class Mode
     Public Property Get UseWaitQueue(): UseWaitQueue = m_use_wait_queue: End Property
     Public Property Let UseWaitQueue(input): m_use_wait_queue = input: End Property
 
+    Public Property Get GameMode(): GameMode = m_game_mode: End Property
+    Public Property Let GameMode(input): m_game_mode = input: End Property
+
     Public Property Get IsDebug()
         If m_debug = True Then
             IsDebug = 1
@@ -6720,6 +6837,7 @@ Class Mode
         m_modename = name
         m_priority = priority
         m_started = False
+        m_game_mode = True
         Set m_start_events = CreateObject("Scripting.Dictionary")
         Set m_stop_events = CreateObject("Scripting.Dictionary")
         Set m_ballsaves = CreateObject("Scripting.Dictionary")
@@ -6830,7 +6948,13 @@ Class Mode
             Next
             yaml = yaml & vbCrLf
         End If
+        
+        If m_game_mode = False Then
+            yaml = yaml & "  game_mode: false" & vbCrLf
+        End If
+        
         yaml = yaml & "  priority: " & m_priority & vbCrLf
+        
 
         If m_use_wait_queue Then
             yaml = yaml & "  use_wait_queue: true" & vbCrLf
@@ -6892,6 +7016,14 @@ Class Mode
                 yaml = yaml & vbCrLf
                 yaml = yaml & "random_event_player: " & vbCrLf
                 yaml = yaml & m_random_event_player.ToYaml()
+            End If
+        End If
+
+        If Not IsNull(m_queueRelayPlayer) Then
+            If UBound(m_queueRelayPlayer.EventNames)>-1 Then
+                yaml = yaml & vbCrLf
+                yaml = yaml & "queue_relay_player: " & vbCrLf
+                yaml = yaml & m_queueRelayPlayer.ToYaml()
             End If
         End If
 
@@ -7215,10 +7347,19 @@ Class GlfMultiballLocks
             End If
         End If
 
-        DispatchPinEvent m_name & "_locked_ball", balls_locked
+        Dim kwargs : Set kwargs = GlfKwargs()
+        With kwargs
+            .Add "total_balls_locked", balls_locked
+        End With
+
+        DispatchPinEvent m_name & "_locked_ball", kwargs
         
         If balls_locked = m_balls_to_lock Then
-            DispatchPinEvent m_name & "_full", balls_locked
+            Set kwargs = GlfKwargs()
+            With kwargs
+                .Add "balls", balls_locked
+            End With
+            DispatchPinEvent m_name & "_full", kwargs
         End If
 
         Lock = unclaimed_balls - 1
@@ -8004,9 +8145,9 @@ Class GlfQueueRelayPlayer
         If UBound(m_events.Keys) > -1 Then
             For Each key in m_events.keys
                 yaml = yaml & "  " & m_events(key).Raw & ": " & vbCrLf
-                For Each evt in m_eventValues(key)
-                    yaml = yaml & "    - " & evt & vbCrLf
-                Next
+                Set evt = m_eventValues(key)
+                yaml = yaml & "    post: " & evt.Post & vbCrLf
+                yaml = yaml & "    wait_for: " & evt.WaitFor & vbCrLf
             Next
             yaml = yaml & vbCrLf
         End If
@@ -8118,7 +8259,7 @@ Class GlfRandomEventPlayer
             event_to_fire = m_eventValues(evt).GetNextRandomEvent()
             If Not IsEmpty(event_to_fire) Then
                 Log "Dispatching Event: " & event_to_fire
-                Glf_BcpSendEvent event_to_fire
+                Glf_BcpSendEvent event_to_fire, Null
                 DispatchPinEvent event_to_fire, Null
             Else
                 Log "No event available to fire"
@@ -10196,6 +10337,7 @@ Class GlfShowPlayer
     Public Sub Deactivate()
         Dim evt
         For Each evt In m_events.Keys()
+            Log("Removing Event Listener for: " & m_events(evt).EventName   )
             RemovePinEventListener m_events(evt).EventName, m_mode & "_" & m_eventValues(evt).Key & "_show_player_play"
             PlayOff m_eventValues(evt).Key
         Next
@@ -10708,7 +10850,7 @@ Function GlfShowStepHandler(args)
         Dim slide_items : slide_items = nextStep.SlidesInStep().Items()
         For Each slide_item in slide_items
             If useBcp = True Then
-                bcpController.PlaySlide slide_item.Slide, running_show.Mode, "", slide_item.Action, slide_item.Expire, running_show.Priority + running_show.ShowSettings.Priority
+                bcpController.PlaySlide slide_item.Slide, running_show.Mode, "", slide_item.Action, slide_item.Expire, running_show.Priority + running_show.ShowSettings.Priority, Null
             End If
         Next
     End If
@@ -10971,12 +11113,12 @@ Class GlfSlidePlayer
         Next
     End Sub
 
-    Public Function Play(evt)
+    Public Function Play(evt, kwargs)
         Play = Empty
         If m_events(evt).Evaluate() Then
             'Fire Slide
             If useBcp = True Then
-                bcpController.PlaySlide m_eventValues(evt).Slide, m_mode, m_events(evt).EventName, m_eventValues(evt).Action, m_eventValues(evt).Expire, m_priority+m_eventValues(evt).Priority
+                bcpController.PlaySlide m_eventValues(evt).Slide, m_mode, m_events(evt).EventName, m_eventValues(evt).Action, m_eventValues(evt).Expire, m_priority+m_eventValues(evt).Priority, kwargs
             End If
         End If
     End Function
@@ -11017,7 +11159,7 @@ Function SlidePlayerEventHandler(args)
         Case "deactivate"
             slide_player.Deactivate
         Case "play"
-            slide_player.Play(ownProps(2))
+            slide_player.Play ownProps(2), kwargs
     End Select
     If IsObject(args(1)) Then
         Set SlidePlayerEventHandler = kwargs
@@ -11386,7 +11528,7 @@ Class GlfStateMachine
             Dim evt
             For Each evt in state_config.EventsWhenStarted().Items()
                 If evt.Evaluate() = True Then
-                    Glf_BcpSendEvent evt.EventName
+                    Glf_BcpSendEvent evt.EventName, Null
                     DispatchPinEvent evt.EventName, Null
                 End If
             Next
@@ -11408,7 +11550,7 @@ Class GlfStateMachine
             Dim evt
             For Each evt in state_config.EventsWhenStopped().Items()
                 If evt.Evaluate() = True Then
-                    Glf_BcpSendEvent evt.EventName
+                    Glf_BcpSendEvent evt.EventName, Null
                     DispatchPinEvent evt.EventName, Null
                 End If
             Next
@@ -11475,7 +11617,7 @@ Class GlfStateMachine
             Dim evt
             For Each evt in transition.EventsWhenTransitioning().Items()
                 If evt.Evaluate() = True Then
-                    Glf_BcpSendEvent evt.EventName
+                    Glf_BcpSendEvent evt.EventName, Null
                     DispatchPinEvent evt.EventName, Null
                 End If
             Next
@@ -13220,6 +13362,7 @@ Class GlfBallDevice
     Private m_default_device
     Private m_eject_callback
     Private m_eject_all_events
+    Private m_eject_events
     Private m_balls_to_eject
     Private m_ejecting_all
     Private m_ejecting
@@ -13266,6 +13409,13 @@ Class GlfBallDevice
             AddPinEventListener evt, m_name & "_eject_all", "BallDeviceEventHandler", 1000, Array("ball_eject_all", Me)
         Next
     End Property
+    Public Property Let EjectEvents(value)
+        m_eject_events = value
+        Dim evt
+        For Each evt in m_eject_events
+            AddPinEventListener evt, m_name & "_eject_one", "BallDeviceEventHandler", 1000, Array("ball_eject", Me)
+        Next
+    End Property
     Public Property Let EjectTargets(value)
         m_eject_targets = value
         Dim evt
@@ -13298,6 +13448,7 @@ Class GlfBallDevice
         m_name = "balldevice_" & name
         m_ball_switches = Array()
         m_eject_all_events = Array()
+        m_eject_events = Array()
         m_eject_targets = Array()
         m_balls = Array()
         m_debug = False
@@ -16650,6 +16801,12 @@ Function Glf_EndGame(args)
     Else
         glf_machine_vars("player4_score").Value = GetPlayerStateForPlayer("3", "score")
     End If
+
+    Glf_BcpSendMachineVar "player1_score", glf_machine_vars("player1_score").Value, 0
+    Glf_BcpSendMachineVar "player2_score", glf_machine_vars("player2_score").Value, 0
+    Glf_BcpSendMachineVar "player3_score", glf_machine_vars("player3_score").Value, 0
+    Glf_BcpSendMachineVar "player4_score", glf_machine_vars("player4_score").Value, 0
+
     glf_gameStarted = False
     glf_currentPlayer = Null
     glf_playerState.RemoveAll()
