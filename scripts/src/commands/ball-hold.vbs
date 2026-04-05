@@ -154,6 +154,7 @@ Class GlfBallHold
 
     Public Function HoldBall(device, unclaimed_balls)        
         ' Handle result of _ball_enter event of hold_devices.
+        Log "HoldBall called with " & unclaimed_balls & " unclaimed balls from device " & device
         If IsFull() Then
             Log "Cannot hold balls. Hold is full."
             HoldBall = unclaimed_balls
