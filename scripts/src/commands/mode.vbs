@@ -37,6 +37,7 @@ Class Mode
     Private m_tilt
     Private m_high_score
     Private m_use_wait_queue
+    Private m_game_mode
 
     Public Property Get Name(): Name = m_name : End Property
     Public Property Get ModeName(): ModeName = m_modename : End Property
@@ -285,6 +286,9 @@ Class Mode
     Public Property Get UseWaitQueue(): UseWaitQueue = m_use_wait_queue: End Property
     Public Property Let UseWaitQueue(input): m_use_wait_queue = input: End Property
 
+    Public Property Get GameMode(): GameMode = m_game_mode: End Property
+    Public Property Let GameMode(input): m_game_mode = input: End Property
+
     Public Property Get IsDebug()
         If m_debug = True Then
             IsDebug = 1
@@ -381,6 +385,7 @@ Class Mode
         m_modename = name
         m_priority = priority
         m_started = False
+        m_game_mode = True
         Set m_start_events = CreateObject("Scripting.Dictionary")
         Set m_stop_events = CreateObject("Scripting.Dictionary")
         Set m_ballsaves = CreateObject("Scripting.Dictionary")
@@ -491,7 +496,13 @@ Class Mode
             Next
             yaml = yaml & vbCrLf
         End If
+        
+        If m_game_mode = False Then
+            yaml = yaml & "  game_mode: false" & vbCrLf
+        End If
+        
         yaml = yaml & "  priority: " & m_priority & vbCrLf
+        
 
         If m_use_wait_queue Then
             yaml = yaml & "  use_wait_queue: true" & vbCrLf
@@ -553,6 +564,14 @@ Class Mode
                 yaml = yaml & vbCrLf
                 yaml = yaml & "random_event_player: " & vbCrLf
                 yaml = yaml & m_random_event_player.ToYaml()
+            End If
+        End If
+
+        If Not IsNull(m_queueRelayPlayer) Then
+            If UBound(m_queueRelayPlayer.EventNames)>-1 Then
+                yaml = yaml & vbCrLf
+                yaml = yaml & "queue_relay_player: " & vbCrLf
+                yaml = yaml & m_queueRelayPlayer.ToYaml()
             End If
         End If
 
