@@ -131,7 +131,7 @@ Class GlfStateMachine
             Dim evt
             For Each evt in state_config.EventsWhenStarted().Items()
                 If evt.Evaluate() = True Then
-                    Glf_BcpSendEvent evt.EventName
+                    Glf_BcpSendEvent evt.EventName, Null
                     DispatchPinEvent evt.EventName, Null
                 End If
             Next
@@ -153,7 +153,7 @@ Class GlfStateMachine
             Dim evt
             For Each evt in state_config.EventsWhenStopped().Items()
                 If evt.Evaluate() = True Then
-                    Glf_BcpSendEvent evt.EventName
+                    Glf_BcpSendEvent evt.EventName, Null
                     DispatchPinEvent evt.EventName, Null
                 End If
             Next
@@ -220,7 +220,7 @@ Class GlfStateMachine
             Dim evt
             For Each evt in transition.EventsWhenTransitioning().Items()
                 If evt.Evaluate() = True Then
-                    Glf_BcpSendEvent evt.EventName
+                    Glf_BcpSendEvent evt.EventName, Null
                     DispatchPinEvent evt.EventName, Null
                 End If
             Next
