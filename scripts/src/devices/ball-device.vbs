@@ -15,6 +15,7 @@ Class GlfBallDevice
     Private m_default_device
     Private m_eject_callback
     Private m_eject_all_events
+    Private m_eject_events
     Private m_balls_to_eject
     Private m_ejecting_all
     Private m_ejecting
@@ -61,6 +62,13 @@ Class GlfBallDevice
             AddPinEventListener evt, m_name & "_eject_all", "BallDeviceEventHandler", 1000, Array("ball_eject_all", Me)
         Next
     End Property
+    Public Property Let EjectEvents(value)
+        m_eject_events = value
+        Dim evt
+        For Each evt in m_eject_events
+            AddPinEventListener evt, m_name & "_eject_one", "BallDeviceEventHandler", 1000, Array("ball_eject", Me)
+        Next
+    End Property
     Public Property Let EjectTargets(value)
         m_eject_targets = value
         Dim evt
@@ -93,6 +101,7 @@ Class GlfBallDevice
         m_name = "balldevice_" & name
         m_ball_switches = Array()
         m_eject_all_events = Array()
+        m_eject_events = Array()
         m_eject_targets = Array()
         m_balls = Array()
         m_debug = False
