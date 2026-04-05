@@ -1,20 +1,25 @@
 Function EnableGlfHighScores()
-    Dim high_score_mode : Set high_score_mode = CreateGlfMode("glf_high_scores", 80)
+    Dim high_score_mode : Set high_score_mode = CreateGlfMode("high_scores", 1500)
     high_score_mode.StartEvents = Array("game_ending")
     high_score_mode.StopEvents = Array("high_score_complete")
+    high_score_mode.GameMode = False
     high_score_mode.UseWaitQueue = True
 
     
     With high_score_mode
         With .EventPlayer()
-            .Add "s_left_flipper_active", Array("text_input_left")
-            .Add "s_right_flipper_active", Array("text_input_right")
-            .Add "s_start_active", Array("text_input_select")
+            .Add "s_left_flipper_active", Array("text_input: {action: ""left""}")
+            .Add "s_right_flipper_active", Array("text_input: {action: ""right""}")
+            .Add "s_start_active", Array("text_input: {action: ""select""}")
         End With
 
         With .SlidePlayer()
             With .EventName("high_score_enter_initials")
                 .Slide = "high_score"
+                .Action = "play"
+            End With
+            With .EventName("high_score_award_display")
+                .Slide = "high_score_award"
                 .Action = "play"
             End With
         End With
@@ -46,6 +51,8 @@ Class GlfHighScore
     Private m_current_initials
 
     Public Property Get Name() : Name = "high_score" : End Property
+
+    Public Property Get Mode() : Set Mode = m_base_device.Mode : End Property
 
     Public Property Get Categories()
         Set Categories = m_categories
@@ -446,6 +453,9 @@ Class GlfHighScore
                             End With
                             'msgbox category & "," & position & ", " & current_label & ", " & current_name & ", " & parts(1)
                             m_highscores(category).Add CStr(position), kwargs
+                            Glf_BcpSendMachineVar category & position & "_label", current_label, ""
+                            Glf_BcpSendMachineVar category & position & "_name", current_name, ""
+                            Glf_BcpSendMachineVar category & position & "_value", parts(1), 0
                     End Select
                 End If
             End If
@@ -460,29 +470,32 @@ Class GlfHighScore
 
     Public Function ToYaml()
         Dim yaml,i, key, cat_a1, defaultsKey
-        yaml = "  high_score:" & vbCrLf
-        yaml = yaml & "    _overwrite: true" & vbCrLf
-        yaml = yaml & "    categories: " & vbCrLf
+        yaml = "high_score:" & vbCrLf
+        yaml = yaml & "  _overwrite: true" & vbCrLf
+        yaml = yaml & "  categories: " & vbCrLf
         If UBound(m_categories.Keys) > -1 Then
             For Each key in m_categories.keys
-                yaml = yaml &  "      - " & key & ":" & vbCrLf
+                yaml = yaml & "    " & key & ":" & vbCrLf
                 cat_a1 = m_categories(key)
                 
                 For i=0 to UBound(cat_a1)
-                    yaml = yaml & "        - " & cat_a1(i) & vbCrLf
+                    yaml = yaml & "      - " & cat_a1(i) & vbCrLf
                 Next
             Next
         End If
-        yaml = yaml & "    defaults:" & vbCrLf
+        yaml = yaml & "  defaults:" & vbCrLf
         If UBound(m_defaults.Keys) > -1 Then
             For Each key in m_defaults.keys
-                yaml = yaml &  "      " & key & ":" & vbCrLf
+                yaml = yaml &  "    " & key & ":" & vbCrLf
                 Set cat_a1 = m_defaults(key)
                 For Each defaultsKey in cat_a1.Keys
-                    yaml = yaml & "        - " & defaultsKey & ": " & cat_a1(defaultsKey) & vbCrLf
+                    yaml = yaml & "      - " & defaultsKey & ": " & cat_a1(defaultsKey) & vbCrLf
                 Next
             Next
         End If
+        yaml = yaml & "  enter_initials_timeout: " & m_enter_initials_timeout.Raw & "ms" & vbCrLf
+        yaml = yaml & "  award_slide_display_time: " & m_award_slide_display_time.Raw & "ms" & vbCrLf
+        
         ToYaml = yaml
     End Function
 
