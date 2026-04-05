@@ -373,6 +373,12 @@ Function Glf_EndGame(args)
     Else
         glf_machine_vars("player4_score").Value = GetPlayerStateForPlayer("3", "score")
     End If
+
+    Glf_BcpSendMachineVar "player1_score", glf_machine_vars("player1_score").Value, 0
+    Glf_BcpSendMachineVar "player2_score", glf_machine_vars("player2_score").Value, 0
+    Glf_BcpSendMachineVar "player3_score", glf_machine_vars("player3_score").Value, 0
+    Glf_BcpSendMachineVar "player4_score", glf_machine_vars("player4_score").Value, 0
+
     glf_gameStarted = False
     glf_currentPlayer = Null
     glf_playerState.RemoveAll()

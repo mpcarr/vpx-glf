@@ -61,7 +61,7 @@ Class GlfRandomEventPlayer
             event_to_fire = m_eventValues(evt).GetNextRandomEvent()
             If Not IsEmpty(event_to_fire) Then
                 Log "Dispatching Event: " & event_to_fire
-                Glf_BcpSendEvent event_to_fire
+                Glf_BcpSendEvent event_to_fire, Null
                 DispatchPinEvent event_to_fire, Null
             Else
                 Log "No event available to fire"

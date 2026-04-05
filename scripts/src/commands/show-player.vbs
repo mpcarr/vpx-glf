@@ -50,6 +50,7 @@ Class GlfShowPlayer
     Public Sub Deactivate()
         Dim evt
         For Each evt In m_events.Keys()
+            Log("Removing Event Listener for: " & m_events(evt).EventName   )
             RemovePinEventListener m_events(evt).EventName, m_mode & "_" & m_eventValues(evt).Key & "_show_player_play"
             PlayOff m_eventValues(evt).Key
         Next

@@ -54,12 +54,12 @@ Class GlfSlidePlayer
         Next
     End Sub
 
-    Public Function Play(evt)
+    Public Function Play(evt, kwargs)
         Play = Empty
         If m_events(evt).Evaluate() Then
             'Fire Slide
             If useBcp = True Then
-                bcpController.PlaySlide m_eventValues(evt).Slide, m_mode, m_events(evt).EventName, m_eventValues(evt).Action, m_eventValues(evt).Expire, m_priority+m_eventValues(evt).Priority
+                bcpController.PlaySlide m_eventValues(evt).Slide, m_mode, m_events(evt).EventName, m_eventValues(evt).Action, m_eventValues(evt).Expire, m_priority+m_eventValues(evt).Priority, kwargs
             End If
         End If
     End Function
@@ -100,7 +100,7 @@ Function SlidePlayerEventHandler(args)
         Case "deactivate"
             slide_player.Deactivate
         Case "play"
-            slide_player.Play(ownProps(2))
+            slide_player.Play ownProps(2), kwargs
     End Select
     If IsObject(args(1)) Then
         Set SlidePlayerEventHandler = kwargs

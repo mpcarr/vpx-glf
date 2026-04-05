@@ -54,10 +54,28 @@ Class GlfVpxBcpController
         End If
 	End Sub
     
-    Public Sub PlaySlide(slide, context, calling_context, action, expire, priorty)
+    Public Sub PlaySlide(slide, context, calling_context, action, expire, priorty, kwargs)
 		If m_connected Then
-            
-            m_bcpController.Send "trigger?json={""name"": ""slides_play"", ""settings"": {""" & slide & """: {""action"": """ & action & """, ""expire"": " & expire & "}}, ""context"": """ & Replace(context, "mode_", "") & """, ""calling_context"": """ & calling_context & """, ""priority"": " & priorty & "}"
+            Dim kwargsString : kwargsString = ""
+            If Not IsNull(kwargs) Then
+                For Each key In kwargs.Keys
+                    Dim value : value = kwargs(key)
+                    Select Case VarType(value)
+                        Case vbInteger, vbLong
+                            value = value
+                        Case vbSingle, vbDouble
+                            value = value
+                        Case vbString
+                            value = """" & value & """"
+                        Case vbBoolean
+                            value = CStr(value)
+                        Case Else
+                            value = ""
+                    End Select
+                    kwargsString = kwargsString & " ," & """" & key & """: " & value
+                Next
+            End If
+            m_bcpController.Send "trigger?json={""name"": ""slides_play"", ""settings"": {""" & slide & """: {""action"": """ & action & """, ""expire"": " & expire & "}}, ""context"": """ & Replace(context, "mode_", "") & """, ""calling_context"": """ & calling_context & """, ""priority"": " & priorty & kwargsString &"}"
         End If
 	End Sub
 
@@ -185,11 +203,38 @@ Sub Glf_BcpSendMachineVar(key, value, prevValue)
     bcpController.SendMachineVariable key, value, prevValue
 End Sub
 
-Sub Glf_BcpSendEvent(evt)
+Sub Glf_BcpSendEvent(evt, kwargs)
     If useBcp=False Then
         Exit Sub
     End If
-    bcpController.Send "trigger?name=" & evt
+
+    Dim kwargsString : kwargsString = ""
+    If Not IsNull(kwargs) Then
+        Dim first : first = True
+        For Each key In kwargs.Keys
+            'If Not first Then
+            '    kwargsString = kwargsString & "&"
+            'End If
+            'msgbox key & ": " & kwargs(key)
+            Dim value : value = kwargs(key)
+            Select Case VarType(value)
+                Case vbInteger, vbLong
+                    value = "int:" & value
+                Case vbSingle, vbDouble
+                    value = "float:" & value
+                Case vbString
+                    value = value
+                Case vbBoolean
+                    value = "bool:" & CStr(value)
+                Case Else
+                    value = "NoneType:"
+            End Select
+            kwargsString = kwargsString & "&" & key & "=" & value
+            first = False
+        Next
+    End If
+
+    bcpController.Send "trigger?name=" & evt & kwargsString
 End Sub
 
 Sub Glf_BcpAddPlayer(playerNum)
@@ -235,6 +280,12 @@ Sub Glf_BcpUpdate()
                         glf_monitor_player_vars = True
                         'AddPlayerStateEventListener "score", "bcp_player_var_score_0", 0, "Glf_BcpSendPlayerVar", 1000, Null
                         'AddPlayerStateEventListener "current_ball", "bcp_player_var_ball_0", 0, "Glf_BcpSendPlayerVar", 1000, Null
+                    End If
+                    If category = "machine_vars" Then
+                        Dim key
+                        For Each key In glf_machine_vars.Keys
+                            Glf_BcpSendMachineVar key, glf_machine_vars(key).Value, Null
+                        Next
                     End If
                 case "register_trigger"
                     eventName = message.GetValue("event")

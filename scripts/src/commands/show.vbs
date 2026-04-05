@@ -327,7 +327,7 @@ Function GlfShowStepHandler(args)
         Dim slide_items : slide_items = nextStep.SlidesInStep().Items()
         For Each slide_item in slide_items
             If useBcp = True Then
-                bcpController.PlaySlide slide_item.Slide, running_show.Mode, "", slide_item.Action, slide_item.Expire, running_show.Priority + running_show.ShowSettings.Priority
+                bcpController.PlaySlide slide_item.Slide, running_show.Mode, "", slide_item.Action, slide_item.Expire, running_show.Priority + running_show.ShowSettings.Priority, Null
             End If
         Next
     End If

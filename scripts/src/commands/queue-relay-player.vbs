@@ -78,9 +78,9 @@ Class GlfQueueRelayPlayer
         If UBound(m_events.Keys) > -1 Then
             For Each key in m_events.keys
                 yaml = yaml & "  " & m_events(key).Raw & ": " & vbCrLf
-                For Each evt in m_eventValues(key)
-                    yaml = yaml & "    - " & evt & vbCrLf
-                Next
+                Set evt = m_eventValues(key)
+                yaml = yaml & "    post: " & evt.Post & vbCrLf
+                yaml = yaml & "    wait_for: " & evt.WaitFor & vbCrLf
             Next
             yaml = yaml & vbCrLf
         End If

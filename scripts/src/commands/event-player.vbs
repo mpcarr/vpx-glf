@@ -72,7 +72,7 @@ Class GlfEventPlayer
         Dim evtValue
         For Each evtValue In m_eventValues(evt)
             Log "Dispatching Event: " & evtValue.EventName
-            Glf_BcpSendEvent evtValue.EventName
+            Glf_BcpSendEvent evtValue.EventName, evtValue.Kwargs
             DispatchPinEvent evtValue.EventName, evtValue.Kwargs
         Next
     End Sub

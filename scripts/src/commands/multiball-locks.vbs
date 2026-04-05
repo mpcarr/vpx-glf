@@ -135,10 +135,19 @@ Class GlfMultiballLocks
             End If
         End If
 
-        DispatchPinEvent m_name & "_locked_ball", balls_locked
+        Dim kwargs : Set kwargs = GlfKwargs()
+        With kwargs
+            .Add "total_balls_locked", balls_locked
+        End With
+
+        DispatchPinEvent m_name & "_locked_ball", kwargs
         
         If balls_locked = m_balls_to_lock Then
-            DispatchPinEvent m_name & "_full", balls_locked
+            Set kwargs = GlfKwargs()
+            With kwargs
+                .Add "balls", balls_locked
+            End With
+            DispatchPinEvent m_name & "_full", kwargs
         End If
 
         Lock = unclaimed_balls - 1
