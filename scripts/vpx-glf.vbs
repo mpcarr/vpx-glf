@@ -1136,26 +1136,44 @@ Dim glf_tmp_lmarr
 Public Function Glf_RegisterLights()
 
 	If glf_production_mode = False Then
+		Dim spanIndex : Set spanIndex = CreateObject("Scripting.Dictionary")
 		Dim elementDict : Set elementDict = CreateObject("Scripting.Dictionary")
-		Dim tokenIndex : Set tokenIndex = CreateObject("Scripting.Dictionary")
-		Dim e, elName, parts, part, i
+		Dim e, elName, parts, i, j, spanKey
 
 		For Each e In GetElements()
 			If TypeName(e) = "Primitive" Or TypeName(e) = "Flasher" Then
 				elName = LCase(e.Name)
-				elementDict.Add elName, True
 
-				' Build reverse index from underscore-delimited name tokens
+				If Not elementDict.Exists(elName) Then
+					elementDict.Add elName, True
+				End If
+
 				parts = Split(elName, "_")
+
 				For i = 0 To UBound(parts)
-					part = parts(i)
-					If Len(part) > 0 Then
-						If Not tokenIndex.Exists(part) Then
-							Set tokenIndex(part) = CreateObject("Scripting.Dictionary")
+					If Len(parts(i)) > 0 Then
+						spanKey = "_" & parts(i) & "_"
+						If Not spanIndex.Exists(spanKey) Then
+							Set spanIndex(spanKey) = CreateObject("Scripting.Dictionary")
 						End If
-						If Not tokenIndex(part).Exists(elName) Then
-							tokenIndex(part).Add elName, True
+						If Not spanIndex(spanKey).Exists(elName) Then
+							spanIndex(spanKey).Add elName, True
 						End If
+
+						Dim runningSpan
+						runningSpan = parts(i)
+
+						For j = i + 1 To UBound(parts)
+							runningSpan = runningSpan & "_" & parts(j)
+							spanKey = "_" & runningSpan & "_"
+
+							If Not spanIndex.Exists(spanKey) Then
+								Set spanIndex(spanKey) = CreateObject("Scripting.Dictionary")
+							End If
+							If Not spanIndex(spanKey).Exists(elName) Then
+								spanIndex(spanKey).Add elName, True
+							End If
+						Next
 					End If
 				Next
 			End If
@@ -1181,24 +1199,22 @@ Public Function Glf_RegisterLights()
 		If glf_production_mode = False Then
 			Dim lmDict : Set lmDict = CreateObject("Scripting.Dictionary")
 			Dim lmStr : lmStr = "Dim glf_" & light.Name & "_lmarr : glf_" & light.Name & "_lmarr = Array("
-			Dim key
+			Dim lookupKey
 
-			' Match direct light token
-			key = LCase(light.Name)
-			If tokenIndex.Exists(key) Then
-				For Each e In tokenIndex(key).Keys
-					If Not lmDict.Exists(e) Then 
+			lookupKey = "_" & LCase(light.Name) & "_"
+			If spanIndex.Exists(lookupKey) Then
+				For Each e In spanIndex(lookupKey).Keys
+					If Not lmDict.Exists(e) Then
 						lmDict.Add e, True
 					End If
 				Next
 			End If
 
-			' Match tag tokens
 			For Each tag In tags
-				key = LCase("T_" & Trim(tag))
-				If tokenIndex.Exists(key) Then
-					For Each e In tokenIndex(key).Keys
-						If Not lmDict.Exists(e) Then 
+				lookupKey = "_" & LCase("T_" & Trim(tag)) & "_"
+				If spanIndex.Exists(lookupKey) Then
+					For Each e In spanIndex(lookupKey).Keys
+						If Not lmDict.Exists(e) Then
 							lmDict.Add e, True
 						End If
 					Next
@@ -1221,7 +1237,6 @@ Public Function Glf_RegisterLights()
 		Dim lightStack : Set lightStack = (New GlfLightStack)()
 		glf_lightStacks.Add light.Name, lightStack
 		light.State = 1
-		
 	Next
 End Function
 
