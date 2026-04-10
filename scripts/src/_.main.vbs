@@ -1116,7 +1116,7 @@ Public Function Glf_RunHandlers(i)
 		If Not IsEmpty(wait_for) Then
 			Dim remaining_handlers_keys : remaining_handlers_keys = glf_dispatch_handlers_await.Keys
 			Dim remaining_handlers_items : remaining_handlers_items = glf_dispatch_handlers_await.Items
-			AddPinEventListener wait_for, key & "_wait_for", "ContinueDispatchQueuePinEvent", 1000, Array(remaining_handlers_keys, remaining_handlers_items)
+			AddPinEventListener wait_for, key & "_wait_for", "ContinueDispatchQueuePinEvent", 1000, Array(remaining_handlers_keys, remaining_handlers_items, null, wait_for, key & "_wait_for")
 			glf_dispatch_handlers_await.RemoveAll
 			Exit For
 		End If
