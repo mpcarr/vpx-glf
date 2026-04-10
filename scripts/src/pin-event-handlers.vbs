@@ -171,7 +171,7 @@ Function DispatchQueuePinEvent(e, kwargs)
             Glf_WriteDebugLog "DispatchQueuePinEvent"&e, k(1) & "_wait_for"
             Dim wait_for : wait_for = retArgs("wait_for")
             kwargs.Remove "wait_for" 
-            AddPinEventListener wait_for, k(1) & "_wait_for", "ContinueDispatchQueuePinEvent", k(0), Array(e, kwargs, i+1)
+            AddPinEventListener wait_for, k(1) & "_wait_for", "ContinueDispatchQueuePinEvent", k(0), Array(e, kwargs, i+1, wait_for, k(1) & "_wait_for")
             Exit For
             'add event listener for the wait_for event.
             'pass in the index and handlers from this.
@@ -182,8 +182,8 @@ Function DispatchQueuePinEvent(e, kwargs)
 End Function
 
 
-'args Array(3)
-' Array(original_event, orignal_kwargs, index)
+'args Array(5)
+' Array(original_event, original_kwargs, index, wait_for, key)
 ' wait_for kwargs
 ' event
 Function ContinueDispatchQueuePinEvent(args)
@@ -196,6 +196,7 @@ Function ContinueDispatchQueuePinEvent(args)
         kwargs = args(1)
     End If
 
+    RemovePinEventListener ownProps(3), ownProps(4)
 
     Dim i,key,keys,items
     keys=ownProps(0)
