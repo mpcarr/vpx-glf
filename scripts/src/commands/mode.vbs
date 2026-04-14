@@ -559,6 +559,14 @@ Class Mode
             Next
         End If
 
+        If UBound(m_multiballs.Keys)>-1 Then
+            yaml = yaml & vbCrLf
+            yaml = yaml & "multiballs: " & vbCrLf
+            For Each child in m_multiballs.Keys
+                yaml = yaml & m_multiballs(child).ToYaml
+            Next
+        End If
+
         If Not IsNull(m_random_event_player) Then
             If UBound(m_random_event_player.EventNames)>-1 Then
                 yaml = yaml & vbCrLf
