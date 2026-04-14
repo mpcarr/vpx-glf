@@ -7051,6 +7051,14 @@ Class Mode
             Next
         End If
 
+        If UBound(m_multiballs.Keys)>-1 Then
+            yaml = yaml & vbCrLf
+            yaml = yaml & "multiballs: " & vbCrLf
+            For Each child in m_multiballs.Keys
+                yaml = yaml & m_multiballs(child).ToYaml
+            Next
+        End If
+
         If Not IsNull(m_random_event_player) Then
             If UBound(m_random_event_player.EventNames)>-1 Then
                 yaml = yaml & vbCrLf
@@ -7753,11 +7761,16 @@ Class GlfMultiballs
             End If
             balls_added = balls_added + available_balls
         Next
-
+        Log "Balls added: " & balls_added
         glf_BIP = m_balls_live_target
 
         'request remaining balls
         m_queued_balls = (m_balls_added_live - balls_added)
+        Log "Queued Balls: " & m_queued_balls
+        If m_queued_balls < 0 Then
+            m_queued_balls = 0
+        End If
+
         If m_queued_balls > 0 Then
             SetDelay m_name&"_queued_release", "MultiballsHandler" , Array(Array("queue_release", Me),Null), 1000
         End If
@@ -7932,6 +7945,35 @@ Class GlfMultiballs
         m_queued_balls = m_queued_balls - 1
         Log "Queued Balls: " & m_queued_balls
         ReleaseQueuedBalls = m_queued_balls
+    End Function
+
+    Public Function ToYaml
+        Dim yaml, x, key
+        yaml = "  " & Replace(m_name, "multiballs", "") & ":" & vbCrLf
+    
+        Dim start_events_keys : start_events_keys = m_start_events.Keys
+        If UBound(start_events_keys) > -1 Then
+            yaml = yaml & "    start_events: "
+            x=0
+            For Each key in start_events_keys
+                yaml = yaml & m_start_events(key).Raw
+                If x <> UBound(start_events_keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+        
+        yaml = yaml & "    ball_count: " & m_ball_count.Raw & vbCrLf
+        yaml = yaml & "    ball_count_type: " & m_ball_count_type & vbCrLf
+        yaml = yaml & "    shoot_again: " & m_shoot_again.Raw & vbCrLf
+        yaml = yaml & "    hurry_up: " & m_hurry_up.Raw & vbCrLf
+        yaml = yaml & "    grace_period: " & m_grace_period.Raw & vbCrLf
+        yaml = yaml & "    ball_locks: " & Join(m_ball_locks, ", ") & vbCrLf
+        
+
+        ToYaml = yaml
     End Function
 
     Private Sub Log(message)
