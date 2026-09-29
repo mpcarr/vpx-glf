@@ -73,7 +73,7 @@ Class GlfQueueRelayPlayer
     End Sub
 
     Public Function ToYaml()
-        Dim yaml
+        Dim yaml, key
         Dim evt
         If UBound(m_events.Keys) > -1 Then
             For Each key in m_events.keys

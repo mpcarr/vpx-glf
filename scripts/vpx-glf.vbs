@@ -3241,6 +3241,7 @@ Sub Glf_BcpSendEvent(evt, kwargs)
     Dim kwargsString : kwargsString = ""
     If Not IsNull(kwargs) Then
         Dim first : first = True
+        Dim key
         For Each key In kwargs.Keys
             'If Not first Then
             '    kwargsString = kwargsString & "&"
@@ -8230,7 +8231,7 @@ Class GlfQueueRelayPlayer
     End Sub
 
     Public Function ToYaml()
-        Dim yaml
+        Dim yaml, key
         Dim evt
         If UBound(m_events.Keys) > -1 Then
             For Each key in m_events.keys
