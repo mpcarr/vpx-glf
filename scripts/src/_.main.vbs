@@ -264,7 +264,6 @@ Public Sub Glf_Init(ByRef table)
 			lightsYaml = lightsYaml + "  " & light.name & ":"&vbCrLf
 			lightsYaml = lightsYaml + "    number: " & lightsNumber & vbCrLf
 			lightsYaml = lightsYaml + "    subtype: led" & vbCrLf
-			lightsYaml = lightsYaml + "    size: 0.04" & vbCrLf
 			lightsYaml = lightsYaml + "    type: rgb" & vbCrLf
 			lightsYaml = lightsYaml + "    tags: " & light.BlinkPattern & vbCrLf
 			lightsYaml = lightsYaml + "    x: "& light.x/tablewidth & vbCrLf
