@@ -211,6 +211,7 @@ Sub Glf_BcpSendEvent(evt, kwargs)
     Dim kwargsString : kwargsString = ""
     If Not IsNull(kwargs) Then
         Dim first : first = True
+        Dim key
         For Each key In kwargs.Keys
             'If Not first Then
             '    kwargsString = kwargsString & "&"

@@ -275,7 +275,6 @@ Public Sub Glf_Init(ByRef table)
 			lightsYaml = lightsYaml + "  " & light.name & ":"&vbCrLf
 			lightsYaml = lightsYaml + "    number: " & lightsNumber & vbCrLf
 			lightsYaml = lightsYaml + "    subtype: led" & vbCrLf
-			lightsYaml = lightsYaml + "    size: 0.04" & vbCrLf
 			lightsYaml = lightsYaml + "    type: rgb" & vbCrLf
 			lightsYaml = lightsYaml + "    tags: " & light.BlinkPattern & vbCrLf
 			lightsYaml = lightsYaml + "    x: "& light.x/tablewidth & vbCrLf
@@ -3303,6 +3302,7 @@ Sub Glf_BcpSendEvent(evt, kwargs)
     Dim kwargsString : kwargsString = ""
     If Not IsNull(kwargs) Then
         Dim first : first = True
+        Dim key
         For Each key In kwargs.Keys
             'If Not first Then
             '    kwargsString = kwargsString & "&"
@@ -16243,7 +16243,7 @@ Class GlfSoundBus
                 m_current_sounds.Add sound_settings.Sound.File, sound_settings
             End If
         Else
-            If (UBound(m_current_sounds.Keys)-1) > m_simultaneous_sounds Then
+            If Not m_current_sounds.Exists(sound_settings.Sound.File) And m_current_sounds.Count >= m_simultaneous_sounds Then
                 'TODO: Queue Sound
             Else
                 If m_current_sounds.Exists(sound_settings.Sound.File) Then
