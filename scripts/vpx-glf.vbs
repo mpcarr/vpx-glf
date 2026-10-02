@@ -108,9 +108,7 @@ Dim glf_debug_level : glf_debug_level = "Info"
 Dim glf_ball1, glf_ball2, glf_ball3, glf_ball4, glf_ball5, glf_ball6, glf_ball7, glf_ball8	
 
 Public Sub Glf_ConnectToBCPMediaController(args)
-	If glf_production_mode = True Then
-		Dim fso
-		Set fso = CreateObject("Scripting.FileSystemObject")		
+	If glf_production_mode = True Then		
 		Set bcpController = (new GlfVpxBcpController)(bcpPort, bcpExeName)	
 	Else
 		Set bcpController = (new GlfVpxBcpController)(bcpPort, "")
