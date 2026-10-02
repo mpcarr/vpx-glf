@@ -88,7 +88,10 @@ Dim glf_max_dispatch : glf_max_dispatch = 25
 Dim glf_max_lightmap_sync : glf_max_lightmap_sync = -1
 Dim glf_max_lightmap_sync_enabled : glf_max_lightmap_sync_enabled = False
 Dim glf_max_lights_test : glf_max_lights_test = 0
-
+Dim GlfSwitchNameMap
+Set GlfSwitchNameMap = CreateObject("Scripting.Dictionary")
+GlfSwitchNameMap.Add "kwargs.", ""
+Dim soundUidMap : Set soundUidMap = CreateObject("Scripting.Dictionary")
 Dim glf_master_volume : glf_master_volume = 0.8
 
 Dim glf_table
@@ -152,6 +155,9 @@ Sub Glf_AddTablePart(ByVal s)
 	glf_parts(glf_parts_idx) = s
 	glf_parts_idx = glf_parts_idx + 1
 End Sub
+
+
+
 
 Public Sub Glf_Init(ByRef table)
     Set glf_table = table
@@ -235,8 +241,12 @@ Public Sub Glf_Init(ByRef table)
 		coilsYaml = coilsYaml + "coils:" & vbCrLf
 		Dim shotProfilesYaml : shotProfilesYaml = "#config_version=6" & vbCrLf & vbCrLf
 		shotProfilesYaml = shotProfilesYaml + "shot_profiles:" & vbCrLf
+		Dim sound, soundsYaml : soundsYaml = "#config_version=6" & vbCrLf & vbCrLf
+		soundsYaml = soundsYaml + "sounds:" & vbCrLf
 		Dim playerVarsYaml : playerVarsYaml = "#config_version=6" & vbCrLf & vbCrLf
 		playerVarsYaml = playerVarsYaml + "player_vars:" & vbCrLf
+		Dim machineVarsYaml : machineVarsYaml = "#config_version=6" & vbCrLf & vbCrLf
+		machineVarsYaml = machineVarsYaml + "machine_vars:" & vbCrLf
 		Dim ballDevicesYaml : ballDevicesYaml = "#config_version=6" & vbCrLf & vbCrLf
 		ballDevicesYaml = ballDevicesYaml + "ball_devices:" & vbCrLf
 		Dim configYaml : configYaml = "#config_version=6" & vbCrLf & vbCrLf
@@ -245,6 +255,7 @@ Public Sub Glf_Init(ByRef table)
 		configYaml = configYaml + "  - ball_devices.yaml" & vbCrLf
 		configYaml = configYaml + "  - coils.yaml" & vbCrLf
 		configYaml = configYaml + "  - switches.yaml" & vbCrLf
+		configYaml = configYaml + "  - sounds.yaml" & vbCrLf
 		configYaml = configYaml + vbCrLf
 		configYaml = configYaml + "playfields:" & vbCrLf
 		configYaml = configYaml + "  playfield:" & vbCrLf
@@ -287,6 +298,10 @@ Public Sub Glf_Init(ByRef table)
 
 			godotLightScene = godotLightScene + "tags = ["&outputTagString&"]" & vbCrLf
 			godotLightScene = godotLightScene + vbCrLf
+		Next
+
+		For Each sound in glf_sounds.Items()
+			soundsYaml = soundsYaml + sound.ToYaml() & vbCrLf	
 		Next
 
 		monitorYaml = monitorYaml + vbCrLf
@@ -428,6 +443,22 @@ Public Sub Glf_Init(ByRef table)
         	End Select
     	Next
 
+		init_var_keys = glf_machine_vars.Keys()
+    	init_var_items = glf_machine_vars.Items()
+		For init_index=0 To UBound(init_var_keys)
+			machineVarsYaml = machineVarsYaml + "  " & init_var_keys(init_index) & ":" & vbCrLf
+			machineVarsYaml = machineVarsYaml + "    initial_value: " & init_var_items(init_index).Value & vbCrLf
+			machineVarsYaml = machineVarsYaml + "    persist: " & init_var_items(init_index).Persist & vbCrLf
+			Select Case VarType(init_var_items(init_index).Value)
+				Case vbInteger, vbLong
+					machineVarsYaml = machineVarsYaml + "    value_type: int" & vbCrLf
+				Case vbSingle, vbDouble
+					machineVarsYaml = machineVarsYaml + "    value_type: float" & vbCrLf
+				Case vbString
+					machineVarsYaml = machineVarsYaml + "    value_type: str" & vbCrLf
+			End Select
+    	Next
+
 		Dim fso, modesFolder, TxtFileStream, monitorFolder, configFolder, showsFolder
 		Set fso = CreateObject("Scripting.FileSystemObject")
 		monitorFolder = "glf_mpf\monitor\"
@@ -445,32 +476,47 @@ Public Sub Glf_Init(ByRef table)
 		If Not fso.FolderExists("glf_mpf\shows") Then
 			fso.CreateFolder "glf_mpf\shows"
 		End If
+		If Not fso.FolderExists("glf_mpf\sounds") Then
+			fso.CreateFolder "glf_mpf\sounds"
+		End If
 		Set TxtFileStream = fso.OpenTextFile(monitorFolder & "\monitor.yaml", 2, True)
-		TxtFileStream.WriteLine monitorYaml
+		TxtFileStream.WriteLine GlfReplaceSwitchNames(monitorYaml)
 		TxtFileStream.Close
 		Set TxtFileStream = fso.OpenTextFile(configFolder & "\config.yaml", 2, True)
-		TxtFileStream.WriteLine configYaml
+		TxtFileStream.WriteLine GlfReplaceSwitchNames(configYaml)
 		TxtFileStream.Close
 		Set TxtFileStream = fso.OpenTextFile(configFolder & "\ball_devices.yaml", 2, True)
-		TxtFileStream.WriteLine ballDevicesYaml
+		TxtFileStream.WriteLine GlfReplaceSwitchNames(ballDevicesYaml)
 		TxtFileStream.Close
 		Set TxtFileStream = fso.OpenTextFile(configFolder & "\coils.yaml", 2, True)
-		TxtFileStream.WriteLine coilsYaml
+		TxtFileStream.WriteLine GlfReplaceSwitchNames(coilsYaml)
 		TxtFileStream.Close
 		Set TxtFileStream = fso.OpenTextFile(configFolder & "\shot_profiles.yaml", 2, True)
-		TxtFileStream.WriteLine shotProfilesYaml
+		TxtFileStream.WriteLine GlfReplaceSwitchNames(shotProfilesYaml)
 		TxtFileStream.Close
+		Set TxtFileStream = fso.OpenTextFile(configFolder & "\sounds.yaml", 2, True)
+		TxtFileStream.WriteLine GlfReplaceSwitchNames(soundsYaml)
+		TxtFileStream.Close
+		For Each sound In glf_sounds.Items()
+			Set txtFileStream = fso.OpenTextFile("glf_mpf\sounds\" & sound.File & ".tres", 2, True)
+			txtFileStream.Write sound.ToTres(soundUidMap)
+			txtFileStream.Close
+			Set txtFileStream = Nothing
+		Next
 		Set TxtFileStream = fso.OpenTextFile(configFolder & "\player_vars.yaml", 2, True)
-		TxtFileStream.WriteLine playerVarsYaml
+		TxtFileStream.WriteLine GlfReplaceSwitchNames(playerVarsYaml)
+		TxtFileStream.Close
+		Set TxtFileStream = fso.OpenTextFile(configFolder & "\machine_vars.yaml", 2, True)
+		TxtFileStream.WriteLine GlfReplaceSwitchNames(machineVarsYaml)
 		TxtFileStream.Close
 		Set TxtFileStream = fso.OpenTextFile(configFolder & "\switches.yaml", 2, True)
-		TxtFileStream.WriteLine switchesYaml
+		TxtFileStream.WriteLine GlfReplaceSwitchNames(switchesYaml)
 		TxtFileStream.Close
 		Set TxtFileStream = fso.OpenTextFile(configFolder & "\lights.yaml", 2, True)
-		TxtFileStream.WriteLine lightsYaml
+		TxtFileStream.WriteLine GlfReplaceSwitchNames(lightsYaml)
 		TxtFileStream.Close
 		Set TxtFileStream = fso.OpenTextFile(monitorFolder & "\gotdotlights.txt", 2, True)
-		TxtFileStream.WriteLine godotLightScene
+		TxtFileStream.WriteLine GlfReplaceSwitchNames(godotLightScene)
 		TxtFileStream.Close
 		Dim showsYaml
 		For Each device in glf_shows.Items()
@@ -606,6 +652,11 @@ Public Sub Glf_Init(ByRef table)
         .ValueType = "int"
         .Persist = True
     End With
+	With CreateMachineVar("last_game_players")
+        .InitialValue = 0
+        .ValueType = "int"
+        .Persist = False
+    End With
 
 	If Not IsNull(glf_highscore) Then
 		glf_highscore.WriteDefaults()
@@ -634,6 +685,15 @@ Public Sub Glf_Init(ByRef table)
 	
 	SetDelay "reset", "Glf_Reset", Null, 1000
 End Sub
+
+Function GlfReplaceSwitchNames(inputText)
+    Dim key
+    GlfReplaceSwitchNames = inputText
+
+    For Each key In GlfSwitchNameMap.Keys
+        GlfReplaceSwitchNames = Replace(GlfReplaceSwitchNames, key, GlfSwitchNameMap(key))
+    Next
+End Function
 
 Sub Glf_Reset(args)
 	DispatchQueuePinEvent "reset_complete", Null
@@ -1425,6 +1485,8 @@ Public Function Glf_ParseDispatchEventInput(value)
 		If Not glf_funcRefMap.Exists(value) Then
 			glf_codeFuncRefStr = glf_codeFuncRefStr & "glf_funcRefMap.Add """ & Replace(value, """", """""") & """, """ & funcRef & """" & vbCrLf
 			glf_funcRefMap.Add value, funcRef
+		Else
+			funcRef = glf_funcRefMap(CStr(value))
 		End If
 		glf_FuncCount = glf_FuncCount + 1
 
@@ -2875,7 +2937,7 @@ Function EnableGlfBallSearch()
             .Switches = Array("s_left_flipper", "s_right_flipper")
             .Time = 3000
             .EventsWhenActive = Array("flipper_cradle")
-            .EventsWhenReleased = Array("flipper_release")
+            .EventsWhenReleased = Array("flipper_cradle_release")
         End With
     End With
     glf_ballsearch_enabled = True
@@ -2925,7 +2987,7 @@ Class GlfBallSearch
         Set glf_ballsearch = Me
         SetDelay "ball_search" , "BallSearchHandler", Array(Array("start", Me), Null), 15000
         AddPinEventListener "flipper_cradle", "ball_search_flipper_cradle", "BallSearchHandler", 30, Array("stop", Me)
-        AddPinEventListener "flipper_release", "ball_search_flipper_cradle", "BallSearchHandler", 30, Array("reset", Me)
+        AddPinEventListener "flipper_cradle_release", "ball_search_flipper_cradle", "BallSearchHandler", 30, Array("reset", Me)
         Set Init = Me
     End Function
 
@@ -3073,7 +3135,7 @@ Class GlfVpxBcpController
 
     Public Function GetMessages
 		If m_connected Then
-            GetMessages = m_bcpController.GetMessages
+            GetMessages = BcpDrainMessages(m_bcpController)
         End If
 	End Function
 
@@ -3362,6 +3424,48 @@ End Function
 '*****************************************************************************************************************************************
 '  END Vpx Glf Bcp Controller
 '*****************************************************************************************************************************************
+
+' Shared native/C# message adapter. Include this function only once per table.
+Function BcpDrainMessages(controller)
+    Dim result(), count, message
+    Dim errorNumber, errorSource, errorDescription
+
+    ' Probe by reading once; retain that first message if the native API exists.
+    ' Only a missing member permits fallback. Other failures must reach the caller.
+    On Error Resume Next
+    Err.Clear
+    Set message = controller.ReadMessage()
+    errorNumber = Err.Number
+    errorSource = Err.Source
+    errorDescription = Err.Description
+    On Error GoTo 0
+
+    Select Case errorNumber
+        Case 438, -2147352570, -2147352573 ' Unsupported member / unknown name / member not found
+            BcpDrainMessages = controller.GetMessages()
+            Exit Function
+        Case 0
+            ' Native controller: continue draining below.
+        Case Else
+            Err.Raise errorNumber, errorSource, errorDescription
+    End Select
+
+    count = 0
+    Do
+        If message Is Nothing Then Exit Do
+        ReDim Preserve result(count)
+        Set result(count) = message
+        count = count + 1
+        Set message = controller.ReadMessage()
+    Loop
+    If count = 0 Then
+        BcpDrainMessages = Array()
+    Else
+        BcpDrainMessages = result
+    End If
+End Function
+
+
 
 
 '*****************************************************************************************************************************************
@@ -5266,6 +5370,29 @@ Class GlfExtraBall
         End If
     End Sub
 
+    Public Function ToYaml
+        Dim yaml, x, key
+        yaml = "  " & m_command_name & ":" & vbCrLf
+
+        Dim award_events_keys : award_events_keys = m_award_events.Keys
+        If UBound(award_events_keys) > -1 Then
+            yaml = yaml & "    award_events: "
+            x=0
+            For Each key in award_events_keys
+                yaml = yaml & m_award_events(key).Raw
+                If x <> UBound(award_events_keys) Then
+                    yaml = yaml & ", "
+                End If
+                x = x + 1
+            Next
+            yaml = yaml & vbCrLf
+        End If
+
+        yaml = yaml & "    max_per_game: " & m_max_per_game.Raw() & vbCrLf
+
+        ToYaml = yaml
+    End Function
+
     Private Sub Log(message)
         If m_debug = True Then
             glf_debugLog.WriteToLog m_name, message
@@ -7030,6 +7157,14 @@ Class Mode
             yaml = yaml & m_eventplayer.ToYaml()
         End If
 
+        If UBound(m_extra_balls.Keys)>-1 Then
+            yaml = yaml & vbCrLf
+            yaml = yaml & "extra_balls: " & vbCrLf
+            For Each child in m_extra_balls.Keys
+                yaml = yaml & m_extra_balls(child).ToYaml
+            Next
+        End If
+
         If Not IsNull(m_high_score) Then
             yaml = yaml & vbCrLf
             yaml = yaml & m_high_score.ToYaml()
@@ -7203,7 +7338,7 @@ Class Mode
 
         
         Set TxtFileStream = fso.OpenTextFile(modesFolder & "\" & Replace(m_name, "mode_", "") & ".yaml", 2, True)
-        TxtFileStream.WriteLine yaml
+        TxtFileStream.WriteLine GlfReplaceSwitchNames(yaml)
         TxtFileStream.Close
 
         ToYaml = yaml
@@ -7949,7 +8084,7 @@ Class GlfMultiballs
 
     Public Function ToYaml
         Dim yaml, x, key
-        yaml = "  " & Replace(m_name, "multiballs", "") & ":" & vbCrLf
+        yaml = "  " & Replace(m_name, "multiball_", "") & ":" & vbCrLf
     
         Dim start_events_keys : start_events_keys = m_start_events.Keys
         If UBound(start_events_keys) > -1 Then
@@ -7968,7 +8103,7 @@ Class GlfMultiballs
         yaml = yaml & "    ball_count: " & m_ball_count.Raw & vbCrLf
         yaml = yaml & "    ball_count_type: " & m_ball_count_type & vbCrLf
         yaml = yaml & "    shoot_again: " & m_shoot_again.Raw & vbCrLf
-        yaml = yaml & "    hurry_up: " & m_hurry_up.Raw & vbCrLf
+        yaml = yaml & "    hurry_up_time: " & m_hurry_up.Raw & vbCrLf
         yaml = yaml & "    grace_period: " & m_grace_period.Raw & vbCrLf
         yaml = yaml & "    ball_locks: " & Join(m_ball_locks, ", ") & vbCrLf
         
@@ -8231,7 +8366,7 @@ Class GlfQueueRelayPlayer
 
     Public Function ToYaml()
         Dim yaml
-        Dim evt
+        Dim evt, key
         If UBound(m_events.Keys) > -1 Then
             For Each key in m_events.keys
                 yaml = yaml & "  " & m_events(key).Raw & ": " & vbCrLf
@@ -9800,6 +9935,7 @@ Class GlfShotProfile
     Public Function ToYaml()
         Dim yaml
         yaml = yaml & "  " & Replace(m_name, "shotprofile_", "") & ":" & vbCrLf
+        yaml = yaml & "    advance_on_hit: " & m_advance_on_hit & vbCrLf
         yaml = yaml & "    states: " & vbCrLf
         Dim token,evt,state,x : x = 0
         For Each evt in m_states.Keys
@@ -9817,12 +9953,12 @@ Class GlfShotProfile
                 yaml = yaml & "       show_tokens: " & vbCrLf
                 Dim state_tokens : Set state_tokens = state.Tokens()
                 For Each token in state_tokens.Keys()
-                    yaml = yaml & "         " & token & ": " & state_tokens(token) & vbCrLf
+                    yaml = yaml & "         " & token & ": """ & state_tokens(token) & """" & vbCrLf
                 Next
             End If
 
             'yaml = yaml & "     block: " & m_block & vbCrLf
-            yaml = yaml & "     advance_on_hit: " & m_advance_on_hit & vbCrLf
+            
             'yaml = yaml & "     loop: " & m_loop & vbCrLf
             'yaml = yaml & "     rotation_pattern: " & m_rotation_pattern & vbCrLf
             'yaml = yaml & "     state_names_to_not_rotate: " & m_states_not_to_rotate & vbCrLf
@@ -10199,7 +10335,7 @@ Class GlfShot
             If IsArray(m_tokens(key)) Then
                 yaml = yaml & "      " & key & ": " & Join(m_tokens(key), ",") & vbCrLf
             Else  
-                yaml = yaml & "      " & key & ": " & m_tokens(key) & vbCrLf
+                yaml = yaml & "      " & key & ": """ & m_tokens(key) & """" & vbCrLf
             End If
         Next
 
@@ -10579,7 +10715,7 @@ Class GlfShowPlayerItem
             yaml = yaml & "      show_tokens: " & vbCrLf
             Dim key
             For Each key in m_tokens.Keys
-                yaml = yaml & "        " & key & ": " & m_tokens(key) & vbCrLf
+                yaml = yaml & "        " & key & ": """ & m_tokens(key) & """" & vbCrLf
             Next
         End If
 
@@ -10960,6 +11096,12 @@ Function GlfShowStepHandler(args)
             sound_item.Mode = running_show.Mode
             If sound_item.Action = "stop" Then
                 glf_sound_buses(sound_item.Sound.Bus).StopSoundWithKey sound_item.Sound.File
+                Dim evt
+                For Each evt in sound_item.EventsWhenStopped.Items()
+                    If evt.Evaluate() Then
+                        DispatchPinEvent evt.EventName, Null
+                    End If
+                Next
             Else
                 glf_sound_buses(sound_item.Sound.Bus).Play sound_item
             End If
@@ -11106,12 +11248,20 @@ Class GlfShowStep
                 If UBound(light_parts) = 1 Then
                     yaml = yaml & "    " & light_parts(0) & ": ffffff%" & light_parts(1) & vbCrLf
                 Else
-                    If light_parts(2) = "stop" Then
-                        yaml = yaml & "    " & light_parts(0) & ": stop" & vbCrLf    
+                    If UBound(light_parts) = 3 Then
+                        'Includes a fade time
+                        If light_parts(2) = "stop" Then
+                            yaml = yaml & "    " & light_parts(0) & ": stop" & vbCrLf    
+                        Else
+                            yaml = yaml & "    " & light_parts(0) & ": " & light_parts(2) & "%" & light_parts(1) & "-f" & light_parts(3) & vbCrLf
+                        End If
                     Else
-                        yaml = yaml & "    " & light_parts(0) & ": " & light_parts(2) & "%" & light_parts(1) & vbCrLf
+                        If light_parts(2) = "stop" Then
+                            yaml = yaml & "    " & light_parts(0) & ": stop" & vbCrLf    
+                        Else
+                            yaml = yaml & "    " & light_parts(0) & ": " & light_parts(2) & "%" & light_parts(1) & vbCrLf
+                        End If
                     End If
-                    
                 End If
             Next
         End If
@@ -11374,6 +11524,12 @@ Class GlfSoundPlayer
 
     Public Sub PlayOff(evt)
         glf_sound_buses(m_eventValues(evt).Sound.Bus).StopSoundWithKey m_eventValues(evt).Sound.File
+        Dim evtItem
+        For Each evtItem in m_eventValues(evt).EventsWhenStopped.Items()
+            If evtItem.Evaluate() Then
+                DispatchPinEvent evtItem.EventName, Null
+            End If
+        Next
     End Sub
 
     Private Sub Log(message)
@@ -11427,7 +11583,7 @@ End Function
 
 
 Class GlfSoundPlayerItem
-	Private m_sound, m_action, m_key, m_volume, m_loops, m_mode
+	Private m_sound, m_action, m_key, m_volume, m_loops, m_mode, m_events_when_stopped
     
     Public Property Get Action(): Action = m_action: End Property
     Public Property Let Action(input): m_action = input: End Property
@@ -11443,6 +11599,15 @@ Class GlfSoundPlayerItem
 
     Public Property Get Mode(): Mode = m_mode: End Property
     Public Property Let Mode(input): m_mode = input: End Property
+    
+    Public Property Get EventsWhenStopped(): Set EventsWhenStopped = m_events_when_stopped: End Property
+    Public Property Let EventsWhenStopped(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_events_when_stopped.Add x, newEvent
+        Next
+    End Property
 
     Public Property Get Sound()
         If IsNull(m_sound) Then
@@ -11464,11 +11629,12 @@ Class GlfSoundPlayerItem
         m_volume = Empty
         m_loops = Empty
         m_mode = mode
+        Set m_events_when_stopped = CreateObject("Scripting.Dictionary")
         Set Init = Me
 	End Function
 
     Public Function ToYaml()
-        Dim yaml
+        Dim yaml,key
         yaml = yaml & "    " & Sound.NameRaw & ": " & vbCrLf
         If Not IsEmpty(m_key) Then
             yaml = yaml & "      key: " & m_key & vbCrLf
@@ -11479,6 +11645,12 @@ Class GlfSoundPlayerItem
         End If
         If Not IsEmpty(m_loops) Then
             yaml = yaml & "      loops: " & m_loops & vbCrLf
+        End If
+        If UBound(m_events_when_stopped.Keys) > -1 Then
+            yaml = yaml + "      events_when_stopped: " & vbCrLf
+            For Each key in m_events_when_stopped.keys
+                yaml = yaml & "        - " & m_events_when_stopped(key).Raw & vbCrLf
+            Next
         End If
         ToYaml = yaml
     End Function
@@ -11779,6 +11951,19 @@ Class GlfStateMachine
                     For Each cEvt in m_transitions(key).Events().keys()
                         yaml = yaml & "          - " & Replace(Replace(cEvt, "&&", "and"), "||", "or") & vbCrLf
                     Next
+                End If
+
+                If UBound(m_transitions(key).EventsWhenTransitioning.Keys) > -1 Then
+                    yaml = yaml & "        events_when_transitioning: "
+                    y=0
+                    For Each cEvt in m_transitions(key).EventsWhenTransitioning.Items
+                        yaml = yaml & cEvt.Raw
+                        If y <> UBound(m_transitions(key).EventsWhenTransitioning.Keys) Then
+                            yaml = yaml & ", "
+                        End If
+                        y = y + 1
+                    Next
+                    yaml = yaml & vbCrLf
                 End If
             Next
         End If
@@ -13012,6 +13197,7 @@ Class GlfMachineVars
         m_persist = True
         m_value_type = "int"
         m_value = 0
+        'msgbox "Initializing Machine Var: " & m_name
         glf_machine_vars.Add name, Me
 	    Set Init = Me
 	End Function
@@ -13642,6 +13828,7 @@ Class GlfBallDevice
             If Not IsNull(m_balls(0)) Then
                 Log "Ejecting."
                 DispatchPinEvent m_name & "_ejecting_ball", Null
+                DispatchQueuePinEvent m_name & "_ball_eject_attempt", Null
                 SetDelay m_name & "_switch0_eject_timeout", "BallDeviceEventHandler", Array(Array("eject_timeout", Me), m_balls(0)), m_eject_timeout
                 m_ejecting = True
             
@@ -16081,9 +16268,9 @@ Class GlfSoundBus
 
                 PlaySound sound_settings.Sound.File, loops, volume, 0,0,0,0,0,0
                 If loops = 0 Then
-                    SetDelay m_name & "_stop_sound_" & sound_settings.Sound.File, "Glf_SoundBusStopSoundHandler", Array(sound_settings.Sound.File, Me), sound_settings.Sound.Duration
+                    SetDelay m_name & "_stop_sound_" & sound_settings.Sound.File, "Glf_SoundBusStopSoundHandler", Array(sound_settings, Me), sound_settings.Sound.Duration
                 ElseIf loops>0 Then
-                    SetDelay m_name & "_stop_sound_" & sound_settings.Sound.File, "Glf_SoundBusStopSoundHandler", Array(sound_settings.Sound.File, Me), sound_settings.Sound.Duration*loops
+                    SetDelay m_name & "_stop_sound_" & sound_settings.Sound.File, "Glf_SoundBusStopSoundHandler", Array(sound_settings, Me), sound_settings.Sound.Duration*loops
                 End If
             End If
         End If
@@ -16121,9 +16308,15 @@ Class GlfSoundBus
 End Class
 
 Function Glf_SoundBusStopSoundHandler(args)
-    Dim sound_key : sound_key = args(0)
+    Dim sound : Set sound = args(0)
     Dim sound_bus : Set sound_bus = args(1)
-    sound_bus.StopSoundWithKey sound_key
+    sound_bus.StopSoundWithKey sound.Sound.File
+    Dim evt
+    For Each evt in sound.EventsWhenStopped.Items()
+        If evt.Evaluate() Then
+            DispatchPinEvent evt.EventName, Null
+        End If
+    Next
 End Function
 
 Function CreateGlfSound(name)
@@ -16220,6 +16413,76 @@ Class GlfSound
             glf_debugLog.WriteToLog m_name, message
         End If
     End Sub
+
+    Public Function ToYaml()
+        Dim key
+        Dim yaml : yaml = "  " & m_name_raw & ":" & vbCrLf
+        yaml = yaml + "    file: " & m_file & vbCrLf
+        yaml = yaml + "    volume: " & m_volume & vbCrLf
+        yaml = yaml + "    bus: " & m_bus & vbCrLf
+        yaml = yaml + "    priority: " & m_priority & vbCrLf
+        yaml = yaml + "    max_queue_time: " & m_max_queue_time & vbCrLf
+        yaml = yaml + "    duration: " & m_duration & vbCrLf
+        If UBound(m_events_when_stopped.Keys) > -1 Then
+            yaml = yaml + "    events_when_stopped: " & vbCrLf
+            For Each key in m_events_when_stopped.keys
+                yaml = yaml & "      - " & m_events_when_stopped(key).Raw & vbCrLf
+            Next
+        End If
+        yaml = yaml + "    loops: " & m_loops & vbCrLf
+        ToYaml = yaml
+    End Function
+
+    Public Function ToTres(uidMap)
+        Dim tres
+        Dim audioUid
+        Dim sourceFileName
+        Dim audioExtId
+        Dim scriptExtId
+        Dim markerExtId
+        Dim resourceUid
+        
+        ' These can be fixed if you want, or generated elsewhere
+        resourceUid = "uid://btdjx5x2u3qgi"
+        markerExtId = "1_lar81"
+        scriptExtId = "2_7nm0v"
+        audioExtId = "3_7nm0v"
+        
+        sourceFileName = m_file
+        
+        If uidMap.Exists(sourceFileName) Then
+            audioUid = uidMap(sourceFileName)
+        Else
+            ToTres = ""
+            Exit Function
+            'Err.Raise vbObjectError + 1000, "ToTres", "Missing audio UID for file: " & sourceFileName
+        End If
+        
+        tres = "[gd_resource type=""Resource"" script_class=""MPFSoundAsset"" format=3 uid=""" & resourceUid & """]" & vbCrLf & vbCrLf
+        
+        tres = tres & "[ext_resource type=""Script"" uid=""uid://bsvo8cxf10088"" path=""res://addons/mpf-gmc/classes/mpf_sound_marker.gd"" id=""" & markerExtId & """]" & vbCrLf
+        tres = tres & "[ext_resource type=""Script"" uid=""uid://e2h352i1jeqi"" path=""res://addons/mpf-gmc/classes/mpf_sound.gd"" id=""" & scriptExtId & """]" & vbCrLf
+        tres = tres & "[ext_resource type=""AudioStream"" uid=""" & audioUid & """ path=""" & m_file & """ id=""" & audioExtId & """]" & vbCrLf & vbCrLf
+        
+        tres = tres & "[resource]" & vbCrLf
+        tres = tres & "script = ExtResource(""" & scriptExtId & """)" & vbCrLf
+        tres = tres & "stream = ExtResource(""" & audioExtId & """)" & vbCrLf
+        tres = tres & "bus = """ & m_bus & """" & vbCrLf
+        'tres = tres & "fade_in = " & FormatTresNumber(m_fade_in) & vbCrLf
+        'tres = tres & "fade_out = " & FormatTresNumber(m_fade_out) & vbCrLf
+        tres = tres & "loops = " & CStr(m_loops) & vbCrLf
+        'tres = tres & "start_at = " & FormatTresNumber(m_start_at) & vbCrLf
+        tres = tres & "max_queue_time = " & m_max_queue_time & vbCrLf
+        tres = tres & "metadata/_custom_type_script = ""uid://e2h352i1jeqi""" & vbCrLf
+        
+        ToTres = tres
+    End Function
+
+    Public Function GetFileNameFromPath(path)
+        Dim parts
+        parts = Split(path, "/")
+        GetFileNameFromPath = parts(UBound(parts))
+    End Function
 
 End Class
 Function CreateGlfStanduptarget(name)
@@ -16537,6 +16800,8 @@ Sub Glf_AddPlayer()
             SetPlayerStateByPlayer "number", 1, 0
             Glf_BcpAddPlayer 1
             glf_currentPlayer = "PLAYER 1"
+            Glf_BcpSendMachineVar "last_game_players", 1, 0
+            glf_machine_vars("last_game_players").Value = 1
         Case 0:     
             If GetPlayerState(GLF_CURRENT_BALL) = 1 Then
                 kwargs("num") = 2
@@ -16545,6 +16810,8 @@ Sub Glf_AddPlayer()
                 SetPlayerStateByPlayer GLF_SCORE, 0, 1
                 SetPlayerStateByPlayer "number", 2, 1
                 Glf_BcpAddPlayer 2
+                Glf_BcpSendMachineVar "last_game_players", 2, 1
+                glf_machine_vars("last_game_players").Value = 2
             End If
         Case 1:
             If GetPlayerState(GLF_CURRENT_BALL) = 1 Then
@@ -16554,6 +16821,8 @@ Sub Glf_AddPlayer()
                 SetPlayerStateByPlayer GLF_SCORE, 0, 2
                 SetPlayerStateByPlayer "number", 3, 2
                 Glf_BcpAddPlayer 3
+                Glf_BcpSendMachineVar "last_game_players", 3, 2
+                glf_machine_vars("last_game_players").Value = 3
             End If     
         Case 2:   
             If GetPlayerState(GLF_CURRENT_BALL) = 1 Then
@@ -16563,6 +16832,8 @@ Sub Glf_AddPlayer()
                 SetPlayerStateByPlayer GLF_SCORE, 0, 3
                 SetPlayerStateByPlayer "number", 4, 3
                 Glf_BcpAddPlayer 4
+                Glf_BcpSendMachineVar "last_game_players", 4, 3
+                glf_machine_vars("last_game_players").Value = 4
             End If  
             glf_canAddPlayers = False
     End Select

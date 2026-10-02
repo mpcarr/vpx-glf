@@ -246,6 +246,7 @@ Class GlfMachineVars
         m_persist = True
         m_value_type = "int"
         m_value = 0
+        'msgbox "Initializing Machine Var: " & m_name
         glf_machine_vars.Add name, Me
 	    Set Init = Me
 	End Function

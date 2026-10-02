@@ -7,7 +7,7 @@ Function EnableGlfBallSearch()
             .Switches = Array("s_left_flipper", "s_right_flipper")
             .Time = 3000
             .EventsWhenActive = Array("flipper_cradle")
-            .EventsWhenReleased = Array("flipper_release")
+            .EventsWhenReleased = Array("flipper_cradle_release")
         End With
     End With
     glf_ballsearch_enabled = True
@@ -57,7 +57,7 @@ Class GlfBallSearch
         Set glf_ballsearch = Me
         SetDelay "ball_search" , "BallSearchHandler", Array(Array("start", Me), Null), 15000
         AddPinEventListener "flipper_cradle", "ball_search_flipper_cradle", "BallSearchHandler", 30, Array("stop", Me)
-        AddPinEventListener "flipper_release", "ball_search_flipper_cradle", "BallSearchHandler", 30, Array("reset", Me)
+        AddPinEventListener "flipper_cradle_release", "ball_search_flipper_cradle", "BallSearchHandler", 30, Array("reset", Me)
         Set Init = Me
     End Function
 

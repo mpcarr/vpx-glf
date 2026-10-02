@@ -293,6 +293,19 @@ Class GlfStateMachine
                         yaml = yaml & "          - " & Replace(Replace(cEvt, "&&", "and"), "||", "or") & vbCrLf
                     Next
                 End If
+
+                If UBound(m_transitions(key).EventsWhenTransitioning.Keys) > -1 Then
+                    yaml = yaml & "        events_when_transitioning: "
+                    y=0
+                    For Each cEvt in m_transitions(key).EventsWhenTransitioning.Items
+                        yaml = yaml & cEvt.Raw
+                        If y <> UBound(m_transitions(key).EventsWhenTransitioning.Keys) Then
+                            yaml = yaml & ", "
+                        End If
+                        y = y + 1
+                    Next
+                    yaml = yaml & vbCrLf
+                End If
             Next
         End If
 

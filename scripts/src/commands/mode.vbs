@@ -538,6 +538,14 @@ Class Mode
             yaml = yaml & m_eventplayer.ToYaml()
         End If
 
+        If UBound(m_extra_balls.Keys)>-1 Then
+            yaml = yaml & vbCrLf
+            yaml = yaml & "extra_balls: " & vbCrLf
+            For Each child in m_extra_balls.Keys
+                yaml = yaml & m_extra_balls(child).ToYaml
+            Next
+        End If
+
         If Not IsNull(m_high_score) Then
             yaml = yaml & vbCrLf
             yaml = yaml & m_high_score.ToYaml()
@@ -711,7 +719,7 @@ Class Mode
 
         
         Set TxtFileStream = fso.OpenTextFile(modesFolder & "\" & Replace(m_name, "mode_", "") & ".yaml", 2, True)
-        TxtFileStream.WriteLine yaml
+        TxtFileStream.WriteLine GlfReplaceSwitchNames(yaml)
         TxtFileStream.Close
 
         ToYaml = yaml

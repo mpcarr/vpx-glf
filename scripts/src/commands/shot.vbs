@@ -364,7 +364,7 @@ Class GlfShot
             If IsArray(m_tokens(key)) Then
                 yaml = yaml & "      " & key & ": " & Join(m_tokens(key), ",") & vbCrLf
             Else  
-                yaml = yaml & "      " & key & ": " & m_tokens(key) & vbCrLf
+                yaml = yaml & "      " & key & ": """ & m_tokens(key) & """" & vbCrLf
             End If
         Next
 

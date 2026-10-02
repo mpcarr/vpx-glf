@@ -347,6 +347,12 @@ Function GlfShowStepHandler(args)
             sound_item.Mode = running_show.Mode
             If sound_item.Action = "stop" Then
                 glf_sound_buses(sound_item.Sound.Bus).StopSoundWithKey sound_item.Sound.File
+                Dim evt
+                For Each evt in sound_item.EventsWhenStopped.Items()
+                    If evt.Evaluate() Then
+                        DispatchPinEvent evt.EventName, Null
+                    End If
+                Next
             Else
                 glf_sound_buses(sound_item.Sound.Bus).Play sound_item
             End If
@@ -493,12 +499,20 @@ Class GlfShowStep
                 If UBound(light_parts) = 1 Then
                     yaml = yaml & "    " & light_parts(0) & ": ffffff%" & light_parts(1) & vbCrLf
                 Else
-                    If light_parts(2) = "stop" Then
-                        yaml = yaml & "    " & light_parts(0) & ": stop" & vbCrLf    
+                    If UBound(light_parts) = 3 Then
+                        'Includes a fade time
+                        If light_parts(2) = "stop" Then
+                            yaml = yaml & "    " & light_parts(0) & ": stop" & vbCrLf    
+                        Else
+                            yaml = yaml & "    " & light_parts(0) & ": " & light_parts(2) & "%" & light_parts(1) & "-f" & light_parts(3) & vbCrLf
+                        End If
                     Else
-                        yaml = yaml & "    " & light_parts(0) & ": " & light_parts(2) & "%" & light_parts(1) & vbCrLf
+                        If light_parts(2) = "stop" Then
+                            yaml = yaml & "    " & light_parts(0) & ": stop" & vbCrLf    
+                        Else
+                            yaml = yaml & "    " & light_parts(0) & ": " & light_parts(2) & "%" & light_parts(1) & vbCrLf
+                        End If
                     End If
-                    
                 End If
             Next
         End If

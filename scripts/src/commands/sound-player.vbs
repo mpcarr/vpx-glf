@@ -68,6 +68,12 @@ Class GlfSoundPlayer
 
     Public Sub PlayOff(evt)
         glf_sound_buses(m_eventValues(evt).Sound.Bus).StopSoundWithKey m_eventValues(evt).Sound.File
+        Dim evtItem
+        For Each evtItem in m_eventValues(evt).EventsWhenStopped.Items()
+            If evtItem.Evaluate() Then
+                DispatchPinEvent evtItem.EventName, Null
+            End If
+        Next
     End Sub
 
     Private Sub Log(message)
@@ -121,7 +127,7 @@ End Function
 
 
 Class GlfSoundPlayerItem
-	Private m_sound, m_action, m_key, m_volume, m_loops, m_mode
+	Private m_sound, m_action, m_key, m_volume, m_loops, m_mode, m_events_when_stopped
     
     Public Property Get Action(): Action = m_action: End Property
     Public Property Let Action(input): m_action = input: End Property
@@ -137,6 +143,15 @@ Class GlfSoundPlayerItem
 
     Public Property Get Mode(): Mode = m_mode: End Property
     Public Property Let Mode(input): m_mode = input: End Property
+    
+    Public Property Get EventsWhenStopped(): Set EventsWhenStopped = m_events_when_stopped: End Property
+    Public Property Let EventsWhenStopped(value)
+        Dim x
+        For x=0 to UBound(value)
+            Dim newEvent : Set newEvent = (new GlfEvent)(value(x))
+            m_events_when_stopped.Add x, newEvent
+        Next
+    End Property
 
     Public Property Get Sound()
         If IsNull(m_sound) Then
@@ -158,11 +173,12 @@ Class GlfSoundPlayerItem
         m_volume = Empty
         m_loops = Empty
         m_mode = mode
+        Set m_events_when_stopped = CreateObject("Scripting.Dictionary")
         Set Init = Me
 	End Function
 
     Public Function ToYaml()
-        Dim yaml
+        Dim yaml,key
         yaml = yaml & "    " & Sound.NameRaw & ": " & vbCrLf
         If Not IsEmpty(m_key) Then
             yaml = yaml & "      key: " & m_key & vbCrLf
@@ -173,6 +189,12 @@ Class GlfSoundPlayerItem
         End If
         If Not IsEmpty(m_loops) Then
             yaml = yaml & "      loops: " & m_loops & vbCrLf
+        End If
+        If UBound(m_events_when_stopped.Keys) > -1 Then
+            yaml = yaml + "      events_when_stopped: " & vbCrLf
+            For Each key in m_events_when_stopped.keys
+                yaml = yaml & "        - " & m_events_when_stopped(key).Raw & vbCrLf
+            Next
         End If
         ToYaml = yaml
     End Function

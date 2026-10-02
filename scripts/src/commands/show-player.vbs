@@ -202,7 +202,7 @@ Class GlfShowPlayerItem
             yaml = yaml & "      show_tokens: " & vbCrLf
             Dim key
             For Each key in m_tokens.Keys
-                yaml = yaml & "        " & key & ": " & m_tokens(key) & vbCrLf
+                yaml = yaml & "        " & key & ": """ & m_tokens(key) & """" & vbCrLf
             Next
         End If
 

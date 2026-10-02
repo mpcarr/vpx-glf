@@ -421,7 +421,7 @@ Class GlfMultiballs
 
     Public Function ToYaml
         Dim yaml, x, key
-        yaml = "  " & Replace(m_name, "multiballs", "") & ":" & vbCrLf
+        yaml = "  " & Replace(m_name, "multiball_", "") & ":" & vbCrLf
     
         Dim start_events_keys : start_events_keys = m_start_events.Keys
         If UBound(start_events_keys) > -1 Then
@@ -440,7 +440,7 @@ Class GlfMultiballs
         yaml = yaml & "    ball_count: " & m_ball_count.Raw & vbCrLf
         yaml = yaml & "    ball_count_type: " & m_ball_count_type & vbCrLf
         yaml = yaml & "    shoot_again: " & m_shoot_again.Raw & vbCrLf
-        yaml = yaml & "    hurry_up: " & m_hurry_up.Raw & vbCrLf
+        yaml = yaml & "    hurry_up_time: " & m_hurry_up.Raw & vbCrLf
         yaml = yaml & "    grace_period: " & m_grace_period.Raw & vbCrLf
         yaml = yaml & "    ball_locks: " & Join(m_ball_locks, ", ") & vbCrLf
         

@@ -66,6 +66,7 @@ Class GlfShotProfile
     Public Function ToYaml()
         Dim yaml
         yaml = yaml & "  " & Replace(m_name, "shotprofile_", "") & ":" & vbCrLf
+        yaml = yaml & "    advance_on_hit: " & m_advance_on_hit & vbCrLf
         yaml = yaml & "    states: " & vbCrLf
         Dim token,evt,state,x : x = 0
         For Each evt in m_states.Keys
@@ -83,12 +84,12 @@ Class GlfShotProfile
                 yaml = yaml & "       show_tokens: " & vbCrLf
                 Dim state_tokens : Set state_tokens = state.Tokens()
                 For Each token in state_tokens.Keys()
-                    yaml = yaml & "         " & token & ": " & state_tokens(token) & vbCrLf
+                    yaml = yaml & "         " & token & ": """ & state_tokens(token) & """" & vbCrLf
                 Next
             End If
 
             'yaml = yaml & "     block: " & m_block & vbCrLf
-            yaml = yaml & "     advance_on_hit: " & m_advance_on_hit & vbCrLf
+            
             'yaml = yaml & "     loop: " & m_loop & vbCrLf
             'yaml = yaml & "     rotation_pattern: " & m_rotation_pattern & vbCrLf
             'yaml = yaml & "     state_names_to_not_rotate: " & m_states_not_to_rotate & vbCrLf

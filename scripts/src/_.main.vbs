@@ -88,7 +88,10 @@ Dim glf_max_dispatch : glf_max_dispatch = 25
 Dim glf_max_lightmap_sync : glf_max_lightmap_sync = -1
 Dim glf_max_lightmap_sync_enabled : glf_max_lightmap_sync_enabled = False
 Dim glf_max_lights_test : glf_max_lights_test = 0
-
+Dim GlfSwitchNameMap
+Set GlfSwitchNameMap = CreateObject("Scripting.Dictionary")
+GlfSwitchNameMap.Add "kwargs.", ""
+Dim soundUidMap : Set soundUidMap = CreateObject("Scripting.Dictionary")
 Dim glf_master_volume : glf_master_volume = 0.8
 
 Dim glf_table
@@ -152,6 +155,9 @@ Sub Glf_AddTablePart(ByVal s)
 	glf_parts(glf_parts_idx) = s
 	glf_parts_idx = glf_parts_idx + 1
 End Sub
+
+
+
 
 Public Sub Glf_Init(ByRef table)
     Set glf_table = table
@@ -235,8 +241,12 @@ Public Sub Glf_Init(ByRef table)
 		coilsYaml = coilsYaml + "coils:" & vbCrLf
 		Dim shotProfilesYaml : shotProfilesYaml = "#config_version=6" & vbCrLf & vbCrLf
 		shotProfilesYaml = shotProfilesYaml + "shot_profiles:" & vbCrLf
+		Dim sound, soundsYaml : soundsYaml = "#config_version=6" & vbCrLf & vbCrLf
+		soundsYaml = soundsYaml + "sounds:" & vbCrLf
 		Dim playerVarsYaml : playerVarsYaml = "#config_version=6" & vbCrLf & vbCrLf
 		playerVarsYaml = playerVarsYaml + "player_vars:" & vbCrLf
+		Dim machineVarsYaml : machineVarsYaml = "#config_version=6" & vbCrLf & vbCrLf
+		machineVarsYaml = machineVarsYaml + "machine_vars:" & vbCrLf
 		Dim ballDevicesYaml : ballDevicesYaml = "#config_version=6" & vbCrLf & vbCrLf
 		ballDevicesYaml = ballDevicesYaml + "ball_devices:" & vbCrLf
 		Dim configYaml : configYaml = "#config_version=6" & vbCrLf & vbCrLf
@@ -245,6 +255,7 @@ Public Sub Glf_Init(ByRef table)
 		configYaml = configYaml + "  - ball_devices.yaml" & vbCrLf
 		configYaml = configYaml + "  - coils.yaml" & vbCrLf
 		configYaml = configYaml + "  - switches.yaml" & vbCrLf
+		configYaml = configYaml + "  - sounds.yaml" & vbCrLf
 		configYaml = configYaml + vbCrLf
 		configYaml = configYaml + "playfields:" & vbCrLf
 		configYaml = configYaml + "  playfield:" & vbCrLf
@@ -287,6 +298,10 @@ Public Sub Glf_Init(ByRef table)
 
 			godotLightScene = godotLightScene + "tags = ["&outputTagString&"]" & vbCrLf
 			godotLightScene = godotLightScene + vbCrLf
+		Next
+
+		For Each sound in glf_sounds.Items()
+			soundsYaml = soundsYaml + sound.ToYaml() & vbCrLf	
 		Next
 
 		monitorYaml = monitorYaml + vbCrLf
@@ -428,6 +443,22 @@ Public Sub Glf_Init(ByRef table)
         	End Select
     	Next
 
+		init_var_keys = glf_machine_vars.Keys()
+    	init_var_items = glf_machine_vars.Items()
+		For init_index=0 To UBound(init_var_keys)
+			machineVarsYaml = machineVarsYaml + "  " & init_var_keys(init_index) & ":" & vbCrLf
+			machineVarsYaml = machineVarsYaml + "    initial_value: " & init_var_items(init_index).Value & vbCrLf
+			machineVarsYaml = machineVarsYaml + "    persist: " & init_var_items(init_index).Persist & vbCrLf
+			Select Case VarType(init_var_items(init_index).Value)
+				Case vbInteger, vbLong
+					machineVarsYaml = machineVarsYaml + "    value_type: int" & vbCrLf
+				Case vbSingle, vbDouble
+					machineVarsYaml = machineVarsYaml + "    value_type: float" & vbCrLf
+				Case vbString
+					machineVarsYaml = machineVarsYaml + "    value_type: str" & vbCrLf
+			End Select
+    	Next
+
 		Dim fso, modesFolder, TxtFileStream, monitorFolder, configFolder, showsFolder
 		Set fso = CreateObject("Scripting.FileSystemObject")
 		monitorFolder = "glf_mpf\monitor\"
@@ -445,32 +476,47 @@ Public Sub Glf_Init(ByRef table)
 		If Not fso.FolderExists("glf_mpf\shows") Then
 			fso.CreateFolder "glf_mpf\shows"
 		End If
+		If Not fso.FolderExists("glf_mpf\sounds") Then
+			fso.CreateFolder "glf_mpf\sounds"
+		End If
 		Set TxtFileStream = fso.OpenTextFile(monitorFolder & "\monitor.yaml", 2, True)
-		TxtFileStream.WriteLine monitorYaml
+		TxtFileStream.WriteLine GlfReplaceSwitchNames(monitorYaml)
 		TxtFileStream.Close
 		Set TxtFileStream = fso.OpenTextFile(configFolder & "\config.yaml", 2, True)
-		TxtFileStream.WriteLine configYaml
+		TxtFileStream.WriteLine GlfReplaceSwitchNames(configYaml)
 		TxtFileStream.Close
 		Set TxtFileStream = fso.OpenTextFile(configFolder & "\ball_devices.yaml", 2, True)
-		TxtFileStream.WriteLine ballDevicesYaml
+		TxtFileStream.WriteLine GlfReplaceSwitchNames(ballDevicesYaml)
 		TxtFileStream.Close
 		Set TxtFileStream = fso.OpenTextFile(configFolder & "\coils.yaml", 2, True)
-		TxtFileStream.WriteLine coilsYaml
+		TxtFileStream.WriteLine GlfReplaceSwitchNames(coilsYaml)
 		TxtFileStream.Close
 		Set TxtFileStream = fso.OpenTextFile(configFolder & "\shot_profiles.yaml", 2, True)
-		TxtFileStream.WriteLine shotProfilesYaml
+		TxtFileStream.WriteLine GlfReplaceSwitchNames(shotProfilesYaml)
 		TxtFileStream.Close
+		Set TxtFileStream = fso.OpenTextFile(configFolder & "\sounds.yaml", 2, True)
+		TxtFileStream.WriteLine GlfReplaceSwitchNames(soundsYaml)
+		TxtFileStream.Close
+		For Each sound In glf_sounds.Items()
+			Set txtFileStream = fso.OpenTextFile("glf_mpf\sounds\" & sound.File & ".tres", 2, True)
+			txtFileStream.Write sound.ToTres(soundUidMap)
+			txtFileStream.Close
+			Set txtFileStream = Nothing
+		Next
 		Set TxtFileStream = fso.OpenTextFile(configFolder & "\player_vars.yaml", 2, True)
-		TxtFileStream.WriteLine playerVarsYaml
+		TxtFileStream.WriteLine GlfReplaceSwitchNames(playerVarsYaml)
+		TxtFileStream.Close
+		Set TxtFileStream = fso.OpenTextFile(configFolder & "\machine_vars.yaml", 2, True)
+		TxtFileStream.WriteLine GlfReplaceSwitchNames(machineVarsYaml)
 		TxtFileStream.Close
 		Set TxtFileStream = fso.OpenTextFile(configFolder & "\switches.yaml", 2, True)
-		TxtFileStream.WriteLine switchesYaml
+		TxtFileStream.WriteLine GlfReplaceSwitchNames(switchesYaml)
 		TxtFileStream.Close
 		Set TxtFileStream = fso.OpenTextFile(configFolder & "\lights.yaml", 2, True)
-		TxtFileStream.WriteLine lightsYaml
+		TxtFileStream.WriteLine GlfReplaceSwitchNames(lightsYaml)
 		TxtFileStream.Close
 		Set TxtFileStream = fso.OpenTextFile(monitorFolder & "\gotdotlights.txt", 2, True)
-		TxtFileStream.WriteLine godotLightScene
+		TxtFileStream.WriteLine GlfReplaceSwitchNames(godotLightScene)
 		TxtFileStream.Close
 		Dim showsYaml
 		For Each device in glf_shows.Items()
@@ -606,6 +652,11 @@ Public Sub Glf_Init(ByRef table)
         .ValueType = "int"
         .Persist = True
     End With
+	With CreateMachineVar("last_game_players")
+        .InitialValue = 0
+        .ValueType = "int"
+        .Persist = False
+    End With
 
 	If Not IsNull(glf_highscore) Then
 		glf_highscore.WriteDefaults()
@@ -634,6 +685,15 @@ Public Sub Glf_Init(ByRef table)
 	
 	SetDelay "reset", "Glf_Reset", Null, 1000
 End Sub
+
+Function GlfReplaceSwitchNames(inputText)
+    Dim key
+    GlfReplaceSwitchNames = inputText
+
+    For Each key In GlfSwitchNameMap.Keys
+        GlfReplaceSwitchNames = Replace(GlfReplaceSwitchNames, key, GlfSwitchNameMap(key))
+    Next
+End Function
 
 Sub Glf_Reset(args)
 	DispatchQueuePinEvent "reset_complete", Null
@@ -1425,6 +1485,8 @@ Public Function Glf_ParseDispatchEventInput(value)
 		If Not glf_funcRefMap.Exists(value) Then
 			glf_codeFuncRefStr = glf_codeFuncRefStr & "glf_funcRefMap.Add """ & Replace(value, """", """""") & """, """ & funcRef & """" & vbCrLf
 			glf_funcRefMap.Add value, funcRef
+		Else
+			funcRef = glf_funcRefMap(CStr(value))
 		End If
 		glf_FuncCount = glf_FuncCount + 1
 
