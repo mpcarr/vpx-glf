@@ -57,6 +57,7 @@ Class GlfVpxBcpController
     Public Sub PlaySlide(slide, context, calling_context, action, expire, priorty, kwargs)
 		If m_connected Then
             Dim kwargsString : kwargsString = ""
+            Dim key
             If Not IsNull(kwargs) Then
                 For Each key In kwargs.Keys
                     Dim value : value = kwargs(key)
