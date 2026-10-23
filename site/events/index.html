@@ -15,14 +15,18 @@
         <link rel="canonical" href="https://mpcarr.github.io/vpx-glf/events/">
       
       
+        <link rel="prev" href="../guides/multiball/">
+      
+      
+        <link rel="next" href="../player-state/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.25">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.28">
     
     
       
-        <title>Events System - VPX Game Logic Framework</title>
+        <title>Events and Ordering - VPX Game Logic Framework</title>
       
     
     
@@ -76,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#events-system" class="md-skip">
+        <a href="#events-and-event-ordering" class="md-skip">
           Skip to content
         </a>
       
@@ -110,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Events System
+              Events and Ordering
             
           </span>
         </div>
@@ -173,7 +177,7 @@
       
     </form>
     <div class="md-search__output">
-      <div class="md-search__scrollwrap" data-md-scrollfix>
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
             Initializing search
@@ -219,10 +223,30 @@
     
     
       <li class="md-tabs__item">
-        <a href="../installing/" class="md-tabs__link">
+        <a href="../getting-started/" class="md-tabs__link">
           
   
   Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../guides/game-lifecycle/" class="md-tabs__link">
+          
+  
+  Guides
 
         </a>
       </li>
@@ -381,6 +405,27 @@
   
   
     <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Start Here
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../installing/" class="md-nav__link">
         
   
@@ -401,6 +446,48 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configuration and YAML
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dynamic_values/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Dynamic Values
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
     
@@ -412,26 +499,68 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_5" >
         
           
-          <label class="md-nav__link" for="__nav_1_2" id="__nav_1_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_1_5" id="__nav_1_5_label" tabindex="0">
             
   
   <span class="md-ellipsis">
-    Tutorial
+    Build a Game from Scratch
   </span>
   
 
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_1_2">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_5">
             <span class="md-nav__icon md-icon"></span>
-            Tutorial
+            Build a Game from Scratch
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Tutorial Map
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/tutorial-setup/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    1. Empty Table and Script
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -444,7 +573,7 @@
         
   
   <span class="md-ellipsis">
-    Trough
+    2. Physical Trough
   </span>
   
 
@@ -465,7 +594,7 @@
         
   
   <span class="md-ellipsis">
-    Plunger
+    3. Plunger and First Serve
   </span>
   
 
@@ -486,91 +615,7 @@
         
   
   <span class="md-ellipsis">
-    Flippers
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial/tutorial-autofire/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Auto Fire Devices
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial/tutorial-lights/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Lights
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial/tutorial-ball-devices/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Ball Devices
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial/tutorial-ballsave/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Ball Save
+    4. Flippers
   </span>
   
 
@@ -591,7 +636,7 @@
         
   
   <span class="md-ellipsis">
-    Scoring
+    5. Score and Display
   </span>
   
 
@@ -608,11 +653,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../tutorial/tutorial-shots/" class="md-nav__link">
+      <a href="../tutorial/tutorial-lights/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Shots
+    6. Lights and Complete Game
   </span>
   
 
@@ -633,7 +678,49 @@
         
   
   <span class="md-ellipsis">
-    Event Player
+    7. Event Routing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/tutorial-ballsave/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    8. Ball Save
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/tutorial-shots/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    9. Shot Progress
   </span>
   
 
@@ -654,7 +741,49 @@
         
   
   <span class="md-ellipsis">
-    Timer
+    10. Timed Opportunity
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/tutorial-ball-devices/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    11. Optional Scoop
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/tutorial-autofire/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    12. Optional Autofire
   </span>
   
 
@@ -667,6 +796,341 @@
           </ul>
         </nav>
       
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Guides
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/game-lifecycle/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Game and Ball Lifecycle
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/complete-mode/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Complete Timed Mode
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/multiball/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multiball Walkthrough
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Events and Ordering
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Events and Ordering
+  </span>
+  
+
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#map-events-inside-a-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      Map events inside a mode
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#priorities-and-conditions" class="md-nav__link">
+    <span class="md-ellipsis">
+      Priorities and conditions
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#three-dispatch-paths" class="md-nav__link">
+    <span class="md-ellipsis">
+      Three dispatch paths
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#custom-listeners" class="md-nav__link">
+    <span class="md-ellipsis">
+      Custom listeners
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#relay-and-queued-handlers" class="md-nav__link">
+    <span class="md-ellipsis">
+      Relay and queued handlers
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debug-an-event" class="md-nav__link">
+    <span class="md-ellipsis">
+      Debug an event
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../player-state/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Player Variables and Persistence
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/displays/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Displays and Godot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sound-system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sound Setup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ball-search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Search
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/debugging/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Debugging
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -696,10 +1160,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -710,8 +1174,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             Game Logic Commands
           </label>
@@ -734,10 +1198,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
         
           
-          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -748,8 +1212,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_1">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
             <span class="md-nav__icon md-icon"></span>
             Virtual Devices
           </label>
@@ -881,6 +1345,48 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../standup-target/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Standup Target
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../segment-display/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Segment Display
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -906,10 +1412,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
         
           
-          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -920,12 +1426,33 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_2">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
             <span class="md-nav__icon md-icon"></span>
             Modes
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ball-hold/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Hold
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -976,7 +1503,28 @@
   
   
     <li class="md-nav__item">
-      <a href="../dof-player-config.md" class="md-nav__link">
+      <a href="../counter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Counter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dof-player/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1165,6 +1713,27 @@
   
   
     <li class="md-nav__item">
+      <a href="../queue-relay-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Queue Relay Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../random-event-player/" class="md-nav__link">
         
   
@@ -1254,6 +1823,27 @@
   
   <span class="md-ellipsis">
     Sequence Shot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../segment-display-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Segment Display Player
   </span>
   
 
@@ -1431,6 +2021,48 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../widget-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Widget Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../achievements/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achievement Tracking (Status)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1515,45 +2147,54 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#add-pin-event-listener" class="md-nav__link">
+  <a href="#map-events-inside-a-mode" class="md-nav__link">
     <span class="md-ellipsis">
-      Add Pin Event Listener
+      Map events inside a mode
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#example" class="md-nav__link">
+  <a href="#priorities-and-conditions" class="md-nav__link">
     <span class="md-ellipsis">
-      Example
+      Priorities and conditions
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#remove-pin-event-listener" class="md-nav__link">
+  <a href="#three-dispatch-paths" class="md-nav__link">
     <span class="md-ellipsis">
-      Remove Pin Event Listener
+      Three dispatch paths
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#dispatch-pin-event" class="md-nav__link">
+  <a href="#custom-listeners" class="md-nav__link">
     <span class="md-ellipsis">
-      Dispatch Pin Event
+      Custom listeners
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#dispatch-relay-pin-event" class="md-nav__link">
+  <a href="#relay-and-queued-handlers" class="md-nav__link">
     <span class="md-ellipsis">
-      Dispatch Relay Pin Event
+      Relay and queued handlers
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#debug-an-event" class="md-nav__link">
+    <span class="md-ellipsis">
+      Debug an event
     </span>
   </a>
   
@@ -1577,49 +2218,78 @@
   
 
 
-<h1 id="events-system">Events System</h1>
-<p>The VPX GLF works on an events based system. All the devices emit and listen to events posted via the commands below</p>
-<h2 id="add-pin-event-listener">Add Pin Event Listener</h2>
-<p>Used to add an event listener. Parameters are:</p>
-<ul>
-<li>Event: The event you want to listen to</li>
-<li>Key: A unqiue key for this event</li>
-<li>Callback: The function to call when this event fires</li>
-<li>Priority: The priority the callback should be fired in relation to other callbacks for this event. (Higher priority will be called first)</li>
-<li>Arguments: Anything to be passed along to the callback function when this event fires.</li>
-</ul>
-<h2 id="example">Example</h2>
-<pre><code>AddPinEventListener &quot;sw01_active&quot;, &quot;switch01Active&quot;, &quot;HandleSwitchHit&quot;, 1000, Null
-
-Sub HandleSwitchHit(args)
-    Dim listenerArgs, dispatchArgs
-    listenerArgs = args(0)
-    dispatchArgs = args(1)
-End Sub
+<h1 id="events-and-event-ordering">Events and event ordering</h1>
+<p>GLF rules communicate by posting named events. Physical switch events typically use <code>&lt;switch_name&gt;_active</code> and <code>&lt;switch_name&gt;_inactive</code>; devices and modes emit their own names. An event name is not a function call. A mode's players respond only while their listeners are active.</p>
+<h2 id="map-events-inside-a-mode">Map events inside a mode</h2>
+<pre><code class="language-vbscript">With .EventPlayer()
+    .Add &quot;s_ramp_active&quot;, Array(&quot;ramp_award&quot;, &quot;ramp_feedback&quot;)
+    .Add &quot;s_ramp_active{current_player.scoring_multiplier == 2}&quot;, Array(&quot;double_ramp_feedback&quot;)
+End With
 </code></pre>
-<p>When the event callback is called, a param will be passed along. This is an array where the first item is the args set with AddPinEventListener and the second item is the args sent with the DispatchPinEvent call.</p>
-<h2 id="remove-pin-event-listener">Remove Pin Event Listener</h2>
-<p>Used to remove a pin event listener</p>
-<pre><code>RemovePinEventListener &quot;sw01_active&quot;, &quot;switch01Active&quot;
+<p>Replace the switch name and initialize <code>scoring_multiplier</code> before use. The conditional entry is an additional listener, not an <code>else</code> branch: both mappings run when the condition is true. See <a href="../event-player/">Event Player</a> and <a href="../dynamic_values/">dynamic values</a>.</p>
+<h2 id="priorities-and-conditions">Priorities and conditions</h2>
+<p>Higher numeric listener priorities run first. Mode players normally add the mode priority to an event-specific suffix: <code>ramp_award.2</code> listens for <code>ramp_award</code> with a priority offset of 2. A suffix is not part of the dispatched event name. A condition follows in braces, for example <code>ramp_award.2{current_player.score &gt; 100000}</code>.</p>
+<p>Use explicit priorities when ordering matters; do not rely on the order of separate player sections. Prefer a separate follow-up event when one operation must happen after another. Avoid circular mappings such as A posting B and B posting A.</p>
+<h2 id="three-dispatch-paths">Three dispatch paths</h2>
+<table>
+<thead>
+<tr>
+<th>API</th>
+<th>Behavior</th>
+<th>Typical use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>DispatchPinEvent name, data</code></td>
+<td>Adds an ordinary event to the dispatch queue processed by the game timer</td>
+<td>Switch notifications, scoring, feedback</td>
+</tr>
+<tr>
+<td><code>DispatchRelayPinEvent(name, value)</code></td>
+<td>Calls listeners synchronously, passing each return value to the next</td>
+<td>Claiming drained or entering balls</td>
+</tr>
+<tr>
+<td><code>DispatchQueuePinEvent name, data</code></td>
+<td>Queues an event whose handlers can pause the remaining handlers with <code>wait_for</code></td>
+<td>Bonus before ball end, a presentation before continuing</td>
+</tr>
+</tbody>
+</table>
+<p>Do not assume an ordinary event's effects have happened immediately after <code>DispatchPinEvent</code> returns. Relay callbacks must return the value for the next listener. Queued callbacks must return the event dictionary, using <code>Set</code> for the object result.</p>
+<h2 id="custom-listeners">Custom listeners</h2>
+<p>Register a callback during configuration:</p>
+<pre><code class="language-vbscript">AddPinEventListener &quot;feature_award&quot;, &quot;my_feature_award&quot;, &quot;OnFeatureAward&quot;, 100, Null
 </code></pre>
-<h2 id="dispatch-pin-event">Dispatch Pin Event</h2>
-<p>Used to dispatch a pin event to the system</p>
-<pre><code>DispatchPinEvent &quot;sw01_active&quot;, Null
-</code></pre>
-<h2 id="dispatch-relay-pin-event">Dispatch Relay Pin Event</h2>
-<p>Used to dispatch a special pin event to the system where the argument passed with the pin event is relayed and returned to each function.</p>
-<pre><code>DispatchRelayPinEvent &quot;sw01_active&quot;, 1
-</code></pre>
-<p>Listeners to these relay events must return the argument so that the next function can received the updated value</p>
-<pre><code>Function HandleSwitchHit(args)
-    Dim listenerArgs, dispatchArgs
-    listenerArgs = args(0)
-    dispatchArgs = args(1)
-    dispatchArgs = 2
-    HandleSwitchHit = dispatchArgs
+<p>The callback receives <code>args(0)</code> (registration arguments), <code>args(1)</code> (event data), and, for pin-event dispatch, <code>args(2)</code> (event name).</p>
+<pre><code class="language-vbscript">Function OnFeatureAward(args)
+    Dim data
+    Set data = args(1)
+    SetPlayerState &quot;score&quot;, GetPlayerState(&quot;score&quot;) + data(&quot;amount&quot;)
+    Set OnFeatureAward = data
 End Function
 </code></pre>
-<p>In the above example, the initial event dispatched passed 1 as the argument, the HandleSwitchHit received this, changed it to a 2 and returned that value. The next event callback to fire would then recieved the value 2 instead of the initial 1.</p>
+<p>Post it only with an active player and the expected dictionary:</p>
+<pre><code class="language-vbscript">Dim awardData
+Set awardData = GlfKwargs()
+awardData.Add &quot;amount&quot;, 10000
+DispatchPinEvent &quot;feature_award&quot;, awardData
+</code></pre>
+<p>The same event can be consumed by a variable player with <code>.Int = "kwargs.amount"</code>. Choose one scoring handler to avoid awarding twice. <code>kwargs</code> is meaningful only when the event supplies that data.</p>
+<p>Remove a manually registered listener with its exact event and key:</p>
+<pre><code class="language-vbscript">RemovePinEventListener &quot;feature_award&quot;, &quot;my_feature_award&quot;
+</code></pre>
+<h2 id="relay-and-queued-handlers">Relay and queued handlers</h2>
+<p>A minimal scalar relay callback preserves the incoming value:</p>
+<pre><code class="language-vbscript">Function PreserveBallCount(args)
+    PreserveBallCount = args(1)
+End Function
+</code></pre>
+<p>Ball-management handlers modify that count when they claim a ball. Returning nothing can break downstream accounting; use GLF's ball saves, holds and locks rather than adding another drain handler for a normal rule.</p>
+<p>For queued work, prefer <a href="../queue-relay-player/">Queue Relay Player</a> or a mode with <code>UseWaitQueue</code>, as shown in <a href="../guides/game-lifecycle/">game lifecycle</a>. Make every wait reachable through a completion or cancellation path.</p>
+<h2 id="debug-an-event">Debug an event</h2>
+<p>Check the emitted name, active mode, condition inputs, listener priority, and whether an earlier handler is waiting. Enable logging as described in <a href="../guides/debugging/">Debugging</a>. Core implementation: <code>scripts/src/pin-event-handlers.vbs</code>, the dispatch loop in <code>scripts/src/_.main.vbs</code>, and <code>scripts/src/events.vbs</code> for event parsing objects.</p>
 
 
 
@@ -1669,7 +2339,7 @@ End Function
     <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "navigation.instant", "navigation.tabs"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.081f42fc.min.js"></script>
+      <script src="../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
       
     
   </body>
