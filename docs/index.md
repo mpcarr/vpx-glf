@@ -6,7 +6,7 @@ The VPX Game Logic Framework (GLF) is a powerful and flexible framework for crea
 
 ## About This Framework
 
-GLF is inspired by [The Mission Pinball Framework](https://missionpinball.org) for real and homebrew machines. Many of the game logic commands mirror the MPF commands, allowing for interchangeable configurations between VPX and MPF. This makes it easier to transition between virtual and physical pinball development.
+GLF is inspired by [The Mission Pinball Framework](https://missionpinball.org) for real and homebrew machines. Many game logic commands mirror MPF concepts. GLF configures VPX through VBScript and can export MPF YAML; compatibility depends on the component. Read [Configuration and YAML](configuration.md) before adapting examples between the two runtimes.
 
 One of the key goals of this project is to provide a standalone set of game logic devices that doesn't require users to install and run the MPF bridge for VPX, simplifying the development process.
 
@@ -19,11 +19,16 @@ One of the key goals of this project is to provide a standalone set of game logi
 - **Light Control**: Advanced lighting effects and animations
 - **Backbox Displays**: Options for segment displays to full LCD Displays
 
+## Learning guides
+
+Start with [Getting Started](getting-started.md), then follow the [game lifecycle](guides/game-lifecycle.md), [complete timed mode](guides/complete-mode.md) and [multiball walkthrough](guides/multiball.md). For presentation and recovery, see [Displays and Godot](guides/displays.md), [sound setup](sound-system.md), [ball search](ball-search.md) and [debugging](guides/debugging.md).
+
 ## Quick Start
 
 1. **Installation**: Follow the [Installation Guide](installing.md) to set up GLF
-2. **Tutorials**: Start with our [tutorial series](tutorial/tutorial-trough.md) to learn the basics
-3. **Configuration**: Explore the [Game Logic](shot.md) documentation to understand available components
+2. **Tutorials**: Start with our [Build Your First GLF Game](tutorial/index.md) to learn the basics
+3. **Configuration**: Read [Configuration and YAML](configuration.md) for a worked mode example and a guide to the two game repositories
+4. **Runtime expressions**: Use [dynamic values](dynamic_values.md) for scoring multipliers and event conditions
 
 ## Getting Help
 

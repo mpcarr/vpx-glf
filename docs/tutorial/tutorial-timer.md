@@ -1,73 +1,54 @@
-# Timer Tutorial
+# 10. Add a timed award opportunity
 
-Timers are essential for creating time-based events in your pinball game, such as mode durations, countdowns, and timed opportunities. The timer in the VPX Game Logic Framework is flexible and can be configured to count up or down, trigger events, and be controlled by other events.
+**Goal:** crossing the original scoring rollover opens a 15-second window; crossing a new goal during that window awards 10,000.
 
-## What is a Timer?
-A timer is a component that counts up or down from a specified value, firing events as it runs. You can use timers to:
-- Create time-limited modes (e.g., "Complete the objective in 30 seconds!")
-- Track elapsed time for scoring or achievements
-- Add urgency to gameplay
-
-## Basic Timer Configuration
-
-Here is a straightforward example of how to configure a timer for a "hurry up" mode:
+Add Trigger `s_goal` to `glf_switches` and Light `l_window` to `glf_lights`. Add the sub below and append `CreateTutorialHurry` to `ConfigureGlfDevices`. This works alongside the existing scoring mode: `s_score` still gives its ordinary 1,000 points.
 
 ```vbscript
-With CreateGlfMode("hurry_up", 10)
-    .StartEvents = Array("hurry_up_start")
-    .StopEvents = Array("timer_hurry_up_complete")
-
-    With .Timer("hurry_up_timer")
-        .StartRunning = True
-        .Direction = "down"      ' Count down
-        .StartValue = 15         ' Start at 15
-        .EndValue = 0            ' End at 0
-        .TickInterval = 1000     ' Tick every 1 second (1000 ms)
+Sub CreateTutorialHurry()
+    With CreateGlfMode("tutorial_hurry", 300)
+        .StartEvents = Array("s_score_active{modes.tutorial_hurry.active == False}")
+        .StopEvents = Array("tutorial_hurry_finish", "timer_tutorial_hurry_clock_complete", "ball_will_end", "tilt")
+        With .Timers("tutorial_hurry_clock")
+            .StartValue = 0
+            .EndValue = 15
+            .Direction = "up"
+            .TickInterval = 1000
+            With .ControlEvents()
+                .EventName = "mode_tutorial_hurry_started"
+                .Action = "restart"
+            End With
+        End With
+        With .LightPlayer()
+            With .EventName("mode_tutorial_hurry_started")
+                With .Lights("l_window")
+                    .Color = "00ff00"
+                End With
+            End With
+        End With
+        With .VariablePlayer()
+            With .EventName("s_goal_active.1")
+                With .Variable("score")
+                    .Action = "add"
+                    .Int = 10000
+                End With
+            End With
+        End With
+        With .EventPlayer()
+            .Add "s_goal_active", Array("tutorial_hurry_finish")
+        End With
     End With
-End With
+End Sub
 ```
 
-**How it works:**
-- The timer is named `hurry_up_timer` and is part of the `hurry_up` mode.
-- The mode starts when the `hurry_up_start` event occurs and stops when the timer completes (`timer_hurry_up_complete`).
-- The timer starts running immediately, counts down from 15 to 0, ticking every second.
-- When the timer reaches 0, it automatically fires a `timer_hurry_up_complete` event, which ends the mode.
+The start condition prevents repeated rollover hits from restarting an already active mode. Its timer is named `tutorial_hurry_clock`, so its completion event is exactly `timer_tutorial_hurry_clock_complete`. The configuration API is `.Timers`, and the one-second tick interval makes 15 ticks a 15-second opportunity.
 
-## Timer Events
-Timers automatically generate events you can use in your game logic:
-- `<timer_name>_started` — when the timer starts
-- `<timer_name>_stopped` — when the timer stops
-- `<timer_name>_complete` — when the timer reaches its end value
-- `<timer_name>_tick` — on every tick
+The goal awards points before posting a separate finish event. The `.1` suffix raises that scoring listener's priority; it is not a time delay. Stopping the mode removes the light entry and timer activity. The goal is not scored outside the mode because its variable player is inactive.
 
-You can use these events to trigger actions, such as ending a mode, playing a sound, or updating the display.
+## Checkpoint
 
-## Controlling the Timer
-You can also control the timer using control events. For example, you can add time, pause, or change the tick interval dynamically by configuring `.ControlEvents`:
+Before opening a window, `s_goal` gives no hurry-up award. Hit `s_score`: the green window light turns on. Hit `s_score` again during the window: it still gives the ordinary rollover score but does not extend the window. Hit `s_goal` in time: +10,000 and the light turns off. Try again and wait: expiry turns the light off with no hurry-up award. Drain during the window and verify it is gone on the next ball.
 
-```vbscript
-With .Timer("hurry_up_timer")
-    ' ... basic config ...
-    With .ControlEvents
-        .EventName = "add_time"
-        .Action = "add"
-        .Value = 5000
-    End With
-    With .ControlEvents
-        .EventName = "pause_timer"
-        .Action = "pause"
-        .Value = 2000  ' Pause for 2 seconds
-    End With
-End With
-```
+Timer control values have action-specific meanings. For example, `add` uses ticks, while `pause` uses a delay. Consult the [Timer API](../timer.md) before adding controls; do not pass 5,000 expecting an addition of five ticks.
 
-- Triggering the `add_time` event will add 5 to the timer.
-- Triggering the `pause_timer` event will pause the timer for 2 seconds.
-
-## Summary
-- Timers are configured inside a mode using `.Timer("name")`.
-- Set the direction, start/end values, and tick interval.
-- Use events to start/stop the timer and respond to timer events.
-- Use control events to dynamically modify the timer during gameplay.
-
-This covers the basics of using timers in your game. For more advanced usage, see the [Timer Command Reference](../../timer). 
+[Previous](tutorial-shots.md) · [Tutorial map](index.md) · [Next](tutorial-ball-devices.md)

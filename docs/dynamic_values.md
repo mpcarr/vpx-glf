@@ -1,63 +1,72 @@
----
-title: Using dynamic runtime values in config files
----
+# Dynamic runtime values
 
-# Using dynamic runtime values in config files
+Some GLF properties accept expressions evaluated when the value is used. For these properties, pass the expression as a **VBScript string**. For example, `.Int = "100000 * current_player.scoring_multiplier"` defers evaluation until the scoring event; removing the quotes attempts to evaluate `current_player` as a VBScript object during configuration.
 
+## Score with a multiplier
 
-Some config command properties can accept a dynamic values which are evaluated live when the game is running rather than
-being hard-coded.
+Initialize your custom variable during table configuration:
 
-Dynamic values can come from several sources, including player
-variables, machine variables.
+```vbscript
+Glf_SetInitialPlayerVar "scoring_multiplier", 1
+```
 
-For example, you might want to have a shot called "jackpot" that
-scores a multiplier which is the number of shots made times 100k points.
+Inside an active mode, configure the scoring event:
 
-Without dynamic values, your variable_player (scoring) section would be
-static, like this:
-
-``` vbs
+```vbscript
 With .VariablePlayer()
-  With .EventName("shot_jackpot_hit")
-    With .Variable("score")
-      .Action = "add"
-      .Int = 100000
+    With .EventName("jackpot_hit")
+        With .Variable("score")
+            .Action = "add"
+            .Int = "100000 * current_player.scoring_multiplier"
+        End With
     End With
-  End With
 End With
 ```
 
-But let's say you have a player variable called "troll_hits" which
-holds the number of trolls hit that you want to multiply by 100,000 when
-the shot is made. You can use the "current_player" dynamic value in
-your variable_player config like this:
+A multiplier of 2 awards 200,000 points when `jackpot_hit` occurs. Dark Chaos uses this pattern in `scripts/src/game/modes/score.vbs`; the example table constructs similar strings using `x & " * current_player.scoring_multiplier"`.
 
-``` vbs
-With .VariablePlayer()
-  With .EventName("shot_jackpot_hit")
-    With .Variable("score")
-      .Action = "add"
-      .Int = 100000 * current_player.troll_hits
+The exported YAML uses the expression directly:
+
+```yaml
+variable_player:
+  jackpot_hit:
+    score:
+      action: add
+      int: 100000 * current_player.scoring_multiplier
+```
+
+See [configuration](configuration.md) for how exported YAML relates to the VPX source.
+
+## Runtime references
+
+| Reference | Reads | Requirement |
+| --- | --- | --- |
+| `current_player.score` | Current player's score | An active player |
+| `current_player.scoring_multiplier` | A custom player variable | Initialize it during configuration |
+| `machine.my_variable` | A machine variable's value | Create the machine variable first |
+| `device.timers.double_scoring.ticks` | A timer's current count | A configured timer named `double_scoring` |
+| `device.timers.double_scoring.ticks_remaining` | A timer's remaining count | A configured timer named `double_scoring` |
+| `kwargs.amount` | Data carried by the current event | The event must supply `amount` |
+
+Device attributes are limited to those exposed by that device's `GetValue` implementation; arbitrary VBScript properties are not automatically available as placeholders. The parser also handles `players[...]`, `modes` and `game` references; check their implementations before relying on an attribute or index convention.
+
+## Conditions on events
+
+A condition inside braces filters an event subscription. This pattern from Dark Chaos changes a shot state near the end of a timer:
+
+```vbscript
+With .Shots("double_scoring")
+    With .ControlEvents()
+        .Events = Array("timer_double_scoring_tick{device.timers.double_scoring.ticks == 55}")
+        .State = 2
     End With
-  End With
 End With
 ```
 
-## Types of dynamic values
+This excerpt belongs inside the mode containing the timer and requires a shot profile with state index 2. The condition is evaluated when the tick event arrives; it does not continuously watch the timer.
 
-You can use the following types of placeholders.
+## Check whether a property supports expressions
 
-### Current Player Variables
+In `scripts/src/commands/` or `scripts/src/devices/`, inspect the property's setter. A setter that calls `CreateGlfInput` supports the runtime input parser. A setter that stores a plain value may behave differently. Variable player `Int`, `Float` and `String` use `CreateGlfInput`; their values are evaluated in `Play`.
 
-You can access a player variable `X` of the current player using
-`current_player.X`. For instance, `current_player.my_player_var` will
-access `my_player_var` of the current player. This placeholder is only
-available when a game is active.
-
-Common player variables are:
-
-* `current_player.score` - Score of the current player
-* `current_player.ball` - Current ball
-
-*TODO: Add more examples of available dynamic values*
+The implementation is in `scripts/src/_.main.vbs`: `Glf_ParseInput`, `Glf_ParseEventInput`, the `Glf_Replace...Attributes` helpers and `GlfInput.Value`. Event conditions and value expressions use different parsing paths, so do not assume every expression syntax works in both.

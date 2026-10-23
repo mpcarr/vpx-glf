@@ -1,5 +1,7 @@
 # Multiball Configuration
 
+For a complete feature using locks, jackpots and requalification, see the [Multiball Walkthrough](guides/multiball.md).
+
 The multiball configuration allows you to set up and customize multiball modes in your pinball machine. Multiball modes are special gameplay features where multiple balls are in play simultaneously, creating exciting and challenging gameplay.
 
 ## Configuration Options

@@ -1,67 +1,56 @@
-# Tutorial - Lights
+# 6. Add GI and finish a complete game
 
-Now that we have a basic game life cycle, we can introduce some lights management to our table. We are going to setup a light player for the GI so that it turns on when the ball starts and off when the ball ends.
+**Goal:** light the playfield during a ball and verify the complete game loop before adding more features.
 
-The light player is used to turn lights on and off when events happen. It inherits the priority of the mode its assigned to. For more information check out the [Light Player](../../light-player) command reference
+Add a Light named `l_gi`, initially off, and include it in `glf_lights`. Set its BlinkPattern field to `GI`. GLF uses this field for comma-separated tags; additional GI lights can share that tag. Keep the tag exactly consistent with the rule.
 
-![lights](../images/tutorial-lights.gif)
+![GI controlled by a mode](../images/tutorial-lights.gif)
 
+## Add the GI mode
 
-### Light Tags
-
-Lights can be grouped together using tags. This makes it easy to change the state of many lights all at the same time. In this example we will assign all our GI (General Illumination) lights with the tag *GI*.
-
-To do this in the vpx editor we are going to borrow the BlinkPattern property of the light object to hold our tag names. Select all of your GI lights, and under BlinkPattern type ```GI```. You can add more tags to a light using a csv format, for example ```GI,SLING_GI```
-
-### Add Lights to GLF
-
-To allow the GLF to control your lights you need to add them to the glf_lights collection you created during the getting started guide. In VPX open your collection manager and add all your lights to glf_lights.
-
-### Light Player Configuration
-
-To control your lights you need a to use a ```LightPlayer```. You also need a mode to contain your light player. Add the following configuration to your script
-
-```
-Public Sub CreateGIMode()
-
-    With CreateGlfMode("gi_control", 1000)
+```vbscript
+Sub CreateTutorialLights()
+    With CreateGlfMode("tutorial_lights", 100)
         .StartEvents = Array("ball_started")
-        .StopEvents = Array("ball_ended") 
+        .StopEvents = Array("ball_will_end", "tilt")
         With .LightPlayer()
-            With .EventName("mode_gi_control_started")
+            With .EventName("mode_tutorial_lights_started")
                 With .Lights("GI")
                     .Color = "ffffff"
                 End With
             End With
         End With
     End With
-    
 End Sub
-
 ```
 
-Lets step through the mode config. We create a new mode called gi_control, the mode will start when the ball_started event is posted by the system and will end when the ball_ended event is posted. We setup a light player within this mode that listens for the mode started event and changes the GI lights to white color.
+Append `CreateTutorialLights` to `ConfigureGlfDevices`. The complete core configuration entry point is now:
 
-We now need to include this mode in our game. To do that, in your ConfigureGlfDevices sub add the following
-
-```
-    Sub ConfigureGlfDevices
-        
-        ' Plunger
-        With CreateGlfBallDevice("plunger")
-            .BallSwitches = Array("sw01")
-            .EjectTimeout = 2000
-            .MechanicalEject = True
-            .DefaultDevice = True
-            .EjectCallback = "PlungerEjectCallback"
-        End With
-
-        CreateGIMode() '<---Add this to enable the mode
-        
-        'Other device config....
-    End Sub
+```vbscript
+Sub ConfigureGlfDevices()
+    ConfigureTutorialPlunger
+    ConfigureTutorialFlippers
+    CreateTutorialScoring
+    CreateTutorialLights
+End Sub
 ```
 
-## Next Steps
+The light player responds to its own mode's started event, when its listeners are ready. Stopping the mode removes its light entry; with no other light rule active, the GI returns to its off baseline.
 
-[Setting up your ball devices](../tutorial-ball-devices/)
+## Acceptance test: one complete game
+
+1. Start the table: one physical ball is in the trough, GI is off and the display says `PRESS START`.
+2. Press and release Start: a ball is served, GI turns on and the display shows player 1, ball 1, score 0.
+3. Launch, flip and cross `s_score` twice: score becomes 2,000.
+4. Drain: the ball returns through the trough; ball 2 is served and the score remains 2,000.
+5. Drain balls 2 and 3. With the table's `Balls Per Game` option set to `3 Balls`, no fourth ball is served. GI turns off and `PRESS START` returns.
+6. Start a fresh game: score and ball number reset. Confirm there is still only one physical ball.
+7. Start another game, add player 2 with Start during ball 1, and verify separate scores and alternating turns after drains.
+
+The table option can select five balls, so check it if your game continues after the third drain. Physical ball count (`tnob`) is independent of turns per game.
+
+Compare your script with the [completed core script](../assets/tutorial/minimal-game.vbs). It includes chapters 1–6 only. Do not append it below your existing script; use it to compare or replace the whole tutorial script after saving a copy.
+
+You now have the core loop. Add features only after these checks pass; otherwise debugging a new rule becomes mixed up with physical ball-routing problems.
+
+[Previous](tutorial-scoring.md) · [Tutorial map](index.md) · [Next](tutorial-event-player.md)

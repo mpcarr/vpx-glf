@@ -10,7 +10,7 @@ The variable player configuration allows you to set up and customize variable ma
 With CreateGlfMode("mode_name", priority)
     .StartEvents = Array("ball_started")
     .StopEvents = Array("ball_ended")
-    
+
     With .VariablePlayer
         With .EventName("event_name")
             With .Variable("variable_name")
@@ -77,8 +77,12 @@ By default, variable players are configured with:
 - The variable player system automatically handles variable manipulation
 - Debug logging can be enabled to track variable player operations
 - Variable players can be configured to work with specific game modes or features
-- The variable player system prevents variable conflicts
+- Multiple active variable players can respond to the same event; avoid awarding the same score in more than one mode unintentionally
 - Player variables are reset when a new game starts
 - Machine variables persist across games if the `Persist` property is set to `True`
 - The `add` action is useful for incrementing scores or counters
-- The `set` action is useful for resetting or initializing variables 
+- The `set` action is useful for resetting or initializing variables
+
+## Expressions and YAML
+
+Pass runtime expressions as strings, for example `.Int = "1000 * current_player.scoring_multiplier"`. See [dynamic values](dynamic_values.md) for initialization and examples, and [Configuration and YAML](configuration.md) for a complete mode with its exported representation.

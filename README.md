@@ -6,6 +6,8 @@ A powerful framework for creating original virtual pinball tables using the VPX 
 
 For detailed documentation, please visit our [official documentation site](https://mpcarr.github.io/vpx-glf/).
 
+For a worked configuration example, see [Configuration and YAML](docs/configuration.md), including where to find examples in Dark Chaos and the example table. See [Dynamic Values](docs/dynamic_values.md) for runtime expressions.
+
 ## Overview
 
 The VPX Game Logic Framework is based on The Mission Pinball Framework (MPF) for real and homebrew machines. Many of the game logic commands mirror the MPF commands, with one of the project's goals being to have an interchangeable configuration between VPX and MPF. Another goal is to provide a standalone set of game logic devices that doesn't require end users to install and run the MPF bridge for VPX.
@@ -19,7 +21,7 @@ The VPX Game Logic Framework is based on The Mission Pinball Framework (MPF) for
 - **Light Control**: Advanced lighting effects and animations
 - **Sound Management**: Coordinate sound effects with game events
 - **High Score Tracking**: Persistent high score storage and display
-- **Achievement System**: Track and reward player accomplishments
+- **Achievement Tracking**: Compose player variables, shots and state machines to track accomplishments; the dedicated achievement device is unfinished
 - **Shot Management**: Configure shots, shot groups, and shot profiles
 - **Multiball Handling**: Manage multiball modes and locks
 - **Timer System**: Precise timing control for game events
@@ -29,17 +31,23 @@ The VPX Game Logic Framework is based on The Mission Pinball Framework (MPF) for
 
 Check out the [Installation Guide](https://mpcarr.github.io/vpx-glf/installing/) to get started with the framework.
 
+## Learning Guides
+
+- [Game and ball lifecycle](docs/guides/game-lifecycle.md)
+- [Build a complete timed mode](docs/guides/complete-mode.md)
+- [Multiball walkthrough](docs/guides/multiball.md)
+- [Events and ordering](docs/events.md)
+- [Player variables and persistence](docs/player-state.md)
+- [Displays and Godot](docs/guides/displays.md)
+- [Sound setup](docs/sound-system.md)
+- [Ball search](docs/ball-search.md)
+- [Debugging](docs/guides/debugging.md)
+
 ## Tutorials
 
-The documentation includes step-by-step tutorials for implementing common pinball features:
+The [Build Your First GLF Game tutorial](docs/tutorial/index.md) starts with an empty VPX table and builds a playable game in six chapters: setup, trough, plunger, flippers, scoring/display and lights. Each chapter has a checkpoint, and the final core chapter tests a complete game and player changes.
 
-- [Trough](https://mpcarr.github.io/vpx-glf/tutorial/tutorial-trough/)
-- [Plunger](https://mpcarr.github.io/vpx-glf/tutorial/tutorial-plunger/)
-- [Flippers](https://mpcarr.github.io/vpx-glf/tutorial/tutorial-flippers/)
-- [Auto Fire Devices](https://mpcarr.github.io/vpx-glf/tutorial/tutorial-autofire/)
-- [Lights](https://mpcarr.github.io/vpx-glf/tutorial/tutorial-lights/)
-- [Ball Devices](https://mpcarr.github.io/vpx-glf/tutorial/tutorial-ball-devices/)
-- [Ball Save](https://mpcarr.github.io/vpx-glf/tutorial/tutorial-ballsave/)
+The [completed core script](docs/assets/tutorial/minimal-game.vbs) provides a comparison file. Further chapters add event routing, ball save, shot progress, a timed opportunity, a scoop and an autofire device. The script and new tutorial still require VPX play-testing.
 
 ## Game Logic Components
 
