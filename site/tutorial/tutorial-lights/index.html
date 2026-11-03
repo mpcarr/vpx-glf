@@ -15,18 +15,18 @@
         <link rel="canonical" href="https://mpcarr.github.io/vpx-glf/tutorial/tutorial-lights/">
       
       
-        <link rel="prev" href="../tutorial-autofire/">
+        <link rel="prev" href="../tutorial-scoring/">
       
       
-        <link rel="next" href="../tutorial-ball-devices/">
+        <link rel="next" href="../tutorial-event-player/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.25">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.28">
     
     
       
-        <title>Lights - VPX Game Logic Framework</title>
+        <title>6. Lights and Complete Game - VPX Game Logic Framework</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#tutorial-lights" class="md-skip">
+        <a href="#6-add-gi-and-finish-a-complete-game" class="md-skip">
           Skip to content
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Lights
+              6. Lights and Complete Game
             
           </span>
         </div>
@@ -177,7 +177,7 @@
       
     </form>
     <div class="md-search__output">
-      <div class="md-search__scrollwrap" data-md-scrollfix>
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
             Initializing search
@@ -225,10 +225,28 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../../installing/" class="md-tabs__link">
+        <a href="../../getting-started/" class="md-tabs__link">
           
   
   Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../guides/game-lifecycle/" class="md-tabs__link">
+          
+  
+  Guides
 
         </a>
       </li>
@@ -392,11 +410,74 @@
   
   
     <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Start Here
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../installing/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
     Installation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configuration and YAML
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dynamic_values/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Dynamic Values
   </span>
   
 
@@ -425,26 +506,68 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_1_2" id="__nav_1_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_1_5" id="__nav_1_5_label" tabindex="0">
             
   
   <span class="md-ellipsis">
-    Tutorial
+    Build a Game from Scratch
   </span>
   
 
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_1_2">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1_5">
             <span class="md-nav__icon md-icon"></span>
-            Tutorial
+            Build a Game from Scratch
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Tutorial Map
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-setup/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    1. Empty Table and Script
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -457,7 +580,7 @@
         
   
   <span class="md-ellipsis">
-    Trough
+    2. Physical Trough
   </span>
   
 
@@ -478,7 +601,7 @@
         
   
   <span class="md-ellipsis">
-    Plunger
+    3. Plunger and First Serve
   </span>
   
 
@@ -499,7 +622,7 @@
         
   
   <span class="md-ellipsis">
-    Flippers
+    4. Flippers
   </span>
   
 
@@ -516,11 +639,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../tutorial-autofire/" class="md-nav__link">
+      <a href="../tutorial-scoring/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Auto Fire Devices
+    5. Score and Display
   </span>
   
 
@@ -550,7 +673,7 @@
           
   
   <span class="md-ellipsis">
-    Lights
+    6. Lights and Complete Game
   </span>
   
 
@@ -561,7 +684,7 @@
         
   
   <span class="md-ellipsis">
-    Lights
+    6. Lights and Complete Game
   </span>
   
 
@@ -585,36 +708,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#light-tags" class="md-nav__link">
+  <a href="#add-the-gi-mode" class="md-nav__link">
     <span class="md-ellipsis">
-      Light Tags
+      Add the GI mode
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#add-lights-to-glf" class="md-nav__link">
+  <a href="#acceptance-test-one-complete-game" class="md-nav__link">
     <span class="md-ellipsis">
-      Add Lights to GLF
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#light-player-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Light Player Configuration
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
-    <span class="md-ellipsis">
-      Next Steps
+      Acceptance test: one complete game
     </span>
   </a>
   
@@ -636,11 +741,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../tutorial-ball-devices/" class="md-nav__link">
+      <a href="../tutorial-event-player/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Ball Devices
+    7. Event Routing
   </span>
   
 
@@ -661,28 +766,7 @@
         
   
   <span class="md-ellipsis">
-    Ball Save
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial-scoring/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Scoring
+    8. Ball Save
   </span>
   
 
@@ -703,28 +787,7 @@
         
   
   <span class="md-ellipsis">
-    Shots
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial-event-player/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Event Player
+    9. Shot Progress
   </span>
   
 
@@ -745,7 +808,49 @@
         
   
   <span class="md-ellipsis">
-    Timer
+    10. Timed Opportunity
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-ball-devices/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    11. Optional Scoop
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-autofire/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    12. Optional Autofire
   </span>
   
 
@@ -794,7 +899,7 @@
             
   
   <span class="md-ellipsis">
-    Game Logic Commands
+    Guides
   </span>
   
 
@@ -803,6 +908,240 @@
         
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/game-lifecycle/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Game and Ball Lifecycle
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/complete-mode/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Complete Timed Mode
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/multiball/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multiball Walkthrough
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../events/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Events and Ordering
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../player-state/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Player Variables and Persistence
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/displays/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Displays and Godot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../sound-system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sound Setup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ball-search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Search
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/debugging/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Debugging
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Game Logic Commands
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             Game Logic Commands
           </label>
@@ -825,10 +1164,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
         
           
-          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -839,8 +1178,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_1">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
             <span class="md-nav__icon md-icon"></span>
             Virtual Devices
           </label>
@@ -972,6 +1311,48 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../standup-target/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Standup Target
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../segment-display/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Segment Display
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -997,10 +1378,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
         
           
-          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -1011,12 +1392,33 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_2">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
             <span class="md-nav__icon md-icon"></span>
             Modes
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ball-hold/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Hold
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1067,7 +1469,28 @@
   
   
     <li class="md-nav__item">
-      <a href="../../dof-player-config.md" class="md-nav__link">
+      <a href="../../counter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Counter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dof-player/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1256,6 +1679,27 @@
   
   
     <li class="md-nav__item">
+      <a href="../../queue-relay-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Queue Relay Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../random-event-player/" class="md-nav__link">
         
   
@@ -1345,6 +1789,27 @@
   
   <span class="md-ellipsis">
     Sequence Shot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../segment-display-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Segment Display Player
   </span>
   
 
@@ -1522,6 +1987,48 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../widget-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Widget Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../achievements/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achievement Tracking (Status)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1606,36 +2113,18 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#light-tags" class="md-nav__link">
+  <a href="#add-the-gi-mode" class="md-nav__link">
     <span class="md-ellipsis">
-      Light Tags
+      Add the GI mode
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#add-lights-to-glf" class="md-nav__link">
+  <a href="#acceptance-test-one-complete-game" class="md-nav__link">
     <span class="md-ellipsis">
-      Add Lights to GLF
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#light-player-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Light Player Configuration
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
-    <span class="md-ellipsis">
-      Next Steps
+      Acceptance test: one complete game
     </span>
   </a>
   
@@ -1659,54 +2148,48 @@
   
 
 
-<h1 id="tutorial-lights">Tutorial - Lights</h1>
-<p>Now that we have a basic game life cycle, we can introduce some lights management to our table. We are going to setup a light player for the GI so that it turns on when the ball starts and off when the ball ends.</p>
-<p>The light player is used to turn lights on and off when events happen. It inherits the priority of the mode its assigned to. For more information check out the <a href="../../light-player">Light Player</a> command reference</p>
-<p><img alt="lights" src="../../images/tutorial-lights.gif" /></p>
-<h3 id="light-tags">Light Tags</h3>
-<p>Lights can be grouped together using tags. This makes it easy to change the state of many lights all at the same time. In this example we will assign all our GI (General Illumination) lights with the tag <em>GI</em>.</p>
-<p>To do this in the vpx editor we are going to borrow the BlinkPattern property of the light object to hold our tag names. Select all of your GI lights, and under BlinkPattern type <code>GI</code>. You can add more tags to a light using a csv format, for example <code>GI,SLING_GI</code></p>
-<h3 id="add-lights-to-glf">Add Lights to GLF</h3>
-<p>To allow the GLF to control your lights you need to add them to the glf_lights collection you created during the getting started guide. In VPX open your collection manager and add all your lights to glf_lights.</p>
-<h3 id="light-player-configuration">Light Player Configuration</h3>
-<p>To control your lights you need a to use a <code>LightPlayer</code>. You also need a mode to contain your light player. Add the following configuration to your script</p>
-<pre><code>Public Sub CreateGIMode()
-
-    With CreateGlfMode(&quot;gi_control&quot;, 1000)
+<h1 id="6-add-gi-and-finish-a-complete-game">6. Add GI and finish a complete game</h1>
+<p><strong>Goal:</strong> light the playfield during a ball and verify the complete game loop before adding more features.</p>
+<p>Add a Light named <code>l_gi</code>, initially off, and include it in <code>glf_lights</code>. Set its BlinkPattern field to <code>GI</code>. GLF uses this field for comma-separated tags; additional GI lights can share that tag. Keep the tag exactly consistent with the rule.</p>
+<p><img alt="GI controlled by a mode" src="../../images/tutorial-lights.gif" /></p>
+<h2 id="add-the-gi-mode">Add the GI mode</h2>
+<pre><code class="language-vbscript">Sub CreateTutorialLights()
+    With CreateGlfMode(&quot;tutorial_lights&quot;, 100)
         .StartEvents = Array(&quot;ball_started&quot;)
-        .StopEvents = Array(&quot;ball_ended&quot;) 
+        .StopEvents = Array(&quot;ball_will_end&quot;, &quot;tilt&quot;)
         With .LightPlayer()
-            With .EventName(&quot;mode_gi_control_started&quot;)
+            With .EventName(&quot;mode_tutorial_lights_started&quot;)
                 With .Lights(&quot;GI&quot;)
                     .Color = &quot;ffffff&quot;
                 End With
             End With
         End With
     End With
-
 End Sub
-
 </code></pre>
-<p>Lets step through the mode config. We create a new mode called gi_control, the mode will start when the ball_started event is posted by the system and will end when the ball_ended event is posted. We setup a light player within this mode that listens for the mode started event and changes the GI lights to white color.</p>
-<p>We now need to include this mode in our game. To do that, in your ConfigureGlfDevices sub add the following</p>
-<pre><code>    Sub ConfigureGlfDevices
-
-        ' Plunger
-        With CreateGlfBallDevice(&quot;plunger&quot;)
-            .BallSwitches = Array(&quot;sw01&quot;)
-            .EjectTimeout = 2000
-            .MechanicalEject = True
-            .DefaultDevice = True
-            .EjectCallback = &quot;PlungerEjectCallback&quot;
-        End With
-
-        CreateGIMode() '&lt;---Add this to enable the mode
-
-        'Other device config....
-    End Sub
+<p>Append <code>CreateTutorialLights</code> to <code>ConfigureGlfDevices</code>. The complete core configuration entry point is now:</p>
+<pre><code class="language-vbscript">Sub ConfigureGlfDevices()
+    ConfigureTutorialPlunger
+    ConfigureTutorialFlippers
+    CreateTutorialScoring
+    CreateTutorialLights
+End Sub
 </code></pre>
-<h2 id="next-steps">Next Steps</h2>
-<p><a href="../tutorial-ball-devices/">Setting up your ball devices</a></p>
+<p>The light player responds to its own mode's started event, when its listeners are ready. Stopping the mode removes its light entry; with no other light rule active, the GI returns to its off baseline.</p>
+<h2 id="acceptance-test-one-complete-game">Acceptance test: one complete game</h2>
+<ol>
+<li>Start the table: one physical ball is in the trough, GI is off and the display says <code>PRESS START</code>.</li>
+<li>Press and release Start: a ball is served, GI turns on and the display shows player 1, ball 1, score 0.</li>
+<li>Launch, flip and cross <code>s_score</code> twice: score becomes 2,000.</li>
+<li>Drain: the ball returns through the trough; ball 2 is served and the score remains 2,000.</li>
+<li>Drain balls 2 and 3. With the table's <code>Balls Per Game</code> option set to <code>3 Balls</code>, no fourth ball is served. GI turns off and <code>PRESS START</code> returns.</li>
+<li>Start a fresh game: score and ball number reset. Confirm there is still only one physical ball.</li>
+<li>Start another game, add player 2 with Start during ball 1, and verify separate scores and alternating turns after drains.</li>
+</ol>
+<p>The table option can select five balls, so check it if your game continues after the third drain. Physical ball count (<code>tnob</code>) is independent of turns per game.</p>
+<p>Compare your script with the <a href="../../assets/tutorial/minimal-game.vbs">completed core script</a>. It includes chapters 1–6 only. Do not append it below your existing script; use it to compare or replace the whole tutorial script after saving a copy.</p>
+<p>You now have the core loop. Add features only after these checks pass; otherwise debugging a new rule becomes mixed up with physical ball-routing problems.</p>
+<p><a href="../tutorial-scoring/">Previous</a> · <a href="../">Tutorial map</a> · <a href="../tutorial-event-player/">Next</a></p>
 
 
 
@@ -1756,7 +2239,7 @@ End Sub
     <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "navigation.instant", "navigation.tabs"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.081f42fc.min.js"></script>
+      <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
       
     
   </body>

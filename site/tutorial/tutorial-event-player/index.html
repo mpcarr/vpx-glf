@@ -15,18 +15,18 @@
         <link rel="canonical" href="https://mpcarr.github.io/vpx-glf/tutorial/tutorial-event-player/">
       
       
-        <link rel="prev" href="../tutorial-shots/">
+        <link rel="prev" href="../tutorial-lights/">
       
       
-        <link rel="next" href="../tutorial-timer/">
+        <link rel="next" href="../tutorial-ballsave/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.25">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.28">
     
     
       
-        <title>Event Player - VPX Game Logic Framework</title>
+        <title>7. Event Routing - VPX Game Logic Framework</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#tutorial-event-player" class="md-skip">
+        <a href="#7-separate-switch-events-from-awards" class="md-skip">
           Skip to content
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Event Player
+              7. Event Routing
             
           </span>
         </div>
@@ -177,7 +177,7 @@
       
     </form>
     <div class="md-search__output">
-      <div class="md-search__scrollwrap" data-md-scrollfix>
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
             Initializing search
@@ -225,10 +225,28 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../../installing/" class="md-tabs__link">
+        <a href="../../getting-started/" class="md-tabs__link">
           
   
   Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../guides/game-lifecycle/" class="md-tabs__link">
+          
+  
+  Guides
 
         </a>
       </li>
@@ -392,11 +410,74 @@
   
   
     <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Start Here
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../installing/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
     Installation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configuration and YAML
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dynamic_values/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Dynamic Values
   </span>
   
 
@@ -425,26 +506,68 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_1_2" id="__nav_1_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_1_5" id="__nav_1_5_label" tabindex="0">
             
   
   <span class="md-ellipsis">
-    Tutorial
+    Build a Game from Scratch
   </span>
   
 
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_1_2">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1_5">
             <span class="md-nav__icon md-icon"></span>
-            Tutorial
+            Build a Game from Scratch
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Tutorial Map
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-setup/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    1. Empty Table and Script
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -457,7 +580,7 @@
         
   
   <span class="md-ellipsis">
-    Trough
+    2. Physical Trough
   </span>
   
 
@@ -478,7 +601,7 @@
         
   
   <span class="md-ellipsis">
-    Plunger
+    3. Plunger and First Serve
   </span>
   
 
@@ -499,91 +622,7 @@
         
   
   <span class="md-ellipsis">
-    Flippers
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial-autofire/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Auto Fire Devices
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial-lights/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Lights
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial-ball-devices/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Ball Devices
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial-ballsave/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Ball Save
+    4. Flippers
   </span>
   
 
@@ -604,7 +643,7 @@
         
   
   <span class="md-ellipsis">
-    Scoring
+    5. Score and Display
   </span>
   
 
@@ -621,11 +660,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../tutorial-shots/" class="md-nav__link">
+      <a href="../tutorial-lights/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Shots
+    6. Lights and Complete Game
   </span>
   
 
@@ -655,7 +694,7 @@
           
   
   <span class="md-ellipsis">
-    Event Player
+    7. Event Routing
   </span>
   
 
@@ -666,7 +705,7 @@
         
   
   <span class="md-ellipsis">
-    Event Player
+    7. Event Routing
   </span>
   
 
@@ -690,87 +729,9 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-is-the-event-player" class="md-nav__link">
+  <a href="#checkpoint" class="md-nav__link">
     <span class="md-ellipsis">
-      What is the Event Player?
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#basic-event-playing" class="md-nav__link">
-    <span class="md-ellipsis">
-      Basic Event Playing
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#conditional-event-playing" class="md-nav__link">
-    <span class="md-ellipsis">
-      Conditional Event Playing
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dynamic-values-in-events" class="md-nav__link">
-    <span class="md-ellipsis">
-      Dynamic Values in Events
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Dynamic Values in Events">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#dynamic-event-names" class="md-nav__link">
-    <span class="md-ellipsis">
-      Dynamic Event Names
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#dynamic-event-arguments" class="md-nav__link">
-    <span class="md-ellipsis">
-      Dynamic Event Arguments
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#event-priority" class="md-nav__link">
-    <span class="md-ellipsis">
-      Event Priority
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#practical-example-multiball-mode" class="md-nav__link">
-    <span class="md-ellipsis">
-      Practical Example: Multiball Mode
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#conclusion" class="md-nav__link">
-    <span class="md-ellipsis">
-      Conclusion
+      Checkpoint
     </span>
   </a>
   
@@ -792,11 +753,95 @@
   
   
     <li class="md-nav__item">
+      <a href="../tutorial-ballsave/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    8. Ball Save
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-shots/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    9. Shot Progress
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../tutorial-timer/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Timer
+    10. Timed Opportunity
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-ball-devices/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    11. Optional Scoop
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-autofire/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    12. Optional Autofire
   </span>
   
 
@@ -845,7 +890,7 @@
             
   
   <span class="md-ellipsis">
-    Game Logic Commands
+    Guides
   </span>
   
 
@@ -854,6 +899,240 @@
         
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/game-lifecycle/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Game and Ball Lifecycle
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/complete-mode/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Complete Timed Mode
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/multiball/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multiball Walkthrough
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../events/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Events and Ordering
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../player-state/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Player Variables and Persistence
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/displays/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Displays and Godot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../sound-system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sound Setup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ball-search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Search
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/debugging/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Debugging
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Game Logic Commands
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             Game Logic Commands
           </label>
@@ -876,10 +1155,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
         
           
-          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -890,8 +1169,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_1">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
             <span class="md-nav__icon md-icon"></span>
             Virtual Devices
           </label>
@@ -1023,6 +1302,48 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../standup-target/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Standup Target
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../segment-display/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Segment Display
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1048,10 +1369,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
         
           
-          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -1062,12 +1383,33 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_2">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
             <span class="md-nav__icon md-icon"></span>
             Modes
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ball-hold/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Hold
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1118,7 +1460,28 @@
   
   
     <li class="md-nav__item">
-      <a href="../../dof-player-config.md" class="md-nav__link">
+      <a href="../../counter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Counter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dof-player/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1307,6 +1670,27 @@
   
   
     <li class="md-nav__item">
+      <a href="../../queue-relay-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Queue Relay Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../random-event-player/" class="md-nav__link">
         
   
@@ -1396,6 +1780,27 @@
   
   <span class="md-ellipsis">
     Sequence Shot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../segment-display-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Segment Display Player
   </span>
   
 
@@ -1573,6 +1978,48 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../widget-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Widget Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../achievements/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achievement Tracking (Status)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1657,87 +2104,9 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-is-the-event-player" class="md-nav__link">
+  <a href="#checkpoint" class="md-nav__link">
     <span class="md-ellipsis">
-      What is the Event Player?
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#basic-event-playing" class="md-nav__link">
-    <span class="md-ellipsis">
-      Basic Event Playing
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#conditional-event-playing" class="md-nav__link">
-    <span class="md-ellipsis">
-      Conditional Event Playing
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#dynamic-values-in-events" class="md-nav__link">
-    <span class="md-ellipsis">
-      Dynamic Values in Events
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Dynamic Values in Events">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#dynamic-event-names" class="md-nav__link">
-    <span class="md-ellipsis">
-      Dynamic Event Names
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#dynamic-event-arguments" class="md-nav__link">
-    <span class="md-ellipsis">
-      Dynamic Event Arguments
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#event-priority" class="md-nav__link">
-    <span class="md-ellipsis">
-      Event Priority
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#practical-example-multiball-mode" class="md-nav__link">
-    <span class="md-ellipsis">
-      Practical Example: Multiball Mode
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#conclusion" class="md-nav__link">
-    <span class="md-ellipsis">
-      Conclusion
+      Checkpoint
     </span>
   </a>
   
@@ -1761,186 +2130,32 @@
   
 
 
-<h1 id="tutorial-event-player">Tutorial - Event Player</h1>
-<p>The Event Player is a powerful component in the VPX Game Logic Framework that allows you to create complex event chains where one event can trigger multiple other events. This tutorial will show you how to use the Event Player to create sophisticated game logic with minimal code.</p>
-<h2 id="what-is-the-event-player">What is the Event Player?</h2>
-<p>The Event Player listens for specific events and automatically dispatches other events in response. This is useful for:</p>
-<ul>
-<li>Creating reusable event patterns</li>
-<li>Simplifying complex event handling logic</li>
-<li>Responding to game state changes with multiple actions</li>
-<li>Creating conditional event chains based on game conditions</li>
-</ul>
-<h2 id="basic-event-playing">Basic Event Playing</h2>
-<pre><code class="language-vbscript">' Mode-specific event player configuration
-With CreateGlfMode(&quot;shoot_here&quot;, 20)
-    .StartEvents = Array(&quot;mode_shoot_here_started&quot;)
-    .StopEvents = Array(&quot;mode_shoot_here_stopped&quot;)
-
-    With .EventPlayer
-        ' When the mode starts, reset the upper target
-        .Add &quot;mode_shoot_here_started&quot;, Array(&quot;cmd_upper_target_reset&quot;)
+<h1 id="7-separate-switch-events-from-awards">7. Separate switch events from awards</h1>
+<p><strong>Prerequisite:</strong> finish the core game through chapter 6. This chapter changes the existing scoring sub; it does not create a second scoring mode.</p>
+<p>Replace <code>CreateTutorialScoring</code> with the following version. Keep its existing call in <code>ConfigureGlfDevices</code> exactly once.</p>
+<pre><code class="language-vbscript">Sub CreateTutorialScoring()
+    With CreateGlfMode(&quot;tutorial_scoring&quot;, 100)
+        .StartEvents = Array(&quot;ball_started&quot;)
+        .StopEvents = Array(&quot;ball_will_end&quot;, &quot;tilt&quot;)
+        With .EventPlayer()
+            .Add &quot;s_score_active&quot;, Array(&quot;tutorial_score_1000&quot;)
+        End With
+        With .VariablePlayer()
+            With .EventName(&quot;tutorial_score_1000&quot;)
+                With .Variable(&quot;score&quot;)
+                    .Action = &quot;add&quot;
+                    .Int = 1000
+                End With
+            End With
+        End With
     End With
-End With
+End Sub
 </code></pre>
-<p>In this example, when the "shoot_here" mode starts, the Event Player will automatically reset the upper target.</p>
-<h2 id="conditional-event-playing">Conditional Event Playing</h2>
-<p>The Event Player can also use conditions to determine when to dispatch events. This allows for more precise control over when events are played:</p>
-<pre><code class="language-vbscript">' Conditional event player configuration
-With CreateGlfMode(&quot;base&quot;, 10)
-    .StartEvents = Array(&quot;ball_started&quot;)
-    .StopEvents = Array(&quot;ball_ended&quot;)
-
-    With .EventPlayer
-        ' Only start super bonus round and play rich show if score is over 10000
-        .Add &quot;mode_base_started{current_player.score&gt;10000}&quot;, Array(&quot;start_mode_superbonusround&quot;, &quot;play_show_richy_rich&quot;)
-
-        ' Choose different battle modes based on achievement state
-        .Add &quot;start_mode_battle{device.achievements.ironthrone.state!='completed'}&quot;, Array(&quot;start_mode_choose_battle&quot;)
-        .Add &quot;start_mode_battle{device.achievements.ironthrone.state=='completed'}&quot;, Array(&quot;start_mode_victory_lap&quot;)
-    End With
-End With
-</code></pre>
-<p>In this example:
-- The <code>start_mode_superbonusround</code> and <code>play_show_richy_rich</code> events will only be dispatched if the player's score is over 10,000 when the base mode starts
-- The <code>start_mode_choose_battle</code> event will be dispatched if the "ironthrone" achievement is not completed
-- The <code>start_mode_victory_lap</code> event will be dispatched if the "ironthrone" achievement is completed</p>
-<p>You can also apply conditions to individual events within a list:</p>
-<pre><code class="language-vbscript">' Conditional events within a list
-With CreateGlfMode(&quot;base&quot;, 10)
-    .StartEvents = Array(&quot;ball_started&quot;)
-    .StopEvents = Array(&quot;ball_ended&quot;)
-
-    With .EventPlayer
-        .Add &quot;reenable_nonrecruit_modes&quot;, Array( _
-            &quot;start_mode_shadowbroker_base&quot;, _
-            &quot;start_mode_n7_assignments&quot;, _
-            &quot;start_mode_overlordlight{device.achievements.collectorship.state!='complete'}&quot;, _
-            &quot;start_mode_arrival{device.achievements.collectorship.state=='complete'}&quot;, _
-            &quot;start_mode_shopping{current_player.cash&gt;=1000}&quot; _
-        )
-    End With
-End With
-</code></pre>
-<p>In this example:
-- <code>start_mode_shadowbroker_base</code> and <code>start_mode_n7_assignments</code> will always be dispatched
-- Either <code>start_mode_overlordlight</code> or <code>start_mode_arrival</code> will be dispatched, depending on the state of the "collectorship" achievement
-- <code>start_mode_shopping</code> will only be dispatched if the player's cash is at least 1000</p>
-<h2 id="dynamic-values-in-events">Dynamic Values in Events</h2>
-<p>The Event Player supports dynamic values in event names and arguments, allowing for even more flexibility:</p>
-<h3 id="dynamic-event-names">Dynamic Event Names</h3>
-<p>You can include dynamic values in event names using parentheses:</p>
-<pre><code class="language-vbscript">' Dynamic event names
-With CreateGlfMode(&quot;dynamo&quot;, 30)
-    .StartEvents = Array(&quot;mode_dynamo_started&quot;)
-    .StopEvents = Array(&quot;mode_dynamo_stopped&quot;)
-
-    With .EventPlayer
-        ' Use player variables in event names
-        .Add &quot;mode_dynamo_started&quot;, Array(&quot;play_dynamo_show_phase_(current_player.phase_name)&quot;)
-
-        ' Use device states in event names
-        .Add &quot;mode_dynamo_started&quot;, Array(&quot;dynamo_started_with_state_(device.achievements.dynamo.state)&quot;)
-
-        ' Use conditional expressions in event names
-        .Add &quot;mode_dynamo_started&quot;, Array(&quot;player_score_is_('high' if current_player.score &gt; 10000 else 'low')&quot;)
-    End With
-End With
-</code></pre>
-<p>In this example:
-- If <code>current_player.phase_name</code> is "attackwave", the event <code>play_dynamo_show_phase_attackwave</code> will be dispatched
-- If the "dynamo" achievement is completed, the event <code>dynamo_started_with_state_completed</code> will be dispatched
-- If the player's score is over 10,000, the event <code>player_score_is_high</code> will be dispatched, otherwise <code>player_score_is_low</code> will be dispatched</p>
-<h3 id="dynamic-event-arguments">Dynamic Event Arguments</h3>
-<p>You can also include dynamic values as arguments to events:</p>
-<pre><code class="language-vbscript">' Dynamic event arguments
-With CreateGlfMode(&quot;dynamo&quot;, 30)
-    .StartEvents = Array(&quot;mode_dynamo_started&quot;)
-    .StopEvents = Array(&quot;mode_dynamo_stopped&quot;)
-
-    With .EventPlayer
-        ' Set environment sounds with a specific name
-        .Add &quot;mode_dynamo_started&quot;, Array(&quot;set_environment_sounds:env_name=driving&quot;)
-
-        ' Set initial laps count
-        .Add &quot;mode_dynamo_started&quot;, Array(&quot;set_initial_laps_count:count=10&quot;)
-
-        ' Use dynamic values for event arguments
-        .Add &quot;mode_dynamo_started&quot;, Array(&quot;set_dynamo_phase:phase_name=(current_player.dynamo_phase)&quot;)
-
-        ' Specify the type of dynamic values
-        .Add &quot;mode_dynamo_started&quot;, Array(&quot;set_dynamo_round:round_number=(device.counters.dynamo_rounds.value):type=int&quot;)
-    End With
-End With
-</code></pre>
-<p>In this example:
-- The <code>set_environment_sounds</code> event will be dispatched with the argument <code>env_name=driving</code>
-- The <code>set_initial_laps_count</code> event will be dispatched with the argument <code>count=10</code>
-- The <code>set_dynamo_phase</code> event will be dispatched with the argument <code>phase_name</code> set to the value of <code>current_player.dynamo_phase</code>
-- The <code>set_dynamo_round</code> event will be dispatched with the argument <code>round_number</code> set to the value of <code>device.counters.dynamo_rounds.value</code> as an integer</p>
-<h2 id="event-priority">Event Priority</h2>
-<p>You can specify the priority of events to control the order in which they are dispatched:</p>
-<pre><code class="language-vbscript">' Event priority
-With CreateGlfMode(&quot;dynamo&quot;, 30)
-    .StartEvents = Array(&quot;mode_dynamo_started&quot;)
-    .StopEvents = Array(&quot;mode_dynamo_stopped&quot;)
-
-    With .EventPlayer
-        ' Reset player variable with high priority
-        .Add &quot;mode_dynamo_started&quot;, Array(&quot;reset_pv_tokens_collected_to_0:priority=50&quot;)
-
-        ' Play slide with lower priority (after the player variable is reset)
-        .Add &quot;mode_dynamo_started&quot;, Array(&quot;play_slide{current_player.pv_tokens_collected &lt;= 5}:priority=5:slide=dynamo_collect_more_tokens_slide&quot;)
-    End With
-End With
-</code></pre>
-<p>In this example:
-- The <code>reset_pv_tokens_collected_to_0</code> event will be dispatched with a priority of 50
-- The <code>play_slide</code> event will be dispatched with a priority of 5, ensuring it happens after the player variable is reset</p>
-<h2 id="practical-example-multiball-mode">Practical Example: Multiball Mode</h2>
-<p>Let's put it all together with a practical example for a multiball mode:</p>
-<pre><code class="language-vbscript">' Multiball mode with event player
-With CreateGlfMode(&quot;multiball&quot;, 40)
-    .StartEvents = Array(&quot;multiball_start&quot;)
-    .StopEvents = Array(&quot;multiball_end&quot;, &quot;ball_lost&quot;)
-
-    With .EventPlayer
-        ' When multiball starts, enable all flippers and autofire coils
-        .Add &quot;multiball_start&quot;, Array(&quot;cmd_flippers_enable&quot;, &quot;cmd_autofire_coils_enable&quot;)
-
-        ' Play a show based on the current multiball phase
-        .Add &quot;multiball_start&quot;, Array(&quot;play_show_multiball_phase_(current_player.multiball_phase)&quot;)
-
-        ' Set the jackpot value based on the number of balls in play
-        .Add &quot;multiball_start&quot;, Array(&quot;set_jackpot_value:value=(1000 * device.ball_devices.playfield.balls):type=int&quot;)
-
-        ' When a jackpot is collected, increase the player's score and play a show
-        .Add &quot;jackpot_collected&quot;, Array(&quot;add_score:points=(current_player.jackpot_value)&quot;, &quot;play_show_jackpot_collected&quot;)
-
-        ' When multiball ends, disable all flippers and autofire coils
-        .Add &quot;multiball_end&quot;, Array(&quot;cmd_flippers_disable&quot;, &quot;cmd_autofire_coils_disable&quot;)
-
-        ' When a ball is lost during multiball, check if multiball should end
-        .Add &quot;ball_lost{device.ball_devices.playfield.balls &lt;= 1}&quot;, Array(&quot;multiball_end&quot;)
-    End With
-End With
-</code></pre>
-<p>This example demonstrates:
-- Basic event playing with multiple response events
-- Dynamic event names based on player variables
-- Dynamic event arguments with type specification
-- Conditional event playing based on device state
-- Event priority for controlling the order of operations</p>
-<h2 id="conclusion">Conclusion</h2>
-<p>The Event Player is a versatile and powerful component that can simplify your game logic and make your code more maintainable. By using the Event Player, you can:</p>
-<ol>
-<li>Create reusable event patterns</li>
-<li>Respond to game events with multiple actions</li>
-<li>Create conditional event chains based on game conditions</li>
-<li>Use dynamic values in event names and arguments</li>
-<li>Control the priority of event dispatch</li>
-</ol>
-<p>Remember that the Event Player is managed within the context of a mode, so you can have different event player configurations for different modes. This allows you to create complex and sophisticated game logic with minimal code. </p>
+<p>Now the path is <code>s_score_active</code> → <code>tutorial_score_1000</code> → score increment. Other devices can post <code>tutorial_score_1000</code> without repeating the scoring rule. Later, another player can also listen to the same award event for sound or display feedback.</p>
+<p>Remove the old <code>s_score_active</code> variable-player entry when applying this replacement. Keeping both gives 2,000 points per rollover. Do not create another <code>CreateTutorialScoring</code> sub or add the same event key twice to one event player.</p>
+<h2 id="checkpoint">Checkpoint</h2>
+<p>A single rollover still awards exactly 1,000. Drain, start another ball and check the route still works. With debug logging enabled, follow the switch event and then the award event. See <a href="../../events/">Events</a> for conditions, event arguments and priority offsets after this simple path works.</p>
+<p><a href="../tutorial-lights/">Previous</a> · <a href="../">Tutorial map</a> · <a href="../tutorial-ballsave/">Next</a></p>
 
 
 
@@ -1990,7 +2205,7 @@ End With
     <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "navigation.instant", "navigation.tabs"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.081f42fc.min.js"></script>
+      <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
       
     
   </body>

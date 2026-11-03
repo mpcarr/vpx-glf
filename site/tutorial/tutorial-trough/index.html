@@ -15,18 +15,18 @@
         <link rel="canonical" href="https://mpcarr.github.io/vpx-glf/tutorial/tutorial-trough/">
       
       
-        <link rel="prev" href="../../installing/">
+        <link rel="prev" href="../tutorial-setup/">
       
       
         <link rel="next" href="../tutorial-plunger/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.25">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.28">
     
     
       
-        <title>Trough - VPX Game Logic Framework</title>
+        <title>2. Physical Trough - VPX Game Logic Framework</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#tutorial-1-trough" class="md-skip">
+        <a href="#2-build-the-physical-trough" class="md-skip">
           Skip to content
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Trough
+              2. Physical Trough
             
           </span>
         </div>
@@ -177,7 +177,7 @@
       
     </form>
     <div class="md-search__output">
-      <div class="md-search__scrollwrap" data-md-scrollfix>
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
             Initializing search
@@ -225,10 +225,28 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../../installing/" class="md-tabs__link">
+        <a href="../../getting-started/" class="md-tabs__link">
           
   
   Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../guides/game-lifecycle/" class="md-tabs__link">
+          
+  
+  Guides
 
         </a>
       </li>
@@ -392,11 +410,74 @@
   
   
     <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Start Here
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../installing/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
     Installation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configuration and YAML
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dynamic_values/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Dynamic Values
   </span>
   
 
@@ -425,26 +506,68 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_1_2" id="__nav_1_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_1_5" id="__nav_1_5_label" tabindex="0">
             
   
   <span class="md-ellipsis">
-    Tutorial
+    Build a Game from Scratch
   </span>
   
 
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_1_2">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1_5">
             <span class="md-nav__icon md-icon"></span>
-            Tutorial
+            Build a Game from Scratch
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Tutorial Map
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-setup/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    1. Empty Table and Script
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -466,7 +589,7 @@
           
   
   <span class="md-ellipsis">
-    Trough
+    2. Physical Trough
   </span>
   
 
@@ -477,7 +600,7 @@
         
   
   <span class="md-ellipsis">
-    Trough
+    2. Physical Trough
   </span>
   
 
@@ -501,27 +624,27 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#setup" class="md-nav__link">
+  <a href="#match-the-built-in-kick-directions" class="md-nav__link">
     <span class="md-ellipsis">
-      Setup
+      Match the built-in kick directions
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
+  <a href="#script-ownership" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuration
+      Script ownership
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
+  <a href="#checkpoint-after-chapter-3" class="md-nav__link">
     <span class="md-ellipsis">
-      Next Steps
+      Checkpoint after chapter 3
     </span>
   </a>
   
@@ -547,7 +670,7 @@
         
   
   <span class="md-ellipsis">
-    Plunger
+    3. Plunger and First Serve
   </span>
   
 
@@ -568,91 +691,7 @@
         
   
   <span class="md-ellipsis">
-    Flippers
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial-autofire/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Auto Fire Devices
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial-lights/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Lights
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial-ball-devices/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Ball Devices
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial-ballsave/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Ball Save
+    4. Flippers
   </span>
   
 
@@ -673,7 +712,7 @@
         
   
   <span class="md-ellipsis">
-    Scoring
+    5. Score and Display
   </span>
   
 
@@ -690,11 +729,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../tutorial-shots/" class="md-nav__link">
+      <a href="../tutorial-lights/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Shots
+    6. Lights and Complete Game
   </span>
   
 
@@ -715,7 +754,49 @@
         
   
   <span class="md-ellipsis">
-    Event Player
+    7. Event Routing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-ballsave/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    8. Ball Save
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-shots/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    9. Shot Progress
   </span>
   
 
@@ -736,7 +817,49 @@
         
   
   <span class="md-ellipsis">
-    Timer
+    10. Timed Opportunity
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-ball-devices/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    11. Optional Scoop
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-autofire/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    12. Optional Autofire
   </span>
   
 
@@ -785,7 +908,7 @@
             
   
   <span class="md-ellipsis">
-    Game Logic Commands
+    Guides
   </span>
   
 
@@ -794,6 +917,240 @@
         
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/game-lifecycle/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Game and Ball Lifecycle
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/complete-mode/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Complete Timed Mode
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/multiball/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multiball Walkthrough
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../events/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Events and Ordering
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../player-state/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Player Variables and Persistence
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/displays/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Displays and Godot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../sound-system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sound Setup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ball-search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Search
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/debugging/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Debugging
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Game Logic Commands
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             Game Logic Commands
           </label>
@@ -816,10 +1173,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
         
           
-          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -830,8 +1187,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_1">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
             <span class="md-nav__icon md-icon"></span>
             Virtual Devices
           </label>
@@ -963,6 +1320,48 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../standup-target/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Standup Target
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../segment-display/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Segment Display
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -988,10 +1387,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
         
           
-          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -1002,12 +1401,33 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_2">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
             <span class="md-nav__icon md-icon"></span>
             Modes
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ball-hold/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Hold
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1058,7 +1478,28 @@
   
   
     <li class="md-nav__item">
-      <a href="../../dof-player-config.md" class="md-nav__link">
+      <a href="../../counter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Counter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dof-player/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1247,6 +1688,27 @@
   
   
     <li class="md-nav__item">
+      <a href="../../queue-relay-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Queue Relay Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../random-event-player/" class="md-nav__link">
         
   
@@ -1336,6 +1798,27 @@
   
   <span class="md-ellipsis">
     Sequence Shot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../segment-display-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Segment Display Player
   </span>
   
 
@@ -1513,6 +1996,48 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../widget-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Widget Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../achievements/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achievement Tracking (Status)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1597,27 +2122,27 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#setup" class="md-nav__link">
+  <a href="#match-the-built-in-kick-directions" class="md-nav__link">
     <span class="md-ellipsis">
-      Setup
+      Match the built-in kick directions
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
+  <a href="#script-ownership" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuration
+      Script ownership
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#next-steps" class="md-nav__link">
+  <a href="#checkpoint-after-chapter-3" class="md-nav__link">
     <span class="md-ellipsis">
-      Next Steps
+      Checkpoint after chapter 3
     </span>
   </a>
   
@@ -1641,17 +2166,21 @@
   
 
 
-<h1 id="tutorial-1-trough">Tutorial 1 - Trough</h1>
-<p>The trough is special device that collects balls from the playfield when they drain and releases balls into the plunger lane. GLF supports upto an 8 ball "physical" trough. By physical we mean that the balls are never destroyed during a game. This leads to better ball tracking and physics simulation.</p>
-<p><img alt="trough1" src="../../images/trough.gif" /></p>
-<h3 id="setup">Setup</h3>
-<p>To setup your trough we need to create some blocker walls and trough kickers around the apron area.</p>
-<p><img alt="trough1" src="../../images/tutorial-trough1.png" /></p>
-<p>The kicker switches need to named <strong>swTrough1</strong> - <strong>swTrough7</strong> plus a <strong>Drain</strong> kicker. <strong>swTrough1</strong> switch being closest to the plunger lane and <strong>Drain</strong> being the kicker that collects the ball from the playfield.</p>
-<h3 id="configuration">Configuration</h3>
-<p>Include enough kickers to cover your games ball capacity. e.g. if your game takes 5 balls make swTrough1 - swTrough5 + Drain.</p>
-<h2 id="next-steps">Next Steps</h2>
-<p><a href="../tutorial-plunger/">Setting up your plunger</a></p>
+<h1 id="2-build-the-physical-trough">2. Build the physical trough</h1>
+<p><strong>Goal:</strong> route the same physical ball from the drain back to the shooter lane without destroying it during play.</p>
+<p>This tutorial uses <code>tnob = 1</code>: one release kicker called <code>swTrough1</code> and a separate collecting kicker called <code>Drain</code>. Place them under/behind the apron with walls separating the trough from the live playfield. Both must capture balls. Funnel both outlanes and the centre drain into <code>Drain</code>.</p>
+<p><img alt="Physical trough movement" src="../../images/trough.gif" /></p>
+<p><img alt="Trough geometry reference" src="../../images/tutorial-trough1.png" /></p>
+<p>The illustrations show a larger trough. For this tutorial, retain only the <code>Drain</code> → <code>swTrough1</code> → shooter-lane route. Position the release kicker so its ejection reaches the bottom of the shooter lane and the ball settles onto <code>s_plunger</code>.</p>
+<h2 id="match-the-built-in-kick-directions">Match the built-in kick directions</h2>
+<p>The checked-in trough code moves the ball using <code>Drain.Kick 57, 10</code> into the last trough slot and <code>swTrough1.Kick 90, 10</code> toward the shooter lane. Build the route to suit those directions; placing kickers anywhere on the table will not create a functioning trough. Use the old <code>tutorial/glf_tutorial_trough.vpx</code> as a geometry reference if you need to inspect the arrangement in VPX. Verify the route with visible kickers before hiding it under the apron.</p>
+<p>For larger troughs, intermediate slots use <code>swTrough2</code> through <code>swTrough7</code>. The eight-ball case also stores a ball in <code>Drain</code>; do not extrapolate a nonexistent <code>swTrough8</code>. Stay with one ball until the core game works.</p>
+<h2 id="script-ownership">Script ownership</h2>
+<p>There is no <code>CreateGlfBallDevice</code> call for the built-in trough. <code>Glf_Init</code> creates one ball at <code>swTrough1</code>, sets the last trough slot and populates <code>gBot</code>. GLF already defines <code>Drain_Hit</code>, <code>Drain_UnHit</code>, <code>swTrough1_Hit</code> and <code>swTrough1_UnHit</code>.</p>
+<p>Do not put these kickers in <code>glf_switches</code>, write another drain handler, or destroy/recreate balls on each drain. The current trough uses <code>SetDelay</code> for its update; a separate <code>UpdateTroughTimer</code> is not needed despite an old comment in the source.</p>
+<h2 id="checkpoint-after-chapter-3">Checkpoint after chapter 3</h2>
+<p>The trough can be tested once the default plunger device is registered. At startup, one ball must sit in <code>swTrough1</code>. Start must release that ball to the shooter lane. A later drain must enter <code>Drain</code>, transfer to the vacated <code>swTrough1</code>, and become available for the next serve. If start is rejected, check actual trough occupancy first; the game will not start with a missing ball.</p>
+<p><a href="../tutorial-setup/">Previous</a> · <a href="../">Tutorial map</a> · <a href="../tutorial-plunger/">Next</a></p>
 
 
 
@@ -1701,7 +2230,7 @@
     <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "navigation.instant", "navigation.tabs"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.081f42fc.min.js"></script>
+      <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
       
     
   </body>

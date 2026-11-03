@@ -1,5 +1,7 @@
 # Sound Player Configuration
 
+For registering audio assets and buses, see [Sound Setup](sound-system.md), including the current local playback and queue limits.
+
 The sound player configuration allows you to set up and customize sound playback in your pinball machine. Sound players are used to play sounds in response to events.
 
 ## Configuration Options

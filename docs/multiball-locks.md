@@ -1,5 +1,7 @@
 # Multiball Locks Configuration
 
+See the [Multiball Walkthrough](guides/multiball.md) for virtual and physical examples and current counting-strategy and event-parsing limits.
+
 The multiball locks configuration allows you to set up and customize ball locking mechanisms for multiball modes in your pinball machine. Multiball locks are devices that capture and hold balls until they are released for multiball play.
 
 ## Configuration Options

@@ -15,14 +15,18 @@
         <link rel="canonical" href="https://mpcarr.github.io/vpx-glf/player-state/">
       
       
+        <link rel="prev" href="../events/">
+      
+      
+        <link rel="next" href="../guides/displays/">
       
       
       <link rel="icon" href="../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.25">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.28">
     
     
       
-        <title>Player State - VPX Game Logic Framework</title>
+        <title>Player Variables and Persistence - VPX Game Logic Framework</title>
       
     
     
@@ -76,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#player-state" class="md-skip">
+        <a href="#player-variables-and-persistence" class="md-skip">
           Skip to content
         </a>
       
@@ -110,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Player State
+              Player Variables and Persistence
             
           </span>
         </div>
@@ -173,7 +177,7 @@
       
     </form>
     <div class="md-search__output">
-      <div class="md-search__scrollwrap" data-md-scrollfix>
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
             Initializing search
@@ -219,10 +223,30 @@
     
     
       <li class="md-tabs__item">
-        <a href="../installing/" class="md-tabs__link">
+        <a href="../getting-started/" class="md-tabs__link">
           
   
   Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../guides/game-lifecycle/" class="md-tabs__link">
+          
+  
+  Guides
 
         </a>
       </li>
@@ -381,6 +405,27 @@
   
   
     <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Start Here
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../installing/" class="md-nav__link">
         
   
@@ -401,6 +446,48 @@
   
   
   
+    <li class="md-nav__item">
+      <a href="../configuration/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configuration and YAML
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dynamic_values/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Dynamic Values
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
     
     
     
@@ -412,26 +499,68 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_5" >
         
           
-          <label class="md-nav__link" for="__nav_1_2" id="__nav_1_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_1_5" id="__nav_1_5_label" tabindex="0">
             
   
   <span class="md-ellipsis">
-    Tutorial
+    Build a Game from Scratch
   </span>
   
 
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_1_2">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_1_5">
             <span class="md-nav__icon md-icon"></span>
-            Tutorial
+            Build a Game from Scratch
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Tutorial Map
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/tutorial-setup/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    1. Empty Table and Script
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -444,7 +573,7 @@
         
   
   <span class="md-ellipsis">
-    Trough
+    2. Physical Trough
   </span>
   
 
@@ -465,7 +594,7 @@
         
   
   <span class="md-ellipsis">
-    Plunger
+    3. Plunger and First Serve
   </span>
   
 
@@ -486,91 +615,7 @@
         
   
   <span class="md-ellipsis">
-    Flippers
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial/tutorial-autofire/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Auto Fire Devices
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial/tutorial-lights/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Lights
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial/tutorial-ball-devices/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Ball Devices
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial/tutorial-ballsave/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Ball Save
+    4. Flippers
   </span>
   
 
@@ -591,7 +636,7 @@
         
   
   <span class="md-ellipsis">
-    Scoring
+    5. Score and Display
   </span>
   
 
@@ -608,11 +653,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../tutorial/tutorial-shots/" class="md-nav__link">
+      <a href="../tutorial/tutorial-lights/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Shots
+    6. Lights and Complete Game
   </span>
   
 
@@ -633,7 +678,49 @@
         
   
   <span class="md-ellipsis">
-    Event Player
+    7. Event Routing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/tutorial-ballsave/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    8. Ball Save
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/tutorial-shots/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    9. Shot Progress
   </span>
   
 
@@ -654,7 +741,49 @@
         
   
   <span class="md-ellipsis">
-    Timer
+    10. Timed Opportunity
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/tutorial-ball-devices/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    11. Optional Scoop
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial/tutorial-autofire/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    12. Optional Autofire
   </span>
   
 
@@ -667,6 +796,323 @@
           </ul>
         </nav>
       
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  <span class="md-ellipsis">
+    Guides
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/game-lifecycle/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Game and Ball Lifecycle
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/complete-mode/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Complete Timed Mode
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/multiball/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multiball Walkthrough
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../events/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Events and Ordering
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Player Variables and Persistence
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Player Variables and Persistence
+  </span>
+  
+
+      </a>
+      
+        
+
+  
+
+<nav class="md-nav md-nav--secondary" aria-label="On this page">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      On this page
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#initialize-custom-player-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Initialize custom player variables
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#read-or-write-from-vbscript" class="md-nav__link">
+    <span class="md-ellipsis">
+      Read or write from VBScript
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#machine-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      Machine variables
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#observe-player-state-changes" class="md-nav__link">
+    <span class="md-ellipsis">
+      Observe player-state changes
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/displays/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Displays and Godot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../sound-system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sound Setup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ball-search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Search
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../guides/debugging/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Debugging
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -696,10 +1142,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -710,8 +1156,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2">
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             Game Logic Commands
           </label>
@@ -734,10 +1180,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
         
           
-          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -748,8 +1194,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_1">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
             <span class="md-nav__icon md-icon"></span>
             Virtual Devices
           </label>
@@ -881,6 +1327,48 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../standup-target/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Standup Target
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../segment-display/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Segment Display
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -906,10 +1394,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
         
           
-          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -920,12 +1408,33 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_2">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
             <span class="md-nav__icon md-icon"></span>
             Modes
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ball-hold/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Hold
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -976,7 +1485,28 @@
   
   
     <li class="md-nav__item">
-      <a href="../dof-player-config.md" class="md-nav__link">
+      <a href="../counter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Counter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../dof-player/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1165,6 +1695,27 @@
   
   
     <li class="md-nav__item">
+      <a href="../queue-relay-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Queue Relay Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../random-event-player/" class="md-nav__link">
         
   
@@ -1254,6 +1805,27 @@
   
   <span class="md-ellipsis">
     Sequence Shot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../segment-display-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Segment Display Player
   </span>
   
 
@@ -1431,6 +2003,48 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../widget-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Widget Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../achievements/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achievement Tracking (Status)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1515,53 +2129,38 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#set-player-state" class="md-nav__link">
+  <a href="#initialize-custom-player-variables" class="md-nav__link">
     <span class="md-ellipsis">
-      Set Player State
+      Initialize custom player variables
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#get-player-state" class="md-nav__link">
+  <a href="#read-or-write-from-vbscript" class="md-nav__link">
     <span class="md-ellipsis">
-      Get Player State
+      Read or write from VBScript
     </span>
   </a>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#player-events" class="md-nav__link">
+  <a href="#machine-variables" class="md-nav__link">
     <span class="md-ellipsis">
-      Player Events
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Player Events">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#add-player-state-event-listener" class="md-nav__link">
-    <span class="md-ellipsis">
-      Add Player State Event Listener
+      Machine variables
     </span>
   </a>
   
 </li>
-        
-          <li class="md-nav__item">
-  <a href="#remove-player-state-event-listener" class="md-nav__link">
+      
+        <li class="md-nav__item">
+  <a href="#observe-player-state-changes" class="md-nav__link">
     <span class="md-ellipsis">
-      Remove Player State Event Listener
+      Observe player-state changes
     </span>
   </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
@@ -1583,34 +2182,115 @@
   
 
 
-<h1 id="player-state">Player State</h1>
-<p>The player state stores variables per player. </p>
-<h2 id="set-player-state">Set Player State</h2>
-<p><code>SetPlayerState</code> is used to put data into the player state. You need a key and value.</p>
-<pre><code>SetPlayerState &quot;current_ball&quot;, 1
+<h1 id="player-variables-and-persistence">Player variables and persistence</h1>
+<p>Choose a variable's lifetime before wiring it to events. Player variables belong to one player in the current game. Machine variables belong to the table and can optionally be saved between sessions.</p>
+<table>
+<thead>
+<tr>
+<th>State</th>
+<th>Store it in</th>
+<th>Reset it when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Score or qualification carried across balls</td>
+<td>Player variable</td>
+<td>A new player is created for a new game</td>
+</tr>
+<tr>
+<td>Hits for this ball or a playfield multiplier</td>
+<td>Player variable</td>
+<td>Explicitly on <code>ball_started</code></td>
+</tr>
+<tr>
+<td>Physical occupancy shared by all players</td>
+<td>Machine variable, usually <code>Persist = False</code></td>
+<td>Reconcile with the actual device state</td>
+</tr>
+<tr>
+<td>A saved table statistic</td>
+<td>Machine variable with <code>Persist = True</code></td>
+<td>Only when your rules require it</td>
+</tr>
+</tbody>
+</table>
+<h2 id="initialize-custom-player-variables">Initialize custom player variables</h2>
+<p>Before <code>Glf_Init</code>, register defaults once:</p>
+<pre><code class="language-vbscript">Glf_SetInitialPlayerVar &quot;ramp_hits&quot;, 0
+Glf_SetInitialPlayerVar &quot;scoring_multiplier&quot;, 1
 </code></pre>
-<h2 id="get-player-state">Get Player State</h2>
-<p><code>GetPlayerState</code> is used to get data out of the player state.</p>
-<pre><code>GetPlayerState &quot;current_ball&quot;
+<p>Each new player receives these defaults. GLF already initializes <code>score</code>, <code>initials</code>, <code>ball</code> and <code>extra_balls</code>; do not register those again as custom initial variables. Defaults do not automatically reset on the next ball.</p>
+<p>Inside a mode active for the whole game, reset per-ball state and award points:</p>
+<pre><code class="language-vbscript">With .VariablePlayer()
+    With .EventName(&quot;ball_started&quot;)
+        With .Variable(&quot;ramp_hits&quot;)
+            .Action = &quot;set&quot;
+            .Int = 0
+        End With
+        With .Variable(&quot;scoring_multiplier&quot;)
+            .Action = &quot;set&quot;
+            .Int = 1
+        End With
+    End With
+    With .EventName(&quot;ramp_award&quot;)
+        With .Variable(&quot;ramp_hits&quot;)
+            .Action = &quot;add&quot;
+            .Int = 1
+        End With
+        With .Variable(&quot;score&quot;)
+            .Action = &quot;add&quot;
+            .Int = &quot;10000 * current_player.scoring_multiplier&quot;
+        End With
+    End With
+End With
 </code></pre>
-<h2 id="player-events">Player Events</h2>
-<p>When a player state value changes it will post an event so you can respond to that change. e.g. light changes, dmd updates.</p>
-<h3 id="add-player-state-event-listener">Add Player State Event Listener</h3>
-<p>To start monitoring a player event.</p>
-<p>The parameters are: </p>
-<ul>
-<li>Player State Key: e.g. "score", this is the value you want to monitor</li>
-<li>Key: A unqiue key for this listnener. You can have multiple subs monitoring the same value doing different things. This key is used to separate those.</li>
-<li>Callback: The Sub or Function to call when the value changes</li>
-<li>Priority: callbacks will be called in priority order, the higher priorities will be called first.</li>
-<li>Args: Any arguments you want to pass along to the callback.</li>
-</ul>
-<pre><code>AddPlayerStateEventListener &quot;score&quot;, &quot;player_score_changed&quot;, 0, &quot;UpdateDMD&quot;, 1000, Null
+<p>If the containing mode itself starts on <code>ball_started</code>, use its <code>mode_&lt;name&gt;_started</code> event for initialization so its players are already listening. See <a href="../dynamic_values/">dynamic values</a> for expression syntax.</p>
+<h2 id="read-or-write-from-vbscript">Read or write from VBScript</h2>
+<pre><code class="language-vbscript">SetPlayerState &quot;ramp_hits&quot;, 0
+Dim hits
+hits = GetPlayerState(&quot;ramp_hits&quot;)
 </code></pre>
-<h3 id="remove-player-state-event-listener">Remove Player State Event Listener</h3>
-<p>To stop monitoring a player event.</p>
-<pre><code>RemovePlayerStateEventListener &quot;score&quot;, &quot;player_score_change&quot;
+<p>Use these only while a player exists. <code>GetPlayerState</code> returns <code>False</code> for a missing key, so a false or zero result does not prove a variable was initialized.</p>
+<p><code>GetPlayerStateForPlayer(0, "score")</code> reads player 1; indices 0–3 represent players 1–4. <code>SetPlayerStateByPlayer "ramp_hits", 0, 1</code> writes player 2. Confirm that player exists first. The <code>players[0].score</code> runtime expression uses this same zero-based convention. BCP player numbers and the <code>player_added</code> event use one-based numbers instead.</p>
+<h2 id="machine-variables">Machine variables</h2>
+<p>Create custom machine variables during configuration:</p>
+<pre><code class="language-vbscript">With CreateMachineVar(&quot;feature_completions&quot;)
+    .InitialValue = 0
+    .ValueType = &quot;int&quot;
+    .Persist = True
+End With
 </code></pre>
+<p>Then update through a variable player:</p>
+<pre><code class="language-vbscript">With .VariablePlayer()
+    With .EventName(&quot;feature_complete&quot;)
+        With .Variable(&quot;feature_completions&quot;)
+            .Action = &quot;add_machine&quot;
+            .Int = 1
+        End With
+    End With
+End With
+</code></pre>
+<p>Use <code>set_machine</code> to replace a value. Read it in expressions as <code>machine.feature_completions</code>. Defaults are <code>InitialValue = 0</code>, <code>ValueType = "int"</code> and <code>Persist = True</code>; explicitly set persistence for temporary state.</p>
+<p><code>Glf_Init</code> reads saved values from <code>&lt;cGameName&gt;_glf.ini</code>, including the <code>MachineVars</code> and <code>HighScores</code> sections. Saved values can replace configured initial values. <code>Glf_Exit</code> writes persistent machine variables, so keep the table exit hook and do not treat a runtime update as an immediate disk save. The current INI reader assigns text values without enforcing <code>ValueType</code>; test arithmetic and formatting after a reload as well as in a fresh session.</p>
+<h2 id="observe-player-state-changes">Observe player-state changes</h2>
+<p>The listener signature includes a player index:</p>
+<pre><code class="language-vbscript">AddPlayerStateEventListener &quot;score&quot;, &quot;my_score_display&quot;, 0, &quot;OnScoreChanged&quot;, 1000, Null
+
+Sub OnScoreChanged(args)
+    Dim change
+    change = args(1)
+    ' change(0): variable name
+    ' change(1): new value
+    ' change(2): previous value
+End Sub
+</code></pre>
+<p>Use the same key to remove it:</p>
+<pre><code class="language-vbscript">RemovePlayerStateEventListener &quot;score&quot;, &quot;my_score_display&quot;
+</code></pre>
+<p>These are player-state callbacks, not pin-event callbacks. Updates can be delayed/coalesced, and a player turn refresh also emits state. Do not use a display listener as a reliable count of every switch hit. For gameplay, award and count from named rule events.</p>
+<p>The current filtering also admits a listener whose configured index equals the current player's index; it is not a strict arbitrary-player subscription in every case. Test multi-player displays, or use GLF's segment display facilities.</p>
+<p>Source: <code>scripts/src/player-state.vbs</code>, <code>game.vbs</code>, <code>commands/variable-player.vbs</code> and the machine-variable read/write functions in <code>_.main.vbs</code>. Working examples: both games' <code>_configuration.vbs</code> and <code>modes/score.vbs</code>.</p>
 
 
 
@@ -1660,7 +2340,7 @@
     <script id="__config" type="application/json">{"base": "..", "features": ["content.code.copy", "navigation.instant", "navigation.tabs"], "search": "../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../assets/javascripts/bundle.081f42fc.min.js"></script>
+      <script src="../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
       
     
   </body>

@@ -1,6 +1,8 @@
 
 # VPX Light Controller
 
+This page describes the standalone `lightController.vbs` API. For GLF table setup, use [installation](installing.md), [Light Player](light-player.md) and [light shows](light-shows.md).
+
 A class to help vpx original table authors manage light states and custom sequences. Supports managing multiple light states per light, RGB lights, Syncing with VPX light sequences, custom key frame light sequences, import / export of light sequences to show creator and several utility functions for interacting with lights.
 
 ## Installing
@@ -16,11 +18,9 @@ A class to help vpx original table authors manage light states and custom sequen
  - The first thing you need to do is assign a number to each light or
    light groups and put that in the light objects timer interval
 
-![light interval](./images/light-interval.png)
 
  - Next you need to add all of your lights into a vpx collection called ***aLights***
  
-![light interval](./images/lights-alights.png)
 
  - At the top of your table script, make sure these variables are defined:
 
@@ -315,7 +315,6 @@ To create a simple start and end palette you use:
 Dim palette
 palette = lightCtrl.CreateColorPalette("FF0000", "0000FF")
 ```
-![light interval](./images/pal-redblue.png)
 
 The colors are defined with a hex value (above, red -> blue).
 
@@ -323,7 +322,6 @@ To create a palette with stops you can use:
 
 ```lightCtrl.CreateColorPaletteWithStops("FF0000", "0000FF", Array(127), Array("00FF00"))```
 
-![light interval](./images/pal-redgreenblue.png)
 
 Here we need to pass in the start and end colors with an array of stop posistions and an array of stop colors for those positions. Note the palette is 255 colors, so the above creates a green stop at position 127 (50%).
 

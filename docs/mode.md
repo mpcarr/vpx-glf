@@ -1,5 +1,7 @@
 # Mode Configuration
 
+For start/stop timing and bonus queues, see [Game and Ball Lifecycle](guides/game-lifecycle.md). Build a feature with the [Complete Timed Mode](guides/complete-mode.md) walkthrough.
+
 The mode configuration allows you to set up and customize game modes in your pinball machine. Modes are used to organize and manage different game states, features, and behaviors.
 
 ## Configuration Options
@@ -34,7 +36,7 @@ End With
 ### Basic Settings
 - `StartEvents`: Array of event names that will start the mode (Default: Empty Array)
 - `StopEvents`: Array of event names that will stop the mode (Default: Empty Array)
-- `Priority`: Integer value determining the order of mode execution (Default: 0)
+- `Priority`: Integer value determining the order of mode execution (supplied to `CreateGlfMode`)
 
 ### Mode Behavior
 - `UseWaitQueue`: Boolean indicating whether to wait for the mode to stop before continuing (Default: False)
@@ -162,25 +164,25 @@ End With
 
 The mode system generates several events that you can listen to:
 
-- `{mode_name}_starting`: Triggered when the mode is about to start
-- `{mode_name}_started`: Triggered when the mode has started
-- `{mode_name}_stopping`: Triggered when the mode is about to stop
-- `{mode_name}_stopped`: Triggered when the mode has stopped
+- `mode_{mode_name}_starting`: Triggered when the mode is about to start
+- `mode_{mode_name}_started`: Triggered when the mode has started
+- `mode_{mode_name}_stopping`: Triggered when the mode is about to stop
+- `mode_{mode_name}_stopped`: Triggered when the mode has stopped
 
-Replace `{mode_name}` with your actual mode name (prefixed with "mode_" internally).
+Replace `{mode_name}` with the name passed to `CreateGlfMode`. For example, `CreateGlfMode("base", 10)` emits `mode_base_started`. See [Configuration and YAML](configuration.md) for a complete timer-driven mode and its YAML representation.
 
 ## Default Behavior
 
 By default, modes are configured with:
 - No start or stop events
-- Priority of 0
+- Priority supplied explicitly to `CreateGlfMode(name, priority)`
 - Wait queue disabled
 - Debug logging disabled
 - All components initialized but empty
 
 ## Notes
 
-- Modes can be nested and have different priorities
+- Multiple modes can run concurrently with different priorities
 - Components within a mode are automatically managed based on mode state
 - Debug logging can be enabled to track mode operations
 - The system prevents multiple mode operations from overlapping

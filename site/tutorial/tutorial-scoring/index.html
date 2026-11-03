@@ -15,18 +15,18 @@
         <link rel="canonical" href="https://mpcarr.github.io/vpx-glf/tutorial/tutorial-scoring/">
       
       
-        <link rel="prev" href="../tutorial-ballsave/">
+        <link rel="prev" href="../tutorial-flippers/">
       
       
-        <link rel="next" href="../tutorial-shots/">
+        <link rel="next" href="../tutorial-lights/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.25">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.28">
     
     
       
-        <title>Scoring - VPX Game Logic Framework</title>
+        <title>5. Score and Display - VPX Game Logic Framework</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#tutorial-scoring" class="md-skip">
+        <a href="#5-add-scoring-and-a-visible-display" class="md-skip">
           Skip to content
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Scoring
+              5. Score and Display
             
           </span>
         </div>
@@ -177,7 +177,7 @@
       
     </form>
     <div class="md-search__output">
-      <div class="md-search__scrollwrap" data-md-scrollfix>
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
             Initializing search
@@ -225,10 +225,28 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../../installing/" class="md-tabs__link">
+        <a href="../../getting-started/" class="md-tabs__link">
           
   
   Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../guides/game-lifecycle/" class="md-tabs__link">
+          
+  
+  Guides
 
         </a>
       </li>
@@ -392,11 +410,74 @@
   
   
     <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Start Here
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../installing/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
     Installation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configuration and YAML
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dynamic_values/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Dynamic Values
   </span>
   
 
@@ -425,26 +506,68 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_1_2" id="__nav_1_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_1_5" id="__nav_1_5_label" tabindex="0">
             
   
   <span class="md-ellipsis">
-    Tutorial
+    Build a Game from Scratch
   </span>
   
 
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_1_2">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1_5">
             <span class="md-nav__icon md-icon"></span>
-            Tutorial
+            Build a Game from Scratch
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Tutorial Map
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-setup/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    1. Empty Table and Script
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -457,7 +580,7 @@
         
   
   <span class="md-ellipsis">
-    Trough
+    2. Physical Trough
   </span>
   
 
@@ -478,7 +601,7 @@
         
   
   <span class="md-ellipsis">
-    Plunger
+    3. Plunger and First Serve
   </span>
   
 
@@ -499,91 +622,7 @@
         
   
   <span class="md-ellipsis">
-    Flippers
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial-autofire/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Auto Fire Devices
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial-lights/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Lights
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial-ball-devices/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Ball Devices
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial-ballsave/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Ball Save
+    4. Flippers
   </span>
   
 
@@ -613,7 +652,7 @@
           
   
   <span class="md-ellipsis">
-    Scoring
+    5. Score and Display
   </span>
   
 
@@ -624,7 +663,7 @@
         
   
   <span class="md-ellipsis">
-    Scoring
+    5. Score and Display
   </span>
   
 
@@ -648,50 +687,29 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
+  <a href="#register-a-scoring-mode" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuration
+      Register a scoring mode
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Configuration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#score-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Score Configuration
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#advanced-scoring-features" class="md-nav__link">
+  <a href="#show-the-score-without-external-media" class="md-nav__link">
     <span class="md-ellipsis">
-      Advanced Scoring Features
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Advanced Scoring Features">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#bonus-scoring" class="md-nav__link">
-    <span class="md-ellipsis">
-      Bonus Scoring
+      Show the score without external media
     </span>
   </a>
   
 </li>
-        
-      </ul>
-    </nav>
+      
+        <li class="md-nav__item">
+  <a href="#checkpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      Checkpoint
+    </span>
+  </a>
   
 </li>
       
@@ -711,11 +729,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../tutorial-shots/" class="md-nav__link">
+      <a href="../tutorial-lights/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Shots
+    6. Lights and Complete Game
   </span>
   
 
@@ -736,7 +754,49 @@
         
   
   <span class="md-ellipsis">
-    Event Player
+    7. Event Routing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-ballsave/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    8. Ball Save
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-shots/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    9. Shot Progress
   </span>
   
 
@@ -757,7 +817,49 @@
         
   
   <span class="md-ellipsis">
-    Timer
+    10. Timed Opportunity
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-ball-devices/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    11. Optional Scoop
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-autofire/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    12. Optional Autofire
   </span>
   
 
@@ -806,7 +908,7 @@
             
   
   <span class="md-ellipsis">
-    Game Logic Commands
+    Guides
   </span>
   
 
@@ -815,6 +917,240 @@
         
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/game-lifecycle/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Game and Ball Lifecycle
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/complete-mode/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Complete Timed Mode
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/multiball/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multiball Walkthrough
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../events/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Events and Ordering
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../player-state/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Player Variables and Persistence
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/displays/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Displays and Godot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../sound-system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sound Setup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ball-search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Search
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/debugging/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Debugging
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Game Logic Commands
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             Game Logic Commands
           </label>
@@ -837,10 +1173,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
         
           
-          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -851,8 +1187,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_1">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
             <span class="md-nav__icon md-icon"></span>
             Virtual Devices
           </label>
@@ -984,6 +1320,48 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../standup-target/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Standup Target
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../segment-display/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Segment Display
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1009,10 +1387,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
         
           
-          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -1023,12 +1401,33 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_2">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
             <span class="md-nav__icon md-icon"></span>
             Modes
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ball-hold/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Hold
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1079,7 +1478,28 @@
   
   
     <li class="md-nav__item">
-      <a href="../../dof-player-config.md" class="md-nav__link">
+      <a href="../../counter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Counter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dof-player/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1268,6 +1688,27 @@
   
   
     <li class="md-nav__item">
+      <a href="../../queue-relay-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Queue Relay Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../random-event-player/" class="md-nav__link">
         
   
@@ -1357,6 +1798,27 @@
   
   <span class="md-ellipsis">
     Sequence Shot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../segment-display-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Segment Display Player
   </span>
   
 
@@ -1534,6 +1996,48 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../widget-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Widget Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../achievements/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achievement Tracking (Status)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1618,50 +2122,29 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#configuration" class="md-nav__link">
+  <a href="#register-a-scoring-mode" class="md-nav__link">
     <span class="md-ellipsis">
-      Configuration
+      Register a scoring mode
     </span>
   </a>
-  
-    <nav class="md-nav" aria-label="Configuration">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#score-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Score Configuration
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
   
 </li>
       
         <li class="md-nav__item">
-  <a href="#advanced-scoring-features" class="md-nav__link">
+  <a href="#show-the-score-without-external-media" class="md-nav__link">
     <span class="md-ellipsis">
-      Advanced Scoring Features
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="Advanced Scoring Features">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#bonus-scoring" class="md-nav__link">
-    <span class="md-ellipsis">
-      Bonus Scoring
+      Show the score without external media
     </span>
   </a>
   
 </li>
-        
-      </ul>
-    </nav>
+      
+        <li class="md-nav__item">
+  <a href="#checkpoint" class="md-nav__link">
+    <span class="md-ellipsis">
+      Checkpoint
+    </span>
+  </a>
   
 </li>
       
@@ -1683,74 +2166,44 @@
   
 
 
-<h1 id="tutorial-scoring">Tutorial - Scoring</h1>
-<p>Let's add scoring to our pinball table. Scoring is a fundamental part of any pinball game, allowing players to track their progress and compete for high scores.</p>
-<h2 id="configuration">Configuration</h2>
-<p>To configure scoring in your game, we need to set up a variable player that will handle score tracking. The variable player allows you to define variables that can be modified by events, such as adding points when certain actions occur.</p>
-<h3 id="score-configuration">Score Configuration</h3>
-<p>Create the following configuration to set up a scoring system:</p>
-<pre><code>Sub CreateBaseMode()
-    With CreateGlfMode(&quot;base&quot;, 1000)
-        ' Add scoring configuration
-        With VariablePlayer(&quot;base&quot;)
-
-            ' Define events that will add points to the score
-            With .EventName(&quot;add_score_1000&quot;)
+<h1 id="5-add-scoring-and-a-visible-display">5. Add scoring and a visible display</h1>
+<p><strong>Goal:</strong> make one physical rollover award exactly 1,000 points and show the current player, ball and score.</p>
+<p>Add a Trigger named <code>s_score</code> somewhere a launched ball can cross it and put it in <code>glf_switches</code>. Use a rollover rather than a standup target for this first rule; specialized target integration comes later.</p>
+<h2 id="register-a-scoring-mode">Register a scoring mode</h2>
+<pre><code class="language-vbscript">Sub CreateTutorialScoring()
+    With CreateGlfMode(&quot;tutorial_scoring&quot;, 100)
+        .StartEvents = Array(&quot;ball_started&quot;)
+        .StopEvents = Array(&quot;ball_will_end&quot;, &quot;tilt&quot;)
+        With .VariablePlayer()
+            With .EventName(&quot;s_score_active&quot;)
                 With .Variable(&quot;score&quot;)
                     .Action = &quot;add&quot;
                     .Int = 1000
                 End With
             End With
-
-            ' Add more scoring events for different actions
-            With .EventName(&quot;add_score_500&quot;)
-                With .Variable(&quot;score&quot;)
-                    .Action = &quot;add&quot;
-                    .Int = 500
-                End With
-            End With
-
-            With .EventName(&quot;add_score_100&quot;)
-                With .Variable(&quot;score&quot;)
-                    .Action = &quot;add&quot;
-                    .Int = 100
-                End With
-            End With
-        End With
-
-    End With
-End Sub
-</code></pre>
-<h2 id="advanced-scoring-features">Advanced Scoring Features</h2>
-<h3 id="bonus-scoring">Bonus Scoring</h3>
-<p>You can implement bonus scoring that increases based on player performance:</p>
-<pre><code>Sub CreateBaseMode()
-    With CreateGlfMode(&quot;base&quot;, 1000)
-        With VariablePlayer(&quot;base&quot;)
-            ' Define a bonus multiplier variable
-            With .Variable(&quot;bonus_multiplier&quot;)
-                .InitialValue = 1
-            End With
-
-            ' Event to increase the bonus multiplier
-            With .EventName(&quot;increase_bonus&quot;)
-                With .Variable(&quot;bonus_multiplier&quot;)
-                    .Action = &quot;add&quot;
-                    .Int = 1
-                End With
-            End With
-
-            ' Event to add bonus points (multiplied by the current multiplier)
-            With .EventName(&quot;add_bonus_points&quot;)
-                With .Variable(&quot;score&quot;)
-                    .Action = &quot;add&quot;
-                    .Expression = &quot;1000 * current_player.bonus_multiplier&quot;
-                End With
-            End With
         End With
     End With
 End Sub
 </code></pre>
+<p>Append <code>CreateTutorialScoring</code> to <code>ConfigureGlfDevices</code>. This mode starts every ball and stops before ball-end processing. Its variable player listens to the generated <code>s_score_active</code> event. GLF creates the built-in <code>score</code> variable for each new player; do not initialize or reset it on every ball.</p>
+<h2 id="show-the-score-without-external-media">Show the score without external media</h2>
+<p>Create a visible backglass TextBox named <code>ScoreText</code> and a Timer named <code>TutorialDisplayTimer</code>, Enabled with Interval 100. Add its callback:</p>
+<pre><code class="language-vbscript">Sub TutorialDisplayTimer_Timer()
+    If glf_gameStarted And Not IsNull(glf_currentPlayer) Then
+        ScoreText.Text = &quot;PLAYER &quot; &amp; CStr(GetPlayerState(&quot;number&quot;)) &amp; _
+            &quot;   BALL &quot; &amp; CStr(GetPlayerState(&quot;ball&quot;)) &amp; _
+            &quot;   SCORE &quot; &amp; CStr(GetPlayerState(&quot;score&quot;))
+    Else
+        ScoreText.Text = &quot;PRESS START&quot;
+    End If
+End Sub
+</code></pre>
+<p>Test in desktop view with the backglass TextBox visible. This small UI timer only reads state; it does not run the game or score points. <code>Glf_GameTimer</code> must still run independently.</p>
+<h2 id="checkpoint">Checkpoint</h2>
+<p>Start a new game and verify <code>PLAYER 1</code>, <code>BALL 1</code>, <code>SCORE 0</code>. Cross the rollover once: the score becomes 1,000. Cross again after leaving the trigger: 2,000. Drain and confirm the next ball retains the score. Do not leave the rollover inside the shooter-lane trigger or another overlapping sensor.</p>
+<p>If a hit scores twice, look for duplicate hit subs or a second scoring rule. If there is no score, confirm collection membership and that <code>mode_tutorial_scoring_started</code> occurred. If points change but the text does not, check the display timer and backglass visibility separately.</p>
+<p>We will replace this direct switch-to-score mapping with an event player in the optional <a href="../tutorial-event-player/">event-routing chapter</a>. For now, keep one award source. Reference: <a href="../../variable-player/">Variable Player</a>.</p>
+<p><a href="../tutorial-flippers/">Previous</a> · <a href="../">Tutorial map</a> · <a href="../tutorial-lights/">Next</a></p>
 
 
 
@@ -1800,7 +2253,7 @@ End Sub
     <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "navigation.instant", "navigation.tabs"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.081f42fc.min.js"></script>
+      <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
       
     
   </body>

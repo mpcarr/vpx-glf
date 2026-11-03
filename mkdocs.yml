@@ -9,21 +9,35 @@ repo_url: https://github.com/mpcarr/vpx-glf
 
 nav:
   - 'Getting Started':
+    - 'Start Here': getting-started.md
     - 'Installation': installing.md
-    - 'Tutorial':
-      - 'Trough': 'tutorial/tutorial-trough.md'
-      - 'Plunger': 'tutorial/tutorial-plunger.md'
-      - 'Flippers': 'tutorial/tutorial-flippers.md'
-      - 'Auto Fire Devices': 'tutorial/tutorial-autofire.md'
-      - 'Lights': 'tutorial/tutorial-lights.md'
-      - 'Ball Devices': 'tutorial/tutorial-ball-devices.md'
-      - 'Ball Save': 'tutorial/tutorial-ballsave.md'
-      - 'Scoring': 'tutorial/tutorial-scoring.md'
-      - 'Shots': 'tutorial/tutorial-shots.md'
-      - 'Event Player': 'tutorial/tutorial-event-player.md'
-      - 'Timer': 'tutorial/tutorial-timer.md'
-      #- 'Shows': 'tutorial/tutorial-shows.md'
+    - 'Configuration and YAML': configuration.md
+    - 'Dynamic Values': dynamic_values.md
+    - 'Build a Game from Scratch':
+      - 'Tutorial Map': 'tutorial/index.md'
+      - '1. Empty Table and Script': 'tutorial/tutorial-setup.md'
+      - '2. Physical Trough': 'tutorial/tutorial-trough.md'
+      - '3. Plunger and First Serve': 'tutorial/tutorial-plunger.md'
+      - '4. Flippers': 'tutorial/tutorial-flippers.md'
+      - '5. Score and Display': 'tutorial/tutorial-scoring.md'
+      - '6. Lights and Complete Game': 'tutorial/tutorial-lights.md'
+      - '7. Event Routing': 'tutorial/tutorial-event-player.md'
+      - '8. Ball Save': 'tutorial/tutorial-ballsave.md'
+      - '9. Shot Progress': 'tutorial/tutorial-shots.md'
+      - '10. Timed Opportunity': 'tutorial/tutorial-timer.md'
+      - '11. Optional Scoop': 'tutorial/tutorial-ball-devices.md'
+      - '12. Optional Autofire': 'tutorial/tutorial-autofire.md'
   #- 'Features': features.md
+  - 'Guides':
+    - 'Game and Ball Lifecycle': guides/game-lifecycle.md
+    - 'Complete Timed Mode': guides/complete-mode.md
+    - 'Multiball Walkthrough': guides/multiball.md
+    - 'Events and Ordering': events.md
+    - 'Player Variables and Persistence': player-state.md
+    - 'Displays and Godot': guides/displays.md
+    - 'Sound Setup': sound-system.md
+    - 'Ball Search': ball-search.md
+    - 'Debugging': guides/debugging.md
   - 'Game Logic Commands':
     - Virtual Devices:
           - 'Auto Fire Device': autofire.md
@@ -32,10 +46,14 @@ nav:
           - 'Drop Target': drop-target.md
           - 'Flipper': flipper.md
           - 'Magnet': magnet.md
+          - 'Standup Target': standup-target.md
+          - 'Segment Display': segment-display.md
     - Modes:
+          - 'Ball Hold': ball-hold.md
           - 'Ball Save': ball-save.md
           - 'Combo Switches': combo-switches.md
-          - 'DOF Player': dof-player-config.md
+          - 'Counter': counter.md
+          - 'DOF Player': dof-player.md
           - 'Event Player': event-player.md
           - 'Extra Ball': extra-ball.md
           - 'High Score': high-score.md
@@ -44,11 +62,13 @@ nav:
           - 'Multiball': multiball.md
           - 'Multiball Locks': multiball-locks.md
           - 'Queue Event Player': queue-event-player.md
+          - 'Queue Relay Player': queue-relay-player.md
           - 'Random Event Player': random-event-player.md
           - 'Shot': shot.md
           - 'Shot Group': shot-group.md
           - 'Shot Profile': shot-profile.md
           - 'Sequence Shot': sequence-shot.md
+          - 'Segment Display Player': segment-display-player.md
           - 'Show Player': show-player.md
           - 'Slide Player': slide-player.md
           - 'Sound Player': sound-player.md
@@ -57,9 +77,10 @@ nav:
           - 'Timed Switches': timed-switches.md
           - 'Tilt': tilt.md
           - 'Variable Player': variable-player.md
+          - 'Widget Player': widget-player.md
+          - 'Achievement Tracking (Status)': achievements.md
 
-    #- 'Events System': events.md
-    #- 'Player State': player-state.md
+
   - 'Light Shows': light-shows.md
   - 'Environment Setup': environment-setup.md
   #- 'DMD / LCD': dmd-lcd.md

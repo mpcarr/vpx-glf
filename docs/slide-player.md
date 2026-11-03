@@ -1,5 +1,7 @@
 # Slide Player Configuration
 
+For media connection setup and a working project, see [Displays and Godot](guides/displays.md).
+
 The slide player configuration allows you to set up and customize slide animations in your pinball machine. Slide players are used to play slide animations in response to events.
 
 ## Configuration Options

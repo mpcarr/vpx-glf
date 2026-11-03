@@ -15,18 +15,18 @@
         <link rel="canonical" href="https://mpcarr.github.io/vpx-glf/tutorial/tutorial-timer/">
       
       
-        <link rel="prev" href="../tutorial-event-player/">
+        <link rel="prev" href="../tutorial-shots/">
       
       
-        <link rel="next" href="../../autofire/">
+        <link rel="next" href="../tutorial-ball-devices/">
       
       
       <link rel="icon" href="../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.25">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.28">
     
     
       
-        <title>Timer - VPX Game Logic Framework</title>
+        <title>10. Timed Opportunity - VPX Game Logic Framework</title>
       
     
     
@@ -80,7 +80,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#timer-tutorial" class="md-skip">
+        <a href="#10-add-a-timed-award-opportunity" class="md-skip">
           Skip to content
         </a>
       
@@ -114,7 +114,7 @@
         <div class="md-header__topic" data-md-component="header-topic">
           <span class="md-ellipsis">
             
-              Timer
+              10. Timed Opportunity
             
           </span>
         </div>
@@ -177,7 +177,7 @@
       
     </form>
     <div class="md-search__output">
-      <div class="md-search__scrollwrap" data-md-scrollfix>
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
         <div class="md-search-result" data-md-component="search-result">
           <div class="md-search-result__meta">
             Initializing search
@@ -225,10 +225,28 @@
     
     
       <li class="md-tabs__item md-tabs__item--active">
-        <a href="../../installing/" class="md-tabs__link">
+        <a href="../../getting-started/" class="md-tabs__link">
           
   
   Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../guides/game-lifecycle/" class="md-tabs__link">
+          
+  
+  Guides
 
         </a>
       </li>
@@ -392,11 +410,74 @@
   
   
     <li class="md-nav__item">
+      <a href="../../getting-started/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Start Here
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../installing/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
     Installation
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../configuration/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Configuration and YAML
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dynamic_values/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Dynamic Values
   </span>
   
 
@@ -425,26 +506,68 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_2" checked>
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_1_5" checked>
         
           
-          <label class="md-nav__link" for="__nav_1_2" id="__nav_1_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_1_5" id="__nav_1_5_label" tabindex="0">
             
   
   <span class="md-ellipsis">
-    Tutorial
+    Build a Game from Scratch
   </span>
   
 
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_2_label" aria-expanded="true">
-          <label class="md-nav__title" for="__nav_1_2">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_1_5_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_1_5">
             <span class="md-nav__icon md-icon"></span>
-            Tutorial
+            Build a Game from Scratch
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Tutorial Map
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-setup/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    1. Empty Table and Script
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -457,7 +580,7 @@
         
   
   <span class="md-ellipsis">
-    Trough
+    2. Physical Trough
   </span>
   
 
@@ -478,7 +601,7 @@
         
   
   <span class="md-ellipsis">
-    Plunger
+    3. Plunger and First Serve
   </span>
   
 
@@ -499,91 +622,7 @@
         
   
   <span class="md-ellipsis">
-    Flippers
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial-autofire/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Auto Fire Devices
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial-lights/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Lights
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial-ball-devices/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Ball Devices
-  </span>
-  
-
-      </a>
-    </li>
-  
-
-              
-            
-              
-                
-  
-  
-  
-  
-    <li class="md-nav__item">
-      <a href="../tutorial-ballsave/" class="md-nav__link">
-        
-  
-  <span class="md-ellipsis">
-    Ball Save
+    4. Flippers
   </span>
   
 
@@ -604,7 +643,7 @@
         
   
   <span class="md-ellipsis">
-    Scoring
+    5. Score and Display
   </span>
   
 
@@ -621,11 +660,11 @@
   
   
     <li class="md-nav__item">
-      <a href="../tutorial-shots/" class="md-nav__link">
+      <a href="../tutorial-lights/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
-    Shots
+    6. Lights and Complete Game
   </span>
   
 
@@ -646,7 +685,49 @@
         
   
   <span class="md-ellipsis">
-    Event Player
+    7. Event Routing
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-ballsave/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    8. Ball Save
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-shots/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    9. Shot Progress
   </span>
   
 
@@ -676,7 +757,7 @@
           
   
   <span class="md-ellipsis">
-    Timer
+    10. Timed Opportunity
   </span>
   
 
@@ -687,7 +768,7 @@
         
   
   <span class="md-ellipsis">
-    Timer
+    10. Timed Opportunity
   </span>
   
 
@@ -711,45 +792,9 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-is-a-timer" class="md-nav__link">
+  <a href="#checkpoint" class="md-nav__link">
     <span class="md-ellipsis">
-      What is a Timer?
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#basic-timer-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Basic Timer Configuration
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#timer-events" class="md-nav__link">
-    <span class="md-ellipsis">
-      Timer Events
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#controlling-the-timer" class="md-nav__link">
-    <span class="md-ellipsis">
-      Controlling the Timer
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#summary" class="md-nav__link">
-    <span class="md-ellipsis">
-      Summary
+      Checkpoint
     </span>
   </a>
   
@@ -759,6 +804,48 @@
   
 </nav>
       
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-ball-devices/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    11. Optional Scoop
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../tutorial-autofire/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    12. Optional Autofire
+  </span>
+  
+
+      </a>
     </li>
   
 
@@ -803,7 +890,7 @@
             
   
   <span class="md-ellipsis">
-    Game Logic Commands
+    Guides
   </span>
   
 
@@ -812,6 +899,240 @@
         
         <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
           <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            Guides
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/game-lifecycle/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Game and Ball Lifecycle
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/complete-mode/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Complete Timed Mode
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/multiball/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Multiball Walkthrough
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../events/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Events and Ordering
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../player-state/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Player Variables and Persistence
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/displays/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Displays and Godot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../sound-system/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Sound Setup
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ball-search/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Search
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../guides/debugging/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Debugging
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Game Logic Commands
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
             <span class="md-nav__icon md-icon"></span>
             Game Logic Commands
           </label>
@@ -834,10 +1155,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_1" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_1" >
         
           
-          <label class="md-nav__link" for="__nav_2_1" id="__nav_2_1_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_1" id="__nav_3_1_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -848,8 +1169,8 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_1_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_1">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_1">
             <span class="md-nav__icon md-icon"></span>
             Virtual Devices
           </label>
@@ -981,6 +1302,48 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../standup-target/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Standup Target
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../segment-display/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Segment Display
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1006,10 +1369,10 @@
       
         
         
-        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2_2" >
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3_2" >
         
           
-          <label class="md-nav__link" for="__nav_2_2" id="__nav_2_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3_2" id="__nav_3_2_label" tabindex="0">
             
   
   <span class="md-ellipsis">
@@ -1020,12 +1383,33 @@
             <span class="md-nav__icon md-icon"></span>
           </label>
         
-        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_2_2_label" aria-expanded="false">
-          <label class="md-nav__title" for="__nav_2_2">
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_3_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3_2">
             <span class="md-nav__icon md-icon"></span>
             Modes
           </label>
           <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../ball-hold/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Ball Hold
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
             
               
                 
@@ -1076,7 +1460,28 @@
   
   
     <li class="md-nav__item">
-      <a href="../../dof-player-config.md" class="md-nav__link">
+      <a href="../../counter/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Counter
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../dof-player/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -1265,6 +1670,27 @@
   
   
     <li class="md-nav__item">
+      <a href="../../queue-relay-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Queue Relay Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="../../random-event-player/" class="md-nav__link">
         
   
@@ -1354,6 +1780,27 @@
   
   <span class="md-ellipsis">
     Sequence Shot
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../segment-display-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Segment Display Player
   </span>
   
 
@@ -1531,6 +1978,48 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../widget-player/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Widget Player
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../achievements/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Achievement Tracking (Status)
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -1615,45 +2104,9 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#what-is-a-timer" class="md-nav__link">
+  <a href="#checkpoint" class="md-nav__link">
     <span class="md-ellipsis">
-      What is a Timer?
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#basic-timer-configuration" class="md-nav__link">
-    <span class="md-ellipsis">
-      Basic Timer Configuration
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#timer-events" class="md-nav__link">
-    <span class="md-ellipsis">
-      Timer Events
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#controlling-the-timer" class="md-nav__link">
-    <span class="md-ellipsis">
-      Controlling the Timer
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#summary" class="md-nav__link">
-    <span class="md-ellipsis">
-      Summary
+      Checkpoint
     </span>
   </a>
   
@@ -1677,68 +2130,50 @@
   
 
 
-<h1 id="timer-tutorial">Timer Tutorial</h1>
-<p>Timers are essential for creating time-based events in your pinball game, such as mode durations, countdowns, and timed opportunities. The timer in the VPX Game Logic Framework is flexible and can be configured to count up or down, trigger events, and be controlled by other events.</p>
-<h2 id="what-is-a-timer">What is a Timer?</h2>
-<p>A timer is a component that counts up or down from a specified value, firing events as it runs. You can use timers to:
-- Create time-limited modes (e.g., "Complete the objective in 30 seconds!")
-- Track elapsed time for scoring or achievements
-- Add urgency to gameplay</p>
-<h2 id="basic-timer-configuration">Basic Timer Configuration</h2>
-<p>Here is a straightforward example of how to configure a timer for a "hurry up" mode:</p>
-<pre><code class="language-vbscript">With CreateGlfMode(&quot;hurry_up&quot;, 10)
-    .StartEvents = Array(&quot;hurry_up_start&quot;)
-    .StopEvents = Array(&quot;timer_hurry_up_complete&quot;)
-
-    With .Timer(&quot;hurry_up_timer&quot;)
-        .StartRunning = True
-        .Direction = &quot;down&quot;      ' Count down
-        .StartValue = 15         ' Start at 15
-        .EndValue = 0            ' End at 0
-        .TickInterval = 1000     ' Tick every 1 second (1000 ms)
+<h1 id="10-add-a-timed-award-opportunity">10. Add a timed award opportunity</h1>
+<p><strong>Goal:</strong> crossing the original scoring rollover opens a 15-second window; crossing a new goal during that window awards 10,000.</p>
+<p>Add Trigger <code>s_goal</code> to <code>glf_switches</code> and Light <code>l_window</code> to <code>glf_lights</code>. Add the sub below and append <code>CreateTutorialHurry</code> to <code>ConfigureGlfDevices</code>. This works alongside the existing scoring mode: <code>s_score</code> still gives its ordinary 1,000 points.</p>
+<pre><code class="language-vbscript">Sub CreateTutorialHurry()
+    With CreateGlfMode(&quot;tutorial_hurry&quot;, 300)
+        .StartEvents = Array(&quot;s_score_active{modes.tutorial_hurry.active == False}&quot;)
+        .StopEvents = Array(&quot;tutorial_hurry_finish&quot;, &quot;timer_tutorial_hurry_clock_complete&quot;, &quot;ball_will_end&quot;, &quot;tilt&quot;)
+        With .Timers(&quot;tutorial_hurry_clock&quot;)
+            .StartValue = 0
+            .EndValue = 15
+            .Direction = &quot;up&quot;
+            .TickInterval = 1000
+            With .ControlEvents()
+                .EventName = &quot;mode_tutorial_hurry_started&quot;
+                .Action = &quot;restart&quot;
+            End With
+        End With
+        With .LightPlayer()
+            With .EventName(&quot;mode_tutorial_hurry_started&quot;)
+                With .Lights(&quot;l_window&quot;)
+                    .Color = &quot;00ff00&quot;
+                End With
+            End With
+        End With
+        With .VariablePlayer()
+            With .EventName(&quot;s_goal_active.1&quot;)
+                With .Variable(&quot;score&quot;)
+                    .Action = &quot;add&quot;
+                    .Int = 10000
+                End With
+            End With
+        End With
+        With .EventPlayer()
+            .Add &quot;s_goal_active&quot;, Array(&quot;tutorial_hurry_finish&quot;)
+        End With
     End With
-End With
+End Sub
 </code></pre>
-<p><strong>How it works:</strong>
-- The timer is named <code>hurry_up_timer</code> and is part of the <code>hurry_up</code> mode.
-- The mode starts when the <code>hurry_up_start</code> event occurs and stops when the timer completes (<code>timer_hurry_up_complete</code>).
-- The timer starts running immediately, counts down from 15 to 0, ticking every second.
-- When the timer reaches 0, it automatically fires a <code>timer_hurry_up_complete</code> event, which ends the mode.</p>
-<h2 id="timer-events">Timer Events</h2>
-<p>Timers automatically generate events you can use in your game logic:
-- <code>&lt;timer_name&gt;_started</code> — when the timer starts
-- <code>&lt;timer_name&gt;_stopped</code> — when the timer stops
-- <code>&lt;timer_name&gt;_complete</code> — when the timer reaches its end value
-- <code>&lt;timer_name&gt;_tick</code> — on every tick</p>
-<p>You can use these events to trigger actions, such as ending a mode, playing a sound, or updating the display.</p>
-<h2 id="controlling-the-timer">Controlling the Timer</h2>
-<p>You can also control the timer using control events. For example, you can add time, pause, or change the tick interval dynamically by configuring <code>.ControlEvents</code>:</p>
-<pre><code class="language-vbscript">With .Timer(&quot;hurry_up_timer&quot;)
-    ' ... basic config ...
-    With .ControlEvents
-        .EventName = &quot;add_time&quot;
-        .Action = &quot;add&quot;
-        .Value = 5000
-    End With
-    With .ControlEvents
-        .EventName = &quot;pause_timer&quot;
-        .Action = &quot;pause&quot;
-        .Value = 2000  ' Pause for 2 seconds
-    End With
-End With
-</code></pre>
-<ul>
-<li>Triggering the <code>add_time</code> event will add 5 to the timer.</li>
-<li>Triggering the <code>pause_timer</code> event will pause the timer for 2 seconds.</li>
-</ul>
-<h2 id="summary">Summary</h2>
-<ul>
-<li>Timers are configured inside a mode using <code>.Timer("name")</code>.</li>
-<li>Set the direction, start/end values, and tick interval.</li>
-<li>Use events to start/stop the timer and respond to timer events.</li>
-<li>Use control events to dynamically modify the timer during gameplay.</li>
-</ul>
-<p>This covers the basics of using timers in your game. For more advanced usage, see the <a href="../../timer">Timer Command Reference</a>. </p>
+<p>The start condition prevents repeated rollover hits from restarting an already active mode. Its timer is named <code>tutorial_hurry_clock</code>, so its completion event is exactly <code>timer_tutorial_hurry_clock_complete</code>. The configuration API is <code>.Timers</code>, and the one-second tick interval makes 15 ticks a 15-second opportunity.</p>
+<p>The goal awards points before posting a separate finish event. The <code>.1</code> suffix raises that scoring listener's priority; it is not a time delay. Stopping the mode removes the light entry and timer activity. The goal is not scored outside the mode because its variable player is inactive.</p>
+<h2 id="checkpoint">Checkpoint</h2>
+<p>Before opening a window, <code>s_goal</code> gives no hurry-up award. Hit <code>s_score</code>: the green window light turns on. Hit <code>s_score</code> again during the window: it still gives the ordinary rollover score but does not extend the window. Hit <code>s_goal</code> in time: +10,000 and the light turns off. Try again and wait: expiry turns the light off with no hurry-up award. Drain during the window and verify it is gone on the next ball.</p>
+<p>Timer control values have action-specific meanings. For example, <code>add</code> uses ticks, while <code>pause</code> uses a delay. Consult the <a href="../../timer/">Timer API</a> before adding controls; do not pass 5,000 expecting an addition of five ticks.</p>
+<p><a href="../tutorial-shots/">Previous</a> · <a href="../">Tutorial map</a> · <a href="../tutorial-ball-devices/">Next</a></p>
 
 
 
@@ -1788,7 +2223,7 @@ End With
     <script id="__config" type="application/json">{"base": "../..", "features": ["content.code.copy", "navigation.instant", "navigation.tabs"], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
     
     
-      <script src="../../assets/javascripts/bundle.081f42fc.min.js"></script>
+      <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
       
     
   </body>

@@ -38,7 +38,7 @@ End With
 
 ### Show Settings
 - `Show`: Name of the show to play
-- `Loops`: Number of times to loop the show (Default: 1)
+- `Loops`: Number of additional repeats: `0` plays once, a positive value repeats that many times, and `-1` repeats indefinitely (Default: -1)
 - `Speed`: Speed multiplier for the show (Default: 1.0)
 - `SyncMs`: Synchronization time in milliseconds (Default: 0)
 
