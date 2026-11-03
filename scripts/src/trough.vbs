@@ -57,6 +57,12 @@ End Sub
 Sub swTrough7_UnHit
 	UpdateTrough
 End Sub
+Sub swTrough8_Hit
+	UpdateTrough
+End Sub
+Sub swTrough8_UnHit
+	UpdateTrough
+End Sub
 Sub Drain_Hit
 	UpdateTrough
     If glf_gameStarted = True Then
@@ -72,24 +78,51 @@ Sub UpdateTrough
 End Sub
 
 Sub UpdateTroughDebounced(args)
-	If glf_troughSize > 1 Then
-		If swTrough1.BallCntOver = 0 Then swTrough2.kick 57, 10
-	End If
-	If glf_troughSize > 2 Then
-		If swTrough2.BallCntOver = 0 Then swTrough3.kick 57, 10
-	End If
-	If glf_troughSize > 3 Then 
-		If swTrough3.BallCntOver = 0 Then swTrough4.kick 57, 10
-	End If
-	If glf_troughSize > 4 Then 
-		If swTrough4.BallCntOver = 0 Then swTrough5.kick 57, 10
-	End If
-	If glf_troughSize > 5 Then
-		If swTrough5.BallCntOver = 0 Then swTrough6.kick 57, 10
-	End If
-	If glf_troughSize > 6 Then
-		If swTrough6.BallCntOver = 0 Then swTrough7.kick 57, 10
+	If glf_troughStyle = "Default" Then
+		If glf_troughSize > 1 Then
+			If swTrough1.BallCntOver = 0 Then swTrough2.kick 57, 10
+		End If
+		If glf_troughSize > 2 Then
+			If swTrough2.BallCntOver = 0 Then swTrough3.kick 57, 10
+		End If
+		If glf_troughSize > 3 Then 
+			If swTrough3.BallCntOver = 0 Then swTrough4.kick 57, 10
+		End If
+		If glf_troughSize > 4 Then 
+			If swTrough4.BallCntOver = 0 Then swTrough5.kick 57, 10
+		End If
+		If glf_troughSize > 5 Then
+			If swTrough5.BallCntOver = 0 Then swTrough6.kick 57, 10
+		End If
+		If glf_troughSize > 6 Then
+			If swTrough6.BallCntOver = 0 Then swTrough7.kick 57, 10
+		End If
+
+		If glf_lastTroughSw.BallCntOver = 0 Then Drain.kick 57, 10
+
+	Else If glf_troughStyle = "P3" Then
+
+		If glf_troughSize > 1 Then
+			If swTrough8.BallCntOver = 0 Then swTrough7.kick -90, 10
+		End If
+		If glf_troughSize > 2 Then
+			If swTrough7.BallCntOver = 0 Then swTrough6.kick -90, 10
+		End If
+		If glf_troughSize > 3 Then 
+			If swTrough6.BallCntOver = 0 Then swTrough5.kick -90, 10
+		End If
+		If glf_troughSize > 4 Then 
+			If swTrough5.BallCntOver = 0 Then swTrough4.kick -90, 10
+		End If
+		If glf_troughSize > 5 Then
+			If swTrough4.BallCntOver = 0 Then swTrough3.kick -90, 10
+		End If
+		If glf_troughSize > 6 Then
+			If swTrough3.BallCntOver = 0 Then swTrough2.kick -90, 10
+		End If
+		If glf_troughSize > 7 Then
+			If swTrough2.BallCntOver = 0 Then swTrough1.kick -90, 10
+		End If
 	End If
 
-	If glf_lastTroughSw.BallCntOver = 0 Then Drain.kick 57, 10
 End Sub
