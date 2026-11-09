@@ -59,7 +59,10 @@ Function Observe(args)
     Dim name: name = args(0)
     gEvents(name) = Events(name) + 1
     If IsObject(args(1)) Then
-        If args(1).Exists("glf_eject_token") Then gToken = args(1)("glf_eject_token")
+        ' Ordinary/raw switch observations carry a ball, not event kwargs.
+        If TypeName(args(1)) = "Dictionary" Then
+            If args(1).Exists("glf_eject_token") Then gToken = args(1)("glf_eject_token")
+        End If
         Set Observe = args(1)
     Else
         Observe = args(1)

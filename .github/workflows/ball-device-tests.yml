@@ -20,5 +20,11 @@ jobs:
         with:
           persist-credentials: false
       - name: Run VBScript regression scenarios
-        shell: cmd
-        run: cscript.exe //nologo scripts\tests\ball-device-tests.vbs
+        shell: pwsh
+        run: |
+          $output = & cscript.exe //nologo scripts\tests\ball-device-tests.vbs 2>&1
+          $exitCode = $LASTEXITCODE
+          $output | ForEach-Object { Write-Output $_ }
+          if ($exitCode -ne 0 -or -not ($output | Select-String -Pattern '^\d+ scenarios; \d+ assertions; 0 failures\.$' -Quiet)) {
+            throw 'VBScript regression runner failed or did not reach its final summary.'
+          }
