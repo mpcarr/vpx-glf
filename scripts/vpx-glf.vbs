@@ -13960,11 +13960,17 @@ Class GlfBallDevice
         End If
         ' Preserve GLF's numeric relay contract and expected-arrival behaviour.
         If unclaimed > 0 Then unclaimed = DispatchRelayPinEvent(m_name & "_ball_enter", 1)
+        Log "Received ball " & key & ", unclaimed=" & unclaimed
         DispatchPinEvent m_name & "_ball_entered", Null
         ' A request queued while empty owns this arrival. Do not add an automatic
         ' request for the same ball on top of that explicit request.
         If Not ReservePendingRequest(key) Then
-            If unclaimed > 0 And m_auto_fire_on_unexpected_ball Then Enqueue key, 500
+            If unclaimed > 0 And m_auto_fire_on_unexpected_ball Then
+                ' Claims reserve a count, not a physical identity. Release one
+                ' available ball, preferring the eject position; a new arrival
+                ' behind a locked ball cannot itself reach that position yet.
+                Enqueue "", 500
+            End If
         End If
     End Sub
 
@@ -14008,6 +14014,7 @@ Class GlfBallDevice
         If key = "" Then key = FindUnreservedBall()
         m_next_request = m_next_request + 1
         m_queue.Add CStr(m_next_request), Array(key, GameTime + delay_ms)
+        Log "Queued eject " & m_next_request & ", reserved ball " & key & ", pending=" & m_queue.Count
         SchedulePump 1
     End Sub
     Private Function BallReserved(key)

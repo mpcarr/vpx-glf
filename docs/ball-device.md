@@ -27,6 +27,7 @@ End Sub
 `Eject` queues one ball, `EjectBalls n` queues a requested number, and `EjectAll` queues the physical balls not already reserved.
 
 - Eject requests are queued and serialized. Each available physical ball is reserved once. Requests exceeding supply wait for a new arrival without polling an empty device indefinitely.
+- An unexpected, unclaimed arrival requests release of one available ball, preferring the ball already at `EjectSwitchIndex`. For example, when one ball is locked at the exit and a second ball arrives behind it, the front ball ejects and one ball remains held. The actual selected ball is tracked by identity for departure, return/retry, and confirmation.
 - The actual kick is the final handler of the asynchronous `_ball_eject_attempt` queue event. Higher-priority handlers can block it with GLF's existing `wait_for` mechanism. Reserve priority `-2147483647` for the internal final handler.
 - A ball that does not leave retries the same request. A returning ball is recognised by VPX `ball.ID`, does not generate a second capture/claim event, and does not consume another incoming expectation.
 - Timer callbacks carry attempt tokens. Old callbacks and confirmation listeners cannot complete a later attempt. Success completes one request once.
@@ -149,7 +150,7 @@ From the `scripts` directory on Windows:
 npm run test:ball-device
 ```
 
-Alternatively, run `cscript //nologo tests\ball-device-tests.vbs`. The runner loads the current source device, delay/event helpers, and frame dispatcher. It mocks VPX ball objects and the clock, defines 56 scenarios, and exits nonzero for assertion failures or script errors. The hit helpers also update the shared debounce clock, as the generated VPX switch handlers do. The Windows GitHub Actions workflow runs this suite for relevant pull-request changes. Follow it with VPX checks of the actual lock return path, plunger, multi-ball movement, and confirmation-switch placement.
+Alternatively, run `cscript //nologo tests\ball-device-tests.vbs`. The runner loads the current source device, delay/event helpers, and frame dispatcher. It mocks VPX ball objects and the clock, defines 59 scenarios, and exits nonzero for assertion failures or script errors. The hit helpers also update the shared debounce clock, as the generated VPX switch handlers do. The Windows GitHub Actions workflow runs this suite for relevant pull-request changes. Follow it with VPX checks of the actual lock return path, plunger, multi-ball movement, and confirmation-switch placement.
 
 ## Scope
 

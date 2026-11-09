@@ -410,6 +410,57 @@ Check d.PendingEjects, 2, "two distinct balls reserved once each"
 Unhit a, 0: Advance 140: Unhit b, 1: Hit b, 0: Advance 350
 Check gKicks, 2, "second ball retains its request"
 
+Set d = Device("unexpected rear ball releases the front locked ball", 3)
+d.AutoFireOnUnexpectedBall = True: d.EjectTargets = Array("exit")
+gClaimResult = 0: Hit a, 0: Advance 30
+Check d.Balls, 1, "one claimed ball held at eject position"
+Check d.PendingEjects, 0, "claimed arrival does not request a release"
+gClaimResult = 1: Hit b, 1: Advance 540
+Check d.Balls, 2, "both balls counted before departure"
+Check gKicks, 1, "unexpected arrival requests one kick"
+Check gLastBall, a.ID, "front ball chosen instead of blocked rear arrival"
+Check d.PendingEjects, 1, "only one release reserved"
+Unhit a, 0: Advance 30: Confirm a: Advance 10
+Check Events("ball_eject_success"), 1, "front ball confirms the release"
+Check d.Balls, 1, "one physical ball remains locked"
+Check d.PendingEjects, 0, "release request completed"
+Unhit b, 1: Hit b, 0: Advance 600
+Check gKicks, 1, "remaining ball is retained after moving forward"
+Check gClaims, 2, "each arrival offered to claim relay once"
+
+Set d = Device("unexpected rear arrival retries the selected front ball", 2)
+d.AutoFireOnUnexpectedBall = True: d.EjectTargets = Array("exit")
+gClaimResult = 0: Hit a, 0: Advance 30
+gClaimResult = 1: Hit b, 1: Advance 540
+Unhit a, 0: Advance 30: Hit a, 0: Advance 70
+Check gKicks, 2, "returned front ball is retried"
+Check gLastBall, a.ID, "retry remains bound to actual ejected ball"
+Check d.PendingEjects, 1, "return does not add a second release"
+Check gClaims, 2, "returned front ball is not a new lock capture"
+Unhit a, 0: Advance 30: Confirm b
+Check Events("ball_eject_success"), 0, "rear arrival cannot confirm front eject"
+Confirm a: Advance 10
+Check d.Balls, 1, "one retained after retry succeeds"
+Check d.PendingEjects, 0, "retried request consumed once"
+
+Set d = Device("two unexpected arrivals retain one claimed ball", 3)
+d.AutoFireOnUnexpectedBall = True: d.EjectTargets = Array("exit")
+gClaimResult = 0: Hit a, 0: Advance 30
+gClaimResult = 1: Hit b, 1: Hit c, 2: Advance 540
+Check d.PendingEjects, 2, "one release per unclaimed arrival"
+Check gKicks, 1, "only front ball kicked initially"
+Check gLastBall, a.ID, "first release selects front ball"
+Unhit a, 0: Advance 30: Confirm a: Advance 10
+Unhit b, 1: Hit b, 0: Advance 40
+Check gKicks, 2, "next reserved ball ejects after moving forward"
+Check gLastBall, b.ID, "second release selects next ball"
+Unhit b, 0: Advance 30: Confirm b: Advance 10
+Unhit c, 2: Hit c, 0: Advance 600
+Check d.Balls, 1, "one ball retained after two releases"
+Check d.PendingEjects, 0, "both excess-ball releases completed"
+Check gKicks, 2, "retained ball is not ejected again"
+Check gClaims, 3, "claim relay sees three original arrivals"
+
 Set d = Device("empty launch button does not arm future ball", 1)
 d.PlayerControlledEjectEvent = "launch"
 DispatchPinEvent "launch", Null: Advance 10: Hit a, 0: Advance 100
