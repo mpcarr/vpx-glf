@@ -9,7 +9,7 @@ Dim glf_ball_devices, glf_plunger, glf_debugLog
 Dim glf_pinEvents, glf_pinEventsOrder, Glf_EventBlocks
 Dim glf_dispatch_await, glf_dispatch_handlers_await, glf_dispatch_current_kwargs
 Dim glf_last_switch_hit, glf_last_switch_hit_time, glf_max_dispatch
-Dim gKicks, gDisables, gLastBall, gEvents, gClaims, gClaimResult, gBlock
+Dim gKicks, gDisables, gLastBall, gEvents, gClaims, gClaimResult, gBlock, gBlockSecond
 Dim gAssertions, gCases, gCase, gToken, gFailures
 gAssertions = 0: gCases = 0: gFailures = 0
 LoadScript root & "\src\delay.vbs"
@@ -76,6 +76,10 @@ Function BlockAttempt(args)
     If gBlock Then args(1).Add "wait_for", "allow_kick"
     Set BlockAttempt = args(1)
 End Function
+Function BlockSecondAttempt(args)
+    If gBlockSecond Then args(1).Add "wait_for", "allow_second_kick"
+    Set BlockSecondAttempt = args(1)
+End Function
 Function Events(name)
     Events = 0
     If gEvents.Exists(name) Then Events = gEvents(name)
@@ -91,6 +95,7 @@ Function Device(caseName, switchCount)
     gCase = caseName: gCases = gCases + 1
     gameTime = 1000
     gKicks = 0: gDisables = 0: gLastBall = -1: gClaims = 0: gClaimResult = 1: gBlock = False
+    gBlockSecond = False
     Set gEvents = CreateObject("Scripting.Dictionary")
     Set glf_ball_devices = CreateObject("Scripting.Dictionary")
     Set glf_pinEvents = CreateObject("Scripting.Dictionary")
@@ -418,6 +423,19 @@ Hit a, 0: Advance 30: d.Eject: Advance 200
 Check gKicks, 0, "queue blocks callback and timeout"
 gBlock = False: DispatchPinEvent "allow_kick", Null: Advance 10
 Check gKicks, 1, "clear queue permits callback"
+
+Set d = Device("sequential queue blockers consume their own wait signals", 1)
+gBlock = True: gBlockSecond = True
+AddPinEventListener d.Name & "_ball_eject_attempt", "block", "BlockAttempt", 1000, Null
+AddPinEventListener d.Name & "_ball_eject_attempt", "block_second", "BlockSecondAttempt", 500, Null
+Hit a, 0: Advance 30: d.Eject: Advance 20
+Check gKicks, 0, "first blocker holds the kick"
+gBlock = False: DispatchPinEvent "allow_kick", Null: Advance 20
+Check gKicks, 0, "second blocker holds after the first release"
+gBlockSecond = False: DispatchPinEvent "allow_second_kick", Null: Advance 10
+Check gKicks, 1, "both releases permit exactly one kick"
+DispatchPinEvent "allow_kick", Null: DispatchPinEvent "allow_second_kick", Null: Advance 10
+Check gKicks, 1, "old release events cannot replay the kick"
 
 Set d = Device("ball moves while queue is blocked", 2)
 gBlock = True

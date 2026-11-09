@@ -58,6 +58,9 @@ Function DispatchPinHandlers(e, args)
         If IsObject(retArgs) Then
             If retArgs.Exists("wait_for") Then
                 DispatchPinHandlers = retArgs("wait_for")
+                ' A wait request belongs to the handler that returned it. Once
+                ' consumed, resumed handlers must not pause on the same signal.
+                retArgs.Remove "wait_for"
             End If
         End If
     Else

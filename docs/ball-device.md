@@ -149,7 +149,7 @@ From the `scripts` directory on Windows:
 npm run test:ball-device
 ```
 
-Alternatively, run `cscript //nologo tests\ball-device-tests.vbs`. The runner loads the current source device, delay/event helpers, and frame dispatcher. It mocks VPX ball objects and the clock, defines 55 scenarios, and exits nonzero for assertion failures or script errors. The hit helpers also update the shared debounce clock, as the generated VPX switch handlers do. The Windows GitHub Actions workflow runs this suite for relevant pull-request changes. Follow it with VPX checks of the actual lock return path, plunger, multi-ball movement, and confirmation-switch placement.
+Alternatively, run `cscript //nologo tests\ball-device-tests.vbs`. The runner loads the current source device, delay/event helpers, and frame dispatcher. It mocks VPX ball objects and the clock, defines 56 scenarios, and exits nonzero for assertion failures or script errors. The hit helpers also update the shared debounce clock, as the generated VPX switch handlers do. The Windows GitHub Actions workflow runs this suite for relevant pull-request changes. Follow it with VPX checks of the actual lock return path, plunger, multi-ball movement, and confirmation-switch placement.
 
 ## Scope
 
