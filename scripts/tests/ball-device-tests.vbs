@@ -12,12 +12,15 @@ Dim glf_last_switch_hit, glf_last_switch_hit_time, glf_max_dispatch
 Dim gKicks, gDisables, gLastBall, gEvents, gClaims, gClaimResult, gBlock, gBlockSecond
 Dim gAssertions, gCases, gCase, gToken, gFailures
 Dim glf_multiball_locks, gPlayerState, ballInReleasePostion, gTroughServes
+Dim glf_multiballs, glf_BIP, glf_gameStarted, gCurrentPlayer
+Const GLF_BALL_DRAIN = "ball_drain"
 gAssertions = 0: gCases = 0: gFailures = 0
 LoadScript root & "\src\delay.vbs"
 LoadScript root & "\src\pin-event-handlers.vbs"
 LoadFrameDispatcher root & "\src\_.main.vbs"
 LoadScript root & "\src\devices\ball-device.vbs"
 LoadScript root & "\src\commands\multiball-locks.vbs"
+LoadScript root & "\src\commands\multiball.vbs"
 
 Sub LoadScript(path)
     Dim stream: Set stream = fso.OpenTextFile(path)
@@ -39,8 +42,8 @@ End Sub
 Class TestBall
     Public ID
 End Class
-' Only mode configuration and the physical trough boundary are mocked below;
-' lock claims, replacement polling and auto-launch run the real lock source.
+' Mode/input configuration, player storage and the trough boundary are mocked;
+' lock claims, multiball allocation, replacement polling and auto-launch are real.
 Class TestMode
     Public Name, Priority
 End Class
@@ -49,12 +52,28 @@ Class GlfBaseModeDevice
         Set Init = Me
     End Function
 End Class
+Class TestInput
+    Public Raw
+    Public Property Get Value()
+        If VarType(Raw) = vbString Then
+            Value = Eval(Raw)
+        Else
+            Value = Raw
+        End If
+    End Property
+End Class
+Function CreateGlfInput(value)
+    Dim input: Set input = New TestInput
+    input.Raw = value
+    Set CreateGlfInput = input
+End Function
 Function GetPlayerState(name)
+    Dim key: key = CStr(gCurrentPlayer) & ":" & name
     GetPlayerState = False
-    If gPlayerState.Exists(name) Then GetPlayerState = gPlayerState(name)
+    If gPlayerState.Exists(key) Then GetPlayerState = gPlayerState(key)
 End Function
 Sub SetPlayerState(name, value)
-    gPlayerState(name) = value
+    gPlayerState(CStr(gCurrentPlayer) & ":" & name) = value
 End Sub
 Function Glf_ReleaseBall(args)
     gTroughServes = gTroughServes + 1
@@ -122,7 +141,9 @@ Function Device(caseName, switchCount)
     gBlockSecond = False
     gTroughServes = 0: ballInReleasePostion = True
     Set glf_multiball_locks = CreateObject("Scripting.Dictionary")
+    Set glf_multiballs = CreateObject("Scripting.Dictionary")
     Set gPlayerState = CreateObject("Scripting.Dictionary")
+    gCurrentPlayer = 1: glf_BIP = 1: glf_gameStarted = True
     Set gEvents = CreateObject("Scripting.Dictionary")
     Set glf_ball_devices = CreateObject("Scripting.Dictionary")
     Set glf_pinEvents = CreateObject("Scripting.Dictionary")
@@ -212,8 +233,20 @@ Function MoonDevice()
     device.EjectCallback = "Kick"
     Set MoonDevice = device
 End Function
+Function Multiball(count, countType, locks)
+    Dim mode, mb
+    Set mode = New TestMode
+    mode.Name = "test": mode.Priority = 200
+    Set mb = (New GlfMultiballs)("test", mode)
+    mb.BallCount = count
+    mb.BallCountType = countType
+    mb.BallLocks = locks
+    mb.ShootAgain = 0
+    mb.Enable
+    Set Multiball = mb
+End Function
 
-Dim d, a, b, c, oldToken, i, j, slot, which, physical(3, 2), balls(3), expected, occupied, lock, lockDevice
+Dim d, a, b, c, oldToken, i, j, slot, which, physical(3, 2), balls(3), expected, occupied, lock, lockDevice, mb
 Set a = Ball(1): Set b = Ball(2): Set c = Ball(3)
 
 Set d = Device("empty unconfigured device", 0)
@@ -766,6 +799,131 @@ d.SeedBall a, 0: d.SeedBall a, 1
 Check d.Balls, 1, "seed deduplicates"
 Hit a, 0: Advance 30
 Check Events("ball_entered"), 0, "seed not recaptured"
+
+Set d = Device("two-player moon multiball retains surplus physical lock", 1)
+d.DefaultDevice = True
+Set lockDevice = MoonDevice(): Set lock = MoonLock()
+lock.BallsToLock = 3
+' This scenario supplies each player's live ball directly; suppress trough replacements.
+lock.BallsToReplace = 0
+lockDevice.EjectTimeout = 100: lockDevice.EjectTargets = Array("exit")
+' Configure before the player changes; the target is evaluated at Start.
+Set mb = Multiball("GetPlayerState(""moon_locked_balls"") + 1", "total", Array("moon_lock"))
+TableHit a, "lock0": Advance 30
+TableHit b, "lock1": Advance 30
+Check GetPlayerState("moon_locked_balls"), 2, "player one has two lock credits"
+Check lockDevice.Balls, 2, "player one's balls remain physically locked"
+lock.Disable: glf_BIP = 0
+gCurrentPlayer = 2: glf_BIP = 1: lock.Enable
+Check GetPlayerState("moon_locked_balls"), False, "player two starts without lock credits"
+TableHit c, "lock2": Advance 30
+Check GetPlayerState("moon_locked_balls"), 1, "player two earns one credit"
+Check gKicks, 1, "extra physical arrival releases a replacement"
+DispatchPinEvent "lock0_inactive", a: Advance 30: Confirm a: Advance 10
+DispatchPinEvent "lock1_inactive", b: TableHit b, "lock0": Advance 30
+Check lockDevice.Balls, 2, "two physical balls remain before multiball"
+Check lockDevice.PendingEjects, 0, "replacement eject completed"
+lock.Disable: mb.Start
+Check glf_BIP, 2, "player two gets a two-ball multiball"
+Check lockDevice.PendingEjects, 1, "only one new lock release requested"
+Check mb.QueuedBalls(), 0, "no trough shortfall"
+Advance 10
+Check gLastBall, b.ID, "front ball releases for multiball"
+DispatchPinEvent "lock0_inactive", b: Advance 30: Confirm b: Advance 10
+DispatchPinEvent "lock2_inactive", c: TableHit c, "lock0": Advance 150
+Check gKicks, 2, "one replacement plus one multiball eject in total"
+Check lockDevice.Balls, 1, "surplus ball remains held at eject position"
+Check lockDevice.PendingEjects, 0, "no later eject remains queued"
+Check gTroughServes, 0, "no extra trough ball served"
+mb.Start: Advance 30
+Check lockDevice.PendingEjects, 0, "repeat start does not release surplus"
+lock.Reset
+Check GetPlayerState("moon_locked_balls"), 0, "player two's consumed lock credit reset"
+gCurrentPlayer = 1
+Check GetPlayerState("moon_locked_balls"), 2, "player one's lock credits preserved"
+
+Set d = Device("multiball shares remaining demand across lock devices", 1)
+d.SeedBall a, 0
+Set lockDevice = MoonDevice(): lockDevice.SeedBall b, 0: lockDevice.SeedBall c, 1
+Set mb = Multiball(3, "total", Array("test", "moon_lock"))
+mb.Start
+Check d.PendingEjects, 1, "first lock supplies one"
+Check lockDevice.PendingEjects, 1, "second lock supplies only remaining one"
+Check mb.QueuedBalls(), 0, "locks cover demand"
+Check glf_BIP, 3, "target includes existing live ball"
+
+Set d = Device("multiball stops allocating when first lock covers demand", 2)
+d.SeedBall a, 0: d.SeedBall b, 1
+Set lockDevice = MoonDevice(): lockDevice.SeedBall c, 0
+Set mb = Multiball(2, "total", Array("test", "moon_lock"))
+mb.Start
+Check d.PendingEjects, 1, "first lock releases only one"
+Check lockDevice.PendingEjects, 0, "second lock untouched"
+Check mb.QueuedBalls(), 0, "no unnecessary trough request"
+
+Set d = Device("multiball serves only lock shortfall from trough", 1)
+d.DefaultDevice = True
+Set lockDevice = MoonDevice(): lockDevice.SeedBall a, 0
+lockDevice.EjectTargets = Array("exit")
+Set mb = Multiball(3, "total", Array("moon_lock"))
+mb.Start
+Check lockDevice.PendingEjects, 1, "one physical lock ball requested"
+Check mb.QueuedBalls(), 1, "only shortage queued for trough"
+Advance 10
+DispatchPinEvent "lock0_inactive", a: Advance 30: Confirm a: Advance 10
+Advance 1000
+Check gTroughServes, 1, "real multiball handler serves shortfall"
+Check mb.QueuedBalls(), 0, "shortfall request consumed"
+Check d.IncomingBalls, 1, "one incoming replacement"
+
+Set d = Device("multiball excludes existing lock reservations", 2)
+d.SeedBall a, 0: d.SeedBall b, 1
+d.Eject
+Set mb = Multiball(3, "total", Array("test"))
+mb.Start
+Check d.PendingEjects, 2, "only one new request beside existing reservation"
+Check mb.QueuedBalls(), 1, "reserved ball is not counted as new supply"
+
+Set d = Device("multiball counts remaining ball while prior eject awaits confirm", 2)
+d.SeedBall a, 0: d.SeedBall b, 1
+d.EjectTargets = Array("exit")
+d.Eject: Advance 10: Unhit a, 0: Advance 30
+Check d.Balls, 1, "prior ball already departed"
+Check d.PendingEjects, 1, "prior eject awaits confirmation"
+Set mb = Multiball(2, "total", Array("test"))
+mb.Start
+Check d.PendingEjects, 2, "remaining physical ball can be reserved"
+Check mb.QueuedBalls(), 0, "departed request does not hide remaining supply"
+
+Set d = Device("multiball does not overbook fully reserved lock", 1)
+d.SeedBall a, 0: d.Eject
+Set mb = Multiball(2, "total", Array("test"))
+mb.Start
+Check d.PendingEjects, 1, "existing request unchanged"
+Check mb.QueuedBalls(), 1, "new supply comes from trough"
+
+Set d = Device("multiball does not count stopped device as supplied", 1)
+d.SeedBall a, 0: d.StopDevice
+Set mb = Multiball(2, "total", Array("test"))
+mb.Start
+Check d.PendingEjects, 0, "stopped lock receives no request"
+Check mb.QueuedBalls(), 1, "unsupplied ball falls back to trough"
+
+Set d = Device("multiball at total target leaves locks alone", 2)
+d.SeedBall a, 0: d.SeedBall b, 1: glf_BIP = 2
+Set mb = Multiball(2, "total", Array("test"))
+mb.Start
+Check d.PendingEjects, 0, "no additional ball needed"
+Check mb.QueuedBalls(), 0, "no trough request"
+Check d.Balls, 2, "both lock balls retained"
+
+Set d = Device("additional multiball releases configured increment only", 3)
+d.SeedBall a, 0: d.SeedBall b, 1: d.SeedBall c, 2: glf_BIP = 2
+Set mb = Multiball(1, "additional", Array("test"))
+mb.Start
+Check d.PendingEjects, 1, "one additional ball requested"
+Check mb.QueuedBalls(), 0, "no extra trough request"
+Check glf_BIP, 3, "increment added to current balls in play"
 
 Set d = Device("ball search does not overlap eject", 1)
 Hit a, 0: Advance 30: d.Eject: Advance 10: d.BallSearch 3

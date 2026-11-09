@@ -7894,14 +7894,15 @@ Class GlfMultiballs
         'msgbox("Starting multiball with " & m_balls_live_target & " balls (added " & m_balls_added_live & ")")    
         Dim balls_added : balls_added = 0
 
-        'eject balls from locks
-        Dim ball_lock
+        ' Physical locks are shared between players. Release only the balls
+        ' needed for this start, leaving surplus and existing reservations alone.
+        Dim ball_lock, remaining_balls, released_balls
         For Each ball_lock in m_ball_locks
-            Dim available_balls : available_balls = glf_ball_devices(ball_lock).Balls()
-            If available_balls > 0 Then
-                glf_ball_devices(ball_lock).EjectAll()
-            End If
-            balls_added = balls_added + available_balls
+            remaining_balls = m_balls_added_live - balls_added
+            If remaining_balls <= 0 Then Exit For
+            released_balls = glf_ball_devices(ball_lock).EjectAvailableBalls(remaining_balls)
+            Log "Releasing " & released_balls & " from " & ball_lock & "; needed " & remaining_balls
+            balls_added = balls_added + released_balls
         Next
         Log "Balls added: " & balls_added
         glf_BIP = m_balls_live_target
@@ -14029,12 +14030,23 @@ Class GlfBallDevice
         Next
     End Sub
     Public Sub EjectAll()
+        EjectAvailableBalls m_present.Count
+    End Sub
+    Public Function EjectAvailableBalls(balls)
+        ' Allocate only current, unreserved supply. Return how many NEW ejects
+        ' were queued so callers can obtain any shortfall from another source.
+        EjectAvailableBalls = 0
+        Dim requested : requested = Nonnegative(balls)
+        If m_stopped Or m_state = "eject_broken" Or requested = 0 Then Exit Function
         Dim count, reserved : reserved = m_queue.Count
         ' A departed ball is still queued until confirmed, but no longer counted.
         If m_left Then reserved = reserved - 1
         count = m_present.Count - reserved
+        If count > requested Then count = requested
+        Dim queued_before : queued_before = m_queue.Count
         If count > 0 Then EjectBalls count
-    End Sub
+        EjectAvailableBalls = m_queue.Count - queued_before
+    End Function
     Private Sub Enqueue(key, delay_ms)
         If m_stopped Or m_state = "eject_broken" Then Exit Sub
         ' Bind known balls once, so automatic and explicit requests cannot both

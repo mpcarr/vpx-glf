@@ -399,12 +399,23 @@ Class GlfBallDevice
         Next
     End Sub
     Public Sub EjectAll()
+        EjectAvailableBalls m_present.Count
+    End Sub
+    Public Function EjectAvailableBalls(balls)
+        ' Allocate only current, unreserved supply. Return how many NEW ejects
+        ' were queued so callers can obtain any shortfall from another source.
+        EjectAvailableBalls = 0
+        Dim requested : requested = Nonnegative(balls)
+        If m_stopped Or m_state = "eject_broken" Or requested = 0 Then Exit Function
         Dim count, reserved : reserved = m_queue.Count
         ' A departed ball is still queued until confirmed, but no longer counted.
         If m_left Then reserved = reserved - 1
         count = m_present.Count - reserved
+        If count > requested Then count = requested
+        Dim queued_before : queued_before = m_queue.Count
         If count > 0 Then EjectBalls count
-    End Sub
+        EjectAvailableBalls = m_queue.Count - queued_before
+    End Function
     Private Sub Enqueue(key, delay_ms)
         If m_stopped Or m_state = "eject_broken" Then Exit Sub
         ' Bind known balls once, so automatic and explicit requests cannot both
