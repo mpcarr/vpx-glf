@@ -13765,8 +13765,8 @@ Class GlfBallDevice
             Err.Raise 5, m_name, "MechanicalEject requires one occupancy switch."
         End If
         For i = 0 To UBound(m_ball_switches)
-            RemovePinEventListener m_ball_switches(i) & "_active", m_name & "_ball_enter_" & i
-            RemovePinEventListener m_ball_switches(i) & "_inactive", m_name & "_ball_exit_" & i
+            RemoveRawPinEventListener m_ball_switches(i) & "_active", m_name & "_ball_enter_" & i
+            RemoveRawPinEventListener m_ball_switches(i) & "_inactive", m_name & "_ball_exit_" & i
         Next
         m_ball_switches = value
         m_switch_balls = Array()
@@ -13778,9 +13778,9 @@ Class GlfBallDevice
         For i = 0 To UBound(value)
             Set m_switch_balls(i) = CreateObject("Scripting.Dictionary")
             m_switch_due(i) = 0
-            AddPinEventListener value(i) & "_active", m_name & "_ball_enter_" & i, _
+            AddRawPinEventListener value(i) & "_active", m_name & "_ball_enter_" & i, _
                 "BallDeviceEventHandler", 1000, Array("ball_entering", Me, i)
-            AddPinEventListener value(i) & "_inactive", m_name & "_ball_exit_" & i, _
+            AddRawPinEventListener value(i) & "_inactive", m_name & "_ball_exit_" & i, _
                 "BallDeviceEventHandler", 1000, Array("ball_exiting", Me, i)
         Next
     End Property
@@ -13832,6 +13832,7 @@ Class GlfBallDevice
     Public Sub BallEntering(ball, switch)
         CheckSwitch switch
         Dim key : key = BallKey(ball)
+        Log "Switch " & m_ball_switches(switch) & " active, ball " & key & ", t=" & GameTime & ", state=" & m_state
         If m_switch_balls(switch).Exists(key) Then Exit Sub
         m_switch_balls(switch).Add key, ball
         m_switch_due(switch) = GameTime + m_entrance_count_delay
@@ -13851,6 +13852,7 @@ Class GlfBallDevice
     Public Sub BallExiting(ball, switch)
         CheckSwitch switch
         Dim key : key = BallKey(ball)
+        Log "Switch " & m_ball_switches(switch) & " inactive, ball " & key & ", t=" & GameTime & ", state=" & m_state
         If Not m_switch_balls(switch).Exists(key) Then Exit Sub
         m_switch_balls(switch).Remove key
         m_switch_due(switch) = GameTime + m_exit_count_delay
@@ -13940,6 +13942,7 @@ Class GlfBallDevice
             End If
         End If
         If old_count <> current.Count Then
+            Log "Settled count " & old_count & " -> " & current.Count & ", state=" & m_state
             Dim kwargs : Set kwargs = GlfKwargs()
             kwargs.Add "balls", current.Count
             DispatchPinEvent m_name & "_ball_count_changed", kwargs
@@ -14148,6 +14151,7 @@ Class GlfBallDevice
         If m_left Then Exit Sub
         m_left = True
         m_state = "waiting_for_confirm"
+        Log "Ball " & m_active_key & " left; waiting for confirmation"
         RemoveDelay m_name & "_departure"
         Schedule "confirm_timeout", m_token, m_eject_timeout, "_confirm"
         DispatchPinEvent m_name & "_ball_exiting", Null
@@ -14174,8 +14178,8 @@ Class GlfBallDevice
     Private Sub RegisterConfirmListeners()
         Dim evt
         For Each evt In m_eject_targets
-            RemovePinEventListener evt & "_active", m_name & "_confirm"
-            AddPinEventListener evt & "_active", m_name & "_confirm", "BallDeviceEventHandler", _
+            RemoveRawPinEventListener evt & "_active", m_name & "_confirm"
+            AddRawPinEventListener evt & "_active", m_name & "_confirm", "BallDeviceEventHandler", _
                 1000, Array("confirm", Me, m_token)
         Next
     End Sub
@@ -14248,7 +14252,7 @@ Class GlfBallDevice
             RemoveDelay m_name & evt
         Next
         For Each evt In m_eject_targets
-            RemovePinEventListener evt & "_active", m_name & "_confirm"
+            RemoveRawPinEventListener evt & "_active", m_name & "_confirm"
         Next
         EjectEnableComplete
     End Sub
@@ -14308,6 +14312,7 @@ Class GlfBallDevice
                     ElseIf m_confirmed Or UBound(m_eject_targets) < 0 Then
                         CompleteEject
                     ElseIf kind = "confirm_timeout" Then
+                        Log "Confirmation overdue for ball " & m_active_key & "; missing grace " & m_missing_timeout & "ms"
                         Schedule "missing_timeout", m_token, m_missing_timeout, "_missing"
                     Else
                         ' The ball left but never reached the confirmation switch.
@@ -17841,6 +17846,14 @@ Dim glf_frame_handler_count : glf_frame_handler_count = 0
 Dim glf_dispatch_queue_int : glf_dispatch_queue_int = 0
 
 Sub DispatchPinEvent(e, kwargs)
+    ' Occupancy/confirmation tracking needs every physical edge, including a
+    ' rapid re-hit that the ordinary scoring-event debounce below suppresses.
+    ' Queue raw listeners in order; synchronous delivery could overtake an
+    ' earlier inactive event still waiting in the dispatch queue.
+    Dim raw_event : raw_event = e & "__raw"
+    If glf_pinEvents.Exists(raw_event) Then
+        If glf_pinEvents(raw_event).Count > 0 Then AddToDispatchEvents raw_event, kwargs, 1
+    End If
     If e = glf_last_switch_hit & "_active" and (gametime - glf_last_switch_hit_time) < 50 Then
         Exit Sub
     End If
@@ -18041,6 +18054,14 @@ Function ContinueDispatchQueuePinEvent(args)
 
 End Function
 
+Sub AddRawPinEventListener(evt, key, callbackName, priority, args)
+    AddPinEventListener evt & "__raw", key, callbackName, priority, args
+End Sub
+
+Sub RemoveRawPinEventListener(evt, key)
+    RemovePinEventListener evt & "__raw", key
+End Sub
+
 Sub AddPinEventListener(evt, key, callbackName, priority, args)
     Dim i, inserted, tempArray
     If Not glf_pinEvents.Exists(evt) Then
@@ -18124,6 +18145,7 @@ Sub Sortglf_pinEventsByPriority(evt, priority, key, isAdding)
         glf_pinEventsOrder(evt) = tempArray
     End If
 End Sub
+
 Function GetPlayerState(key)
     If IsNull(glf_currentPlayer) Then
         Exit Function

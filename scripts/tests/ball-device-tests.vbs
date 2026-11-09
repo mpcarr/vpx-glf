@@ -142,7 +142,13 @@ Sub Advance(ms)
     Next
 End Sub
 Sub Hit(b, slot)
-    DispatchPinEvent "s" & slot & "_active", b
+    TableHit b, "s" & slot
+End Sub
+Sub TableHit(b, switchName)
+    ' Match the generated VPX _Hit handler, including the shared debounce clock.
+    DispatchPinEvent switchName & "_active", b
+    glf_last_switch_hit_time = gameTime
+    glf_last_switch_hit = switchName
     Advance 2
 End Sub
 Sub Unhit(b, slot)
@@ -150,8 +156,7 @@ Sub Unhit(b, slot)
     Advance 2
 End Sub
 Sub Confirm(b)
-    DispatchPinEvent "exit_active", b
-    Advance 2
+    TableHit b, "exit"
 End Sub
 
 Dim d, a, b, c, oldToken, i, j, slot, which, physical(3, 2), balls(3), expected, occupied
@@ -224,6 +229,51 @@ Check d.State, "eject_broken", "broken state"
 Check Events("broken"), 1, "one broken event"
 Advance 300: Check gKicks, 3, "stays stopped"
 
+Set d = Device("rapid lock bounce retries with final ball still present", 3)
+d.EjectTargets = Array("exit")
+Hit a, 2: Unhit a, 2: Hit a, 1: Unhit a, 1: Hit a, 0: Advance 60
+d.Eject: Advance 10
+Unhit a, 0: Hit a, 0: Unhit a, 0: Hit a, 0: Unhit a, 0: Hit a, 0
+Advance 140
+Check d.Balls, 1, "final re-hit survives the 50ms dispatch filter"
+Check gKicks, 2, "same ball is retried after failed departure"
+Check d.PendingEjects, 1, "same request stays reserved"
+Check gClaims, 1, "bounce is not another capture"
+Check Events("ball_eject_success"), 0, "no success for a ball still in the lock"
+Check Events("ball_eject_failed"), 1, "one failed first attempt"
+
+Set d = Device("ordinary listeners retain hit debounce", 1)
+AddPinEventListener "s0_active", "normal_hit", "Observe", 100, "normal_hit"
+Hit a, 0: Advance 30: Unhit a, 0: Hit a, 0: Advance 30
+Check Events("normal_hit"), 1, "scoring listeners do not get the rapid re-hit"
+Check d.Balls, 1, "device still gets the final active edge"
+Check Events("ball_entered"), 1, "bounce does not duplicate a capture"
+Advance 60: Hit a, 0
+Check Events("normal_hit"), 2, "later ordinary hit is still delivered"
+
+Set d = Device("two balls on one sensor inside debounce", 1)
+Hit a, 0: Hit b, 0: Advance 30
+Check d.Balls, 2, "both identities counted despite shared switch debounce"
+Unhit a, 0: Advance 30
+Check d.Balls, 1, "second identity remains after first leaves"
+
+Set d = Device("queued raw edges preserve order", 1)
+DispatchPinEvent "s0_active", a
+glf_last_switch_hit_time = gameTime: glf_last_switch_hit = "s0"
+DispatchPinEvent "s0_inactive", a
+DispatchPinEvent "s0_active", a
+Advance 30
+Check d.Balls, 1, "active inactive active in one frame ends occupied"
+Check Events("ball_entered"), 1, "one settled capture"
+Check Events("ball_exiting"), 0, "no transient settled departure"
+
+Set d = Device("old occupancy listeners removed on reconfiguration", 1)
+d.BallSwitches = Array("new_sensor")
+TableHit a, "s0": Advance 30
+Check d.Balls, 0, "old switch no longer changes occupancy"
+TableHit a, "new_sensor": Advance 30
+Check d.Balls, 1, "replacement switch tracks occupancy"
+
 Set d = Device("count-confirmed successful eject", 1)
 Hit a, 0: Advance 30: d.Eject: Advance 10: Unhit a, 0: Advance 140
 Check Events("ball_eject_success"), 1, "one success"
@@ -264,6 +314,15 @@ Hit a, 0: Advance 30: d.Eject: Advance 10: Unhit a, 0: Advance 30: Confirm b
 Check Events("ball_eject_success"), 0, "different ball cannot confirm"
 Confirm a: Advance 10
 Check Events("ball_eject_success"), 1, "matching ball confirms"
+
+Set d = Device("matching confirmation inside another ball's debounce", 1)
+d.EjectTargets = Array("exit")
+Hit a, 0: Advance 30: d.Eject: Advance 10: Unhit a, 0: Advance 30
+Confirm b: Confirm a: Advance 10
+Check Events("ball_eject_success"), 1, "correct ball confirms despite recent wrong-ball hit"
+Check d.PendingEjects, 0, "confirmed request retired"
+Confirm a: Advance 10
+Check Events("ball_eject_success"), 1, "removed raw confirmation listener cannot complete twice"
 
 Set d = Device("confirmation before exit settles", 1)
 d.EjectTargets = Array("exit")

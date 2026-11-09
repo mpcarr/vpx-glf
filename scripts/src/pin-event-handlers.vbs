@@ -11,6 +11,14 @@ Dim glf_frame_handler_count : glf_frame_handler_count = 0
 Dim glf_dispatch_queue_int : glf_dispatch_queue_int = 0
 
 Sub DispatchPinEvent(e, kwargs)
+    ' Occupancy/confirmation tracking needs every physical edge, including a
+    ' rapid re-hit that the ordinary scoring-event debounce below suppresses.
+    ' Queue raw listeners in order; synchronous delivery could overtake an
+    ' earlier inactive event still waiting in the dispatch queue.
+    Dim raw_event : raw_event = e & "__raw"
+    If glf_pinEvents.Exists(raw_event) Then
+        If glf_pinEvents(raw_event).Count > 0 Then AddToDispatchEvents raw_event, kwargs, 1
+    End If
     If e = glf_last_switch_hit & "_active" and (gametime - glf_last_switch_hit_time) < 50 Then
         Exit Sub
     End If
@@ -210,6 +218,14 @@ Function ContinueDispatchQueuePinEvent(args)
 
 
 End Function
+
+Sub AddRawPinEventListener(evt, key, callbackName, priority, args)
+    AddPinEventListener evt & "__raw", key, callbackName, priority, args
+End Sub
+
+Sub RemoveRawPinEventListener(evt, key)
+    RemovePinEventListener evt & "__raw", key
+End Sub
 
 Sub AddPinEventListener(evt, key, callbackName, priority, args)
     Dim i, inserted, tempArray

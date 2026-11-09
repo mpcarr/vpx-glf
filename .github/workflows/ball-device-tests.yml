@@ -1,0 +1,24 @@
+name: Ball device regression tests
+
+on:
+  pull_request:
+    paths:
+      - 'scripts/src/**'
+      - 'scripts/tests/**'
+      - '.github/workflows/ball-device-tests.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  ball-device:
+    runs-on: windows-2022
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Run VBScript regression scenarios
+        shell: cmd
+        run: cscript.exe //nologo scripts\tests\ball-device-tests.vbs
