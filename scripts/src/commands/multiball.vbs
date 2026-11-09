@@ -495,7 +495,7 @@ Function MultiballsHandler(args)
             kwargs = multiball.BallsDrained(kwargs)
         Case "queue_release"
             If multiball.QueuedBalls() > 0 Then
-                If glf_plunger.HasBall = False And ballInReleasePostion = True And glf_plunger.IncomingBalls = 0 Then
+                If glf_plunger.IsReadyToReceive = True And ballInReleasePostion = True Then
                     Glf_ReleaseBall(Null)
                     SetDelay multiball.Name&"_auto_launch", "MultiballsHandler" , Array(Array("auto_launch", multiball),Null), 500
                     If multiball.ReleaseQueuedBalls() > 0 Then
