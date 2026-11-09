@@ -206,10 +206,10 @@ Class GlfBallDevice
         If m_switch_balls(switch).Exists(key) Then Exit Sub
         m_switch_balls(switch).Add key, ball
         m_switch_due(switch) = GameTime + m_entrance_count_delay
-        If key = m_active_key And m_left Then
+        If key = m_active_key And (m_left Or m_state = "ejecting") Then
             ' Invalidate a confirm as soon as a return is observed, before debounce.
             m_confirmed = False
-            m_return_seen = True
+            If m_left Then m_return_seen = True
             RemoveDelay m_name & "_confirm"
             RemoveDelay m_name & "_missing"
         End If
@@ -226,8 +226,33 @@ Class GlfBallDevice
         If Not m_switch_balls(switch).Exists(key) Then Exit Sub
         m_switch_balls(switch).Remove key
         m_switch_due(switch) = GameTime + m_exit_count_delay
-        If Not m_stopped Then ScheduleRecount
+        If Not m_stopped Then
+            If CanBeginMechanical() Then
+                If Not m_present.Exists(key) Then
+                    ' A manual launch can beat entrance settling. The matching
+                    ' Hit/UnHit still proves this ball passed through the plunger.
+                    ' Receive it once so its incoming reservation cannot stick.
+                    Dim old_count : old_count = m_present.Count
+                    m_present.Add key, ball
+                    If m_lost.Exists(key) Then
+                        m_lost.Remove key
+                    Else
+                        Received ball
+                    End If
+                    NotifyCountChanged old_count
+                End If
+                ' Listen now: the confirmation switch may fire before exit
+                ' settling. Departed/success still wait for the stable recount.
+                BeginMechanical ball
+            End If
+            ScheduleRecount
+        End If
     End Sub
+
+    Private Function CanBeginMechanical()
+        CanBeginMechanical = m_mechanical_eject And (m_state = "idle" Or m_state = "waiting_for_ball" Or _
+            m_state = "waiting_for_position" Or m_state = "waiting_for_player" Or m_state = "waiting_for_queue")
+    End Function
 
     Private Function RawBalls()
         Dim result, i, key : Set result = CreateObject("Scripting.Dictionary")
@@ -268,9 +293,9 @@ Class GlfBallDevice
                 Set ball = previous(key)
                 If key = m_active_key And (m_state = "ejecting" Or m_state = "waiting_for_confirm") Then
                     Departed
-                ElseIf m_mechanical_eject And (m_state = "idle" Or m_state = "waiting_for_ball" Or _
-                        m_state = "waiting_for_position" Or m_state = "waiting_for_player" Or m_state = "waiting_for_queue") Then
+                ElseIf CanBeginMechanical() Then
                     BeginMechanical ball
+                    Departed
                 Else
                     If Not m_lost.Exists(key) Then m_lost.Add key, GameTime + m_idle_missing_timeout
                     ScheduleLostCheck
@@ -311,14 +336,17 @@ Class GlfBallDevice
                 CompleteEject
             End If
         End If
-        If old_count <> current.Count Then
-            Log "Settled count " & old_count & " -> " & current.Count & ", state=" & m_state
-            Dim kwargs : Set kwargs = GlfKwargs()
-            kwargs.Add "balls", current.Count
-            DispatchPinEvent m_name & "_ball_count_changed", kwargs
-        End If
+        NotifyCountChanged old_count
         m_recounting = False
         SchedulePump 1
+    End Sub
+    Private Sub NotifyCountChanged(old_count)
+        If old_count <> m_present.Count Then
+            Log "Count " & old_count & " -> " & m_present.Count & ", state=" & m_state
+            Dim kwargs : Set kwargs = GlfKwargs()
+            kwargs.Add "balls", m_present.Count
+            DispatchPinEvent m_name & "_ball_count_changed", kwargs
+        End If
     End Sub
 
     Private Sub Received(ball)
@@ -548,9 +576,11 @@ Class GlfBallDevice
         m_left = False
         m_confirmed = False
         m_return_seen = False
+        m_state = "ejecting"
         RegisterConfirmListeners
+        Schedule "departure_timeout", m_token, m_eject_timeout, "_departure"
         DispatchPinEvent m_name & "_ejecting_ball", Null
-        Departed
+        Log "Mechanical launch " & m_attempt & ", ball " & m_active_key
     End Sub
     Private Sub RegisterConfirmListeners()
         Dim evt

@@ -11,11 +11,13 @@ Dim glf_dispatch_await, glf_dispatch_handlers_await, glf_dispatch_current_kwargs
 Dim glf_last_switch_hit, glf_last_switch_hit_time, glf_max_dispatch
 Dim gKicks, gDisables, gLastBall, gEvents, gClaims, gClaimResult, gBlock, gBlockSecond
 Dim gAssertions, gCases, gCase, gToken, gFailures
+Dim glf_multiball_locks, gPlayerState, ballInReleasePostion, gTroughServes
 gAssertions = 0: gCases = 0: gFailures = 0
 LoadScript root & "\src\delay.vbs"
 LoadScript root & "\src\pin-event-handlers.vbs"
 LoadFrameDispatcher root & "\src\_.main.vbs"
 LoadScript root & "\src\devices\ball-device.vbs"
+LoadScript root & "\src\commands\multiball-locks.vbs"
 
 Sub LoadScript(path)
     Dim stream: Set stream = fso.OpenTextFile(path)
@@ -37,6 +39,28 @@ End Sub
 Class TestBall
     Public ID
 End Class
+' Only mode configuration and the physical trough boundary are mocked below;
+' lock claims, replacement polling and auto-launch run the real lock source.
+Class TestMode
+    Public Name, Priority
+End Class
+Class GlfBaseModeDevice
+    Public Default Function Init(mode, kind, device)
+        Set Init = Me
+    End Function
+End Class
+Function GetPlayerState(name)
+    GetPlayerState = False
+    If gPlayerState.Exists(name) Then GetPlayerState = gPlayerState(name)
+End Function
+Sub SetPlayerState(name, value)
+    gPlayerState(name) = value
+End Sub
+Function Glf_ReleaseBall(args)
+    gTroughServes = gTroughServes + 1
+    glf_plunger.AddIncomingBalls = 1
+    Glf_ReleaseBall = Null
+End Function
 Function Ball(id)
     Dim b: Set b = New TestBall
     b.ID = id
@@ -96,6 +120,9 @@ Function Device(caseName, switchCount)
     gameTime = 1000
     gKicks = 0: gDisables = 0: gLastBall = -1: gClaims = 0: gClaimResult = 1: gBlock = False
     gBlockSecond = False
+    gTroughServes = 0: ballInReleasePostion = True
+    Set glf_multiball_locks = CreateObject("Scripting.Dictionary")
+    Set gPlayerState = CreateObject("Scripting.Dictionary")
     Set gEvents = CreateObject("Scripting.Dictionary")
     Set glf_ball_devices = CreateObject("Scripting.Dictionary")
     Set glf_pinEvents = CreateObject("Scripting.Dictionary")
@@ -166,8 +193,27 @@ End Sub
 Sub Confirm(b)
     TableHit b, "exit"
 End Sub
+Function MoonLock()
+    Dim mode, lock
+    Set mode = New TestMode
+    mode.Name = "moon": mode.Priority = 200
+    Set lock = (New GlfMultiballLocks)("moon", mode)
+    lock.BallsToLock = 1
+    lock.LockDevices = Array("moon_lock")
+    lock.Enable
+    Set MoonLock = lock
+End Function
+Function MoonDevice()
+    Dim device
+    Set device = CreateGlfBallDevice("moon_lock")
+    device.BallSwitches = Array("lock0", "lock1", "lock2")
+    device.EntranceCountDelay = 20
+    device.ExitCountDelay = 20
+    device.EjectCallback = "Kick"
+    Set MoonDevice = device
+End Function
 
-Dim d, a, b, c, oldToken, i, j, slot, which, physical(3, 2), balls(3), expected, occupied
+Dim d, a, b, c, oldToken, i, j, slot, which, physical(3, 2), balls(3), expected, occupied, lock, lockDevice
 Set a = Ball(1): Set b = Ball(2): Set c = Ball(3)
 
 Set d = Device("empty unconfigured device", 0)
@@ -596,6 +642,124 @@ Check d.IncomingBalls, 0, "expectation consumed"
 d.Eject: Advance 10: Unhit a, 0: Advance 30
 Check d.IsReadyToReceive, False, "awaiting launch confirmation"
 Advance 110: Check d.IsReadyToReceive, True, "ready after confirmed launch"
+
+Set d = Device("fast expected mechanical launch", 1)
+d.DefaultDevice = True: d.MechanicalEject = True
+d.EntranceCountDelay = 500: d.ExitCountDelay = 500
+d.AddIncomingBalls = 1
+Hit a, 0
+Check d.Balls, 0, "ordinary entrance still waits for settling"
+Unhit a, 0
+Check d.IncomingBalls, 0, "fast passage consumes reservation"
+Check d.IsReadyToReceive, False, "departure must still settle"
+Advance 650
+Check Events("ball_entered"), 1, "one arrival despite short occupancy"
+Check Events("ball_exiting"), 1, "one departure"
+Check Events("ball_eject_success"), 1, "launch completes"
+Check Events("ball_missing"), 0, "passage is not missing"
+Check gClaims, 0, "expected arrival bypasses claims"
+Check gKicks, 0, "manual launch does not fire callback"
+Check d.Balls, 0, "plunger empty"
+Check d.PendingEjects, 0, "launch request completed"
+Check d.IsReadyToReceive, True, "replacement can now be served"
+
+Set d = Device("fast mechanical confirmation before exit settling", 1)
+d.MechanicalEject = True: d.EjectTargets = Array("exit")
+d.EntranceCountDelay = 500: d.ExitCountDelay = 500
+d.AddIncomingBalls = 1
+Hit a, 0: Unhit a, 0: Confirm b
+Advance 510
+Check Events("ball_eject_success"), 0, "different ball cannot confirm"
+Confirm a: Advance 10
+Check Events("ball_eject_success"), 1, "same ball confirms"
+Check d.IsReadyToReceive, True, "confirmed passage clears readiness"
+
+Set d = Device("short mechanical launch latches early confirmation", 1)
+d.MechanicalEject = True: d.EjectTargets = Array("exit")
+d.EntranceCountDelay = 500: d.ExitCountDelay = 500
+d.AddIncomingBalls = 1
+Hit a, 0: Unhit a, 0: Confirm a
+Check Events("ball_eject_success"), 0, "early confirm waits for stable departure"
+Check d.IsReadyToReceive, False, "no serve during exit settling"
+Advance 510
+Check Events("ball_eject_success"), 1, "early confirm retained"
+Advance 300
+Check Events("ball_eject_success"), 1, "success only once"
+Check Events("ball_missing"), 0, "no stale missing timer"
+
+Set d = Device("fast mechanical bounce invalidates early confirmation", 1)
+d.MechanicalEject = True: d.EjectTargets = Array("exit")
+d.EntranceCountDelay = 500: d.ExitCountDelay = 500
+d.AutoFireOnUnexpectedBall = True: d.AddIncomingBalls = 1
+Hit a, 0: Unhit a, 0: Confirm a: Hit a, 0: Advance 700
+Check d.Balls, 1, "returned ball stays counted"
+Check d.IncomingBalls, 0, "incoming consumed only once"
+Check Events("ball_entered"), 1, "bounce is not a second arrival"
+Check Events("ball_eject_success"), 0, "returned ball cannot succeed"
+Check d.IsReadyToReceive, False, "occupied plunger blocks replacement"
+Check d.State, "waiting_for_player", "wait for another manual launch"
+Check gKicks, 0, "bounce never triggers powered eject"
+Unhit a, 0: Confirm a: Advance 510
+Check Events("ball_eject_success"), 1, "fresh manual launch succeeds"
+Check d.IsReadyToReceive, True, "ready after fresh launch"
+
+Set d = Device("settled mechanical launch latches early confirmation", 1)
+d.MechanicalEject = True: d.EjectTargets = Array("exit")
+d.ExitCountDelay = 500
+Hit a, 0: Advance 30: Unhit a, 0: Confirm a: Advance 510
+Check Events("ball_eject_success"), 1, "early manual confirm is not lost"
+Check Events("ball_entered"), 1, "no second arrival on departure"
+Check gKicks, 0, "manual launch only"
+
+Set d = Device("fast unexpected manual launch consumes automatic request", 1)
+d.MechanicalEject = True: d.AutoFireOnUnexpectedBall = True
+d.EntranceCountDelay = 500
+Hit a, 0: Unhit a, 0: Advance 650
+Check gClaims, 1, "unexpected passage offered to claims once"
+Check Events("ball_entered"), 1, "one arrival"
+Check Events("ball_eject_success"), 1, "manual passage succeeds"
+Check d.PendingEjects, 0, "automatic release already satisfied"
+Check gKicks, 0, "no delayed kick after manual launch"
+
+Set d = Device("fast manual launch satisfies queued powered request", 1)
+d.MechanicalEject = True: d.EntranceCountDelay = 500
+d.Eject: Advance 10
+d.AddIncomingBalls = 1
+Hit a, 0: Unhit a, 0: Advance 650
+Check Events("ball_eject_success"), 1, "manual launch satisfies queued request"
+Check d.PendingEjects, 0, "no duplicate request"
+Check gKicks, 0, "no kick after ball left"
+
+Set d = Device("moon lock replaces ball after fast plunger launch", 1)
+d.DefaultDevice = True: d.MechanicalEject = True
+d.EntranceCountDelay = 500: d.ExitCountDelay = 500
+d.AddIncomingBalls = 1
+Hit a, 0: Unhit a, 0: Advance 650
+Set lockDevice = MoonDevice(): Set lock = MoonLock()
+TableHit a, "lock0": Advance 30: lock.Disable
+Check lockDevice.Balls, 1, "first ball physically locked"
+Check GetPlayerState("moon_locked_balls"), 1, "lock credited"
+Advance 1000
+Check gTroughServes, 1, "real lock handler requests replacement"
+Check d.IncomingBalls, 1, "only new replacement reserves plunger"
+Check lockDevice.PendingEjects, 0, "locked ball retained"
+Hit b, 0: Advance 1100
+Check gKicks, 1, "real lock auto-launch fires replacement"
+Check gLastBall, b.ID, "replacement is the launched ball"
+Check gTroughServes, 1, "no duplicate trough serve"
+Check lockDevice.Balls, 1, "first lock remains held"
+
+Set d = Device("lock replacement waits for mechanical departure settling", 1)
+d.DefaultDevice = True: d.MechanicalEject = True
+d.EntranceCountDelay = 500: d.ExitCountDelay = 1500
+d.AddIncomingBalls = 1
+Hit a, 0: Unhit a, 0
+Set lockDevice = MoonDevice(): Set lock = MoonLock()
+TableHit a, "lock0": Advance 1030
+Check gTroughServes, 0, "lock polling waits while departure unsettled"
+Advance 1000
+Check gTroughServes, 1, "poll retries after confirmed launch"
+Check lockDevice.Balls, 1, "one ball stays locked"
 
 Set d = Device("seeded starting balls", 2)
 d.SeedBall a, 0: d.SeedBall a, 1

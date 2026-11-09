@@ -32,11 +32,11 @@ End Sub
 - A ball that does not leave retries the same request. A returning ball is recognised by VPX `ball.ID`, does not generate a second capture/claim event, and does not consume another incoming expectation.
 - Timer callbacks carry attempt tokens. Old callbacks and confirmation listeners cannot complete a later attempt. Success completes one request once.
 - With no `EjectTargets`, success requires a settled departure and an interval without a return. With `EjectTargets`, a matching physical ball must hit a configured confirmation switch. A missing confirm is reported as failure/missing, never success, and does not kick a different ball as a replacement.
-- Counting reconciles unique physical balls across all configured occupancy switches. Duplicate hits/unhits, overlapping switches, and movements shorter than the settling window do not add/subtract extra balls. Both arrival and departure use settling delays.
+- Counting reconciles unique physical balls across all configured occupancy switches. Duplicate hits/unhits, overlapping switches, and movements shorter than the settling window do not add/subtract extra balls. Both arrival and departure use settling delays. For a single-switch mechanical plunger, a matching Hit/UnHit before entrance settling proves a passage: it is received once at UnHit, consuming its incoming reservation, and remains counted until exit settling completes.
 - Occupancy and confirmation listeners receive every physical switch event through the dispatcher's queued raw channel. The normal 50 ms hit filter still applies to ordinary event listeners. This prevents a rapid return hit from being discarded while its preceding exit was delivered. Use the updated event dispatcher together with the device class, or the rebuilt framework bundle.
 - `EjectAll` reserves only remaining unreserved balls, including when an earlier ball has left and is awaiting confirmation. An empty call and `EjectBalls 0` are no-ops.
 - `IncomingBalls` is consumed on arrival. The built-in ball-save, multiball, and multiball-lock readiness checks prevent ball saves/multiballs from serving into a plunger whose previous launch is still awaiting confirmation.
-- A returned mechanical launch waits for another player launch. An explicit `Eject` can upgrade that pending request to a powered launch. A launch-button event while empty does not arm a future ball.
+- A returned mechanical launch waits for another player launch. An explicit `Eject` can upgrade that pending request to a powered launch. Mechanical confirmation listeners start at UnHit, so a confirmation before exit settling is retained; a return invalidates it. A launch-button event while empty does not arm a future ball.
 - An idle lost ball is tracked by identity and eventually emits missing-ball events; a different arriving ball is not mistaken for its return.
 - `StopDevice` invalidates attempts and disables an enabled eject callback. Switch observations continue while stopped so `Reset` can recount. Reset clears queued eject requests; it does not create new requests or clear externally owned queue blockers.
 
@@ -80,8 +80,8 @@ Mechanical ejection is supported for a single occupancy switch, matching the sin
 
 | Property | Meaning |
 |---|---|
-| `Balls` | Settled number of unique physical balls across all occupancy switches. |
-| `HasBall` | Whether the settled device count is greater than zero, including balls away from the eject position and balls still present during an attempt. |
+| `Balls` | Number of unique physical balls, reconciled after settling. A fast mechanical passage is included from UnHit until its exit settles. |
+| `HasBall` | Whether the device count is greater than zero, including balls away from the eject position and balls whose departure has not settled. |
 | `IncomingBalls` | Outstanding arrivals, consumed when received. |
 | `IsReadyToReceive` | Stable free switch capacity after incoming reservations, with no conflicting active eject or unconfirmed departure. Capacity is based on the number of configured occupancy switches. Use this for serving the plunger. |
 | `PendingEjects` | Queue length, including the active request. |
@@ -150,7 +150,7 @@ From the `scripts` directory on Windows:
 npm run test:ball-device
 ```
 
-Alternatively, run `cscript //nologo tests\ball-device-tests.vbs`. The runner loads the current source device, delay/event helpers, and frame dispatcher. It mocks VPX ball objects and the clock, defines 59 scenarios, and exits nonzero for assertion failures or script errors. The hit helpers also update the shared debounce clock, as the generated VPX switch handlers do. The Windows GitHub Actions workflow runs this suite for relevant pull-request changes. Follow it with VPX checks of the actual lock return path, plunger, multi-ball movement, and confirmation-switch placement.
+Alternatively, run `cscript //nologo tests\ball-device-tests.vbs`. The runner loads the current source device, delay/event helpers, frame dispatcher, and multiball-lock code. It mocks VPX ball objects, the clock, mode configuration, player state, and the trough boundary. It defines 68 scenarios, including fast manual launches and a first lock followed by a replacement serve and auto-launch, and exits nonzero for assertion failures or script errors. The hit helpers also update the shared debounce clock, as the generated VPX switch handlers do. The Windows GitHub Actions workflow runs this suite for relevant pull-request changes. Follow it with VPX checks of the actual lock return path, plunger, multi-ball movement, and confirmation-switch placement.
 
 ## Scope
 
