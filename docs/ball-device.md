@@ -38,7 +38,7 @@ End Sub
 - Occupancy and confirmation listeners receive every physical switch event through the dispatcher's queued raw channel. The normal 50 ms hit filter still applies to ordinary event listeners. This prevents a rapid return hit from being discarded while its preceding exit was delivered. Use the updated event dispatcher together with the device class, or the rebuilt framework bundle.
 - `EjectAll` reserves only remaining unreserved balls, including when an earlier ball has left and is awaiting confirmation. An empty call and `EjectBalls 0` are no-ops.
 - `IncomingBalls` is consumed on arrival. The built-in ball-save, multiball, and multiball-lock readiness checks prevent ball saves/multiballs from serving into a plunger whose previous launch is still awaiting confirmation.
-- A returned mechanical launch waits for another player launch. An explicit `Eject` can upgrade that pending request to a powered launch. Mechanical confirmation listeners start at UnHit, so a confirmation before exit settling is retained; a return invalidates it. A launch-button event while empty does not arm a future ball.
+- A returned player-controlled launch waits for another player launch. If an automatic or explicit eject was already queued, spontaneous movement and switch bounce preserve that powered request and retry it when the ball returns. An explicit `Eject` or launch-button event can also upgrade a pending player launch, including during departure settling or confirmation, without queuing an extra future ball. Observed movement does not consume the powered attempt limit before the first kick. Mechanical confirmation listeners start at UnHit, so a confirmation before exit settling is retained; a return invalidates it. A launch-button event while empty does not arm a future ball.
 - An idle lost ball is tracked by identity and eventually emits missing-ball events; a different arriving ball is not mistaken for its return.
 - `StopDevice` invalidates attempts and disables an enabled eject callback. Switch observations continue while stopped so `Reset` can recount. Reset clears queued eject requests; it does not create new requests or clear externally owned queue blockers.
 
@@ -122,7 +122,7 @@ Seed each occupied sensor with its physical ball object and zero-based switch in
 | `EjectTargets` | Empty array | Confirmation switch names; see the distinction from occupancy sensors above. |
 | `EjectEvents` | Empty array | Events that queue one eject. |
 | `EjectAllEvents` | Empty array | Events that queue all currently unreserved balls. |
-| `MechanicalEject` | `False` | Track a player-launched ball; requires a single occupancy switch. |
+| `MechanicalEject` | `False` | Track departures without a powered kick; requires a single occupancy switch. It does not cancel an existing automatic/explicit eject. Leave false for a device that can only release through its eject callback. |
 | `DefaultDevice` | `False` | Register this device as `glf_plunger`. |
 | `PlayerControlledEjectEvent` | Empty string | Event that launches an available ball. An event while empty does not arm a future launch. |
 | `AutoFireOnUnexpectedBall` | `True` | Automatically eject an unexpected, unclaimed arrival. |
@@ -152,7 +152,7 @@ From the `scripts` directory on Windows:
 npm run test:ball-device
 ```
 
-Alternatively, run `cscript //nologo tests\ball-device-tests.vbs`. The runner loads the current source device, delay/event helpers, frame dispatcher, multiball-lock and multiball code. It mocks VPX ball objects, the clock, mode/input configuration, player state, and the trough boundary. It defines 78 scenarios, including fast manual launches, first-lock replacement serving, and two-player multiball starts with surplus physical locks, and exits nonzero for assertion failures or script errors. The hit helpers also update the shared debounce clock, as the generated VPX switch handlers do. The Windows GitHub Actions workflow runs this suite for relevant pull-request changes. Follow it with VPX checks of the actual lock return path, plunger, multi-ball movement, and confirmation-switch placement.
+Alternatively, run `cscript //nologo tests\ball-device-tests.vbs`. The runner loads the current source device, delay/event helpers, frame dispatcher, multiball-lock and multiball code. It mocks VPX ball objects, the clock, mode/input configuration, player state, and the trough boundary. It defines 89 scenarios, including a logged scoop-bounce replay, powered intent through mechanical movement, fast manual launches, first-lock replacement serving, and two-player multiball starts with surplus physical locks, and exits nonzero for assertion failures or script errors. The hit helpers also update the shared debounce clock, as the generated VPX switch handlers do. The Windows GitHub Actions workflow runs this suite for relevant pull-request changes. Follow it with VPX checks of the actual lock return path, plunger, multi-ball movement, and confirmation-switch placement.
 
 ## Scope
 

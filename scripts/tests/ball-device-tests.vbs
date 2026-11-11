@@ -763,6 +763,133 @@ Check Events("ball_eject_success"), 1, "manual launch satisfies queued request"
 Check d.PendingEjects, 0, "no duplicate request"
 Check gKicks, 0, "no kick after ball left"
 
+Set d = Device("scoop bounce replay retains automatic eject", 1)
+d.MechanicalEject = True: d.AutoFireOnUnexpectedBall = True
+d.EntranceCountDelay = 500: d.ExitCountDelay = 500
+d.EjectTimeout = 1500: d.EjectRetryDelay = 500: d.EjectTargets = Array("exit")
+' Log: ball 3 Hit at 928835, UnHit at 928932, return Hit at 929307.
+' Helpers dispatch the raw handler on the next millisecond frame.
+gameTime = 928834
+Hit c, 0: Advance 95: Unhit c, 0: Advance 373: Hit c, 0
+Advance 500
+Check d.Balls, 1, "returned scoop ball remains counted"
+Check Events("ball_entered"), 1, "bounce has one arrival"
+Check gClaims, 1, "claim relay called once"
+Check d.PendingEjects, 1, "automatic eject still reserved"
+Check d.EjectAttempts, 0, "switch bounce is not a powered kick"
+Advance 1300
+Check gKicks, 1, "automatic request fires after failed spontaneous departure"
+Check gLastBall, c.ID, "same stuck ball kicked"
+Check d.State, "ejecting", "does not wait for player"
+Unhit c, 0: Advance 510: Confirm c: Advance 2200
+Check Events("ball_eject_success"), 1, "one confirmed success"
+Check Events("ball_missing"), 0, "no missing ball"
+Check d.PendingEjects, 0, "request consumed"
+Check d.Balls, 0, "scoop empty"
+Check gKicks, 1, "no extra kick after success"
+
+Set d = Device("settled unexpected arrival bounces before automatic kick", 1)
+d.MechanicalEject = True: d.AutoFireOnUnexpectedBall = True
+Hit a, 0: Advance 30: Unhit a, 0: Hit a, 0: Advance 510
+Check gKicks, 1, "existing automatic request survives bounce"
+Check d.PendingEjects, 1, "one request retained"
+Check Events("ball_entered"), 1, "not recaptured"
+Unhit a, 0: Advance 140
+Check Events("ball_eject_success"), 1, "eventual powered eject completes"
+
+Set d = Device("bounce cannot exhaust limit before first powered kick", 1)
+d.MechanicalEject = True: d.AutoFireOnUnexpectedBall = True
+d.EntranceCountDelay = 500: d.MaxEjectAttempts = 1
+Hit a, 0: Unhit a, 0: Hit a, 0: Advance 510
+' The return is stable after 500 ms, then the failed departure queues a retry.
+Advance 40
+Check gKicks, 1, "first powered kick still permitted"
+Check d.EjectAttempts, 1, "counts actual powered attempt"
+Advance 120
+Check gKicks, 1, "configured powered limit still enforced"
+Check d.State, "eject_broken", "one unsuccessful powered kick exhausts limit"
+
+Set d = Device("queued plunger auto-launch survives entrance bounce", 1)
+d.DefaultDevice = True: d.MechanicalEject = True: d.EntranceCountDelay = 500
+d.Eject: Advance 10: d.AddIncomingBalls = 1
+Hit a, 0: Unhit a, 0: Hit a, 0: Advance 550
+Check gKicks, 1, "queued powered launch retries"
+Check d.IncomingBalls, 0, "expectation consumed once"
+Check d.PendingEjects, 1, "no duplicate auto-launch"
+Check d.IsReadyToReceive, False, "occupied plunger cannot receive another ball"
+Unhit a, 0: Advance 140
+Check d.IsReadyToReceive, True, "ready after confirmed retry"
+
+Set d = Device("queue-blocked powered request survives mechanical bounce", 1)
+d.MechanicalEject = True
+AddPinEventListener d.Name & "_ball_eject_attempt", "block", "BlockAttempt", 1000, Null
+gBlock = True
+Hit a, 0: Advance 30: d.Eject: Advance 10
+Unhit a, 0: Hit a, 0: Advance 160
+Check gKicks, 0, "retry still respects external blocker"
+Check d.State, "waiting_for_queue", "returned ball has a queued powered retry"
+gBlock = False: DispatchPinEvent "allow_kick", Null: Advance 10
+Check gKicks, 1, "unblock fires exactly once"
+Unhit a, 0: Advance 140
+Check Events("ball_eject_success"), 1, "blocked retry completes once"
+Check d.PendingEjects, 0, "old blocked attempt cannot create another request"
+
+Set d = Device("auto-launch arriving during manual bounce upgrades same request", 1)
+d.MechanicalEject = True: d.AddIncomingBalls = 1: d.MaxEjectAttempts = 1
+Hit a, 0: Unhit a, 0: d.Eject: Hit a, 0: Advance 160
+Check gKicks, 1, "later powered request kicks returned ball"
+Check d.EjectAttempts, 1, "manual observation does not consume powered limit"
+Check d.PendingEjects, 1, "upgrade does not queue a future ball"
+Unhit a, 0: Advance 140
+Check Events("ball_eject_success"), 1, "upgraded request completes"
+d.AddIncomingBalls = 1: Hit b, 0: Advance 650
+Check gKicks, 1, "no phantom powered request for next arrival"
+Check d.PendingEjects, 0, "no duplicate remains"
+
+Set d = Device("auto-launch upgrades manual departure awaiting confirmation", 1)
+d.MechanicalEject = True: d.AddIncomingBalls = 1
+Hit a, 0: Advance 30: Unhit a, 0: Advance 30
+Check d.State, "waiting_for_confirm", "manual departure already settled"
+d.Eject: Hit a, 0: Advance 70
+Check gKicks, 1, "return uses later powered request"
+Check d.PendingEjects, 1, "one active request"
+Unhit a, 0: Advance 140
+Check Events("ball_eject_success"), 1, "retry completes"
+
+Set d = Device("launch button upgrades unresolved mechanical bounce", 1)
+d.MechanicalEject = True: d.AddIncomingBalls = 1
+d.PlayerControlledEjectEvent = "launch_button"
+Hit a, 0: Unhit a, 0: Hit a, 0
+DispatchPinEvent "launch_button", Null: Advance 160
+Check gKicks, 1, "button requests powered recovery"
+Check d.PendingEjects, 1, "button upgrades existing request"
+Unhit a, 0: Advance 140
+Check Events("ball_eject_success"), 1, "button-requested retry completes"
+
+Set d = Device("late auto-launch satisfied by successful manual departure", 1)
+d.MechanicalEject = True: d.AddIncomingBalls = 1
+Hit a, 0: Unhit a, 0: d.Eject: Advance 140
+Check gKicks, 0, "already departing ball needs no powered kick"
+Check Events("ball_eject_success"), 1, "manual passage satisfies powered request"
+Check d.PendingEjects, 0, "no extra queued launch"
+d.AddIncomingBalls = 1: Hit b, 0: Advance 650
+Check gKicks, 0, "next incoming ball remains for player"
+
+Set d = Device("mechanical device without callback waits after bounce", 1)
+d.MechanicalEject = True: d.AutoFireOnUnexpectedBall = True: d.EjectCallback = Null
+Hit a, 0: Unhit a, 0: Hit a, 0: Advance 650
+Check d.State, "waiting_for_player", "no powered retry without callback"
+Check gKicks, 0, "no powered kick"
+Check d.PendingEjects, 1, "manual launch can still satisfy request"
+
+Set d = Device("claimed mechanical arrival is not forced out after bounce", 1)
+d.MechanicalEject = True: d.AutoFireOnUnexpectedBall = True: gClaimResult = 0
+Hit a, 0: Unhit a, 0: Hit a, 0: Advance 650
+Check gClaims, 1, "one claim"
+Check gKicks, 0, "claimed ball not automatically ejected"
+Check d.Balls, 1, "claimed ball remains held"
+Check d.State, "waiting_for_player", "no powered intent invented"
+
 Set d = Device("moon lock replaces ball after fast plunger launch", 1)
 d.DefaultDevice = True: d.MechanicalEject = True
 d.EntranceCountDelay = 500: d.ExitCountDelay = 500
