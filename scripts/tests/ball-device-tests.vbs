@@ -123,6 +123,11 @@ Function BlockSecondAttempt(args)
     If gBlockSecond Then args(1).Add "wait_for", "allow_second_kick"
     Set BlockSecondAttempt = args(1)
 End Function
+Function RecordQueuePayload(args)
+    Dim name: name = "payload_" & args(1)("id")
+    gEvents(name) = Events(name) + 1
+    Set RecordQueuePayload = args(1)
+End Function
 Function Events(name)
     Events = 0
     If gEvents.Exists(name) Then Events = gEvents(name)
@@ -246,7 +251,7 @@ Function Multiball(count, countType, locks)
     Set Multiball = mb
 End Function
 
-Dim d, a, b, c, oldToken, i, j, slot, which, physical(3, 2), balls(3), expected, occupied, lock, lockDevice, mb
+Dim d, a, b, c, oldToken, i, j, slot, which, physical(3, 2), balls(3), expected, occupied, lock, lockDevice, mb, payload
 Set a = Ball(1): Set b = Ball(2): Set c = Ball(3)
 
 Set d = Device("empty unconfigured device", 0)
@@ -566,6 +571,38 @@ gBlockSecond = False: DispatchPinEvent "allow_second_kick", Null: Advance 10
 Check gKicks, 1, "both releases permit exactly one kick"
 DispatchPinEvent "allow_kick", Null: DispatchPinEvent "allow_second_kick", Null: Advance 10
 Check gKicks, 1, "old release events cannot replay the kick"
+
+Set d = Device("same queue event can pause twice on one release event", 1)
+gBlock = True
+AddPinEventListener "shared_queue", "block", "BlockAttempt", 1000, Null
+AddPinEventListener "shared_queue", "record", "RecordQueuePayload", 100, Null
+Set payload = GlfKwargs(): payload.Add "id", 1
+DispatchQueuePinEvent "shared_queue", payload
+Set payload = GlfKwargs(): payload.Add "id", 2
+DispatchQueuePinEvent "shared_queue", payload
+Advance 20
+Check Events("payload_1"), 0, "first dispatch paused"
+Check Events("payload_2"), 0, "second dispatch paused independently"
+gBlock = False: DispatchPinEvent "allow_kick", Null: Advance 20
+Check Events("payload_1"), 1, "first payload resumed"
+Check Events("payload_2"), 1, "second payload resumed in same frame"
+DispatchPinEvent "allow_kick", Null: Advance 20
+Check Events("payload_1"), 1, "first continuation removed"
+Check Events("payload_2"), 1, "second continuation removed"
+
+Set d = Device("new eject after reset has independent queue continuation", 1)
+gBlock = True
+AddPinEventListener d.Name & "_ball_eject_attempt", "block", "BlockAttempt", 1000, Null
+Hit a, 0: Advance 30: d.Eject: Advance 20
+d.Reset: Advance 30: d.Eject: Advance 20
+Check gKicks, 0, "both attempts wait for external release"
+gBlock = False: DispatchPinEvent "allow_kick", Null: Advance 20
+Check gKicks, 1, "only new attempt fires"
+Check d.PendingEjects, 1, "one current request"
+Unhit a, 0: Advance 140
+Check Events("ball_eject_success"), 1, "new attempt completes"
+DispatchPinEvent "allow_kick", Null: Advance 20
+Check gKicks, 1, "stale continuation cannot fire later"
 
 Set d = Device("ball moves while queue is blocked", 2)
 gBlock = True

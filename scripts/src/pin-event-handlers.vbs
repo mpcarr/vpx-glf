@@ -215,7 +215,10 @@ Function ContinueDispatchQueuePinEvent(args)
 
     'Inject handlers back into dispatch
     For i=0 to UBound(keys)
-        glf_dispatch_handlers_await.Add keys(i), items(i)
+        ' Several paused instances of one event may resume in the same frame.
+        ' Keep their handler keys distinct; their original event/kwargs remain
+        ' in items(i), including any device token used to reject stale attempts.
+        glf_dispatch_handlers_await.Add keys(i) & "_resume_" & ownProps(4), items(i)
     Next
     Exit Function
 

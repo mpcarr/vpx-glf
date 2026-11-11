@@ -1181,7 +1181,11 @@ Public Function Glf_RunHandlers(i)
 		If Not IsEmpty(wait_for) Then
 			Dim remaining_handlers_keys : remaining_handlers_keys = glf_dispatch_handlers_await.Keys
 			Dim remaining_handlers_items : remaining_handlers_items = glf_dispatch_handlers_await.Items
-			AddPinEventListener wait_for, key & "_wait_for", "ContinueDispatchQueuePinEvent", 1000, Array(remaining_handlers_keys, remaining_handlers_items, null, wait_for, key & "_wait_for")
+			' Each paused dispatch needs its own continuation. A retry may wait
+			' on the same event while a cancelled attempt is still registered.
+			Dim continuation_key : continuation_key = key & "_wait_for_" & glf_dispatch_queue_int
+			glf_dispatch_queue_int = glf_dispatch_queue_int + 1
+			AddPinEventListener wait_for, continuation_key, "ContinueDispatchQueuePinEvent", 1000, Array(remaining_handlers_keys, remaining_handlers_items, null, wait_for, continuation_key)
 			glf_dispatch_handlers_await.RemoveAll
 			Exit For
 		End If
