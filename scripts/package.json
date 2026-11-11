@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "script-watcher": "grunt watch:vpx"
+    "script-watcher": "grunt watch:vpx",
+    "test:ball-device": "cscript //nologo tests\\ball-device-tests.vbs"
   },
   "author": "",
   "license": "ISC",

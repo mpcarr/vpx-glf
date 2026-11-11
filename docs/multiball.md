@@ -32,7 +32,7 @@ With CreateGlfMode("mode_name", priority)
         ' Ball settings
         .BallCount = 3                ' Number of balls in multiball
         .BallCountType = "total"      ' "total" or "additional" (Default: "total")
-        .BallLock = "lock_device"     ' Ball device to eject balls from
+        .BallLocks = Array("lock_device") ' Physical devices to draw balls from
         
         ' Event settings
         .StartEvents = Array("event1", "event2") ' Events that trigger multiball start
@@ -59,7 +59,11 @@ End With
 ### Ball Settings
 - `BallCount`: Number of balls in multiball (Default: 0)
 - `BallCountType`: Type of ball count - "total" or "additional" (Default: "total")
-- `BallLock`: Ball device to eject balls from (Default: Empty)
+- `BallLocks`: Array of physical ball-device names to draw balls from, in order (Default: Empty Array)
+
+At startup, `"total"` adds only the difference between `BallCount` and the current balls in play. `"additional"` adds `BallCount` balls. Lock devices supply up to that amount; any shortage is served from the trough. Balls already reserved for other ejects are excluded, and surplus lock balls remain held.
+
+Physical locks are shared between players; they are not the current player's lock-credit count. For example, if the moon holds two balls but player 2 starts a two-ball multiball with one ball already in play, only one moon ball releases. The other remains held. When multiball size depends on lock progress, configure `BallCount` from the current player's progress; the value is evaluated at startup.
 
 ### Event Control
 - `StartEvents`: Array of event names that trigger multiball start (Default: Empty Array)
@@ -108,7 +112,7 @@ With CreateGlfMode("multiball", 20)
         ' Ball settings
         .BallCount = 3
         .BallCountType = "total"
-        .BallLock = "lock_device"
+        .BallLocks = Array("lock_device")
         
         ' Event settings
         .StartEvents = Array("jackpot_ready")
@@ -177,4 +181,4 @@ By default, multiballs are configured with:
 - Multiballs can be configured to work with specific game modes or features
 - The multiball system supports adding balls during gameplay
 - Shoot again, grace period, and hurry up features can be customized
-- Multiballs can be configured to eject balls from a ball lock device 
+- Multiballs can be configured to eject balls from a ball lock device

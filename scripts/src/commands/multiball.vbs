@@ -224,14 +224,15 @@ Class GlfMultiballs
         'msgbox("Starting multiball with " & m_balls_live_target & " balls (added " & m_balls_added_live & ")")    
         Dim balls_added : balls_added = 0
 
-        'eject balls from locks
-        Dim ball_lock
+        ' Physical locks are shared between players. Release only the balls
+        ' needed for this start, leaving surplus and existing reservations alone.
+        Dim ball_lock, remaining_balls, released_balls
         For Each ball_lock in m_ball_locks
-            Dim available_balls : available_balls = glf_ball_devices(ball_lock).Balls()
-            If available_balls > 0 Then
-                glf_ball_devices(ball_lock).EjectAll()
-            End If
-            balls_added = balls_added + available_balls
+            remaining_balls = m_balls_added_live - balls_added
+            If remaining_balls <= 0 Then Exit For
+            released_balls = glf_ball_devices(ball_lock).EjectAvailableBalls(remaining_balls)
+            Log "Releasing " & released_balls & " from " & ball_lock & "; needed " & remaining_balls
+            balls_added = balls_added + released_balls
         Next
         Log "Balls added: " & balls_added
         glf_BIP = m_balls_live_target
@@ -495,7 +496,7 @@ Function MultiballsHandler(args)
             kwargs = multiball.BallsDrained(kwargs)
         Case "queue_release"
             If multiball.QueuedBalls() > 0 Then
-                If glf_plunger.HasBall = False And ballInReleasePostion = True And glf_plunger.IncomingBalls = 0 Then
+                If glf_plunger.IsReadyToReceive = True And ballInReleasePostion = True Then
                     Glf_ReleaseBall(Null)
                     SetDelay multiball.Name&"_auto_launch", "MultiballsHandler" , Array(Array("auto_launch", multiball),Null), 500
                     If multiball.ReleaseQueuedBalls() > 0 Then

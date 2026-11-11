@@ -1,82 +1,160 @@
 # Ball Device Configuration
 
-The ball device configuration allows you to set up and customize ball devices in your pinball machine. Ball devices are used for scoops, physical ball locks, staging areas. Anywhere you want to hold a ball on the table. 
+Ball devices track and eject balls in scoops, physical locks, and staging areas. Configure occupancy switches and an eject callback for each device.
 
-## Configuration Options
-
-### Basic Configuration
 ```vbscript
-' Basic ball device configuration
 With CreateGlfBallDevice("scoop")
     .BallSwitches = Array("s_scoop1")
-    .EjectTimemout = 2000
-    .EjectCallback = "ScoopEjectCallback"              ' Name of the callback function for ball device
+    .EjectCallback = "ScoopEjectCallback"
+    .EjectTimeout = 2000
+    .EjectRetryDelay = 500
 End With
 ```
 
-Each device will have a ```Eject Callback``` setting. This calls your defined function / sub when the ball should be ejected from the device. In a real pinball machine this would be the coil firing to eject the ball. In VPX, you need to implement this function to virutally *kick* the ball out from the device. Below is an example of how to you could do that.
+The callback receives the VPX ball object to kick. If `EjectEnableTime` is positive, it also receives `Null` when the enable period ends or the attempt completes or is cancelled. Ball search can also call it with `Null`; callbacks must handle that value before accessing the ball.
 
-```
+```vbscript
 Sub ScoopEjectCallback(ball)
-	Dim ang, vel
-	If s_scoop1.BallCntOver > 0 Then 'Check if the ball is positioned on the switch / kicker
-		ang = 14.8 + ScoopAngleTol*2*(rnd-0.5) 'generate some randomness to the angle
-		vel = 70.0 + ScoopStrengthTol*2*(rnd-0.5) 'generare some randomness to the velocity
-		KickBall ball, ang, vel, 0, 0 'actually kick the ball
-		SoundSaucerKick 1, s_Scoop 'play a sound to simulate the coil firing
-	Else
-		SoundSaucerKick 0, s_Scoop 'play a sound if even if the ball wasn't on the switch (failed kick)
-	End If
-	DOF 109, DOFPulse 'Optionally call a DOF event.
+    If IsNull(ball) Then Exit Sub
+    If s_scoop1.BallCntOver > 0 Then
+        KickBall ball, 14.8, 70, 0, 0
+    End If
 End Sub
 ```
 
-## Property Descriptions
+## Eject lifecycle and counting
 
-### Basic Settings
-- `BallSwitches`: Array of switch names that detect balls in the device (Default: Empty Array)
-- `EjectCallback`: String name of the callback function that executes when the ball device ejects a ball (Default: Null)
+`Eject` queues one ball, `EjectBalls n` queues a requested number, and `EjectAll` queues the physical balls not already reserved.
 
-### Ejection Control
-- `EjectTimeout`: Integer specifying the timeout in milliseconds for ejection (Default: 1000)
-- `EjectEnableTime`: Integer specifying the enable time in milliseconds for ejection (Default: 0).
-- `MechanicalEject`: Boolean indicating whether the device uses mechanical ejection (Default: False)
-- `DefaultDevice`: Boolean indicating whether this is the default ball device (Default: False)
-- `PlayerControlledEjectEvent`: String name of the event that triggers player-controlled ejection (Default: Empty)
+`EjectAvailableBalls(n)` queues up to `n` currently unreserved physical balls and returns the number of new requests accepted. It does not reserve future arrivals. Multiball startup uses that return value to leave surplus balls held and request only the remaining shortfall from the trough.
 
-### Event Control
-- `EjectAllEvents`: Array of event names that will trigger ejection of all balls (Default: Empty Array)
-- `EjectTargets`: Array of target names that will trigger ejection timeout when activated (Default: Empty Array)
+- Eject requests are queued and serialized. Each available physical ball is reserved once. Requests exceeding supply wait for a new arrival without polling an empty device indefinitely.
+- An unexpected, unclaimed arrival requests release of one available ball, preferring the ball already at `EjectSwitchIndex`. For example, when one ball is locked at the exit and a second ball arrives behind it, the front ball ejects and one ball remains held. The actual selected ball is tracked by identity for departure, return/retry, and confirmation.
+- The actual kick is the final handler of the asynchronous `_ball_eject_attempt` queue event. Higher-priority handlers can block it with GLF's existing `wait_for` mechanism. Reserve priority `-2147483647` for the internal final handler.
+- Every paused queue dispatch keeps an independent continuation. When an old cancelled attempt and its retry wait on the same release event, both continuations resume and the device's attempt token rejects the old one. The current retry can proceed without losing the blocker or duplicating a kick.
+- A ball that does not leave retries the same request. A returning ball is recognised by VPX `ball.ID`, does not generate a second capture/claim event, and does not consume another incoming expectation.
+- Timer callbacks carry attempt tokens. Old callbacks and confirmation listeners cannot complete a later attempt. Success completes one request once.
+- With no `EjectTargets`, success requires a settled departure and an interval without a return. With `EjectTargets`, a matching physical ball must hit a configured confirmation switch. A missing confirm is reported as failure/missing, never success, and does not kick a different ball as a replacement.
+- Counting reconciles unique physical balls across all configured occupancy switches. Duplicate hits/unhits, overlapping switches, and movements shorter than the settling window do not add/subtract extra balls. Both arrival and departure use settling delays. For a single-switch mechanical plunger, a matching Hit/UnHit before entrance settling proves a passage: it is received once at UnHit, consuming its incoming reservation, and remains counted until exit settling completes.
+- Occupancy and confirmation listeners receive every physical switch event through the dispatcher's queued raw channel. The normal 50 ms hit filter still applies to ordinary event listeners. This prevents a rapid return hit from being discarded while its preceding exit was delivered. Use the updated event dispatcher together with the device class, or the rebuilt framework bundle.
+- `EjectAll` reserves only remaining unreserved balls, including when an earlier ball has left and is awaiting confirmation. An empty call and `EjectBalls 0` are no-ops.
+- `IncomingBalls` is consumed on arrival. The built-in ball-save, multiball, and multiball-lock readiness checks prevent ball saves/multiballs from serving into a plunger whose previous launch is still awaiting confirmation.
+- A returned player-controlled launch waits for another player launch. If an automatic or explicit eject was already queued, spontaneous movement and switch bounce preserve that powered request and retry it when the ball returns. An explicit `Eject` or launch-button event can also upgrade a pending player launch, including during departure settling or confirmation, without queuing an extra future ball. Observed movement does not consume the powered attempt limit before the first kick. Mechanical confirmation listeners start at UnHit, so a confirmation before exit settling is retained; a return invalidates it. A launch-button event while empty does not arm a future ball.
+- An idle lost ball is tracked by identity and eventually emits missing-ball events; a different arriving ball is not mistaken for its return.
+- `StopDevice` invalidates attempts and disables an enabled eject callback. Switch observations continue while stopped so `Reset` can recount. Reset clears queued eject requests; it does not create new requests or clear externally owned queue blockers.
 
-### Ball Tracking
-- `EntranceCountDelay`: Integer specifying the delay in milliseconds before counting a ball as entered (Default: 500)
-- `ExcludeFromBallSearch`: Boolean indicating whether to exclude this device from ball search operations (Default: False)
+## Timing and eject-position configuration
 
-### Debug Settings
-- `Debug`: Boolean to enable debug logging for this device (Default: False)
+All durations below are integer milliseconds. Count delays and `EjectEnableTime` may be zero; timeout and retry durations must be greater than zero.
 
-## Events
+| Property | Default | Purpose |
+|---|---:|---|
+| `EntranceCountDelay` | 500 | Stable time after a switch activation. Applies to the default plunger too. |
+| `ExitCountDelay` | 500 | Stable time after a switch deactivation. |
+| `EjectTimeout` | 1000 | Departure timeout; also the subsequent confirmation/return-check interval. Must be greater than zero. |
+| `EjectRetryDelay` | 500 | Delay between a failed attempt and its retry. |
+| `MaxEjectAttempts` | 0 | Maximum attempts including the first; zero means unlimited. |
+| `BallMissingTimeout` | 20000 | Additional grace after an explicit confirmation timeout before declaring the ball missing. |
+| `IdleMissingBallTimeout` | 3000 | Time after a settled idle departure before declaring the ball missing. |
+| `EjectSwitchIndex` | 0 | Zero-based entry in `BallSwitches` identifying the physical eject position. |
+| `EjectEnableTime` | 0 | When positive, callback receives `Null` to disable after this duration, or earlier when its attempt is cancelled/completed. |
 
-The ball device system generates several events that you can listen to:
+Example:
 
-- `balldevice_{device_name}_ball_enter`: Relay event triggered when a ball is entering the device (can be claimed by other systems)
-- `balldevice_{device_name}_ball_entered`: Triggered when a ball has successfully entered the device
-- `balldevice_{device_name}_ball_exiting`: Triggered when a ball is exiting the device
-- `balldevice_{device_name}_ball_eject_success`: Triggered when a ball has been successfully ejected from the device
+```vbscript
+With CreateGlfBallDevice("moon_lock")
+    .BallSwitches = Array("s_moon_lock")
+    .EjectCallback = "MoonLockEject"
+    .EjectTimeout = 1500
+    .EntranceCountDelay = 500
+    .ExitCountDelay = 500
+    .EjectRetryDelay = 500
+    .MaxEjectAttempts = 0
+End With
+```
 
-Replace `{device_name}` with your actual ball device name.
+For a multi-switch device, `BallSwitches` describes occupancy sensors, not eject-confirmation switches. The same physical ball can overlap sensors. `EjectSwitchIndex` identifies where the callback can actually eject a ball; the device waits for a reserved ball to reach that position.
 
+`EjectTargets` retains GLF's existing switch-name meaning, for example `Array("s_lock_exit")` subscribes to `s_lock_exit_active`. It is **not** an MPF device-routing graph. Confirmation events must carry the VPX ball object, as generated GLF switch events already do.
 
+Mechanical ejection is supported for a single occupancy switch, matching the single-ball plunger use case. Multi-switch powered devices use the same counting and queued-eject implementation without `MechanicalEject`.
 
-## Notes
+## Properties and integration
 
-- The ball device system automatically manages ball tracking and ejection based on configured switches
-- Eject callbacks receive a ball parameter (can be Null for enable time callbacks)
-- Debug logging can be enabled to track ball device state changes
-- Ball devices can be configured to eject balls during specific game modes using EjectAllEvents
-- The system prevents multiple ejection operations from overlapping
-- Ball tracking is always enabled and managed automatically
-- The entrance count delay helps prevent false ball detection
-- Mechanical ejection mode uses timeouts to track successful ball exits
-- Player controlled ejection allows manual triggering via events
-- Eject targets can be used to trigger ejection timeouts when specific targets are hit 
+| Property | Meaning |
+|---|---|
+| `Balls` | Number of unique physical balls, reconciled after settling. A fast mechanical passage is included from UnHit until its exit settles. |
+| `HasBall` | Whether the device count is greater than zero, including balls away from the eject position and balls whose departure has not settled. |
+| `IncomingBalls` | Outstanding arrivals, consumed when received. |
+| `IsReadyToReceive` | Stable free switch capacity after incoming reservations, with no conflicting active eject or unconfirmed departure. Capacity is based on the number of configured occupancy switches. Use this for serving the plunger. |
+| `PendingEjects` | Queue length, including the active request. |
+| `State` | Current lifecycle state. |
+| `EjectAttempts` | Attempts made for the current/most recent request. |
+
+Any custom code that previously used `HasBall = False And IncomingBalls = 0` to serve the plunger should use `IsReadyToReceive = True`. `HasBall` is now an occupancy query, not an eject-readiness query.
+
+Existing entry relay arguments remain numeric, and existing entered/exiting/ejecting/success events retain their `Null` payloads. Expected incoming balls still bypass GLF's claim relay for compatibility with the supplied implementation.
+
+New events:
+
+- `balldevice_<name>_ball_count_changed`: kwargs `balls`.
+- `balldevice_<name>_ball_eject_failed`: kwargs `balls`, `retry`, `num_attempts`, `reason`.
+- `balldevice_<name>_broken`: emitted when the configured attempt limit is reached. Call `Reset` and issue new requests after correcting the problem.
+- `balldevice_<name>_ball_missing` and `balldevice_ball_missing`: kwargs `balls`, `name`, `ball_id`.
+
+The queue attempt event now supplies `source`, `balls`, `num_attempts` (completed attempts before the next kick), and internal `glf_eject_token`. Queue handlers must return the kwargs object, as required by GLF.
+
+## Balls already present at initialization
+
+VPX's generic switch integration does not provide a reliable switch-to-ball-object query. For balls placed on switches before normal Hit events are enabled, seed the known ball objects once during initialization:
+
+```vbscript
+glf_ball_devices("moon_lock").SeedBall existingBallObject, 0
+```
+
+Seed each occupied sensor with its physical ball object and zero-based switch index. Seeding the same ball on overlapping sensors counts it once and does not emit capture events. Normal Hit/UnHit events must subsequently supply the actual ball object. This implementation does not infer initial occupancy from table geometry.
+
+## Other configuration properties
+
+| Property | Default | Meaning |
+|---|---|---|
+| `BallSwitches` | Empty array | Occupancy switch names. Hit/UnHit events must carry the VPX ball object. |
+| `EjectCallback` | `Null` | Name of the callback that kicks the ball. |
+| `EjectTargets` | Empty array | Confirmation switch names; see the distinction from occupancy sensors above. |
+| `EjectEvents` | Empty array | Events that queue one eject. |
+| `EjectAllEvents` | Empty array | Events that queue all currently unreserved balls. |
+| `MechanicalEject` | `False` | Track departures without a powered kick; requires a single occupancy switch. It does not cancel an existing automatic/explicit eject. Leave false for a device that can only release through its eject callback. |
+| `DefaultDevice` | `False` | Register this device as `glf_plunger`. |
+| `PlayerControlledEjectEvent` | Empty string | Event that launches an available ball. An event while empty does not arm a future launch. |
+| `AutoFireOnUnexpectedBall` | `True` | Automatically eject an unexpected, unclaimed arrival. |
+| `ExcludeFromBallSearch` | `False` | Exclude the device from ball search. |
+| `Debug` | `False` | Enable device logging. |
+
+Add incoming reservations with `AddIncomingBalls`. `MaxEjectAttempts` includes the first attempt. After correcting a problem that caused `eject_broken`, call `Reset` and issue new requests.
+
+## Existing events
+
+Replace `<name>` with the name passed to `CreateGlfBallDevice`.
+
+| Event | Payload / purpose |
+|---|---|
+| `balldevice_<name>_ball_enter` | Numeric claim relay for unexpected arrivals. |
+| `balldevice_<name>_ball_entered` | `Null`; settled arrival. |
+| `balldevice_<name>_ball_exiting` | `Null`; settled departure. |
+| `balldevice_<name>_ball_eject_attempt` | Queue event described above. |
+| `balldevice_<name>_ejecting_ball` | `Null`; an eject is being tracked. |
+| `balldevice_<name>_ball_eject_success` | `Null`; one request completes successfully. |
+
+## Regression tests
+
+From the `scripts` directory on Windows:
+
+```console
+npm run test:ball-device
+```
+
+Alternatively, run `cscript //nologo tests\ball-device-tests.vbs`. The runner loads the current source device, delay/event helpers, frame dispatcher, multiball-lock and multiball code. It mocks VPX ball objects, the clock, mode/input configuration, player state, and the trough boundary. It defines 91 scenarios, including a logged scoop-bounce replay, powered intent through mechanical movement, independent queue continuations, fast manual launches, first-lock replacement serving, and two-player multiball starts with surplus physical locks, and exits nonzero for assertion failures or script errors. The hit helpers also update the shared debounce clock, as the generated VPX switch handlers do. The Windows GitHub Actions workflow runs this suite for relevant pull-request changes. Follow it with VPX checks of the actual lock return path, plunger, multi-ball movement, and confirmation-switch placement.
+
+## Scope
+
+This implements local eject lifecycle and counting. It does not add MPF's device-routing graph, per-source incoming-transfer objects, jam-switch/reorder logic, pulse-strength escalation, or global playfield missing-ball accounting. Missing-ball events provide a hook for the latter; they do not themselves change GLF's balls-in-play count.
