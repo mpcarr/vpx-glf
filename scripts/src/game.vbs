@@ -149,7 +149,7 @@ Function Glf_BallController(args)
         If swTrough7.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
         If glf_troughStyle = "Default" Then
             If Drain.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
-        Else If glf_troughStyle = "P3" Then
+        ElseIf glf_troughStyle = "P3" Then
             If swTrough8.BallCntOver = 1 Then balls_in_trough = balls_in_trough + 1
         End If
     End If

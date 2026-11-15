@@ -100,7 +100,7 @@ Sub UpdateTroughDebounced(args)
 
 		If glf_lastTroughSw.BallCntOver = 0 Then Drain.kick 57, 10
 
-	Else If glf_troughStyle = "P3" Then
+	ElseIf glf_troughStyle = "P3" Then
 
 		If glf_troughSize > 1 Then
 			If swTrough8.BallCntOver = 0 Then swTrough7.kick -90, 10
