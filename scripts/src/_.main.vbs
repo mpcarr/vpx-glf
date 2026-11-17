@@ -80,6 +80,7 @@ Dim bcpExeName : bcpExeName = CGameName & "_gmc"
 Dim bcpLocalPathToGodot : bcpLocalPathToGodot = ""
 Dim bcpLocalPathToProject : bcpLocalPathToProject = ""
 Dim bcpDebug : bcpDebug = False
+Dim bcpDisplaySettings : Set bcpDisplaySettings = CreateObject("Scripting.Dictionary")
 Dim glf_monitor_player_vars : glf_monitor_player_vars = false
 Dim glf_BIP : glf_BIP = 0
 Dim glf_FuncCount : glf_FuncCount = 0
@@ -114,6 +115,9 @@ Public Sub Glf_ConnectToBCPMediaController(args)
 	Else
 		Set bcpController = (new GlfVpxBcpController)(bcpPort, "")
 	End If
+	If bcpDisplaySettings.Count > 0 Then
+        bcpController.RegisterDisplay bcpDisplaySettings("name"), bcpDisplaySettings("width"), bcpDisplaySettings("height"), bcpDisplaySettings("id"), bcpDisplaySettings("dmdstyle")
+    End If
 End Sub
 
 Public Sub Glf_ConnectToDebugBCPMediaController(args)

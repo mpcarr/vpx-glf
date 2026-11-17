@@ -35,6 +35,12 @@ Class GlfVpxBcpController
         Set Init = Me
 	End Function
 
+    Public Sub RegisterDisplay(name, width, height, id, dmdstyle)
+        If m_connected Then
+            m_bcpController.RegisterDisplay name, width, height, id, dmdstyle
+        End If
+    End Sub
+
 	Public Sub Send(commandMessage)
 		If m_connected = True Then
             m_bcpController.Send commandMessage
